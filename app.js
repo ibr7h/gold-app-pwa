@@ -11,7 +11,68 @@ const state={
   priceSource:'demo',
   priceUpdatedAt:null
 };
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s),$=s=>[...document.querySelectorAll(s)];
+
+const APP_VERSION='0.3.2';
+const VERSION_URL='./version.json';
+let swRegistration=null;
+let refreshingForUpdate=false;
+
+async function clearOldCaches(){
+  if(!('caches' in window)) return;
+  const keys=await caches.keys();
+  await Promise.all(keys.filter(k=>!k.includes('v0.3.2-force')).map(k=>caches.delete(k)));
+}
+
+async function applyForceUpdate(){
+  if(refreshingForUpdate) return;
+  refreshingForUpdate=true;
+  try{
+    await clearOldCaches();
+    if(swRegistration){
+      await swRegistration.update();
+      if(swRegistration.waiting){
+        swRegistration.waiting.postMessage({type:'SKIP_WAITING'});
+      }else if(swRegistration.active){
+        swRegistration.active.postMessage({type:'CLEAR_OLD_CACHES'});
+      }
+    }
+    localStorage.setItem('gold_app_version',APP_VERSION);
+    const url=new URL(location.href);
+    url.searchParams.set('_v',APP_VERSION+'-'+Date.now());
+    location.replace(url.toString());
+  }catch{
+    refreshingForUpdate=false;
+  }
+}
+
+async function checkForUpdate({silent=true}={}){
+  try{
+    const res=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+    if(!res.ok) return false;
+    const info=await res.json();
+    const remote=String(info.version||'');
+    const installed=localStorage.getItem('gold_app_version')||'';
+    const needsUpdate=remote && remote!==APP_VERSION;
+    const firstRun=installed!==APP_VERSION;
+
+    if(needsUpdate){
+      const btn=$('#forceUpdateBtn');
+      if(btn){btn.hidden=false;btn.textContent='تحديث '+remote;}
+      return true;
+    }
+    if(firstRun){
+      localStorage.setItem('gold_app_version',APP_VERSION);
+      await clearOldCaches();
+    }
+    const btn=$('#forceUpdateBtn');
+    if(btn) btn.hidden=true;
+    return false;
+  }catch{
+    return false;
+  }
+}
+
 const money=n=>new Intl.NumberFormat('ar-SA',{style:'currency',currency:'SAR',maximumFractionDigits:2}).format(Number(n||0));
 const dateLabel=x=>{try{return new Intl.DateTimeFormat('ar-SA',{dateStyle:'medium'}).format(new Date(x))}catch{return '—'}};
 
@@ -235,7 +296,44 @@ $('#alertForm').addEventListener('submit',async e=>{e.preventDefault();await add
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').hidden=false});
 $('#installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#installBtn').hidden=true});
-if('serviceWorker'in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+if('serviceWorker'in navigator){
+  window.addEventListener('load',async()=>{
+    swRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+    await swRegistration.update();
+
+    if(swRegistration.waiting){
+      swRegistration.waiting.postMessage({type:'SKIP_WAITING'});
+    }
+
+    swRegistration.addEventListener('updatefound',()=>{
+      const worker=swRegistration.installing;
+      if(!worker) return;
+      worker.addEventListener('statechange',()=>{
+        if(worker.state==='installed'&&navigator.serviceWorker.controller){
+          const btn=$('#forceUpdateBtn');
+          if(btn){btn.hidden=false;btn.textContent='تحديث الآن';}
+        }
+      });
+    });
+
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(refreshingForUpdate) return;
+      refreshingForUpdate=true;
+      location.reload();
+    });
+
+    await checkForUpdate({silent:true});
+  });
+}
+
+$('#forceUpdateBtn')?.addEventListener('click',applyForceUpdate);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    swRegistration?.update();
+    checkForUpdate({silent:true});
+  }
+});
+window.addEventListener('focus',()=>checkForUpdate({silent:true}));
 
 renderPrices();renderPortfolio();renderAlerts();renderAuth();
-Promise.allSettled([loadPrices(),syncPortfolio(),syncAlerts()]);
+Promise.allSettled([loadPrices(),syncPortfolio(),syncAlerts(),checkForUpdate({silent:true})]);
