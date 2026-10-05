@@ -3,9 +3,9 @@ name: Deploy Gold App PWA to Pages
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "prices-live.json"
   workflow_dispatch:
-  schedule:
-    - cron: "*/5 * * * *"
 
 permissions:
   contents: read
@@ -22,52 +22,423 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Fetch live gold price
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Prepare existing stable root
         shell: bash
         run: |
           set -euo pipefail
-          curl --retry 3 --retry-delay 2 --fail --silent --show-error             "https://api.gold-api.com/price/XAU/USD"             -o /tmp/gold.json
+          rm -rf _site
+          mkdir -p _site/icons
+          for f in index.html styles.css app.js manifest.webmanifest sw.js version.json .nojekyll prices-live.json; do
+            [ -f "$f" ] && cp "$f" "_site/$f"
+          done
+          [ -d icons ] && cp -R icons/. _site/icons/
+
+      - name: Extract full Gold App source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/gold-full /tmp/gold-app
+          mkdir -p /tmp/gold-full
+          unzip -q "gold-app 17 apr 15-19 adimin icon.zip" -d /tmp/gold-full
+          mv "/tmp/gold-full/gold-app 17 apr 15-19 adimin icon" /tmp/gold-app
+          echo "SRC=/tmp/gold-app" >> "$GITHUB_ENV"
+
+      - name: Apply web-only PWA compatibility patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SRC"
+
+          cat > metro.config.js <<'EOF'
+          const { getDefaultConfig } = require("expo/metro-config");
+          const { withNativeWind } = require("nativewind/metro");
+
+          const config = getDefaultConfig(__dirname);
+
+          module.exports = withNativeWind(config, {
+            input: "./global.css",
+          });
+          EOF
 
           python3 - <<'PY'
-          import json
           from pathlib import Path
-
-          data = json.loads(Path('/tmp/gold.json').read_text())
-          usd_per_ounce = float(data['price'])
-          usd_sar = 3.75
-          ounce_grams = 31.1034768
-          pure_gram = usd_per_ounce * usd_sar / ounce_grams
-
-          out = {
-              "source": "api.gold-api.com",
-              "symbol": data.get("symbol", "XAU"),
-              "currency": data.get("currency", "USD"),
-              "spotUsdPerOunce": usd_per_ounce,
-              "usdSar": usd_sar,
-              "updatedAt": data.get("updatedAt"),
-              "generatedAt": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),
-              "pricesSarPerGram": {
-                  "24": round(pure_gram, 2),
-                  "22": round(pure_gram * 22 / 24, 2),
-                  "21": round(pure_gram * 21 / 24, 2),
-                  "18": round(pure_gram * 18 / 24, 2)
-              }
-          }
-          Path('prices.json').write_text(json.dumps(out, ensure_ascii=False, indent=2))
-          print(json.dumps(out, ensure_ascii=False))
+          p=Path("app.config.ts")
+          s=p.read_text()
+          marker='experiments: {'
+          if marker in s and 'baseUrl:' not in s:
+              s=s.replace(marker, 'experiments: {\n    baseUrl: "/gold-app-pwa/full",', 1)
+          p.write_text(s)
           PY
+
+          cat > services/GoldApiService.web.ts <<'EOF'
+          import AsyncStorage from '@react-native-async-storage/async-storage';
+
+          export interface GoldApiResponse {
+            timestamp: number;
+            metal: string;
+            currency: string;
+            exchange: string;
+            symbol: string;
+            prev_close_price: number;
+            open_price: number;
+            low_price: number;
+            high_price: number;
+            open_time: number;
+            price: number;
+            ch: number;
+            chp: number;
+            ask: number;
+            bid: number;
+            price_gram_24k: number;
+            price_gram_22k: number;
+            price_gram_21k: number;
+            price_gram_20k: number;
+            price_gram_18k: number;
+            price_gram_16k: number;
+            price_gram_14k: number;
+            price_gram_10k: number;
+          }
+
+          export interface KaratPrice {
+            karat: string;
+            pricePerGram: number;
+          }
+
+          export interface GoldPriceData {
+            pricePerOunce: number;
+            pricePerGram24K: number;
+            currency: string;
+            change: number;
+            changePercent: number;
+            high: number;
+            low: number;
+            open: number;
+            prevClose: number;
+            ask: number;
+            bid: number;
+            timestamp: number;
+            karatPrices: KaratPrice[];
+            source: string;
+            isLive: boolean;
+          }
+
+          export interface FetchOptions {
+            currency?: string;
+            forceRefresh?: boolean;
+            apiKey?: string;
+            onKeyFailed?: (key: string, error: string) => void;
+            getNextKey?: () => string | null;
+          }
+
+          const CACHE_KEY='gold_pwa_live_price';
+          const RAW_FEED='https://raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-live.json';
+          const LOCAL_FEED='/gold-app-pwa/prices-live.json';
+          const OZ_GRAMS=31.1034768;
+          const FX:Record<string,number>={
+            USD:1,SAR:3.75,AED:3.6725,EUR:0.92,GBP:0.79,KWD:0.307,
+            EGP:50.5,INR:83.5,TRY:32.5,JPY:150.2
+          };
+
+          function makeData(feed:any,currency:string):GoldPriceData {
+            const usdOunce=Number(feed.spotUsdPerOunce);
+            const rate=FX[currency] ?? 1;
+            const ounce=usdOunce*rate;
+            const gram24=ounce/OZ_GRAMS;
+            const ts=feed.updatedAt ? new Date(feed.updatedAt).getTime() : Date.now();
+            const kp=(k:number)=>gram24*(k/24);
+            return {
+              pricePerOunce:ounce,
+              pricePerGram24K:gram24,
+              currency,
+              change:0,
+              changePercent:0,
+              high:ounce,
+              low:ounce,
+              open:ounce,
+              prevClose:ounce,
+              ask:ounce,
+              bid:ounce,
+              timestamp:Number.isFinite(ts)?ts:Date.now(),
+              karatPrices:[
+                {karat:'24K',pricePerGram:kp(24)},
+                {karat:'22K',pricePerGram:kp(22)},
+                {karat:'21K',pricePerGram:kp(21)},
+                {karat:'20K',pricePerGram:kp(20)},
+                {karat:'18K',pricePerGram:kp(18)},
+                {karat:'16K',pricePerGram:kp(16)},
+                {karat:'14K',pricePerGram:kp(14)},
+                {karat:'10K',pricePerGram:kp(10)},
+              ],
+              source:'api.gold-api.com',
+              isLive:true,
+            };
+          }
+
+          async function fetchFeed():Promise<any> {
+            const urls=[RAW_FEED+'?t='+Date.now(),LOCAL_FEED+'?t='+Date.now()];
+            let lastError:any=null;
+            for(const url of urls){
+              try{
+                const r=await fetch(url,{cache:'no-store'});
+                if(!r.ok) throw new Error('HTTP '+r.status);
+                const d=await r.json();
+                if(!Number.isFinite(Number(d.spotUsdPerOunce))) throw new Error('Invalid price feed');
+                return d;
+              }catch(e){ lastError=e; }
+            }
+            throw lastError ?? new Error('Price feed unavailable');
+          }
+
+          export async function fetchGoldPrice(options:FetchOptions={}):Promise<GoldPriceData>{
+            const currency=options.currency || 'SAR';
+            try{
+              const feed=await fetchFeed();
+              const data=makeData(feed,currency);
+              await AsyncStorage.setItem(CACHE_KEY+'_'+currency,JSON.stringify(data));
+              return data;
+            }catch(e){
+              try{
+                const cached=await AsyncStorage.getItem(CACHE_KEY+'_'+currency);
+                if(cached) return {...JSON.parse(cached),isLive:false,source:'Cached'};
+              }catch{}
+              const fallback=makeData({spotUsdPerOunce:4136.5,updatedAt:new Date().toISOString()},currency);
+              return {...fallback,isLive:false,source:'Offline'};
+            }
+          }
+
+          export async function clearCache():Promise<void>{
+            for(const code of Object.keys(FX)){
+              await AsyncStorage.removeItem(CACHE_KEY+'_'+code);
+            }
+          }
+
+          export const SUPPORTED_CURRENCIES=[
+            {code:'USD',nameAr:'دولار أمريكي',nameEn:'US Dollar',nameFr:'Dollar américain',symbol:'$'},
+            {code:'EUR',nameAr:'يورو',nameEn:'Euro',nameFr:'Euro',symbol:'€'},
+            {code:'GBP',nameAr:'جنيه إسترليني',nameEn:'British Pound',nameFr:'Livre sterling',symbol:'£'},
+            {code:'AED',nameAr:'درهم إماراتي',nameEn:'UAE Dirham',nameFr:'Dirham des EAU',symbol:'د.إ'},
+            {code:'SAR',nameAr:'ريال سعودي',nameEn:'Saudi Riyal',nameFr:'Riyal saoudien',symbol:'ر.س'},
+            {code:'KWD',nameAr:'دينار كويتي',nameEn:'Kuwaiti Dinar',nameFr:'Dinar koweïtien',symbol:'د.ك'},
+            {code:'EGP',nameAr:'جنيه مصري',nameEn:'Egyptian Pound',nameFr:'Livre égyptienne',symbol:'ج.م'},
+            {code:'INR',nameAr:'روبية هندية',nameEn:'Indian Rupee',nameFr:'Roupie indienne',symbol:'₹'},
+            {code:'TRY',nameAr:'ليرة تركية',nameEn:'Turkish Lira',nameFr:'Livre turque',symbol:'₺'},
+            {code:'JPY',nameAr:'ين ياباني',nameEn:'Japanese Yen',nameFr:'Yen japonais',symbol:'¥'},
+          ];
+          export const KARAT_OPTIONS=['24K','22K','21K','18K','14K','10K'];
+          EOF
+
+      - name: Install and verify full app
+        shell: bash
+        run: |
+          cd "$SRC"
+          pnpm install --frozen-lockfile
+          pnpm check
+
+      - name: Export full app for web
+        shell: bash
+        env:
+          EXPO_NO_TELEMETRY: "1"
+          EXPO_PUBLIC_APP_VARIANT: "user"
+        run: |
+          cd "$SRC"
+          rm -rf .expo node_modules/.cache
+          pnpm exec expo export --platform web --output-dir dist-pwa --clear
+
+      - name: Add PWA layer to full app
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SRC/dist-pwa"
+
+          cp "$SRC/assets/images/icon.png" pwa-icon.png
+          cp "$GITHUB_WORKSPACE/prices-live.json" prices-live.json 2>/dev/null || true
+          touch .nojekyll
+
+          cat > manifest.webmanifest <<'EOF'
+          {
+            "id": "/gold-app-pwa/full/",
+            "name": "ذهبي",
+            "short_name": "ذهبي",
+            "lang": "ar",
+            "dir": "rtl",
+            "start_url": "/gold-app-pwa/full/",
+            "scope": "/gold-app-pwa/full/",
+            "display": "standalone",
+            "orientation": "portrait",
+            "background_color": "#0F1115",
+            "theme_color": "#0F1115",
+            "icons": [
+              {"src":"/gold-app-pwa/full/pwa-icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+            ]
+          }
+          EOF
+
+          printf '{"version":"full-%s","force":true}\n' "${GITHUB_SHA::8}" > version.json
+
+          cat > sw.js <<'EOF'
+          const VERSION='FULL_PWA_V1';
+          const CACHE='dhahabi-full-'+VERSION;
+          const CORE=[
+            '/gold-app-pwa/full/',
+            '/gold-app-pwa/full/index.html',
+            '/gold-app-pwa/full/manifest.webmanifest',
+            '/gold-app-pwa/full/pwa-icon.png'
+          ];
+
+          self.addEventListener('install',event=>{
+            self.skipWaiting();
+            event.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)));
+          });
+
+          self.addEventListener('activate',event=>{
+            event.waitUntil(
+              caches.keys()
+                .then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+                .then(()=>self.clients.claim())
+            );
+          });
+
+          self.addEventListener('message',event=>{
+            if(event.data?.type==='SKIP_WAITING') self.skipWaiting();
+            if(event.data?.type==='CLEAR_CACHES'){
+              event.waitUntil(caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))));
+            }
+          });
+
+          self.addEventListener('fetch',event=>{
+            if(event.request.method!=='GET') return;
+            const url=new URL(event.request.url);
+            if(url.origin!==self.location.origin) return;
+
+            if(url.pathname.endsWith('/version.json')||url.pathname.endsWith('/prices-live.json')){
+              event.respondWith(fetch(event.request,{cache:'no-store'}));
+              return;
+            }
+
+            if(event.request.mode==='navigate'){
+              event.respondWith(
+                fetch(event.request).catch(()=>caches.match('/gold-app-pwa/full/index.html'))
+              );
+              return;
+            }
+
+            event.respondWith(
+              caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{
+                const copy=response.clone();
+                caches.open(CACHE).then(cache=>cache.put(event.request,copy));
+                return response;
+              }))
+            );
+          });
+          EOF
+
+          cat > pwa-update.js <<'EOF'
+          (() => {
+            const VERSION_URL='/gold-app-pwa/full/version.json';
+            let registration=null;
+            let applying=false;
+
+            async function clearCaches(){
+              if(!('caches' in window)) return;
+              const keys=await caches.keys();
+              await Promise.all(keys.map(k=>caches.delete(k)));
+            }
+
+            async function apply(){
+              if(applying) return;
+              applying=true;
+              try{
+                await clearCaches();
+                if(registration){
+                  await registration.update();
+                  registration.waiting?.postMessage({type:'SKIP_WAITING'});
+                  registration.active?.postMessage({type:'CLEAR_CACHES'});
+                }
+                const u=new URL(location.href);
+                u.searchParams.set('_pwa',Date.now().toString());
+                location.replace(u.toString());
+              }catch{ applying=false; }
+            }
+
+            function showButton(){
+              if(document.getElementById('dhahabi-force-update')) return;
+              const b=document.createElement('button');
+              b.id='dhahabi-force-update';
+              b.textContent='تحديث التطبيق';
+              b.style.cssText='position:fixed;z-index:2147483647;left:16px;bottom:24px;padding:10px 16px;border:0;border-radius:14px;background:#C5A021;color:#0F1115;font-weight:800;box-shadow:0 8px 28px #0005';
+              b.addEventListener('click',apply);
+              document.body.appendChild(b);
+            }
+
+            async function check(){
+              try{
+                const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+                if(!r.ok) return;
+                const remote=await r.json();
+                const current=localStorage.getItem('dhahabi_full_version');
+                if(current && current!==remote.version) showButton();
+                else localStorage.setItem('dhahabi_full_version',remote.version);
+              }catch{}
+            }
+
+            if('serviceWorker' in navigator){
+              addEventListener('load',async()=>{
+                registration=await navigator.serviceWorker.register('/gold-app-pwa/full/sw.js',{scope:'/gold-app-pwa/full/',updateViaCache:'none'});
+                await registration.update();
+                if(registration.waiting) showButton();
+                registration.addEventListener('updatefound',()=>{
+                  const w=registration.installing;
+                  w?.addEventListener('statechange',()=>{
+                    if(w.state==='installed'&&navigator.serviceWorker.controller) showButton();
+                  });
+                });
+                await check();
+              });
+              document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){registration?.update();check();}});
+              addEventListener('focus',check);
+            }
+          })();
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          head='''\n<link rel="manifest" href="/gold-app-pwa/full/manifest.webmanifest">\n<meta name="theme-color" content="#0F1115">\n<link rel="apple-touch-icon" href="/gold-app-pwa/full/pwa-icon.png">\n'''
+          body='''\n<script src="/gold-app-pwa/full/pwa-update.js"></script>\n'''
+          for p in Path('.').rglob('*.html'):
+              s=p.read_text()
+              if 'manifest.webmanifest' not in s:
+                  s=s.replace('</head>',head+'</head>')
+              if 'pwa-update.js' not in s:
+                  s=s.replace('</body>',body+'</body>')
+              p.write_text(s)
+          PY
+
+      - name: Assemble Pages artifact
+        shell: bash
+        run: |
+          mkdir -p _site/full
+          cp -R "$SRC/dist-pwa/." _site/full/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload site
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "."
+          path: "_site"
 
       - name: Deploy to GitHub Pages
         id: deployment
