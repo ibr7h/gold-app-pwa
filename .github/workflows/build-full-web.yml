@@ -28,10 +28,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf /tmp/gold-full
+          rm -rf /tmp/gold-full /tmp/gold-app
           mkdir -p /tmp/gold-full
           unzip -q "gold-app 17 apr 15-19 adimin icon.zip" -d /tmp/gold-full
-          SRC="/tmp/gold-full/gold-app 17 apr 15-19 adimin icon"
+          mv "/tmp/gold-full/gold-app 17 apr 15-19 adimin icon" /tmp/gold-app
+          SRC="/tmp/gold-app"
           echo "SRC=$SRC" >> "$GITHUB_ENV"
 
       - name: Install dependencies
@@ -54,6 +55,8 @@ jobs:
           EXPO_PUBLIC_APP_VARIANT: "user"
         run: |
           cd "$SRC"
+          rm -rf .expo node_modules/.cache node_modules/react-native-css-interop/.cache
+          mkdir -p node_modules/react-native-css-interop/.cache
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
 
       - name: Inspect export
