@@ -1,4 +1,7 @@
 const DEMO_PRICES={24:522.10,22:478.60,21:456.85,18:391.58};
+const GOLD_SPOT_URL='https://api.gold-api.com/price/XAU/USD';
+const TROY_OUNCE_GRAMS=31.1034768;
+const USD_SAR=3.75;
 const state={
   apiUrl:localStorage.getItem('gold_api_url')||'',
   accessToken:localStorage.getItem('gold_access_token')||'',
@@ -6,7 +9,9 @@ const state={
   prices:{...DEMO_PRICES},portfolios:[],purchases:[],alerts:[],
   localPurchases:JSON.parse(localStorage.getItem('gold_demo_purchases')||'[]'),
   localAlerts:JSON.parse(localStorage.getItem('gold_demo_alerts')||'[]'),
-  mode:'local'
+  mode:'local',
+  priceSource:'demo',
+  priceUpdatedAt:null
 };
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const money=n=>new Intl.NumberFormat('ar-SA',{style:'currency',currency:'SAR',maximumFractionDigits:2}).format(Number(n||0));
@@ -57,21 +62,85 @@ $$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
 
 function renderPrices(){
   const rows=Object.entries(state.prices).sort((a,b)=>Number(b[0])-Number(a[0]));
+  const sourceLabel=state.priceSource==='gold-api'?'Gold API · XAU/USD':state.priceSource==='backend'?'Gold App API':'وضع محلي';
+  const updated=state.priceUpdatedAt?(' · '+dateLabel(state.priceUpdatedAt)):'';
   $('#priceCards').innerHTML=rows.map(([k,p])=>'<div class="price-card"><small>'+k+'K</small><b>'+Number(p).toFixed(2)+'</b><span>ر.س/جرام</span></div>').join('');
-  $('#allPrices').innerHTML=rows.map(([k,p])=>'<article class="list-card"><div><b>ذهب عيار '+k+'</b><small>سعر البيع الأحدث من الخادم عند الاتصال</small></div><strong>'+money(p)+'</strong></article>').join('');
+  $('#allPrices').innerHTML=rows.map(([k,p])=>'<article class="list-card"><div><b>ذهب عيار '+k+'</b><small>'+sourceLabel+updated+'</small></div><strong>'+money(p)+'</strong></article>').join('');
   $('#heroPrice').textContent=Number(state.prices[24]||0).toFixed(2);
+  const heroNote=document.querySelector('.hero-card .change');
+  if(heroNote) heroNote.textContent=sourceLabel+updated;
 }
-async function loadPrices(){
-  if(!state.apiUrl){state.prices={...DEMO_PRICES};state.mode='local';setConnection(false,'وضع محلي');renderPrices();renderPortfolio();return}
+
+function pricesFromSpotUsd(usdPerOunce){
+  const pureGram=(Number(usdPerOunce)*USD_SAR)/TROY_OUNCE_GRAMS;
+  return {
+    24:Number(pureGram.toFixed(2)),
+    22:Number((pureGram*(22/24)).toFixed(2)),
+    21:Number((pureGram*(21/24)).toFixed(2)),
+    18:Number((pureGram*(18/24)).toFixed(2))
+  };
+}
+
+async function loadSpotPrices(){
+  const res=await fetch(GOLD_SPOT_URL,{cache:'no-store'});
+  if(!res.ok) throw new Error('Gold API HTTP '+res.status);
+  const d=await res.json();
+  const spot=Number(d.price);
+  if(!Number.isFinite(spot)||spot<=0) throw new Error('Invalid gold spot price');
+  state.prices=pricesFromSpotUsd(spot);
+  state.priceSource='gold-api';
+  state.priceUpdatedAt=d.updatedAt||new Date().toISOString();
+  localStorage.setItem('gold_last_prices',JSON.stringify({
+    prices:state.prices,
+    updatedAt:state.priceUpdatedAt,
+    source:'gold-api'
+  }));
+}
+
+async function loadBackendPrices(){
+  if(!state.apiUrl) throw new Error('NO_BACKEND');
+  const rows=await Promise.all([24,22,21,18].map(async k=>[k,await api('/prices/latest?currency=SAR&karat='+k,{},false)]));
+  rows.forEach(([k,d])=>{
+    const v=Number(d.sellPrice??d.buyPrice??d.pricePerGram??d.price??d.value);
+    if(Number.isFinite(v)) state.prices[k]=v;
+  });
+  state.priceSource='backend';
+  state.priceUpdatedAt=new Date().toISOString();
+}
+
+function loadCachedPrices(){
   try{
-    const rows=await Promise.all([24,22,21,18].map(async k=>[k,await api('/prices/latest?currency=SAR&karat='+k,{},false)]));
-    rows.forEach(([k,d])=>{
-      const v=Number(d.sellPrice??d.buyPrice??d.pricePerGram??d.price??d.value);
-      state.prices[k]=Number.isFinite(v)?v:DEMO_PRICES[k];
-    });
-    state.mode='online';setConnection(true,state.accessToken?'API + حساب':'API متصل');
-  }catch{state.prices={...DEMO_PRICES};state.mode='local';setConnection(false,'تعذر الاتصال')}
-  renderPrices();renderPortfolio();
+    const cached=JSON.parse(localStorage.getItem('gold_last_prices')||'null');
+    if(cached?.prices){
+      state.prices=cached.prices;
+      state.priceSource='cached';
+      state.priceUpdatedAt=cached.updatedAt||null;
+      return true;
+    }
+  }catch{}
+  return false;
+}
+
+async function loadPrices(){
+  try{
+    await loadSpotPrices();
+    state.mode='online';
+    setConnection(true,state.accessToken?'سعر حي + حساب':'سعر حي');
+  }catch{
+    try{
+      await loadBackendPrices();
+      state.mode='online';
+      setConnection(true,state.accessToken?'API + حساب':'API متصل');
+    }catch{
+      const cached=loadCachedPrices();
+      if(!cached) state.prices={...DEMO_PRICES};
+      state.mode='local';
+      state.priceSource=cached?'cached':'demo';
+      setConnection(false,cached?'آخر سعر محفوظ':'وضع محلي');
+    }
+  }
+  renderPrices();
+  renderPortfolio();
 }
 
 async function ensureDefaultPortfolio(){
