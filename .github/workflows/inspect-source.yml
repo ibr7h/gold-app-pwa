@@ -1,0 +1,54 @@
+name: Inspect uploaded Gold App source
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/inspect-source.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="gold-app 17 apr 15-19 adimin icon.zip"
+          rm -rf /tmp/gold-source
+          mkdir -p /tmp/gold-source
+          unzip -q "$ZIP" -d /tmp/gold-source
+
+          echo "===== TOP LEVEL ====="
+          find /tmp/gold-source -maxdepth 3 -type f | sed 's#^/tmp/gold-source/##' | sort | head -400
+
+          echo "===== PROJECT MARKERS ====="
+          find /tmp/gold-source -type f \( -name pubspec.yaml -o -name package.json -o -name vite.config.* -o -name next.config.* -o -name capacitor.config.* -o -name manifest.json -o -name manifest.webmanifest -o -name index.html \) | sort
+
+          echo "===== PUBSPEC ====="
+          while IFS= read -r f; do
+            echo "--- $f ---"
+            sed -n '1,240p' "$f"
+          done < <(find /tmp/gold-source -type f -name pubspec.yaml | head -5)
+
+          echo "===== PACKAGE JSON ====="
+          while IFS= read -r f; do
+            echo "--- $f ---"
+            sed -n '1,240p' "$f"
+          done < <(find /tmp/gold-source -type f -name package.json | head -5)
+
+          echo "===== WEB TREE ====="
+          find /tmp/gold-source -type f | grep -E '/web/|manifest|service.?worker|sw\.js' | sed 's#^/tmp/gold-source/##' | sort | head -300
+
+          echo "===== LIB TREE ====="
+          find /tmp/gold-source -type f | grep '/lib/' | sed 's#^/tmp/gold-source/##' | sort | head -400
+
+          echo "===== SIZES ====="
+          du -sh /tmp/gold-source
+          find /tmp/gold-source -type f | wc -l
