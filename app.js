@@ -1,7 +1,5 @@
 const DEMO_PRICES={24:522.10,22:478.60,21:456.85,18:391.58};
-const GOLD_SPOT_URL='https://api.gold-api.com/price/XAU/USD';
-const TROY_OUNCE_GRAMS=31.1034768;
-const USD_SAR=3.75;
+const GOLD_PRICE_FEED='./prices.json';
 const state={
   apiUrl:localStorage.getItem('gold_api_url')||'',
   accessToken:localStorage.getItem('gold_access_token')||'',
@@ -71,25 +69,16 @@ function renderPrices(){
   if(heroNote) heroNote.textContent=sourceLabel+updated;
 }
 
-function pricesFromSpotUsd(usdPerOunce){
-  const pureGram=(Number(usdPerOunce)*USD_SAR)/TROY_OUNCE_GRAMS;
-  return {
-    24:Number(pureGram.toFixed(2)),
-    22:Number((pureGram*(22/24)).toFixed(2)),
-    21:Number((pureGram*(21/24)).toFixed(2)),
-    18:Number((pureGram*(18/24)).toFixed(2))
-  };
-}
-
 async function loadSpotPrices(){
-  const res=await fetch(GOLD_SPOT_URL,{cache:'no-store'});
-  if(!res.ok) throw new Error('Gold API HTTP '+res.status);
+  const res=await fetch(GOLD_PRICE_FEED+'?t='+Date.now(),{cache:'no-store'});
+  if(!res.ok) throw new Error('Local price feed HTTP '+res.status);
   const d=await res.json();
-  const spot=Number(d.price);
-  if(!Number.isFinite(spot)||spot<=0) throw new Error('Invalid gold spot price');
-  state.prices=pricesFromSpotUsd(spot);
+  const p=d.pricesSarPerGram||{};
+  const next={24:Number(p['24']),22:Number(p['22']),21:Number(p['21']),18:Number(p['18'])};
+  if(!Object.values(next).every(Number.isFinite)) throw new Error('Invalid local price feed');
+  state.prices=next;
   state.priceSource='gold-api';
-  state.priceUpdatedAt=d.updatedAt||new Date().toISOString();
+  state.priceUpdatedAt=d.updatedAt||d.generatedAt||new Date().toISOString();
   localStorage.setItem('gold_last_prices',JSON.stringify({
     prices:state.prices,
     updatedAt:state.priceUpdatedAt,
