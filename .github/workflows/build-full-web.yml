@@ -35,6 +35,21 @@ jobs:
           SRC="/tmp/gold-app"
           echo "SRC=$SRC" >> "$GITHUB_ENV"
 
+      - name: Prepare web-specific Metro config
+        shell: bash
+        run: |
+          cd "$SRC"
+          cat > metro.config.js <<'EOF'
+          const { getDefaultConfig } = require("expo/metro-config");
+          const { withNativeWind } = require("nativewind/metro");
+
+          const config = getDefaultConfig(__dirname);
+
+          module.exports = withNativeWind(config, {
+            input: "./global.css",
+          });
+          EOF
+
       - name: Install dependencies
         shell: bash
         run: |
@@ -55,8 +70,7 @@ jobs:
           EXPO_PUBLIC_APP_VARIANT: "user"
         run: |
           cd "$SRC"
-          rm -rf .expo node_modules/.cache node_modules/react-native-css-interop/.cache
-          mkdir -p node_modules/react-native-css-interop/.cache
+          rm -rf .expo node_modules/.cache
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
 
       - name: Inspect export
