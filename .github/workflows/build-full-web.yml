@@ -1,0 +1,68 @@
+name: Build full Gold App web
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/build-full-web.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: "**/pnpm-lock.yaml"
+
+      - name: Extract source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/gold-full
+          mkdir -p /tmp/gold-full
+          unzip -q "gold-app 17 apr 15-19 adimin icon.zip" -d /tmp/gold-full
+          SRC="/tmp/gold-full/gold-app 17 apr 15-19 adimin icon"
+          echo "SRC=$SRC" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          cd "$SRC"
+          pnpm install --frozen-lockfile
+
+      - name: Type check
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd "$SRC"
+          pnpm check
+
+      - name: Export web
+        shell: bash
+        env:
+          EXPO_NO_TELEMETRY: "1"
+          EXPO_PUBLIC_APP_VARIANT: "user"
+        run: |
+          cd "$SRC"
+          pnpm exec expo export --platform web --output-dir dist-pwa --clear
+
+      - name: Inspect export
+        shell: bash
+        run: |
+          cd "$SRC"
+          echo "===== DIST ====="
+          find dist-pwa -maxdepth 3 -type f | sort | head -300
+          echo "===== SIZE ====="
+          du -sh dist-pwa
