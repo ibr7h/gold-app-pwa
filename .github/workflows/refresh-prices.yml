@@ -1,0 +1,48 @@
+name: Refresh live gold price
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and store price
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 --retry-delay 2 --fail --silent --show-error             "https://api.gold-api.com/price/XAU/USD" -o /tmp/gold.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from datetime import datetime, timezone
+          d=json.loads(Path('/tmp/gold.json').read_text())
+          usd=float(d['price']); sar=3.75; gram=31.1034768
+          pure=usd*sar/gram
+          out={
+            "source":"api.gold-api.com",
+            "symbol":"XAU",
+            "currency":"USD",
+            "spotUsdPerOunce":usd,
+            "usdSar":sar,
+            "updatedAt":d.get("updatedAt"),
+            "generatedAt":datetime.now(timezone.utc).isoformat(),
+            "pricesSarPerGram":{
+              "24":round(pure,2),"22":round(pure*22/24,2),
+              "21":round(pure*21/24,2),"18":round(pure*18/24,2)
+            }
+          }
+          Path('prices-live.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add prices-live.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update live gold price"
+          git push
