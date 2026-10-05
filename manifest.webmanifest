@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "ذهبي — Gold App",
+  "short_name": "ذهبي",
+  "description": "تطبيق PWA مستقل لمتابعة أسعار الذهب والمحفظة والتنبيهات.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F7F3E8",
+  "theme_color": "#171717",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {"src":"./icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"},
+    {"src":"./icons/icon-maskable.svg","sizes":"any","type":"image/svg+xml","purpose":"maskable"}
+  ]
+}
