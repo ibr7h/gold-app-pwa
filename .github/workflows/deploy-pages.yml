@@ -139,11 +139,10 @@ jobs:
           const ACCESS='dhahabi_access_token';
           const REFRESH='dhahabi_refresh_token';
           const USER='dhahabi_user';
-          const API='dhahabi_api_url';
+          const PROD_API='https://gold-app-api-u8dl.onrender.com';
 
           function getApiBase(){
-            if(typeof window==='undefined') return '';
-            return (localStorage.getItem(API)||'').replace(/\/+$/,'');
+            return PROD_API;
           }
 
           async function request(path:string, options:RequestInit={}, token?:string){
@@ -270,31 +269,16 @@ jobs:
           import AsyncStorage from '@react-native-async-storage/async-storage';
           import {useAuth} from '@/contexts/AuthContext';
 
-          const API_KEY='dhahabi_api_url';
-
           export default function LoginWeb(){
             const {login,isLoading,error,isLoggedIn,clearError}=useAuth();
             const [email,setEmail]=useState('');
             const [password,setPassword]=useState('');
-            const [apiUrl,setApiUrl]=useState('');
-            const [showApi,setShowApi]=useState(false);
             const [localError,setLocalError]=useState('');
-
-            useEffect(()=>{
-              if(typeof window!=='undefined'){
-                const saved=localStorage.getItem(API_KEY)||'';
-                setApiUrl(saved);
-                setShowApi(!saved);
-              }
-            },[]);
 
             useEffect(()=>{if(isLoggedIn) router.replace('/');},[isLoggedIn]);
 
             const submit=async()=>{
               clearError();setLocalError('');
-              const base=apiUrl.trim().replace(/\/+$/,'');
-              if(!base){setShowApi(true);setLocalError('أدخل عنوان خادم API أولاً');return;}
-              localStorage.setItem(API_KEY,base);
               try{await login(email,password)}catch{}
             };
 
@@ -310,12 +294,6 @@ jobs:
                 <Text style={s.label}>كلمة المرور</Text>
                 <TextInput style={s.input} value={password} onChangeText={setPassword} secureTextEntry autoComplete="password" placeholder="••••••••" />
 
-                {(showApi||!apiUrl) && <>
-                  <Text style={s.label}>عنوان خادم API</Text>
-                  <TextInput style={s.input} value={apiUrl} onChangeText={setApiUrl} autoCapitalize="none" keyboardType="url" placeholder="https://your-api.example.com" />
-                  <Text style={s.help}>يُحفظ هذا العنوان على جهازك، ولا تحتاج لإدخاله مرة أخرى.</Text>
-                </>}
-
                 {!!(localError||error) && <Text style={s.error}>{localError||error}</Text>}
 
                 <TouchableOpacity style={s.primary} onPress={submit} disabled={isLoading}>
@@ -326,9 +304,6 @@ jobs:
                   <Text style={s.link}>إنشاء حساب جديد</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={s.linkBtn} onPress={()=>setShowApi(v=>!v)}>
-                  <Text style={s.muted}>{showApi?'إخفاء إعداد الخادم':'تغيير عنوان الخادم'}</Text>
-                </TouchableOpacity>
               </View>
 
               <Text style={s.note}>الحسابات الجديدة تُنشأ بصلاحية مستخدم. صلاحية التاجر أو المدير تُمنح من الإدارة.</Text>
