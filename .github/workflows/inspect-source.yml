@@ -56,6 +56,13 @@ jobs:
             sed -n '1,260p' "$ROOT/$f" || true
           done
 
+          echo "===== RUNTIME DATA FILES ====="
+          ROOT="/tmp/gold-source/gold-app 17 apr 15-19 adimin icon"
+          for f in lib/_core/api.ts lib/trpc.ts services/GoldApiService.ts hooks/useGoldPrice.ts contexts/AuthContext.tsx shared/const.ts constants/const.ts; do
+            echo "--- $f ---"
+            sed -n '1,320p' "$ROOT/$f" || true
+          done
+
           echo "===== SIZES ====="
           du -sh /tmp/gold-source
           find /tmp/gold-source -type f | wc -l
