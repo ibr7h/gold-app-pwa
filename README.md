@@ -32,3 +32,6 @@ CORS_ORIGINS=https://ibr7h.github.io
 https://ibr7h.github.io/gold-app-pwa/
 
 Copyright © 2026 Ibrahim Alneami — All Rights Reserved
+
+
+<!-- pages-trigger: 2026-10-05 -->
