@@ -4,6 +4,8 @@ on:
   push:
     branches: ["main"]
   workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: read
@@ -23,6 +25,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Fetch live gold price
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 --retry-delay 2 --fail --silent --show-error             "https://api.gold-api.com/price/XAU/USD"             -o /tmp/gold.json
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('/tmp/gold.json').read_text())
+          usd_per_ounce = float(data['price'])
+          usd_sar = 3.75
+          ounce_grams = 31.1034768
+          pure_gram = usd_per_ounce * usd_sar / ounce_grams
+
+          out = {
+              "source": "api.gold-api.com",
+              "symbol": data.get("symbol", "XAU"),
+              "currency": data.get("currency", "USD"),
+              "spotUsdPerOunce": usd_per_ounce,
+              "usdSar": usd_sar,
+              "updatedAt": data.get("updatedAt"),
+              "generatedAt": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),
+              "pricesSarPerGram": {
+                  "24": round(pure_gram, 2),
+                  "22": round(pure_gram * 22 / 24, 2),
+                  "21": round(pure_gram * 21 / 24, 2),
+                  "18": round(pure_gram * 18 / 24, 2)
+              }
+          }
+          Path('prices.json').write_text(json.dumps(out, ensure_ascii=False, indent=2))
+          print(json.dumps(out, ensure_ascii=False))
+          PY
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
