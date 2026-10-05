@@ -49,6 +49,13 @@ jobs:
           echo "===== LIB TREE ====="
           find /tmp/gold-source -type f | grep '/lib/' | sed 's#^/tmp/gold-source/##' | sort | head -400
 
+          echo "===== CONFIG FILES ====="
+          ROOT="/tmp/gold-source/gold-app 17 apr 15-19 adimin icon"
+          for f in metro.config.js babel.config.js global.css app.config.ts tailwind.config.js; do
+            echo "--- $f ---"
+            sed -n '1,260p' "$ROOT/$f" || true
+          done
+
           echo "===== SIZES ====="
           du -sh /tmp/gold-source
           find /tmp/gold-source -type f | wc -l
