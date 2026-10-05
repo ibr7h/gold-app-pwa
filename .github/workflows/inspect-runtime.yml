@@ -23,7 +23,7 @@ jobs:
           mkdir -p /tmp/gold-runtime
           unzip -q "gold-app 17 apr 15-19 adimin icon.zip" -d /tmp/gold-runtime
           ROOT="/tmp/gold-runtime/gold-app 17 apr 15-19 adimin icon"
-          for f in lib/_core/api.ts lib/trpc.ts services/GoldApiService.ts hooks/useGoldPrice.ts; do
+          for f in constants/oauth.ts server/README.md lib/_core/api.ts lib/trpc.ts services/GoldApiService.ts hooks/useGoldPrice.ts; do
             echo "===== $f ====="
             cat "$ROOT/$f"
           done
