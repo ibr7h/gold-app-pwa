@@ -552,6 +552,9 @@ jobs:
           rm -rf .expo node_modules/.cache
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
 
+      - name: Verify user workspace is present in export
+        run: python3 scripts/verify-user-export.py "$SRC/dist-pwa"
+
       - name: Add PWA layer to full app
         shell: bash
         run: |

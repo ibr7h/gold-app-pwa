@@ -537,6 +537,195 @@ jobs:
           rm -rf .expo node_modules/.cache
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
 
+      - name: Verify user workspace is present in export
+        run: python3 scripts/verify-user-export.py "$SRC/dist-pwa"
+
+      - name: Add PWA layer to full app
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SRC/dist-pwa"
+
+          cp "$SRC/assets/images/icon.png" pwa-icon.png
+          cp "$GITHUB_WORKSPACE/prices-live.json" prices-live.json 2>/dev/null || true
+          touch .nojekyll
+
+          cat > manifest.webmanifest <<'EOF'
+          {
+            "id": "/gold-app-pwa/full/",
+            "name": "ذهبي",
+            "short_name": "ذهبي",
+            "lang": "ar",
+            "dir": "rtl",
+            "start_url": "/gold-app-pwa/full/",
+            "scope": "/gold-app-pwa/full/",
+            "display": "standalone",
+            
+            "background_color": "#0F1115",
+            "theme_color": "#0F1115",
+            "icons": [
+              {"src":"/gold-app-pwa/full/pwa-icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+            ]
+          }
+          EOF
+
+          printf '{"version":"full-%s","force":true}\n' "${GITHUB_SHA::8}" > version.json
+
+          cat > sw.js <<'EOF'
+          const VERSION='__BUILD_VERSION__';
+          const CACHE='dhahabi-full-'+VERSION;
+          const CORE=[
+            '/gold-app-pwa/full/',
+            '/gold-app-pwa/full/index.html',
+            '/gold-app-pwa/full/manifest.webmanifest',
+            '/gold-app-pwa/full/pwa-icon.png'
+          ];
+
+          self.addEventListener('install',event=>{
+            self.skipWaiting();
+            event.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)));
+          });
+
+          self.addEventListener('activate',event=>{
+            event.waitUntil(
+              caches.keys()
+                .then(keys=>Promise.all(keys.filter(k=>k.startsWith('dhahabi-full-')&&k!==CACHE).map(k=>caches.delete(k))))
+                .then(()=>self.clients.claim())
+            );
+          });
+
+          self.addEventListener('message',event=>{
+            if(event.data?.type==='SKIP_WAITING') self.skipWaiting();
+            if(event.data?.type==='CLEAR_CACHES'){
+              event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('dhahabi-full-')).map(k=>caches.delete(k)))));
+            }
+          });
+
+          self.addEventListener('fetch',event=>{
+            if(event.request.method!=='GET') return;
+            const url=new URL(event.request.url);
+            if(url.origin!==self.location.origin || !url.pathname.startsWith('/gold-app-pwa/full/')) return;
+
+            if(url.pathname.endsWith('/version.json')||url.pathname.endsWith('/prices-live.json')){
+              event.respondWith(fetch(event.request,{cache:'no-store'}));
+              return;
+            }
+
+            if(event.request.mode==='navigate'){
+              event.respondWith(
+                fetch(event.request).catch(()=>caches.match('/gold-app-pwa/full/index.html'))
+              );
+              return;
+            }
+
+            event.respondWith(
+              caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{
+                if(!response.ok) return response;
+                const copy=response.clone();
+                caches.open(CACHE).then(cache=>cache.put(event.request,copy));
+                return response;
+              }))
+            );
+          });
+          EOF
+
+          cat > pwa-update.js <<'EOF'
+          (() => {
+            const VERSION_URL='/gold-app-pwa/full/version.json';
+            const CURRENT='full-__BUILD_VERSION__';
+            let registration=null;
+            let applying=false;
+
+            async function clearCaches(){
+              if(!('caches' in window)) return;
+              const keys=await caches.keys();
+              await Promise.all(keys.filter(k=>k.startsWith('dhahabi-full-')).map(k=>caches.delete(k)));
+            }
+
+            async function apply(){
+              if(applying) return;
+              applying=true;
+              try{
+                await clearCaches();
+                if(registration){
+                  await registration.update();
+                  registration.waiting?.postMessage({type:'SKIP_WAITING'});
+                  registration.active?.postMessage({type:'CLEAR_CACHES'});
+                }
+                const u=new URL(location.href);
+                u.searchParams.set('_pwa',Date.now().toString());
+                location.replace(u.toString());
+              }catch{ applying=false; }
+            }
+
+            function showButton(){
+              if(document.getElementById('dhahabi-force-update')) return;
+              const b=document.createElement('button');
+              b.id='dhahabi-force-update';
+              b.textContent='تحديث التطبيق';
+              b.style.cssText='position:fixed;z-index:2147483647;left:16px;bottom:24px;padding:10px 16px;border:0;border-radius:14px;background:#C5A021;color:#0F1115;font-weight:800;box-shadow:0 8px 28px #0005';
+              b.addEventListener('click',apply);
+              document.body.appendChild(b);
+            }
+
+            async function check(){
+              try{
+                const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+                if(!r.ok) return;
+                const remote=await r.json();
+                const current=CURRENT;
+                if(current && current!==remote.version) showButton();
+                else localStorage.setItem('dhahabi_full_version',remote.version);
+              }catch{}
+            }
+
+            if('serviceWorker' in navigator){
+              addEventListener('load',async()=>{
+                registration=await navigator.serviceWorker.register('/gold-app-pwa/full/sw.js',{scope:'/gold-app-pwa/full/',updateViaCache:'none'});
+                await registration.update();
+                if(registration.waiting) showButton();
+                registration.addEventListener('updatefound',()=>{
+                  const w=registration.installing;
+                  w?.addEventListener('statechange',()=>{
+                    if(w.state==='installed'&&navigator.serviceWorker.controller) showButton();
+                  });
+                });
+                await check();
+              });
+              document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){registration?.update();check();}});
+              addEventListener('focus',check);
+            }
+          })();
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          for name in ('sw.js','pwa-update.js'):
+              p=Path(name)
+              p.write_text(p.read_text().replace('__BUILD_VERSION__',os.environ['GITHUB_SHA'][:8]))
+          head='''\n<link rel="manifest" href="/gold-app-pwa/full/manifest.webmanifest">\n<meta name="theme-color" content="#0F1115">\n<link rel="apple-touch-icon" href="/gold-app-pwa/full/pwa-icon.png">\n'''
+          body='''\n<script src="/gold-app-pwa/full/pwa-update.js"></script>\n'''
+          for p in Path('.').rglob('*.html'):
+              s=p.read_text()
+              if 'manifest.webmanifest' not in s:
+                  s=s.replace('</head>',head+'</head>')
+              if 'pwa-update.js' not in s:
+                  s=s.replace('</body>',body+'</body>')
+              p.write_text(s)
+          PY
+
+      - name: Assemble Pages artifact
+        shell: bash
+        run: |
+          mkdir -p _site/full
+          cp -R "$SRC/dist-pwa/." _site/full/
+
+      - name: Verify generated PWA
+        run: |
+          node --check "$SRC/dist-pwa/sw.js"
+          node --check "$SRC/dist-pwa/pwa-update.js"
+          python3 -m json.tool "$SRC/dist-pwa/manifest.webmanifest" >/dev/null
       - uses: actions/upload-artifact@v4
         with:
           name: user-web-validated-build

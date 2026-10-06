@@ -27,14 +27,18 @@ async function raw(path:string,options:RequestInit={},token?:string){
  }catch(e){if(e instanceof ApiError)throw e;throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.');}finally{clearTimeout(timer);}
 }
 export async function authenticate(path:'/auth/login'|'/auth/register',data:object){await saveSession(await raw(path,{method:'POST',body:JSON.stringify(data)}));}
-async function refreshAccess(){
+async function refreshAccess(expiredToken:string|null){
  if(!refreshFlight){const started=epoch;
-  refreshFlight=(async()=>{const refreshToken=await AsyncStorage.getItem(REFRESH);if(!refreshToken)throw new ApiError('انتهت الجلسة.',401);
+  const refresh=async()=>{
+   const current=await AsyncStorage.getItem(ACCESS);if(current&&current!==expiredToken)return current;
+   const refreshToken=await AsyncStorage.getItem(REFRESH);if(!refreshToken)throw new ApiError('انتهت الجلسة.',401);
    const tokens=await raw('/auth/refresh',{method:'POST',body:JSON.stringify({refreshToken})});
    if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
    if(!tokens?.accessToken||!tokens?.refreshToken)throw new ApiError('استجابة الجلسة غير صالحة.');
    await AsyncStorage.multiSet([[ACCESS,tokens.accessToken],[REFRESH,tokens.refreshToken]]);return tokens.accessToken as string;
-  })().catch(async e=>{if(started===epoch&&e instanceof ApiError&&e.status===401)await clearSession();throw e;}).finally(()=>{refreshFlight=null;});
+  };
+  const flight=typeof navigator!=='undefined'&&navigator.locks?navigator.locks.request('dhahabi-full-refresh',refresh):refresh();
+  refreshFlight=flight.catch(async e=>{if(started===epoch&&e instanceof ApiError&&e.status===401)await clearSession();throw e;}).finally(()=>{refreshFlight=null;});
  }return refreshFlight;
 }
 export async function api<T=any>(path:string,options:RequestInit={}):Promise<T>{
@@ -42,7 +46,7 @@ export async function api<T=any>(path:string,options:RequestInit={}):Promise<T>{
  try{const result=await raw(path,options,token||undefined);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
  catch(e){
   if(!(e instanceof ApiError)||e.status!==401||started!==epoch)throw e;
-  const current=await AsyncStorage.getItem(ACCESS),next=current&&current!==token?current:await refreshAccess();
+  const current=await AsyncStorage.getItem(ACCESS),next=current&&current!==token?current:await refreshAccess(token);
   try{const result=await raw(path,options,next);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
   catch(retry){if(retry instanceof ApiError&&retry.status===401&&started===epoch)await clearSession();throw retry;}
  }
