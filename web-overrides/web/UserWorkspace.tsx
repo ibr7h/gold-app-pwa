@@ -10,12 +10,12 @@ function Icon({name}:{name:string}){
  const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4'};
  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]||paths.home}/></svg>;
 }
-const number=(n:number)=>new Intl.NumberFormat('ar-SA',{maximumFractionDigits:2}).format(n);
+const number=(n:number)=>new Intl.NumberFormat('ar-SA',{maximumFractionDigits:4}).format(n);
 const money=(n:number|null,c:string)=>n===null?'غير متاح':number(n)+' '+c;
 const dateTime=(s:string)=>new Date(s).toLocaleString('ar-SA',{dateStyle:'medium',timeStyle:'short'});
 function Empty({children}:{children:React.ReactNode}){return <div className="empty"><Icon name="wallet"/><p>{children}</p></div>;}
-function CurrencySelect({value='SAR'}:{value?:string}){return <select name="currency" defaultValue={value}>{CURRENCIES.map(c=><option key={c}>{c}</option>)}</select>;}
-function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{KARATS.map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
+function CurrencySelect({value='SAR'}:{value?:string}){return <select name="currency" defaultValue={value}>{(CURRENCIES.includes(value)?CURRENCIES:[value,...CURRENCIES]).map(c=><option key={c}>{c}</option>)}</select>;}
+function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{(KARATS.includes(value)?KARATS:[value,...KARATS]).map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
 export default function UserWorkspace(){
  const {user,isLoading,logout}=useAuth();
  if(isLoading&&!user)return <div className="gold-web boot" dir="rtl" role="status">جارٍ التحقق من الجلسة…</div>;
@@ -70,7 +70,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const stale=!feed||clock-Date.parse(feed.updatedAt)>30*60000||Date.parse(feed.updatedAt)>clock+5*60000;
  const summary=totals(purchases,feed),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
  const priceNote=<p className="fine">أسعار مرجعية مشتقة من سعر الأونصة، وليست عروض شراء أو بيع من متجر. التحويل SAR/USD يستخدم 3.75. المصنعية والضرائب غير مشمولة.</p>;
- const priceBlock=<section className="panel"><div className="section-heading"><div><p className="eyebrow">السعر المرجعي للجرام</p><h2>عيار 24 / {priceCurrency}</h2></div><label className="compact-label">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}>{CURRENCIES.map(c=><option key={c}>{c}</option>)}</select></label></div>
+ const priceBlock=<section className="panel"><div className="section-heading"><div><p className="eyebrow">السعر المرجعي للجرام</p><h2>عيار 24 / {priceCurrency}</h2></div><label className="compact-label">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}>{['SAR','USD'].map(c=><option key={c}>{c}</option>)}</select></label></div>
  <div className="spot-price">{money(indicativePrice(feed,priceCurrency,24),priceCurrency)}</div><p className="price-time"><span className={'pill '+(stale||feedError?'warn':'good')}>{feedError?'تعذر التحديث':stale?'بيانات غير حديثة':'آخر سعر منشور'}</span>{feed?dateTime(feed.updatedAt):'لم يصل السعر بعد'}</p>
  {feedError&&<p className="notice warning">{feedError}</p>}<div className="karat-grid">{KARATS.slice(1).map(k=><div key={k}><span>عيار {k}</span><strong>{money(indicativePrice(feed,priceCurrency,k),priceCurrency)}</strong></div>)}</div>{priceNote}</section>;
  const nav=<><div className="nav-brand"><span className="brand-mark small">ذ</span><div><strong>ذهبي</strong><small>مساحتك الشخصية</small></div></div><nav aria-label="القائمة الرئيسية">{pages.map(p=><button key={p.id} className={'nav-item '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.label}</span></button>)}</nav><div className="nav-account"><span className="avatar">{email[0].toUpperCase()}</span><span className="email" dir="ltr">{email}</span><button className="icon-button" title="تسجيل الخروج" aria-label="تسجيل الخروج" onClick={logout}><Icon name="logout"/></button></div></>;
