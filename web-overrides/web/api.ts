@@ -17,14 +17,14 @@ export function errorMessage(e:unknown){
  return messages[e.message]||(e.status===401?'انتهت الجلسة. سجّل الدخول مجددًا.':e.status===403?'ليست لديك صلاحية لهذه العملية.':e.status>=500?'الخادم غير متاح حاليًا. حاول لاحقًا.':e.message);
 }
 async function raw(path:string,options:RequestInit={},token?:string){
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),90000);
  try{
   const headers=new Headers(options.headers);if(options.body)headers.set('Content-Type','application/json');if(token)headers.set('Authorization','Bearer '+token);
   const response=await fetch(API_BASE+path,{...options,headers,signal:controller.signal,cache:'no-store'});
   const body=await response.text();let data:any=null;try{data=body?JSON.parse(body):null;}catch{if(response.ok)throw new ApiError('استجابة الخادم غير صالحة.');}
-  if(!response.ok)throw new ApiError(Array.isArray(data?.message)?data.message.join('، '):data?.message||'تعذر تنفيذ الطلب.',response.status);
+  if(!response.ok){const message=data?.error?.message??data?.message;throw new ApiError(Array.isArray(message)?message.join('، '):message||'تعذر تنفيذ الطلب.',response.status);}
   return data;
- }catch(e){if(e instanceof ApiError)throw e;throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.');}finally{clearTimeout(timer);}
+ }catch(e){if(e instanceof ApiError)throw e;if(controller.signal.aborted)throw new ApiError('تأخر الخادم في الاستجابة. انتظر قليلًا ثم حاول مجددًا.');if(typeof navigator!=='undefined'&&navigator.onLine===false)throw new ApiError('الجهاز غير متصل بالإنترنت. أعد الاتصال ثم حاول مجددًا.');throw new ApiError('تعذر الوصول إلى الخادم. قد تكون المشكلة مؤقتة في الخادم أو الاتصال. حاول مجددًا.');}finally{clearTimeout(timer);}
 }
 export async function authenticate(path:'/auth/login'|'/auth/register',data:object){await saveSession(await raw(path,{method:'POST',body:JSON.stringify(data)}));}
 async function refreshAccess(expiredToken:string|null):Promise<string>{

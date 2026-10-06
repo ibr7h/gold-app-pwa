@@ -6,6 +6,8 @@ export default function AuthForm({register=false}:{register?:boolean}){
  const {user,isLoading,error,login,startRegistration,clearError}=useAuth();
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[localError,setLocalError]=useState('');
  useEffect(()=>{if(user)router.replace('/');},[user]);
+ const [slow,setSlow]=useState(false);
+ useEffect(()=>{setSlow(false);if(!isLoading)return;const timer=setTimeout(()=>setSlow(true),8000);return()=>clearTimeout(timer);},[isLoading]);
  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(isLoading)return;clearError();setLocalError('');
   if(register&&password!==confirm){setLocalError('كلمتا المرور غير متطابقتين.');return;}
   if(new TextEncoder().encode(password).length>72){setLocalError('كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.');return;}
@@ -18,6 +20,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
  <label>كلمة المرور<div className="password-row"><input type={visible?'text':'password'} autoComplete={register?'new-password':'current-password'} required minLength={register?8:undefined} value={password} onChange={e=>setPassword(e.target.value)}/><button type="button" className="text-button" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}>{visible?'إخفاء':'إظهار'}</button></div></label>
  {register&&<label>تأكيد كلمة المرور<input type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={confirm} onChange={e=>setConfirm(e.target.value)}/><small className="muted">8 أحرف على الأقل.</small></label>}
  {(localError||error)&&<p className="notice error" role="alert">{localError||error}</p>}
+ {isLoading&&slow&&<p className="notice" role="status">الخادم يستغرق وقتًا أطول للاستجابة. انتظر قليلًا؛ قد يستغرق الاتصال الأول نحو دقيقة.</p>}
  <button className="primary full" disabled={isLoading}>{isLoading?'جارٍ التحقق…':register?'إنشاء الحساب':'تسجيل الدخول'}</button>
  <button type="button" className="text-button full" disabled={isLoading} onClick={()=>{clearError();router.replace(register?'/login':'/register');}}>{register?'لدي حساب بالفعل':'إنشاء حساب جديد'}</button>
  </form><p className="fine">الحساب الجديد بصلاحية مستخدم. صلاحيات التاجر والمدير تُمنح من الإدارة.</p></section><footer className="auth-footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer></main>;
