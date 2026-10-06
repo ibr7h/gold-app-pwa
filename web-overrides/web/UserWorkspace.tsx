@@ -17,9 +17,21 @@ const dateTime=(s:string)=>new Date(s).toLocaleString('ar-SA',{dateStyle:'medium
 function Empty({children}:{children:React.ReactNode}){return <div className="empty"><Icon name="wallet"/><p>{children}</p></div>;}
 function CurrencySelect({value='SAR'}:{value?:string}){return <select name="currency" defaultValue={value}>{(CURRENCIES.includes(value)?CURRENCIES:[value,...CURRENCIES]).map(c=><option key={c}>{c}</option>)}</select>;}
 function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{(KARATS.includes(value)?KARATS:[value,...KARATS]).map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
+function BootScreen(){
+ const [slow,setSlow]=useState(false);
+ useEffect(()=>{const timer=setTimeout(()=>setSlow(true),6500);return()=>clearTimeout(timer);},[]);
+ return <div className="gold-web boot" dir="rtl" role="status" aria-live="polite">
+  <div className="boot-shell">
+   <span className="boot-mark" aria-hidden="true">ذ</span>
+   <div className="boot-copy"><h1>ذهبي</h1><p>نجهّز ذهبي لك…</p></div>
+   <span className="boot-loader" aria-hidden="true"><i/><i/><i/></span>
+   {slow&&<p className="boot-slow">قد يستغرق التشغيل الأول بضع ثوانٍ.</p>}
+  </div>
+ </div>;
+}
 export default function UserWorkspace(){
  const {user,isLoading,logout}=useAuth();
- if(isLoading&&!user)return <div className="gold-web boot" dir="rtl" role="status">جارٍ التحقق من الجلسة…</div>;
+ if(isLoading&&!user)return <BootScreen/>;
  if(!user)return <AuthForm/>;
  return <Workspace key={String(user.id)} email={user.email} role={user.role} logout={logout}/>;
 }
