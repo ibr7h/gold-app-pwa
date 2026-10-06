@@ -10,8 +10,8 @@ for(let attempt=0;attempt<12;attempt++){
   const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>new URL(m[1],base)).filter(u=>u.origin==='https://ibr7h.github.io'&&u.pathname.includes('/_expo/'));
   assert(scripts.length>0);
   let found=false;
-  for(const url of scripts){const js=await fetch(url,{signal:AbortSignal.timeout(20000)}).then(r=>r.text());if(js.includes('User Web 1.3')&&js.includes('mobile-bottom-nav'))found=true;}
-  assert(found,'Published JavaScript does not contain User Web 1.3 and seven-tab mobile navigation');
+  for(const url of scripts){const js=await fetch(url,{signal:AbortSignal.timeout(20000)}).then(r=>r.text());if(js.includes('User Web 1.3.1')&&js.includes('mobile-bottom-nav'))found=true;}
+  assert(found,'Published JavaScript does not contain User Web 1.3.1 and seven-tab mobile navigation');
   verified=true;console.log('Published version and user workspace verified:',expected);break;
  }catch(e){console.log('Waiting for Pages propagation, attempt',attempt+1);await new Promise(r=>setTimeout(r,5000));}
 }

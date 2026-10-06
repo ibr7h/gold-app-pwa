@@ -5,7 +5,7 @@ root=Path(sys.argv[1])
 javascript='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.js'))
 css='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.css'))
 
-assert 'User Web 1.3' in javascript, 'The current user workspace is missing from the export'
+assert 'User Web 1.3.1' in javascript, 'The current user workspace is missing from the export'
 assert 'workspace-content' in javascript, 'User workspace markup is missing'
 assert 'mobile-bottom-nav' in javascript, 'Mobile navigation markup is missing'
 assert '.desktop-nav' in css and '.form-grid' in css, 'Responsive stylesheet missing'
