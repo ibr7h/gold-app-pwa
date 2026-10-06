@@ -2,6 +2,8 @@ import React,{useEffect,useState} from 'react';
 import {router} from 'expo-router';
 import {useAuth} from '../contexts/AuthContext';
 import './user.css';
+const DEMO_EMAIL='demo@gold.app';
+const DEMO_PASSWORD='Demo123!';
 export default function AuthForm({register=false}:{register?:boolean}){
  const {user,isLoading,error,login,startRegistration,clearError}=useAuth();
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[localError,setLocalError]=useState('');
@@ -20,5 +22,6 @@ export default function AuthForm({register=false}:{register?:boolean}){
  {(localError||error)&&<p className="notice error" role="alert">{localError||error}</p>}
  <button className="primary full" disabled={isLoading}>{isLoading?'جارٍ التحقق…':register?'إنشاء الحساب':'تسجيل الدخول'}</button>
  <button type="button" className="text-button full" disabled={isLoading} onClick={()=>{clearError();router.replace(register?'/login':'/register');}}>{register?'لدي حساب بالفعل':'إنشاء حساب جديد'}</button>
+ {!register&&<div className="demo-box"><strong>حساب تجريبي جاهز</strong><div className="demo-credentials"><code>{DEMO_EMAIL}</code><code>{DEMO_PASSWORD}</code></div><button type="button" className="secondary" disabled={isLoading} onClick={()=>{clearError();setLocalError('');setEmail(DEMO_EMAIL);setPassword(DEMO_PASSWORD);}}>استخدام بيانات الدخول التجريبية</button><p className="fine">للاختبار فقط. هذا حساب مشترك ولا تستخدم فيه بيانات ذهب حقيقية.</p></div>}
  </form><p className="fine">الحساب الجديد بصلاحية مستخدم. صلاحيات التاجر والمدير تُمنح من الإدارة.</p></section><footer className="auth-footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer></main>;
 }
