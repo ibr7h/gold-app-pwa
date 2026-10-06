@@ -1,4 +1,5 @@
-const CACHE='gold-app-pwa-v0.3.2-force';
+const CACHE_PREFIX='gold-app-pwa-root-';
+const CACHE=CACHE_PREFIX+'v0.3.3';
 const CORE=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icons/icon.svg','./icons/icon-maskable.svg'];
 
 self.addEventListener('install',event=>{
@@ -9,7 +10,11 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
   event.waitUntil(
     caches.keys()
-      .then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))))
+      .then(keys=>Promise.all(
+        keys
+          .filter(key=>key.startsWith(CACHE_PREFIX) && key!==CACHE)
+          .map(key=>caches.delete(key))
+      ))
       .then(()=>self.clients.claim())
   );
 });
@@ -20,7 +25,11 @@ self.addEventListener('message',event=>{
   }
   if(event.data?.type==='CLEAR_OLD_CACHES'){
     event.waitUntil(
-      caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))))
+      caches.keys().then(keys=>Promise.all(
+        keys
+          .filter(key=>key.startsWith(CACHE_PREFIX) && key!==CACHE)
+          .map(key=>caches.delete(key))
+      ))
     );
   }
 });
@@ -30,7 +39,11 @@ self.addEventListener('fetch',event=>{
   const url=new URL(event.request.url);
   if(url.origin!==self.location.origin) return;
 
-  if(url.pathname.endsWith('/version.json') || url.pathname.endsWith('/prices.json')){
+  // The full application has its own service worker and cache namespace.
+  // Never intercept or cache its requests from the root PWA.
+  if(url.pathname.startsWith('/gold-app-pwa/full/')) return;
+
+  if(url.pathname.endsWith('/version.json') || url.pathname.endsWith('/prices-live.json')){
     event.respondWith(fetch(event.request,{cache:'no-store'}));
     return;
   }
@@ -51,6 +64,7 @@ self.addEventListener('fetch',event=>{
   event.respondWith(
     fetch(event.request)
       .then(response=>{
+        if(!response.ok) return response;
         const copy=response.clone();
         caches.open(CACHE).then(cache=>cache.put(event.request,copy));
         return response;
