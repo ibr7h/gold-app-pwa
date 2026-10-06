@@ -8,7 +8,7 @@ type Page='home'|'prices'|'portfolio'|'purchases'|'alerts'|'map'|'account';
 const pages:{id:Page;label:string;icon:string}[]=[{id:'home',label:'الرئيسية',icon:'home'},{id:'prices',label:'الأسعار',icon:'chart'},{id:'portfolio',label:'المحافظ',icon:'wallet'},{id:'purchases',label:'المشتريات',icon:'receipt'},{id:'alerts',label:'التنبيهات',icon:'bell'},{id:'map',label:'التجار',icon:'map'},{id:'account',label:'الملف الشخصي',icon:'user'}];
 const mobilePages=pages;
 function Icon({name}:{name:string}){
- const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4'};
+ const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4',map:'M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z M9 3v15 M15 6v15'};
  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]||paths.home}/></svg>;
 }
 const number=(n:number)=>new Intl.NumberFormat('ar-SA',{maximumFractionDigits:4}).format(n);
@@ -17,6 +17,26 @@ const dateTime=(s:string)=>new Date(s).toLocaleString('ar-SA',{dateStyle:'medium
 function Empty({children}:{children:React.ReactNode}){return <div className="empty"><Icon name="wallet"/><p>{children}</p></div>;}
 function CurrencySelect({value='SAR'}:{value?:string}){return <select name="currency" defaultValue={value}>{(CURRENCIES.includes(value)?CURRENCIES:[value,...CURRENCIES]).map(c=><option key={c}>{c}</option>)}</select>;}
 function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{(KARATS.includes(value)?KARATS:[value,...KARATS]).map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
+interface PriceHistoryRow{id:string;source:string;currency:string;karat:number;buyPrice:string;sellPrice:string;timestamp:string;createdAt:string}
+function PriceHistoryChart({rows,currency,karat}:{rows:PriceHistoryRow[];currency:string;karat:number}){
+ const data=[...rows].filter(r=>Number.isFinite(Number(r.buyPrice))&&Number.isFinite(Date.parse(r.createdAt||r.timestamp))).sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
+ if(data.length<2)return <div className="chart-empty">نحتاج تحديثين محفوظين على الأقل لرسم حركة السعر.</div>;
+ const values=data.map(r=>Number(r.buyPrice)),min=Math.min(...values),max=Math.max(...values),span=Math.max(max-min,Math.max(max,1)*0.002);
+ const left=28,right=572,top=22,bottom=142;
+ const pts=data.map((r,i)=>{const x=left+(right-left)*(i/Math.max(1,data.length-1));const y=bottom-(bottom-top)*((Number(r.buyPrice)-(min-span*.12))/(span*1.24));return{x,y,row:r};});
+ const path=pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+ const labels=[0,Math.floor((data.length-1)/2),data.length-1].filter((v,i,a)=>a.indexOf(v)===i).map(i=>data[i]);
+ return <div className="history-chart" role="img" aria-label={`رسم سعر الذهب عيار ${karat} حسب وقت التحديث`}>
+  <div className="chart-legend"><span><i className="legend-gold"/>سعر الجرام · عيار {karat}</span><strong>{currency}</strong></div>
+  <svg viewBox="0 0 600 170" preserveAspectRatio="none" aria-hidden="true">
+   <line x1="28" y1="42" x2="572" y2="42" className="chart-grid"/><line x1="28" y1="82" x2="572" y2="82" className="chart-grid"/><line x1="28" y1="122" x2="572" y2="122" className="chart-grid"/>
+   <path d={path} className="chart-line"/>
+   {pts.map((p,i)=><circle key={p.row.id||i} cx={p.x} cy={p.y} r="3.8" className="chart-dot"><title>{dateTime(p.row.createdAt||p.row.timestamp)} · {money(Number(p.row.buyPrice),currency)}</title></circle>)}
+  </svg>
+  <div className="chart-axis">{labels.map((r,i)=><span key={i}>{new Date(r.createdAt||r.timestamp).toLocaleTimeString('ar-SA',{hour:'numeric',minute:'2-digit'})}</span>)}</div>
+  <p className="chart-caption">كل نقطة تمثل تحديثًا محفوظًا فعليًا في النظام، ويُستخدم وقت الحفظ <code>createdAt</code> للمحور الزمني.</p>
+ </div>;
+}
 function BootScreen(){
  const [slow,setSlow]=useState(false);
  useEffect(()=>{const timer=setTimeout(()=>setSlow(true),6500);return()=>clearTimeout(timer);},[]);
@@ -39,6 +59,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
  const [feed,setFeed]=useState<Feed|null>(null),[feedError,setFeedError]=useState(''),[priceCurrency,setPriceCurrency]=useState('SAR');
+ const [history,setHistory]=useState<PriceHistoryRow[]>([]),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';purchase?:Purchase}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
  const [clock,setClock]=useState(Date.now());const active=useRef(true),loadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
@@ -56,9 +77,19 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   try{const r=await fetch('https://raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-live.json?t='+Date.now(),{cache:'no-store',signal:controller.signal});if(!r.ok)throw new Error();const d=validFeed(await r.json());if(active.current){setFeed(d);setFeedError('');}}
   catch{if(active.current)setFeedError('تعذر جلب تحديث السعر. تأكد من وقت آخر تحديث قبل استخدامه.');}finally{clearTimeout(timer);}
  },[]);
- useEffect(()=>{active.current=true;void loadData();void loadPrice();const timer=setInterval(()=>{setClock(Date.now());if(document.visibilityState==='visible')void loadPrice();},60000);
-  const focus=()=>{if(document.visibilityState==='visible'){void loadData();void loadPrice();}};document.addEventListener('visibilitychange',focus);
-  return()=>{active.current=false;loadSequence.current++;clearInterval(timer);document.removeEventListener('visibilitychange',focus);};},[loadData,loadPrice]);
+ const loadMarket=useCallback(async()=>{
+  try{
+   const [h,...latest]=await Promise.all([
+    api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=48'),
+    ...[24,22,21,18].map(k=>api<PriceHistoryRow|null>('/prices/latest?currency='+encodeURIComponent(priceCurrency)+'&karat='+k))
+   ]);
+   if(!Array.isArray(h))throw new Error('Invalid history');
+   if(active.current){setHistory(h);setMarketRows(latest.filter((x):x is PriceHistoryRow=>!!x));setHistoryError('');}
+  }catch{if(active.current){setHistory([]);setMarketRows([]);setHistoryError('تعذر تحميل سجل الأسعار من الخادم.');}}
+ },[priceCurrency,chartKarat]);
+ useEffect(()=>{active.current=true;void loadData();void loadPrice();void loadMarket();const timer=setInterval(()=>{setClock(Date.now());if(document.visibilityState==='visible'){void loadPrice();void loadMarket();}},60000);
+  const focus=()=>{if(document.visibilityState==='visible'){void loadData();void loadPrice();void loadMarket();}};document.addEventListener('visibilitychange',focus);
+  return()=>{active.current=false;loadSequence.current++;clearInterval(timer);document.removeEventListener('visibilitychange',focus);};},[loadData,loadPrice,loadMarket]);
  useEffect(()=>{const read=()=>{const id=location.hash.slice(1);if(pages.some(p=>p.id===id))setPage(id as Page);};read();window.addEventListener('hashchange',read);return()=>window.removeEventListener('hashchange',read);},[]);
  const navigate=(p:Page)=>{setPage(p);setMenu(false);location.hash=p;requestAnimationFrame(()=>headingRef.current?.focus());};
  useEffect(()=>{if(!message)return;const timer=setTimeout(()=>setMessage(''),6000);return()=>clearTimeout(timer);},[message]);
