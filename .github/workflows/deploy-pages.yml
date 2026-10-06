@@ -747,3 +747,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify published version and workspace
+        run: node scripts/verify-published.mjs

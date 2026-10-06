@@ -27,7 +27,7 @@ async function raw(path:string,options:RequestInit={},token?:string){
  }catch(e){if(e instanceof ApiError)throw e;throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.');}finally{clearTimeout(timer);}
 }
 export async function authenticate(path:'/auth/login'|'/auth/register',data:object){await saveSession(await raw(path,{method:'POST',body:JSON.stringify(data)}));}
-async function refreshAccess(expiredToken:string|null){
+async function refreshAccess(expiredToken:string|null):Promise<string>{
  if(!refreshFlight){const started=epoch;
   const refresh=async()=>{
    const current=await AsyncStorage.getItem(ACCESS);if(current&&current!==expiredToken)return current;
@@ -37,9 +37,9 @@ async function refreshAccess(expiredToken:string|null){
    if(!tokens?.accessToken||!tokens?.refreshToken)throw new ApiError('استجابة الجلسة غير صالحة.');
    await AsyncStorage.multiSet([[ACCESS,tokens.accessToken],[REFRESH,tokens.refreshToken]]);return tokens.accessToken as string;
   };
-  const flight=typeof navigator!=='undefined'&&navigator.locks?navigator.locks.request('dhahabi-full-refresh',refresh):refresh();
+  const flight:Promise<string>=(async()=>{if(typeof navigator!=='undefined'&&navigator.locks)return await navigator.locks.request('dhahabi-full-refresh',refresh);return await refresh();})();
   refreshFlight=flight.catch(async e=>{if(started===epoch&&e instanceof ApiError&&e.status===401)await clearSession();throw e;}).finally(()=>{refreshFlight=null;});
- }return refreshFlight;
+ }return refreshFlight!;
 }
 export async function api<T=any>(path:string,options:RequestInit={}):Promise<T>{
  const started=epoch,token=await AsyncStorage.getItem(ACCESS);
