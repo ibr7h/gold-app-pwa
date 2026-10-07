@@ -419,101 +419,63 @@ jobs:
             getNextKey?: () => string | null;
           }
 
-          const CACHE_KEY='gold_pwa_live_price';
-          const RAW_FEED='https://raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-live.json';
-          const LOCAL_FEED='/gold-app-pwa/prices-live.json';
+          const CACHE_KEY='gold_pwa_backend_price';
+          const API='https://gold-app-api-u8dl.onrender.com';
           const OZ_GRAMS=31.1034768;
-          const FX:Record<string,number>={
-            USD:1,SAR:3.75,AED:3.6725,EUR:0.92,GBP:0.79,KWD:0.307,
-            EGP:50.5,INR:83.5,TRY:32.5,JPY:150.2
-          };
+          const KARATS=[24,22,21,20,18,16,14,10];
 
-          function makeData(feed:any,currency:string):GoldPriceData {
-            const usdOunce=Number(feed.spotUsdPerOunce);
-            const rate=FX[currency] ?? 1;
-            const ounce=usdOunce*rate;
-            const gram24=ounce/OZ_GRAMS;
-            const ts=feed.updatedAt ? new Date(feed.updatedAt).getTime() : Date.now();
-            const kp=(k:number)=>gram24*(k/24);
-            return {
-              pricePerOunce:ounce,
-              pricePerGram24K:gram24,
-              currency,
-              change:0,
-              changePercent:0,
-              high:ounce,
-              low:ounce,
-              open:ounce,
-              prevClose:ounce,
-              ask:ounce,
-              bid:ounce,
-              timestamp:Number.isFinite(ts)?ts:Date.now(),
-              karatPrices:[
-                {karat:'24K',pricePerGram:kp(24)},
-                {karat:'22K',pricePerGram:kp(22)},
-                {karat:'21K',pricePerGram:kp(21)},
-                {karat:'20K',pricePerGram:kp(20)},
-                {karat:'18K',pricePerGram:kp(18)},
-                {karat:'16K',pricePerGram:kp(16)},
-                {karat:'14K',pricePerGram:kp(14)},
-                {karat:'10K',pricePerGram:kp(10)},
-              ],
-              source:'api.gold-api.com',
-              isLive:true,
-            };
-          }
-
-          async function fetchFeed():Promise<any> {
-            const urls=[RAW_FEED+'?t='+Date.now(),LOCAL_FEED+'?t='+Date.now()];
-            let lastError:any=null;
-            for(const url of urls){
-              try{
-                const r=await fetch(url,{cache:'no-store'});
-                if(!r.ok) throw new Error('HTTP '+r.status);
-                const d=await r.json();
-                if(!Number.isFinite(Number(d.spotUsdPerOunce))) throw new Error('Invalid price feed');
-                return d;
-              }catch(e){ lastError=e; }
-            }
-            throw lastError ?? new Error('Price feed unavailable');
+          async function latest(currency:string,karat:number){
+            const r=await fetch(API+'/prices/latest?currency='+encodeURIComponent(currency)+'&karat='+karat,{cache:'no-store'});
+            if(!r.ok) throw new Error('Backend price unavailable: '+r.status);
+            const row=await r.json();
+            const price=Number(row?.buyPrice);
+            if(!Number.isFinite(price)||price<=0) throw new Error('Backend price is invalid');
+            return row;
           }
 
           export async function fetchGoldPrice(options:FetchOptions={}):Promise<GoldPriceData>{
-            const currency=options.currency || 'SAR';
+            const currency=(options.currency||'SAR').toUpperCase();
+            if(!['SAR','USD'].includes(currency)) throw new Error('Unsupported backend price currency: '+currency);
             try{
-              const feed=await fetchFeed();
-              const data=makeData(feed,currency);
+              const base=await latest(currency,24);
+              const gram24=Number(base.buyPrice);
+              const kp=(k:number)=>gram24*(k/24);
+              const ts=Date.parse(base.timestamp);
+              const data:GoldPriceData={
+                pricePerOunce:gram24*OZ_GRAMS,
+                pricePerGram24K:gram24,
+                currency,
+                change:0,
+                changePercent:0,
+                high:gram24*OZ_GRAMS,
+                low:gram24*OZ_GRAMS,
+                open:gram24*OZ_GRAMS,
+                prevClose:gram24*OZ_GRAMS,
+                ask:Number(base.sellPrice)||gram24,
+                bid:gram24,
+                timestamp:Number.isFinite(ts)?ts:Date.now(),
+                karatPrices:KARATS.map(k=>({karat:k+'K',pricePerGram:kp(k)})),
+                source:String(base.source||'Dhahabi Backend'),
+                isLive:true,
+              };
               await AsyncStorage.setItem(CACHE_KEY+'_'+currency,JSON.stringify(data));
               return data;
             }catch(e){
-              try{
-                const cached=await AsyncStorage.getItem(CACHE_KEY+'_'+currency);
-                if(cached) return {...JSON.parse(cached),isLive:false,source:'Cached'};
-              }catch{}
-              const fallback=makeData({spotUsdPerOunce:4136.5,updatedAt:new Date().toISOString()},currency);
-              return {...fallback,isLive:false,source:'Offline'};
+              const cached=await AsyncStorage.getItem(CACHE_KEY+'_'+currency);
+              if(cached) return {...JSON.parse(cached),isLive:false,source:'Cached backend'};
+              throw e;
             }
           }
 
           export async function clearCache():Promise<void>{
-            for(const code of Object.keys(FX)){
-              await AsyncStorage.removeItem(CACHE_KEY+'_'+code);
-            }
+            for(const code of ['SAR','USD']) await AsyncStorage.removeItem(CACHE_KEY+'_'+code);
           }
 
           export const SUPPORTED_CURRENCIES=[
-            {code:'USD',nameAr:'دولار أمريكي',nameEn:'US Dollar',nameFr:'Dollar américain',symbol:'$'},
-            {code:'EUR',nameAr:'يورو',nameEn:'Euro',nameFr:'Euro',symbol:'€'},
-            {code:'GBP',nameAr:'جنيه إسترليني',nameEn:'British Pound',nameFr:'Livre sterling',symbol:'£'},
-            {code:'AED',nameAr:'درهم إماراتي',nameEn:'UAE Dirham',nameFr:'Dirham des EAU',symbol:'د.إ'},
             {code:'SAR',nameAr:'ريال سعودي',nameEn:'Saudi Riyal',nameFr:'Riyal saoudien',symbol:'ر.س'},
-            {code:'KWD',nameAr:'دينار كويتي',nameEn:'Kuwaiti Dinar',nameFr:'Dinar koweïtien',symbol:'د.ك'},
-            {code:'EGP',nameAr:'جنيه مصري',nameEn:'Egyptian Pound',nameFr:'Livre égyptienne',symbol:'ج.م'},
-            {code:'INR',nameAr:'روبية هندية',nameEn:'Indian Rupee',nameFr:'Roupie indienne',symbol:'₹'},
-            {code:'TRY',nameAr:'ليرة تركية',nameEn:'Turkish Lira',nameFr:'Livre turque',symbol:'₺'},
-            {code:'JPY',nameAr:'ين ياباني',nameEn:'Japanese Yen',nameFr:'Yen japonais',symbol:'¥'},
+            {code:'USD',nameAr:'دولار أمريكي',nameEn:'US Dollar',nameFr:'Dollar américain',symbol:'$'},
           ];
-          export const KARAT_OPTIONS=['24K','22K','21K','18K','14K','10K'];
+          export const KARAT_OPTIONS=['24K','22K','21K','18K'];
           EOF
 
       - name: Apply reviewed user web overrides
