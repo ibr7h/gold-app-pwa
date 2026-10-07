@@ -161,6 +161,7 @@
  --warning:#F59E0B;
  --info:#3B82F6;
  --border:rgba(230,232,234,.15);
+ --app-background:#0C1626;
  /* compatibility aliases: all legacy components resolve to the approved tokens */
  --navy-950:var(--navy-dark);
  --navy-900:var(--navy);
@@ -467,5 +468,21 @@
  .gold-web .mobile-tab.selected{
   color:var(--gold);
   background:rgba(197,160,33,.10);
+ }
+}
+
+
+/* Approved exception: restore the previous app canvas only */
+.gold-web.workspace,
+.gold-web .workspace-main,
+.gold-web .workspace-content,
+.gold-auth,
+.gold-web.boot{
+ background:var(--app-background)!important;
+}
+@media(max-width:800px){
+ .gold-web.workspace,
+ .gold-web .workspace-content{
+  background:var(--app-background)!important;
  }
 }
