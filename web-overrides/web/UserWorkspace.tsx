@@ -71,6 +71,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
  const [feed,setFeed]=useState<Feed|null>(null),[feedError,setFeedError]=useState(''),[priceCurrency,setPriceCurrency]=useState('SAR');
  const [history,setHistory]=useState<PriceHistoryRow[]>([]),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
+ const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState(10),[calcFee,setCalcFee]=useState(0),[calcVat,setCalcVat]=useState(false);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';purchase?:Purchase}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
  const [clock,setClock]=useState(Date.now());const active=useRef(true),loadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
@@ -142,7 +143,13 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const sortedHistory=[...history].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
  const currentMarket=marketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
  const homeMarket=marketRows.find(r=>r.karat===24)||null;
- const historyValues=sortedHistory.map(r=>Number(r.buyPrice)).filter(Number.isFinite);
+ const calcRow=marketRows.find(r=>r.karat===calcKarat)||null;
+ const calcBase=calcRow?Number(calcRow.buyPrice):indicativePrice(feed,'SAR',calcKarat);
+ const calcRaw=calcBase===null?null:calcWeight*calcBase;
+ const calcMaking=Math.max(0,calcWeight)*Math.max(0,calcFee);
+ const calcTax=calcVat?calcMaking*.15:0;
+ const calcTotal=calcRaw===null?null:calcRaw+calcMaking+calcTax;
+  const historyValues=sortedHistory.map(r=>Number(r.buyPrice)).filter(Number.isFinite);
  const historyHigh=historyValues.length?Math.max(...historyValues):null,historyLow=historyValues.length?Math.min(...historyValues):null,historyOpen=historyValues.length?historyValues[0]:null;
  const priceNote=<p className="fine">أسعار الخادم مرجعية للجرام ولا تشمل المصنعية أو الضريبة أو هامش المتجر. الرسم يعتمد على الأسعار السابقة المحفوظة تلقائيًا مع كل تحديث فعلي.</p>;
  const marketTime=(row:PriceHistoryRow|null)=>row?dateTime(row.createdAt||row.timestamp):'لا يوجد تحديث محفوظ';
@@ -155,7 +162,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   if(page==='home')return <><div className="mock-welcome"><h2>مرحبًا بعودتك</h2><p>نظرة يومية على الذهب مع السعر الحالي ومقتنياتك وخدماتك السريعة.</p></div>
    {priceBlock}
    <section className="mock-section-block"><p className="mock-field-label">الخدمات السريعة</p><div className="mock-service-grid">{[
-    ['portfolio','المحافظ','wallet'],['purchases','المشتريات','receipt'],['alerts','التنبيهات','bell'],['prices','الأسعار','chart']
+    ['calculator','حاسبة الذهب','calculator'],['prices','أسعار اليوم','chart'],['portfolio','المحفظة','wallet'],['map','أقرب تاجر','map']
    ].map(([id,label,icon])=><button key={id} className="mock-service-tile" onClick={()=>navigate(id as Page)}><Icon name={icon}/><span>{label}</span></button>)}</div></section>
    <section className="mock-chart-card"><div className="section-heading compact"><div><h3>حركة السوق</h3><p className="muted">حسب وقت تحديث النظام</p></div><span className="pill gold">عيار {chartKarat}</span></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={history} currency={priceCurrency} karat={chartKarat}/>}</section>
    <section className="panel mock-light-card"><div className="section-heading"><div><h2>ملخص مقتنياتك</h2><p className="muted">القيم مفصولة حسب العملة.</p></div><button className="primary" disabled={!loaded||busy} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}><Icon name="plus"/>{portfolios.length?'تسجيل شراء':'إنشاء محفظة'}</button></div>{!loaded?<p className="muted">لم يتم تحميل بيانات الحساب.</p>:!summary.length?<Empty>سجّل أول عملية شراء لعرض ملخص مقتنياتك.</Empty>:<div className="summary-grid">{summary.map(x=><div className="summary-card" key={x.currency}><span className="pill">{x.currency}</span><dl><dt>تكلفة الشراء</dt><dd>{money(x.cost,x.currency)}</dd><dt>الوزن</dt><dd>{number(x.weight)} جم</dd><dt>القيمة المرجعية {stale?'(سعر قديم)':''}</dt><dd>{money(x.value,x.currency)}</dd><dt>الفرق</dt><dd className={x.value===null?'':x.value>=x.cost?'positive':'negative'}>{money(x.value===null?null:x.value-x.cost,x.currency)}</dd></dl></div>)}</div>}{priceNote}</section></>;
