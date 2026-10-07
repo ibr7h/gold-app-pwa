@@ -12,6 +12,6 @@ assert '.desktop-nav' in css and '.form-grid' in css, 'Responsive stylesheet mis
 assert '.mobile-bottom-nav' in css, 'Mobile bottom navigation styles are missing'
 assert '@media' in css and '800px' in css, 'Mobile breakpoint missing'
 css_lower=css.lower()
-assert '#001f3f' in css_lower and '#0a2e5b' in css_lower and '#c5a021' in css_lower and '#ffd700' in css_lower, 'Approved royal theme colors are missing'
+assert '--navy-card' in css and '--gold-accent' in css and '#001f3f' in css_lower and '#c5a021' in css_lower, 'Approved royal theme tokens are missing'
 
 print('Verified: current user workspace, Dhahabi visual baseline, and responsive navigation are included in the exported build.')
