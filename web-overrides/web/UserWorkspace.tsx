@@ -216,6 +216,35 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='portfolio')return <section className="panel mock-light-card"><div className="section-heading"><div><h2>محافظك</h2><p className="muted">اجمع المشتريات حسب هدفك. تُحفظ البيانات في حسابك.</p></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog('portfolio')}><Icon name="plus"/>محفظة جديدة</button></div>{!loaded?<Empty>لم يتم تحميل المحافظ بعد.</Empty>:!portfolios.length?<Empty>لا توجد محافظ بعد. أنشئ محفظتك الأولى.</Empty>:<div className="portfolio-grid">{portfolios.map(p=>{const rows=purchases.filter(b=>b.portfolioId===p.id);return <article className="portfolio-card" key={p.id}><span className="card-icon"><Icon name="wallet"/></span><h3>{p.name}</h3><p className="muted">{rows.length} سجلات شراء</p>{totals(rows,feed).map(x=><p key={x.currency}>تكلفة {x.currency}: <strong>{money(x.cost,x.currency)}</strong></p>)}<button className="danger text-button" disabled={busy||rows.length>0} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/'+p.id,label:p.name});}}>حذف المحفظة الفارغة</button></article>;})}</div>}</section>;
 
+  if(page==='settings')return <>
+   <section className="gold-card more-profile" onClick={()=>navigate('account')} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' ')navigate('account');}}>
+    <div className="profile-head"><span className="avatar">{email[0].toUpperCase()}</span><div><strong>{email}</strong><small>{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</small></div><span className="more-chevron">‹</span></div>
+   </section>
+   <section className="gold-card">
+    <h2 className="gold-card-title">اللغة (Language)</h2>
+    <div className="settings-choice-grid three"><button className="active">العربية</button><button disabled>English</button><button disabled>Français</button></div>
+   </section>
+   <section className="gold-card">
+    <h2 className="gold-card-title">العملة الافتراضية للأسعار</h2>
+    <div className="settings-choice-grid four">{['SAR','USD'].map(c=><button key={c} className={priceCurrency===c?'active':''} onClick={()=>setPriceCurrency(c)}>{c}</button>)}<button disabled>AED</button><button disabled>EUR</button></div>
+    <p className="fine">النسخة الحالية تدعم SAR وUSD فقط في مصدر السعر التاريخي.</p>
+   </section>
+   <section className="gold-card more-links">
+    {[
+     ['purchases','سجل الفواتير والمشتريات','receipt'],
+     ['alerts','تنبيهات الأسعار','bell'],
+     ['map','التجار والمحلات القريبة','map'],
+     ['account','الملف الشخصي','user'],
+     ['help','المساعدة','help']
+    ].map(([id,label,icon])=><button key={id} onClick={()=>navigate(id as Page)}><span className="more-link-icon"><Icon name={icon}/></span><span>{label}</span><span className="more-chevron">‹</span></button>)}
+   </section>
+   <section className="gold-card">
+    <h2 className="gold-card-title">الإشعارات والتنبيهات</h2>
+    <div className="settings-row"><div><strong>تنبيهات الأسعار</strong><p className="muted">إدارة قواعد التنبيه المحفوظة على الخادم.</p></div><button className="secondary" onClick={()=>navigate('alerts')}>إدارة</button></div>
+    <div className="settings-row"><div><strong>إشعارات التطبيق المغلق</strong><p className="muted">Web Push لم يُفعّل بعد.</p></div><span className="pill">لاحقًا</span></div>
+   </section>
+  </>;
+
   if(page==='purchases')return <section className="panel mock-light-card"><div className="section-heading"><div><h2>سجل المشتريات</h2><p className="muted">الوزن والسعر والتاريخ كما في سجلات حسابك.</p></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}><Icon name="plus"/>{portfolios.length?'تسجيل شراء':'إنشاء محفظة أولًا'}</button></div>{!loaded?<Empty>لم يتم تحميل المشتريات بعد.</Empty>:!purchases.length?<Empty>لا توجد مشتريات مسجلة.</Empty>:<div className="records">{purchases.map(p=><article className="record" key={p.id}><div className="record-title"><span className="card-icon"><Icon name="receipt"/></span><div><h3>ذهب عيار {p.karat}</h3><p className="muted">{portfolios.find(x=>x.id===p.portfolioId)?.name||'محفظة'} · {p.purchasedAt.slice(0,10)}</p></div><strong className="record-total">{money(Number(p.totalPrice),p.currency)}</strong></div><dl className="record-details"><div><dt>الوزن</dt><dd>{number(Number(p.weightGrams))} جم</dd></div><div><dt>سعر الجرام</dt><dd>{money(Number(p.unitPrice),p.currency)}</dd></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>openDialog('purchase',p)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/purchase/'+p.id,label:'سجل الشراء'});}}>حذف</button></div></dl></article>)}</div>}</section>;
 
   if(page==='alerts')return <section className="panel mock-light-card"><div className="section-heading"><div><h2>تنبيهات الأسعار</h2><p className="muted">راقب بلوغ السعر حدًا تحدده.</p></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog('alert')}><Icon name="plus"/>تنبيه جديد</button></div><p className="notice info">الخادم يفحص قواعد التنبيه. Push عند إغلاق التطبيق لم يُفعّل بعد.</p>{!loaded?<Empty>لم يتم تحميل التنبيهات بعد.</Empty>:!alerts.length?<Empty>لا توجد تنبيهات. أضف السعر الذي تريد متابعته.</Empty>:<div className="portfolio-grid">{alerts.map(a=><article className="portfolio-card" key={a.id}><div className="section-heading"><span className="card-icon"><Icon name="bell"/></span><span className={'pill '+(a.status==='active'?'good':a.status==='triggered'?'warn':'')}>{statusLabels[a.status]}</span></div><h3>عيار {a.karat} · {a.currency}</h3><p>{a.direction==='above'?'عند وصول السعر إلى أو أعلى من':'عند وصول السعر إلى أو أقل من'}</p><strong className="alert-price">{money(Number(a.targetPrice),a.currency)}</strong><p className="fine">آخر تغيير: {dateTime(a.updatedAt)}</p><div className="actions"><button className="secondary" disabled={busy} onClick={()=>void mutate('/alerts/'+a.id+(a.status==='active'?'/pause':'/activate'),'POST')}>{a.status==='active'?'إيقاف مؤقت':a.status==='triggered'?'إعادة التفعيل':'تفعيل'}</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/alerts/'+a.id,label:'التنبيه'});}}>حذف</button></div></article>)}</div>}</section>;
