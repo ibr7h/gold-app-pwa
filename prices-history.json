@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "source": "api.gold-api.com",
+  "symbol": "XAU",
+  "retention": {
+    "maxPoints": 2016,
+    "approxDaysAt5Min": 7
+  },
+  "points": [
+    {
+      "source": "api.gold-api.com",
+      "spotUsdPerOunce": 4136.5,
+      "usdSar": 3.75,
+      "updatedAt": "2026-10-05T18:24:38Z",
+      "generatedAt": "2026-10-05T18:24:38Z",
+      "pricesSarPerGram": {
+        "18": 374.04,
+        "21": 436.38,
+        "22": 457.16,
+        "24": 498.72
+      }
+    },
+    {
+      "source": "api.gold-api.com",
+      "spotUsdPerOunce": 4137.100098,
+      "usdSar": 3.75,
+      "updatedAt": "2026-10-06T00:38:08Z",
+      "generatedAt": "2026-10-06T00:38:14.712123+00:00",
+      "pricesSarPerGram": {
+        "18": 374.09,
+        "21": 436.44,
+        "22": 457.22,
+        "24": 498.79
+      }
+    },
+    {
+      "source": "api.gold-api.com",
+      "spotUsdPerOunce": 4134.100098,
+      "usdSar": 3.75,
+      "updatedAt": "2026-10-06T06:51:39Z",
+      "generatedAt": "2026-10-06T06:51:58.968916+00:00",
+      "pricesSarPerGram": {
+        "18": 373.82,
+        "21": 436.13,
+        "22": 456.89,
+        "24": 498.43
+      }
+    },
+    {
+      "source": "api.gold-api.com",
+      "spotUsdPerOunce": 4156.700195,
+      "usdSar": 3.75,
+      "updatedAt": "2026-10-06T13:50:10Z",
+      "generatedAt": "2026-10-06T13:50:12.535599+00:00",
+      "pricesSarPerGram": {
+        "18": 375.87,
+        "21": 438.51,
+        "22": 459.39,
+        "24": 501.15
+      }
+    },
+    {
+      "source": "api.gold-api.com",
+      "spotUsdPerOunce": 4177.799805,
+      "usdSar": 3.75,
+      "updatedAt": "2026-10-06T19:11:40Z",
+      "generatedAt": "2026-10-06T19:12:00.154147+00:00",
+      "pricesSarPerGram": {
+        "18": 377.77,
+        "21": 440.74,
+        "22": 461.72,
+        "24": 503.7
+      }
+    },
+    {
+      "source": "api.gold-api.com",
+      "spotUsdPerOunce": 4164.799805,
+      "usdSar": 3.75,
+      "updatedAt": "2026-10-06T23:05:11Z",
+      "generatedAt": "2026-10-06T23:05:27.222232+00:00",
+      "pricesSarPerGram": {
+        "18": 376.6,
+        "21": 439.36,
+        "22": 460.29,
+        "24": 502.13
+      }
+    },
+    {
+      "source": "api.gold-api.com",
+      "spotUsdPerOunce": 4145.299805,
+      "usdSar": 3.75,
+      "updatedAt": "2026-10-07T02:19:42Z",
+      "generatedAt": "2026-10-07T02:19:48.608397+00:00",
+      "pricesSarPerGram": {
+        "18": 374.83,
+        "21": 437.31,
+        "22": 458.13,
+        "24": 499.78
+      }
+    },
+    {
+      "source": "api.gold-api.com",
+      "spotUsdPerOunce": 4125.700195,
+      "usdSar": 3.75,
+      "updatedAt": "2026-10-07T08:56:47Z",
+      "generatedAt": "2026-10-07T08:57:00.065107+00:00",
+      "pricesSarPerGram": {
+        "18": 373.06,
+        "21": 435.24,
+        "22": 455.96,
+        "24": 497.42
+      }
+    }
+  ]
+}
