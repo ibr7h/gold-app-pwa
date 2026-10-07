@@ -17,32 +17,81 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --retry 3 --retry-delay 2 --fail --silent --show-error             "https://api.gold-api.com/price/XAU/USD" -o /tmp/gold.json
+          curl --retry 3 --retry-delay 2 --fail --silent --show-error \
+            "https://api.gold-api.com/price/XAU/USD" -o /tmp/gold.json
           python3 - <<'PY'
           import json
           from pathlib import Path
           from datetime import datetime, timezone
+
           d=json.loads(Path('/tmp/gold.json').read_text())
-          usd=float(d['price']); sar=3.75; gram=31.1034768
+          usd=float(d['price'])
+          sar=3.75
+          gram=31.1034768
           pure=usd*sar/gram
+          generated=datetime.now(timezone.utc).isoformat()
+
           out={
             "source":"api.gold-api.com",
             "symbol":"XAU",
             "currency":"USD",
             "spotUsdPerOunce":usd,
             "usdSar":sar,
-            "updatedAt":d.get("updatedAt"),
-            "generatedAt":datetime.now(timezone.utc).isoformat(),
+            "updatedAt":d.get("updatedAt") or generated,
+            "generatedAt":generated,
             "pricesSarPerGram":{
-              "24":round(pure,2),"22":round(pure*22/24,2),
-              "21":round(pure*21/24,2),"18":round(pure*18/24,2)
+              "24":round(pure,2),
+              "22":round(pure*22/24,2),
+              "21":round(pure*21/24,2),
+              "18":round(pure*18/24,2)
             }
           }
-          Path('prices-live.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n")
+
+          Path('prices-live.json').write_text(
+            json.dumps(out,ensure_ascii=False,indent=2)+"\n"
+          )
+
+          history_path=Path('prices-history.json')
+          if history_path.exists():
+            history=json.loads(history_path.read_text())
+          else:
+            history={
+              "version":1,
+              "source":"api.gold-api.com",
+              "symbol":"XAU",
+              "retention":{"maxPoints":2016,"approxDaysAt5Min":7},
+              "points":[]
+            }
+
+          points=history.setdefault("points",[])
+          snapshot={
+            "source":out["source"],
+            "spotUsdPerOunce":out["spotUsdPerOunce"],
+            "usdSar":out["usdSar"],
+            "updatedAt":out["updatedAt"],
+            "generatedAt":out["generatedAt"],
+            "pricesSarPerGram":out["pricesSarPerGram"]
+          }
+
+          last=points[-1] if points else None
+          same=bool(
+            last
+            and last.get("updatedAt")==snapshot["updatedAt"]
+            and float(last.get("spotUsdPerOunce",0))==snapshot["spotUsdPerOunce"]
+          )
+          if not same:
+            points.append(snapshot)
+
+          max_points=int(history.get("retention",{}).get("maxPoints",2016))
+          history["points"]=points[-max_points:]
+          history["updatedAt"]=out["generatedAt"]
+          history_path.write_text(
+            json.dumps(history,ensure_ascii=False,indent=2)+"\n"
+          )
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add prices-live.json
+          git add prices-live.json prices-history.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Update live gold price"
+          git commit -m "Update live gold price history"
           git push
