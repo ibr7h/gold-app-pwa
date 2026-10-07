@@ -527,6 +527,19 @@ jobs:
           pnpm check
           pnpm exec vitest run web/tests
 
+      - name: Verify persisted price history
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          doc=json.loads(Path('prices-history.json').read_text())
+          points=doc.get('points',[])
+          assert len(points) >= 2, 'price history must contain at least two snapshots'
+          assert all('updatedAt' in p and 'spotUsdPerOunce' in p for p in points)
+          print(f'Verified {len(points)} historical price snapshots.')
+          PY
+
       - name: Export full app for web
         shell: bash
         env:
