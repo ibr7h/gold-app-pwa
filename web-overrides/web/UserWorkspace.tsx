@@ -2,7 +2,7 @@ import React,{useState,useEffect,useRef,useCallback} from 'react';
 import {useAuth} from '../contexts/AuthContext';
 import AuthForm from './AuthForm';
 import {api,jsonRequest,errorMessage} from './api';
-import {Portfolio,Purchase,PriceAlert,Feed,KARATS,CURRENCIES,validFeed,indicativePrice,totals,purchasePayload,localDate} from './model';
+import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePayload,localDate} from './model';
 import './user.css';
 type Page='home'|'prices'|'portfolio'|'purchases'|'alerts'|'map'|'account'|'help';
 const pages:{id:Page;label:string;icon:string}[]=[{id:'home',label:'الرئيسية',icon:'home'},{id:'prices',label:'الأسعار',icon:'chart'},{id:'portfolio',label:'المحافظ',icon:'wallet'},{id:'purchases',label:'المشتريات',icon:'receipt'},{id:'alerts',label:'التنبيهات',icon:'bell'},{id:'map',label:'التجار',icon:'map'},{id:'account',label:'الملف الشخصي',icon:'user'},{id:'help',label:'المساعدة',icon:'help'}];
@@ -58,8 +58,8 @@ export default function UserWorkspace(){
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
- const [feed,setFeed]=useState<Feed|null>(null),[feedError,setFeedError]=useState(''),[priceCurrency,setPriceCurrency]=useState('SAR');
- const [history,setHistory]=useState<PriceHistoryRow[]>([]),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
+ const [priceCurrency,setPriceCurrency]=useState('SAR');
+ const [history,setHistory]=useState<PriceHistoryRow[]>([]),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';purchase?:Purchase}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
  const [clock,setClock]=useState(Date.now());const active=useRef(true),loadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
@@ -73,38 +73,29 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   }catch(e){if(active.current&&seq===loadSequence.current)setError(errorMessage(e));}
   finally{if(active.current&&seq===loadSequence.current)setLoading(false);}
  },[]);
- const loadPrice=useCallback(async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
-  try{const r=await fetch('https://raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-live.json?t='+Date.now(),{cache:'no-store',signal:controller.signal});if(!r.ok)throw new Error();const d=validFeed(await r.json());if(active.current){setFeed(d);setFeedError('');}}
-  catch{if(active.current)setFeedError('تعذر جلب تحديث السعر. تأكد من وقت آخر تحديث قبل استخدامه.');}finally{clearTimeout(timer);}
- },[]);
  const loadMarket=useCallback(async()=>{
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
   try{
-   const r=await fetch('https://raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-history.json?t='+Date.now(),{cache:'no-store',signal:controller.signal});
-   if(!r.ok)throw new Error('history unavailable');
-   const doc=await r.json() as {points?:Array<{source?:string;spotUsdPerOunce:number;usdSar:number;updatedAt:string;generatedAt:string;pricesSarPerGram:Record<string,number>}>};
-   const points=Array.isArray(doc.points)?doc.points:[];
-   const gram=31.1034768;
-   const rows:PriceHistoryRow[]=points.map((p,i)=>{
-    const sar=Number(p.pricesSarPerGram?.[String(chartKarat)]);
-    const usd24=Number(p.spotUsdPerOunce)/gram;
-    const value=priceCurrency==='SAR'?sar:usd24*(chartKarat/24);
-    return {id:'hist-'+i,source:p.source||'api.gold-api.com',currency:priceCurrency,karat:chartKarat,buyPrice:String(value),sellPrice:String(value),timestamp:p.updatedAt,createdAt:p.generatedAt||p.updatedAt};
-   }).filter(x=>Number.isFinite(Number(x.buyPrice)));
-   const last=points[points.length-1];
-   const latest:PriceHistoryRow[]=last?[24,22,21,18].map(k=>{
-    const sar=Number(last.pricesSarPerGram?.[String(k)]);
-    const usd24=Number(last.spotUsdPerOunce)/gram;
-    const value=priceCurrency==='SAR'?sar:usd24*(k/24);
-    return {id:'latest-'+k,source:last.source||'api.gold-api.com',currency:priceCurrency,karat:k,buyPrice:String(value),sellPrice:String(value),timestamp:last.updatedAt,createdAt:last.generatedAt||last.updatedAt};
-   }).filter(x=>Number.isFinite(Number(x.buyPrice))):[];
-   if(active.current){setHistory(rows);setMarketRows(latest);setHistoryError('');}
-  }catch{if(active.current){setHistory([]);setMarketRows([]);setHistoryError('تعذر تحميل سجل الأسعار المحفوظ.');}}
-  finally{clearTimeout(timer);}
+   const currencies=['SAR','USD'];
+   const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
+   const [historyRows,...latest]=await Promise.all([
+    api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=200'),
+    ...latestRequests
+   ]);
+   if(!Array.isArray(historyRows))throw new Error('Invalid history response');
+   const cleanLatest=latest.filter((row):row is PriceHistoryRow=>!!row&&Number.isFinite(Number(row.buyPrice)));
+   if(active.current){
+    setHistory(historyRows);
+    setAllMarketRows(cleanLatest);
+    setMarketRows(cleanLatest.filter(row=>row.currency===priceCurrency));
+    setHistoryError('');
+   }
+  }catch{
+   if(active.current){setHistory([]);setMarketRows([]);setAllMarketRows([]);setHistoryError('تعذر تحميل الأسعار من الخادم.');}
+  }
  },[priceCurrency,chartKarat]);
- useEffect(()=>{active.current=true;void loadData();void loadPrice();void loadMarket();const timer=setInterval(()=>{setClock(Date.now());if(document.visibilityState==='visible'){void loadPrice();void loadMarket();}},60000);
-  const focus=()=>{if(document.visibilityState==='visible'){void loadData();void loadPrice();void loadMarket();}};document.addEventListener('visibilitychange',focus);
-  return()=>{active.current=false;loadSequence.current++;clearInterval(timer);document.removeEventListener('visibilitychange',focus);};},[loadData,loadPrice,loadMarket]);
+ useEffect(()=>{active.current=true;void loadData();void loadMarket();const timer=setInterval(()=>{setClock(Date.now());if(document.visibilityState==='visible')void loadMarket();},60000);
+  const focus=()=>{if(document.visibilityState==='visible'){void loadData();void loadMarket();}};document.addEventListener('visibilitychange',focus);
+  return()=>{active.current=false;loadSequence.current++;clearInterval(timer);document.removeEventListener('visibilitychange',focus);};},[loadData,loadMarket]);
  useEffect(()=>{const read=()=>{const id=location.hash.slice(1);if(pages.some(p=>p.id===id))setPage(id as Page);};read();window.addEventListener('hashchange',read);return()=>window.removeEventListener('hashchange',read);},[]);
  const navigate=(p:Page)=>{setPage(p);setMenu(false);location.hash=p;requestAnimationFrame(()=>headingRef.current?.focus());};
  useEffect(()=>{if(!message)return;const timer=setTimeout(()=>setMessage(''),6000);return()=>clearTimeout(timer);},[message]);
@@ -126,17 +117,18 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    if(dialog.type==='alert'){const targetPrice=Number(data.get('targetPrice'));if(!Number.isFinite(targetPrice)||targetPrice<=0||targetPrice>=100000000)throw new Error('أدخل سعرًا موجبًا أقل من 100 مليون.');await mutate('/alerts','POST',{currency:String(data.get('currency')),karat:Number(data.get('karat')),targetPrice,direction:String(data.get('direction'))});}
   }catch(e){setFormError(e instanceof Error?e.message:'تحقق من القيم.');}
  };
- const stale=!feed||clock-Date.parse(feed.updatedAt)>30*60000||Date.parse(feed.updatedAt)>clock+5*60000;
- const summary=totals(purchases,feed),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
  const sortedHistory=[...history].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
  const currentMarket=marketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
- const homeMarket=marketRows.find(r=>r.karat===24)||null;
+ const homeMarket=allMarketRows.find(r=>r.currency==='SAR'&&r.karat===24) as PriceHistoryRow|undefined;
+ const sourceTime=homeMarket?Date.parse(homeMarket.timestamp):NaN;
+ const stale=!Number.isFinite(sourceTime)||clock-sourceTime>15*60000||sourceTime>clock+5*60000;
+ const summary=totals(purchases,allMarketRows),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
  const historyValues=sortedHistory.map(r=>Number(r.buyPrice)).filter(Number.isFinite);
  const historyHigh=historyValues.length?Math.max(...historyValues):null,historyLow=historyValues.length?Math.min(...historyValues):null,historyOpen=historyValues.length?historyValues[0]:null;
- const priceNote=<p className="fine">أسعار الخادم مرجعية للجرام ولا تشمل المصنعية أو الضريبة أو هامش المتجر. الرسم يعتمد على الأسعار السابقة المحفوظة تلقائيًا مع كل تحديث فعلي.</p>;
- const marketTime=(row:PriceHistoryRow|null)=>row?dateTime(row.createdAt||row.timestamp):'لا يوجد تحديث محفوظ';
+ const priceNote=<p className="fine">جميع الأسعار في هذه النسخة تأتي من Backend ذهبي نفسه؛ وتشترك البطاقات والمحفظة والتنبيهات والرسم البياني في المصدر ذاته. لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.</p>;
+ const marketTime=(row:PriceHistoryRow|null|undefined)=>row?dateTime(row.timestamp):'لا يوجد تحديث محفوظ';
  const priceBlock=<section className="market-price-card">
-  <div className="row"><div><p className="mock-supporting">سعر الذهب الآن</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):indicativePrice(feed,'SAR',24),'SAR')}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(homeMarket?'good':'warn')}>{homeMarket?'محدّث':'مرجعي'}</span></div>
+  <div className="row"><div><p className="mock-supporting">سعر الذهب الآن</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(homeMarket?'good':'warn')}>{homeMarket?'محدّث':'مرجعي'}</span></div>
   <p className="market-update">آخر تحديث: {marketTime(homeMarket)}</p>
  </section>;
  const nav=<><div className="nav-brand"><span className="brand-mark small">ذ</span><div><strong>ذهبي</strong><small>مساحتك الشخصية</small></div></div><nav aria-label="القائمة الرئيسية">{pages.map(p=><button key={p.id} className={'nav-item '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.label}</span></button>)}</nav><div className="nav-account"><span className="avatar">{email[0].toUpperCase()}</span><span className="email" dir="ltr">{email}</span><button className="icon-button" title="تسجيل الخروج" aria-label="تسجيل الخروج" onClick={logout}><Icon name="logout"/></button></div></>;
@@ -159,7 +151,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   <section className="mock-chart-card"><div className="section-heading"><div><h2>الرسم الزمني للأسعار</h2><p className="muted">كل نقطة سعر محفوظة من تحديث سابق.</p></div><label className="compact-label">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>عيار {k}</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={history} currency={priceCurrency} karat={chartKarat}/>}</section>
   <section className="panel mock-light-card"><h2>جدول الأسعار</h2><div className="market-table"><div className="market-table-row head"><span>البيع</span><span>الشراء</span><span>العيار</span></div>{[24,22,21,18].map(k=>{const row=marketRows.find(r=>r.karat===k);return <div className="market-table-row" key={k}><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>عيار {k}</span></div>;})}</div>{priceNote}</section></>;
 
-  if(page==='portfolio')return <section className="panel mock-light-card"><div className="section-heading"><div><h2>محافظك</h2><p className="muted">اجمع المشتريات حسب هدفك. تُحفظ البيانات في حسابك.</p></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog('portfolio')}><Icon name="plus"/>محفظة جديدة</button></div>{!loaded?<Empty>لم يتم تحميل المحافظ بعد.</Empty>:!portfolios.length?<Empty>لا توجد محافظ بعد. أنشئ محفظتك الأولى.</Empty>:<div className="portfolio-grid">{portfolios.map(p=>{const rows=purchases.filter(b=>b.portfolioId===p.id);return <article className="portfolio-card" key={p.id}><span className="card-icon"><Icon name="wallet"/></span><h3>{p.name}</h3><p className="muted">{rows.length} سجلات شراء</p>{totals(rows,feed).map(x=><p key={x.currency}>تكلفة {x.currency}: <strong>{money(x.cost,x.currency)}</strong></p>)}<button className="danger text-button" disabled={busy||rows.length>0} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/'+p.id,label:p.name});}}>حذف المحفظة الفارغة</button></article>;})}</div>}</section>;
+  if(page==='portfolio')return <section className="panel mock-light-card"><div className="section-heading"><div><h2>محافظك</h2><p className="muted">اجمع المشتريات حسب هدفك. تُحفظ البيانات في حسابك.</p></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog('portfolio')}><Icon name="plus"/>محفظة جديدة</button></div>{!loaded?<Empty>لم يتم تحميل المحافظ بعد.</Empty>:!portfolios.length?<Empty>لا توجد محافظ بعد. أنشئ محفظتك الأولى.</Empty>:<div className="portfolio-grid">{portfolios.map(p=>{const rows=purchases.filter(b=>b.portfolioId===p.id);return <article className="portfolio-card" key={p.id}><span className="card-icon"><Icon name="wallet"/></span><h3>{p.name}</h3><p className="muted">{rows.length} سجلات شراء</p>{totals(rows,allMarketRows).map(x=><p key={x.currency}>تكلفة {x.currency}: <strong>{money(x.cost,x.currency)}</strong></p>)}<button className="danger text-button" disabled={busy||rows.length>0} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/'+p.id,label:p.name});}}>حذف المحفظة الفارغة</button></article>;})}</div>}</section>;
 
   if(page==='purchases')return <section className="panel mock-light-card"><div className="section-heading"><div><h2>سجل المشتريات</h2><p className="muted">الوزن والسعر والتاريخ كما في سجلات حسابك.</p></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}><Icon name="plus"/>{portfolios.length?'تسجيل شراء':'إنشاء محفظة أولًا'}</button></div>{!loaded?<Empty>لم يتم تحميل المشتريات بعد.</Empty>:!purchases.length?<Empty>لا توجد مشتريات مسجلة.</Empty>:<div className="records">{purchases.map(p=><article className="record" key={p.id}><div className="record-title"><span className="card-icon"><Icon name="receipt"/></span><div><h3>ذهب عيار {p.karat}</h3><p className="muted">{portfolios.find(x=>x.id===p.portfolioId)?.name||'محفظة'} · {p.purchasedAt.slice(0,10)}</p></div><strong className="record-total">{money(Number(p.totalPrice),p.currency)}</strong></div><dl className="record-details"><div><dt>الوزن</dt><dd>{number(Number(p.weightGrams))} جم</dd></div><div><dt>سعر الجرام</dt><dd>{money(Number(p.unitPrice),p.currency)}</dd></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>openDialog('purchase',p)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/purchase/'+p.id,label:'سجل الشراء'});}}>حذف</button></div></dl></article>)}</div>}</section>;
 
@@ -180,7 +172,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    ['كيف أحدث التطبيق؟','استخدم زر التحديث عند ظهوره، أو افتح النسخة من Safari ثم أعد فتح التطبيق المثبت.']
   ].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>;
  };
- return <div className="gold-web workspace" dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main"><header className="topbar"><button className="icon-button menu-trigger" aria-label="فتح القائمة" aria-expanded={menu} onClick={()=>setMenu(true)}><Icon name="menu"/></button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div><button className="secondary refresh-button" disabled={loading||busy} onClick={()=>{void loadData();void loadPrice();void loadMarket();}}><Icon name="refresh"/><span>{loading?'جارٍ التحميل…':'تحديث'}</span></button></header><main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{error} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{message&&<p className="notice success" role="status">{message}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}<footer>© 2026 Ibrahim Alneami — All Rights Reserved · User Web 1.3.3</footer></main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.label}</span></button>)}</nav></div>
+ return <div className="gold-web workspace" dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main"><header className="topbar"><button className="icon-button menu-trigger" aria-label="فتح القائمة" aria-expanded={menu} onClick={()=>setMenu(true)}><Icon name="menu"/></button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div><button className="secondary refresh-button" disabled={loading||busy} onClick={()=>{void loadData();void loadMarket();}}><Icon name="refresh"/><span>{loading?'جارٍ التحميل…':'تحديث'}</span></button></header><main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{error} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{message&&<p className="notice success" role="status">{message}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}<footer>© 2026 Ibrahim Alneami — All Rights Reserved · User Web 1.3.3</footer></main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.label}</span></button>)}</nav></div>
  {menu&&<div className="mobile-nav-backdrop" onClick={()=>setMenu(false)}><div className="mobile-nav" ref={modalRef} role="dialog" aria-modal="true" aria-label="قائمة التنقل" onClick={e=>e.stopPropagation()}><button className="icon-button close-menu" aria-label="إغلاق القائمة" onClick={()=>setMenu(false)}><Icon name="close"/></button>{nav}</div></div>}
  {(dialog||confirm)&&<div className="dialog-backdrop"><div className="dialog" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div className="section-heading"><h2 id="dialog-title">{confirm?'تأكيد الحذف':dialog?.type==='portfolio'?'محفظة جديدة':dialog?.type==='alert'?'تنبيه جديد':dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء'}</h2><button className="icon-button" aria-label="إغلاق" disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
  {confirm?<><p>هل تريد حذف {confirm.label}؟ لا يمكن التراجع عن الحذف من التطبيق.</p><div className="actions"><button className="secondary" disabled={busy} onClick={()=>setConfirm(null)}>إلغاء</button><button className="danger-button" disabled={busy} onClick={()=>void mutate(confirm.path,'DELETE')}>{busy?'جارٍ الحذف…':'حذف'}</button></div></>:<form onSubmit={submit}>
