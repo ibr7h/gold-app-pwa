@@ -177,6 +177,43 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   <section className="mock-chart-card"><div className="section-heading"><div><h2>الرسم الزمني للأسعار</h2><p className="muted">كل نقطة سعر محفوظة من تحديث سابق.</p></div><label className="compact-label">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>عيار {k}</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={history} currency={priceCurrency} karat={chartKarat}/>}</section>
   <section className="panel mock-light-card"><h2>جدول الأسعار</h2><div className="market-table"><div className="market-table-row head"><span>البيع</span><span>الشراء</span><span>العيار</span></div>{[24,22,21,18].map(k=>{const row=marketRows.find(r=>r.karat===k);return <div className="market-table-row" key={k}><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>عيار {k}</span></div>;})}</div>{priceNote}</section></>;
 
+  if(page==='calculator')return <>
+   <section className="gold-card calculator-summary">
+    <p className="calc-kicker">السعر الإجمالي التقريبي</p>
+    <strong className="calc-total">{money(calcTotal,'SAR')}</strong>
+    <p className="calc-base">سعر الجرام الأساسي: {money(calcBase,'SAR')} · عيار {calcKarat}</p>
+   </section>
+   <section className="gold-card calculator-form">
+    <div className="form-group">
+     <p className="form-label">1. اختر عيار الذهب</p>
+     <div className="karat-choice-grid">{[24,22,21,18].map(k=><button type="button" key={k} className={'karat-choice '+(calcKarat===k?'active':'')} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div>
+    </div>
+    <div className="form-group">
+     <label className="form-label" htmlFor="calc-weight">2. الوزن بالجرام (g)</label>
+     <input id="calc-weight" type="number" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(Math.max(0,Number(e.target.value)||0))}/>
+     <div className="weight-chips">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(w)}>{w===31.1?'أونصة (31.1g)':w+' جرام'}</button>)}</div>
+    </div>
+    <div className="form-group">
+     <label className="form-label" htmlFor="calc-fee">3. أجرة المصنعية لكل جرام (اختياري)</label>
+     <input id="calc-fee" type="number" min="0" step="1" value={calcFee} placeholder="مثال: 15 SAR" onChange={e=>setCalcFee(Math.max(0,Number(e.target.value)||0))}/>
+    </div>
+    <label className="calc-vat-row">
+     <span><strong>ضريبة القيمة المضافة (15%)</strong><small>تُحسب هنا على المصنعية فقط كما في النموذج المرجعي.</small></span>
+     <input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/>
+    </label>
+   </section>
+   <section className="gold-card calc-breakdown">
+    <h2 className="gold-card-title">تفاصيل الفاتورة المقدرة</h2>
+    <dl>
+     <div><dt>قيمة الذهب الخام:</dt><dd>{money(calcRaw,'SAR')}</dd></div>
+     <div><dt>إجمالي المصنعية:</dt><dd>{money(calcMaking,'SAR')}</dd></div>
+     <div><dt>قيمة الضريبة (15%):</dt><dd>{money(calcTax,'SAR')}</dd></div>
+     <div className="calc-final"><dt>الإجمالي النهائي:</dt><dd>{money(calcTotal,'SAR')}</dd></div>
+    </dl>
+    <p className="fine">النتيجة تقديرية، وتعتمد على السعر الحالي المتاح في التطبيق والمصنعية التي تدخلها يدويًا.</p>
+   </section>
+  </>;
+
   if(page==='portfolio')return <section className="panel mock-light-card"><div className="section-heading"><div><h2>محافظك</h2><p className="muted">اجمع المشتريات حسب هدفك. تُحفظ البيانات في حسابك.</p></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog('portfolio')}><Icon name="plus"/>محفظة جديدة</button></div>{!loaded?<Empty>لم يتم تحميل المحافظ بعد.</Empty>:!portfolios.length?<Empty>لا توجد محافظ بعد. أنشئ محفظتك الأولى.</Empty>:<div className="portfolio-grid">{portfolios.map(p=>{const rows=purchases.filter(b=>b.portfolioId===p.id);return <article className="portfolio-card" key={p.id}><span className="card-icon"><Icon name="wallet"/></span><h3>{p.name}</h3><p className="muted">{rows.length} سجلات شراء</p>{totals(rows,feed).map(x=><p key={x.currency}>تكلفة {x.currency}: <strong>{money(x.cost,x.currency)}</strong></p>)}<button className="danger text-button" disabled={busy||rows.length>0} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/'+p.id,label:p.name});}}>حذف المحفظة الفارغة</button></article>;})}</div>}</section>;
 
   if(page==='purchases')return <section className="panel mock-light-card"><div className="section-heading"><div><h2>سجل المشتريات</h2><p className="muted">الوزن والسعر والتاريخ كما في سجلات حسابك.</p></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}><Icon name="plus"/>{portfolios.length?'تسجيل شراء':'إنشاء محفظة أولًا'}</button></div>{!loaded?<Empty>لم يتم تحميل المشتريات بعد.</Empty>:!purchases.length?<Empty>لا توجد مشتريات مسجلة.</Empty>:<div className="records">{purchases.map(p=><article className="record" key={p.id}><div className="record-title"><span className="card-icon"><Icon name="receipt"/></span><div><h3>ذهب عيار {p.karat}</h3><p className="muted">{portfolios.find(x=>x.id===p.portfolioId)?.name||'محفظة'} · {p.purchasedAt.slice(0,10)}</p></div><strong className="record-total">{money(Number(p.totalPrice),p.currency)}</strong></div><dl className="record-details"><div><dt>الوزن</dt><dd>{number(Number(p.weightGrams))} جم</dd></div><div><dt>سعر الجرام</dt><dd>{money(Number(p.unitPrice),p.currency)}</dd></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>openDialog('purchase',p)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/purchase/'+p.id,label:'سجل الشراء'});}}>حذف</button></div></dl></article>)}</div>}</section>;
