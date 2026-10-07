@@ -1,7 +1,7 @@
 name: Check responsive user web
 on:
   push:
-    branches: ["fix/user-responsive-20261006"]
+    branches: ["fix/user-responsive-20261006", "style/approved-royal-theme"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -574,8 +574,8 @@ jobs:
             "scope": "/gold-app-pwa/full/",
             "display": "standalone",
             
-            "background_color": "#0F1115",
-            "theme_color": "#0F1115",
+            "background_color": "#001329",
+            "theme_color": "#001F3F",
             "icons": [
               {"src":"/gold-app-pwa/full/pwa-icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
             ]
@@ -676,7 +676,7 @@ jobs:
               const b=document.createElement('button');
               b.id='dhahabi-force-update';
               b.textContent='تحديث التطبيق';
-              b.style.cssText='position:fixed;z-index:2147483647;left:16px;bottom:24px;padding:10px 16px;border:0;border-radius:14px;background:#C5A021;color:#0F1115;font-weight:800;box-shadow:0 8px 28px #0005';
+              b.style.cssText='position:fixed;z-index:2147483647;left:16px;bottom:24px;padding:10px 16px;border:0;border-radius:14px;background:#C5A021;color:#001329;font-weight:800;box-shadow:0 8px 28px #0005';
               b.addEventListener('click',apply);
               document.body.appendChild(b);
             }
@@ -717,7 +717,7 @@ jobs:
           for name in ('sw.js','pwa-update.js'):
               p=Path(name)
               p.write_text(p.read_text().replace('__BUILD_VERSION__',os.environ['GITHUB_SHA'][:8]))
-          head='''\n<link rel="manifest" href="/gold-app-pwa/full/manifest.webmanifest">\n<meta name="theme-color" content="#0F1115">\n<link rel="apple-touch-icon" href="/gold-app-pwa/full/pwa-icon.png">\n'''
+          head='''\n<link rel="manifest" href="/gold-app-pwa/full/manifest.webmanifest">\n<meta name="theme-color" content="#001F3F">\n<link rel="apple-touch-icon" href="/gold-app-pwa/full/pwa-icon.png">\n'''
           body='''\n<script src="/gold-app-pwa/full/pwa-update.js"></script>\n'''
           for p in Path('.').rglob('*.html'):
               s=p.read_text()
