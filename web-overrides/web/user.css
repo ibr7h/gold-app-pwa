@@ -161,6 +161,17 @@
  --warning:#F59E0B;
  --info:#3B82F6;
  --border:rgba(230,232,234,.15);
+ /* compatibility aliases: all legacy components resolve to the approved tokens */
+ --navy-950:var(--navy-dark);
+ --navy-900:var(--navy);
+ --navy-850:var(--navy-surface);
+ --navy-800:var(--navy-card);
+ --gold-400:var(--gold-secondary);
+ --gold-300:var(--gold-accent);
+ --ink:var(--text-primary);
+ --muted:var(--text-secondary);
+ --line:var(--border);
+ --canvas:var(--navy);
  --radius-sm:8px;
  --radius-md:14px;
  --radius-lg:20px;
