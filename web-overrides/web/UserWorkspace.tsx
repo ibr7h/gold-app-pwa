@@ -4,11 +4,22 @@ import AuthForm from './AuthForm';
 import {api,jsonRequest,errorMessage} from './api';
 import {Portfolio,Purchase,PriceAlert,Feed,KARATS,CURRENCIES,validFeed,indicativePrice,totals,purchasePayload,localDate} from './model';
 import './user.css';
-type Page='home'|'prices'|'portfolio'|'purchases'|'alerts'|'map'|'account'|'help';
-const pages:{id:Page;label:string;icon:string}[]=[{id:'home',label:'الرئيسية',icon:'home'},{id:'prices',label:'الأسعار',icon:'chart'},{id:'portfolio',label:'المحافظ',icon:'wallet'},{id:'purchases',label:'المشتريات',icon:'receipt'},{id:'alerts',label:'التنبيهات',icon:'bell'},{id:'map',label:'التجار',icon:'map'},{id:'account',label:'الملف الشخصي',icon:'user'},{id:'help',label:'المساعدة',icon:'help'}];
-const mobilePages=pages.filter(p=>p.id!=='help');
+type Page='home'|'prices'|'calculator'|'portfolio'|'settings'|'purchases'|'alerts'|'map'|'account'|'help';
+const pages:{id:Page;label:string;icon:string}[]=[
+ {id:'home',label:'الرئيسية',icon:'home'},
+ {id:'prices',label:'الأسعار',icon:'chart'},
+ {id:'calculator',label:'الحاسبة',icon:'calculator'},
+ {id:'portfolio',label:'المحفظة',icon:'wallet'},
+ {id:'settings',label:'المزيد',icon:'menu'},
+ {id:'purchases',label:'المشتريات',icon:'receipt'},
+ {id:'alerts',label:'التنبيهات',icon:'bell'},
+ {id:'map',label:'التجار',icon:'map'},
+ {id:'account',label:'الملف الشخصي',icon:'user'},
+ {id:'help',label:'المساعدة',icon:'help'}
+];
+const mobilePages=pages.filter(p=>['home','prices','calculator','portfolio','settings'].includes(p.id));
 function Icon({name}:{name:string}){
- const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4',map:'M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z M9 3v15 M15 6v15'};
+ const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4',calculator:'M5 2h14v20H5Z M8 6h8 M8 10h2 M12 10h2 M16 10h1 M8 14h2 M12 14h2 M16 14h1 M8 18h2 M12 18h5',map:'M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z M9 3v15 M15 6v15'};
  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]||paths.home}/></svg>;
 }
 const number=(n:number)=>new Intl.NumberFormat('ar-SA',{maximumFractionDigits:4}).format(n);
