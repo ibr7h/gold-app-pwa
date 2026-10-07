@@ -1,15 +1,28 @@
-
 export interface Portfolio{id:string;name:string;createdAt:string}
 export interface Purchase{id:string;portfolioId:string;karat:number;weightGrams:string;unitPrice:string;totalPrice:string;currency:string;purchasedAt:string}
 export interface PriceAlert{id:string;karat:number;currency:string;targetPrice:string;direction:'above'|'below';status:'active'|'paused'|'triggered';updatedAt:string}
-export interface Feed{spotUsdPerOunce:number;updatedAt:string;source:string}
+export interface MarketPrice{id?:string;source?:string;currency:string;karat:number;buyPrice:string|number;sellPrice:string|number;timestamp:string;createdAt?:string}
 export const KARATS=[24,22,21,18,14],CURRENCIES=['SAR','USD','EUR','GBP','AED','KWD','EGP','INR','TRY','JPY'];
-export function validFeed(v:any):Feed{if(!v||!Number.isFinite(Number(v.spotUsdPerOunce))||Number(v.spotUsdPerOunce)<=0||!Number.isFinite(Date.parse(v.updatedAt)))throw new Error('Invalid feed');return{spotUsdPerOunce:Number(v.spotUsdPerOunce),updatedAt:v.updatedAt,source:String(v.source||'api.gold-api.com')};}
-export function indicativePrice(feed:Feed|null,currency:string,karat:number){return !feed||!['SAR','USD'].includes(currency)?null:feed.spotUsdPerOunce/31.1034768*karat/24*(currency==='SAR'?3.75:1);}
-export function totals(buys:Purchase[],feed:Feed|null){
- const rows=new Map<string,{currency:string;weight:number;cost:number;value:number|null}>();
- for(const b of buys){const r=rows.get(b.currency)||{currency:b.currency,weight:0,cost:0,value:0};r.weight+=Number(b.weightGrams);r.cost+=Number(b.totalPrice);const unit=indicativePrice(feed,b.currency,b.karat);r.value=unit===null||r.value===null?null:r.value+Number(b.weightGrams)*unit;rows.set(b.currency,r);}return Array.from(rows.values());
+
+export function marketUnitPrice(prices:MarketPrice[],currency:string,karat:number){
+ const row=prices.find(p=>p.currency===currency&&p.karat===karat);
+ const value=row===undefined?NaN:Number(row.buyPrice);
+ return Number.isFinite(value)&&value>0?value:null;
 }
+
+export function totals(buys:Purchase[],prices:MarketPrice[]){
+ const rows=new Map<string,{currency:string;weight:number;cost:number;value:number|null}>();
+ for(const b of buys){
+  const r=rows.get(b.currency)||{currency:b.currency,weight:0,cost:0,value:0};
+  r.weight+=Number(b.weightGrams);
+  r.cost+=Number(b.totalPrice);
+  const unit=marketUnitPrice(prices,b.currency,b.karat);
+  r.value=unit===null||r.value===null?null:r.value+Number(b.weightGrams)*unit;
+  rows.set(b.currency,r);
+ }
+ return Array.from(rows.values());
+}
+
 export function localDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 export function purchasePayload(data:FormData){
  const portfolioId=String(data.get('portfolioId')||''),karat=Number(data.get('karat')),weightGrams=Number(data.get('weightGrams')),unitPrice=Number(data.get('unitPrice')),currency=String(data.get('currency')),date=String(data.get('purchasedAt'));
