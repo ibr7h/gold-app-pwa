@@ -54,7 +54,7 @@ function BootScreen(){
  useEffect(()=>{const timer=setTimeout(()=>setSlow(true),6500);return()=>clearTimeout(timer);},[]);
  return <div className="gold-web boot" dir="rtl" role="status" aria-live="polite">
   <div className="boot-shell">
-   <span className="boot-mark" aria-hidden="true">ذ</span>
+   <img className="boot-photo-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="" aria-hidden="true"/>
    <div className="boot-copy"><h1>ذهبي</h1><p>نجهّز ذهبي لك…</p></div>
    <span className="boot-loader" aria-hidden="true"><i/><i/><i/></span>
    {slow&&<p className="boot-slow">قد يستغرق التشغيل الأول بضع ثوانٍ.</p>}
