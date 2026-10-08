@@ -84,21 +84,24 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    if(!session){if(active&&version.current===boot)await refreshBiometricState(null);return;}
    const cached=await getVerifiedCachedUser();
    const c=await readLocalCredential();
-   if(c){
+   if(c&&cached&&String(cached.id)===c.accountId){
     const supported=await localBiometricSupported();
-    if(active&&version.current===boot){setBiometricAvailable(supported);setBiometricEnrolled(true);setBiometricEnabled(supported);}
-    if(cached&&String(cached.id)===c.accountId){
-     // Never show cached account data until the user actively unlocks with device verification.
-     if(active&&version.current===boot){enrollment.current=c;setLockedAccount(cached);setUser(null);setLoading(false);}
-     return;
+    // Never show cached account data until the user actively unlocks with device verification.
+    if(active&&version.current===boot){
+     enrollment.current=c;setBiometricAvailable(supported);setBiometricEnrolled(true);
+     setBiometricEnabled(supported);setLockedAccount(cached);setUser(null);setLoading(false);
     }
+    return;
    }
    if(active&&version.current===boot&&cached){setUser(cached);setLoading(false);}
    const me=await loadMe();
    if(!active||version.current!==boot)return;
+   const supported=await localBiometricSupported();
+   if(!active||version.current!==boot)return;
+   setBiometricAvailable(supported);
    if(c&&c.accountId===String(me.id)){
     enrollment.current=c;setLockedAccount(me);setUser(null);setBiometricEnrolled(true);
-    setBiometricEnabled(await localBiometricSupported());
+    setBiometricEnabled(supported);
    }else{
     setUser(me);
     setBiometricEnrolled(false);setBiometricEnabled(false);
