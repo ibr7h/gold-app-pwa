@@ -31,3 +31,26 @@ describe('User mobile viewport regressions',()=>{
     expect(narrow).toContain('grid-template-columns:repeat(2,minmax(0,1fr))!important;');
   });
 });
+
+describe('User startup and release visibility',()=>{
+ it('shows the real build on boot, login, and account screens',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const auth=source('../AuthForm.tsx');
+  const release=source('../app-version.ts');
+  expect(workspace).toContain("import {APP_DISPLAY_VERSION} from './app-version'");
+  expect(auth).toContain("import {APP_DISPLAY_VERSION} from './app-version'");
+  expect(workspace).toContain('className="app-version-account"');
+  expect(workspace).toContain('className="app-version-stamp"');
+  expect(auth.match(/className="app-version-stamp"/g)).toHaveLength(3);
+  expect(release).toMatch(/export const APP_BUILD = '(?:__USER_BUILD_SHA__|[a-f0-9]{8})';/);
+ });
+ it('renders a previously verified User shell before slower remote session verification',()=>{
+  const context=source('../../contexts/AuthContext.web.tsx');
+  const warm=context.indexOf('setUser(cached);setLoading(false);');
+  const remote=context.indexOf('const me=await loadMe();');
+  expect(warm).toBeGreaterThan(0);
+  expect(remote).toBeGreaterThan(warm);
+  expect(context).toContain("if(me.role!=='user'){await clearSession()");
+  expect(context).toContain('saveVerifiedUser(');
+ });
+});

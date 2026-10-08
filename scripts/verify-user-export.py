@@ -1,11 +1,12 @@
 import sys
+import os
 from pathlib import Path
 
 root=Path(sys.argv[1])
 javascript='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.js'))
 css='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.css'))
 
-assert 'User Web 1.5.0' in javascript, 'The current user workspace is missing from the export'
+assert '1.6.1' in javascript and os.environ['GITHUB_SHA'][:8] in javascript, 'The deployed User release identity is missing from the export'
 assert 'workspace-content' in javascript, 'User workspace markup is missing'
 assert 'mobile-bottom-nav' in javascript and 'approved-services-grid' in javascript, 'Mockup seven-tab user navigation is missing'
 assert 'calc-total-card' in javascript, 'Approved calculator screen is missing'
@@ -23,4 +24,4 @@ assert '#001f3f' in css_lower and '#c5a021' in css_lower and '#d4af37' in css_lo
 assert 'approved-services-grid' in css and 'repeat(7,minmax(0,1fr))' in css.replace(' ', ''), 'Mockup service grid or seven-tab navigation stylesheet is missing'
 assert 'mockup-login-container' in css and 'mockup-biometric-circle' in css and 'mockup-guest-btn' in css, 'User login does not match the approved mockup structure'
 
-print('Verified: User Web 1.5, fixed Dhahabi identity colors, seven-tab navigation, and responsive layout are included in the exported build.')
+print('Verified: User release identity, fixed Dhahabi colors, seven-tab navigation, and responsive layout are included in the export.')

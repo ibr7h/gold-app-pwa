@@ -1,5 +1,5 @@
 import React,{createContext,useContext,useEffect,useState,useRef} from 'react';
-import {api,authenticate,clearSession,hasSession,onSessionEnded,errorMessage,ApiError} from '../web/api';
+import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError} from '../web/api';
 export type UserRole = 'user' | 'admin' | 'trader';
 export type BiometricType = 'face' | 'fingerprint' | 'none';
 export type ResetStep = 'email' | 'code' | 'newPassword' | 'success';
@@ -56,9 +56,24 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const version=useRef(0);
  const loadMe=async()=>{const me=await api('/auth/me');if(!me?.userId||!me?.email)throw new ApiError('Invalid user');
   if(me.role!=='user'){await clearSession();throw new ApiError('User app role mismatch',403);}
-  return {id:me.userId,email:me.email,role:'user'} as User;};
+  const verified={id:me.userId,email:me.email,role:'user'} as User;
+  await saveVerifiedUser({id:verified.id!,email:verified.email,role:'user'}).catch(()=>{});
+  return verified;};
  useEffect(()=>{let active=true;const boot=version.current;const unsubscribe=onSessionEnded(()=>{version.current++;setUser(null);setLoading(false);});
-  (async()=>{try{if(await hasSession()){const me=await loadMe();if(active&&version.current===boot)setUser(me);}}catch(e){if(active)setError(errorMessage(e));}finally{if(active)setLoading(false);}})();
+  (async()=>{try{
+   if(await hasSession()){
+    // Show a previously server-verified identity without waiting for a potentially cold backend.
+    // Protected data and mutations still require fresh server authentication.
+    const cached=await getVerifiedCachedUser();
+    if(active&&version.current===boot&&cached){setUser(cached);setLoading(false);}
+    const me=await loadMe();
+    if(active&&version.current===boot)setUser(me);
+   }
+  }catch(e){
+   if(active&&version.current===boot)setError(errorMessage(e));
+  }finally{
+   if(active&&version.current===boot)setLoading(false);
+  }})();
   return()=>{active=false;unsubscribe();};},[]);
  const login=async(email:string,password:string)=>{setLoading(true);setError(null);const current=++version.current;
   try{await authenticate('/auth/login',{email:email.trim(),password});const me=await loadMe();if(current===version.current)setUser(me);}catch(e){setError(errorMessage(e));throw e;}finally{setLoading(false);}};

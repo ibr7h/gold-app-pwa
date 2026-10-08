@@ -7,9 +7,22 @@ export class ApiError extends Error{constructor(message:string,public status=0){
 export function onSessionEnded(fn:()=>void){listeners.add(fn);return()=>{listeners.delete(fn);};}
 export async function clearSession(){epoch++;await AsyncStorage.multiRemove([ACCESS,REFRESH,PROFILE]);listeners.forEach(fn=>fn());}
 export async function hasSession(){return !!(await AsyncStorage.getItem(REFRESH));}
+export interface VerifiedCachedUser{ id:string|number;email:string;role:'user'; }
+export async function getVerifiedCachedUser():Promise<VerifiedCachedUser|null>{
+ try{
+  const value=await AsyncStorage.getItem(PROFILE);
+  if(!value)return null;
+  const data=JSON.parse(value);
+  if(data?.role!=='user'||!(typeof data.id==='string'||typeof data.id==='number')||typeof data.email!=='string'||!data.email.includes('@'))return null;
+  return {id:data.id,email:data.email,role:'user'};
+ }catch{return null;}
+}
+export async function saveVerifiedUser(user:VerifiedCachedUser){
+ await AsyncStorage.setItem(PROFILE,JSON.stringify({id:user.id,email:user.email,role:'user'}));
+}
 export async function saveSession(tokens:any){
  if(!tokens?.accessToken||!tokens?.refreshToken)throw new ApiError('استجابة الدخول غير مكتملة.');
- epoch++;await AsyncStorage.multiSet([[ACCESS,tokens.accessToken],[REFRESH,tokens.refreshToken]]);
+ epoch++;await AsyncStorage.multiRemove([PROFILE]);await AsyncStorage.multiSet([[ACCESS,tokens.accessToken],[REFRESH,tokens.refreshToken]]);
 }
 export function errorMessage(e:unknown){
  if(!(e instanceof ApiError))return 'تعذر إكمال العملية. حاول مرة أخرى.';
