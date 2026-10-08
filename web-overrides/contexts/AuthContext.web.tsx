@@ -1,5 +1,5 @@
 import React,{createContext,useContext,useEffect,useState,useRef} from 'react';
-import {api,authenticate,clearSession,hasSession,onSessionEnded,errorMessage} from '../web/api';
+import {api,authenticate,clearSession,hasSession,onSessionEnded,errorMessage,ApiError} from '../web/api';
 export type UserRole = 'user' | 'admin' | 'trader';
 export type BiometricType = 'face' | 'fingerprint' | 'none';
 export type ResetStep = 'email' | 'code' | 'newPassword' | 'success';
@@ -54,8 +54,9 @@ const AuthContext=createContext<AuthContextType|null>(null);
 export function AuthProvider({children}:{children:React.ReactNode}){
  const [user,setUser]=useState<User|null>(null),[isLoading,setLoading]=useState(true),[error,setError]=useState<string|null>(null);
  const version=useRef(0);
- const loadMe=async()=>{const me=await api('/auth/me');if(!me?.userId||!me?.email)throw new Error('Invalid user');
-  return {id:me.userId,email:me.email,role:me.role==='admin'?'admin':me.role==='merchant'?'trader':'user'} as User;};
+ const loadMe=async()=>{const me=await api('/auth/me');if(!me?.userId||!me?.email)throw new ApiError('Invalid user');
+  if(me.role!=='user'){await clearSession();throw new ApiError('User app role mismatch',403);}
+  return {id:me.userId,email:me.email,role:'user'} as User;};
  useEffect(()=>{let active=true;const boot=version.current;const unsubscribe=onSessionEnded(()=>{version.current++;setUser(null);setLoading(false);});
   (async()=>{try{if(await hasSession()){const me=await loadMe();if(active&&version.current===boot)setUser(me);}}catch(e){if(active)setError(errorMessage(e));}finally{if(active)setLoading(false);}})();
   return()=>{active=false;unsubscribe();};},[]);
