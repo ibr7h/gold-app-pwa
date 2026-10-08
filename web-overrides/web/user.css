@@ -656,3 +656,5 @@
  .gold-web .price-row{font-size:10.5px}
 }
 @media(prefers-reduced-motion:reduce){.gold-web .live-badge i{animation:none}}
+
+@media(max-width:800px){.gold-web .topbar.home-topbar{display:none}.gold-web .topbar.home-topbar+.workspace-content{padding-top:max(16px,env(safe-area-inset-top))}}
