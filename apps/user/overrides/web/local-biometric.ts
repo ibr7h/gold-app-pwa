@@ -73,9 +73,11 @@ export async function readLocalCredential():Promise<LocalCredential|null> {
 }
 export async function forgetLocalCredential():Promise<void>{await AsyncStorage.removeItem(STORAGE);}
 export async function enrollLocalCredential(accountId:string,email:string):Promise<LocalCredential> {
- if(!await localBiometricSupported())throw new Error('التحقق الحيوي غير مدعوم على هذا الجهاز أو المتصفح.');
+ // The platform chooser must be opened directly from the user's click (transient activation).
+ if(typeof window==='undefined'||!window.isSecureContext||!navigator.credentials?.create||!crypto?.subtle)
+  throw new Error('التحقق الحيوي غير مدعوم على هذا الجهاز أو المتصفح.');
  const challenge=freshChallenge();
- const userId=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(accountId)));
+ const userId=freshChallenge();
  const credential=await navigator.credentials.create({publicKey:{
   challenge,rp:{name:'ذهبي',id:location.hostname},
   user:{id:userId,name:email,displayName:email},pubKeyCredParams:[{type:'public-key',alg:-7}],
