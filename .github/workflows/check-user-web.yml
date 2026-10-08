@@ -1,7 +1,7 @@
 name: Check responsive user web
 on:
   push:
-    branches: ["fix/user-responsive-20261006"]
+    branches: ["fix/user-responsive-20261006", "ui/user-photo-icon-biometric"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -717,6 +717,8 @@ jobs:
           node --check "$SRC/dist-pwa/sw.js"
           node --check "$SRC/dist-pwa/pwa-update.js"
           python3 -m json.tool "$SRC/dist-pwa/manifest.webmanifest" >/dev/null
+          test -f "$SRC/dist-pwa/app_icon_user.jpg"
+          test -s "$SRC/dist-pwa/app_icon_user.jpg"
 
       - name: Verify independent Trader and Admin app shells
         shell: bash
