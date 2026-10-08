@@ -15,11 +15,11 @@ for(let attempt=0;attempt<12;attempt++){
   let userFound=false;
   for(const url of scripts){
    const js=await text(url.toString(),20000);
-   if(js.includes('User Web 1.5.0')&&js.includes('mobile-bottom-nav')){
+   if(js.includes(expected.slice(5))&&js.includes('mobile-bottom-nav')){
     userFound=true;
    }
   }
-  assert(userFound,'Published User JavaScript does not contain User Web 1.5.0');
+  assert(userFound,'Published User JavaScript does not contain the deployed build identifier');
 
   for(const forbidden of ['trader-home','trader-orders','trader-clients','admin-users','admin-invites','admin-permissions']){
     const response=await fetch(userBase+forbidden+'?verify='+Date.now(),{redirect:'manual',signal:AbortSignal.timeout(15000)});
