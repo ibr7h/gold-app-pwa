@@ -1280,3 +1280,12 @@
   border-radius:24px;
   box-shadow:0 16px 46px rgba(197,160,33,.28);
 }
+
+
+/* Biometric identity must be visually identical to the canonical User app icon. */
+.gold-auth .biometric-identical-icon{
+  margin:0 auto 10px!important;
+}
+.gold-auth .mockup-biometric:active .biometric-identical-icon{
+  transform:scale(.96);
+}
