@@ -31,7 +31,7 @@ function GuestPrices({onBack}:{onBack:()=>void}){
  return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
   <section className="mockup-login-container guest-price-view">
    <button className="guest-back" type="button" onClick={onBack}><AuthIcon name="back"/>العودة لتسجيل الدخول</button>
-   <img className="mockup-app-icon" src="/gold-app-pwa/full/pwa-icon.png" alt="أيقونة تطبيق ذهبي"/>
+   <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
    <p className="mockup-app-subtitle">تصفح أسعار الذهب كزائر</p>
    <section className="mockup-auth-card guest-card">
@@ -76,12 +76,12 @@ export default function AuthForm({register=false}:{register?:boolean}){
  </main>;
  return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
   <section className="mockup-login-container">
-   <img className="mockup-app-icon" src="/gold-app-pwa/full/pwa-icon.png" alt="أيقونة تطبيق ذهبي"/>
+   <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
    <p className="mockup-app-subtitle">دخول المستثمرين ومتابعي الأسعار</p>
    <section className="mockup-auth-card">
     <button className="mockup-biometric" type="button" onClick={()=>void biometric()} aria-label="الدخول بالبصمة الحيوية">
-     <span className="mockup-biometric-circle"><img className="mockup-biometric-app-icon" src="/gold-app-pwa/full/pwa-icon.png" alt="" aria-hidden="true"/></span>
+     <span className="mockup-biometric-circle"><img className="mockup-biometric-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="" aria-hidden="true"/></span>
      <strong>الدخول بالبصمة الحيوية</strong>
      <small>Face ID أو بصمة الإصبع المسجلة</small>
     </button>
