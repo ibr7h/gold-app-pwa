@@ -553,8 +553,8 @@ jobs:
             "scope": "/gold-app-pwa/full/",
             "display": "standalone",
             
-            "background_color": "#001F3F",
-            "theme_color": "#001F3F",
+            "background_color": "#03101E",
+            "theme_color": "#061B32",
             "icons": [
               {"src":"/gold-app-pwa/full/pwa-icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
             ]
@@ -696,7 +696,7 @@ jobs:
           for name in ('sw.js','pwa-update.js'):
               p=Path(name)
               p.write_text(p.read_text().replace('__BUILD_VERSION__',os.environ['GITHUB_SHA'][:8]))
-          head='''\n<link rel="manifest" href="/gold-app-pwa/full/manifest.webmanifest">\n<meta name="theme-color" content="#001F3F">\n<link rel="apple-touch-icon" href="/gold-app-pwa/full/pwa-icon.png">\n'''
+          head='''\n<link rel="manifest" href="/gold-app-pwa/full/manifest.webmanifest">\n<meta name="theme-color" content="#061B32">\n<link rel="apple-touch-icon" href="/gold-app-pwa/full/pwa-icon.png">\n'''
           body='''\n<script src="/gold-app-pwa/full/pwa-update.js"></script>\n'''
           for p in Path('.').rglob('*.html'):
               s=p.read_text()
