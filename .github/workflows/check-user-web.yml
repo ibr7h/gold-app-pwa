@@ -479,7 +479,16 @@ jobs:
           EOF
 
       - name: Apply reviewed user web overrides
-        run: cp -R "$GITHUB_WORKSPACE/web-overrides/." "$SRC/"
+        run: cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
+
+      - name: Strip Trader and Admin routes from User build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SRC"
+          for route in chat admin new-order new-client admin-stats admin-users trader-home order-detail admin-invites trader-orders admin-settings trader-clients trader-reports trader-location trader-messages admin-permissions trader-notifications; do
+            find app -type f \( -name "$route.tsx" -o -name "$route.web.tsx" -o -name "$route.jsx" -o -name "$route.js" \) -delete
+          done
 
       - name: Install and verify full app
         shell: bash
@@ -521,7 +530,13 @@ jobs:
           set -euo pipefail
           cd "$SRC/dist-pwa"
 
-          cp "$SRC/assets/images/icon.png" pwa-icon.png
+          if command -v magick >/dev/null 2>&1; then
+            magick -background none "$GITHUB_WORKSPACE/apps/user/assets/icon.svg" -resize 512x512 pwa-icon.png
+          elif command -v convert >/dev/null 2>&1; then
+            convert -background none "$GITHUB_WORKSPACE/apps/user/assets/icon.svg" -resize 512x512 pwa-icon.png
+          else
+            cp "$SRC/assets/images/icon.png" pwa-icon.png
+          fi
           cp "$GITHUB_WORKSPACE/prices-live.json" prices-live.json 2>/dev/null || true
           touch .nojekyll
 
@@ -701,6 +716,23 @@ jobs:
           node --check "$SRC/dist-pwa/sw.js"
           node --check "$SRC/dist-pwa/pwa-update.js"
           python3 -m json.tool "$SRC/dist-pwa/manifest.webmanifest" >/dev/null
+
+      - name: Verify independent Trader and Admin app shells
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/trader/public/app.js
+          node --check apps/admin/public/app.js
+          node --check apps/trader/public/sw.js
+          node --check apps/admin/public/sw.js
+          python3 -m json.tool apps/trader/public/manifest.webmanifest >/dev/null
+          python3 -m json.tool apps/admin/public/manifest.webmanifest >/dev/null
+          grep -q 'data-role="merchant"' apps/trader/public/index.html
+          grep -q 'data-role="admin"' apps/admin/public/index.html
+          ! grep -q 'role-pills' apps/trader/public/index.html
+          ! grep -q 'role-pills' apps/admin/public/index.html
+          grep -q 'dhahabi_trader_' apps/trader/public/app.js
+          grep -q 'dhahabi_admin_' apps/admin/public/app.js
       - uses: actions/upload-artifact@v4
         with:
           name: user-web-validated-build

@@ -15,7 +15,6 @@ export default function AuthForm({register=false}:{register?:boolean}){
  };
  return <main className="gold-web gold-auth approved-auth" dir="rtl" lang="ar">
   <section className="approved-login-shell">
-   <div className="role-pills" aria-label="نوع الحساب"><span className="role-pill active">مستخدم</span><span className="role-pill disabled">تاجر معتمد · قريبًا</span><span className="role-pill disabled">مسؤول · قريبًا</span></div>
    <div className="emblem-circle" aria-hidden="true"><span>ذ</span></div>
    <h1>تطبيق ذهبي</h1>
    <p className="auth-tagline">{register?'إنشاء حساب مستخدم جديد':'دخول المستثمرين ومتابعي الأسعار'}</p>
@@ -33,7 +32,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
      <button type="button" className="gold-btn-outline full" disabled={isLoading} onClick={()=>{clearError();router.replace(register?'/login':'/register');}}>{register?'لدي حساب بالفعل':'إنشاء حساب مستخدم جديد'}</button>
      {!register&&<div className="demo-box"><strong>حساب تجريبي للاختبار</strong><div className="demo-credentials"><code>{DEMO_EMAIL}</code><code>{DEMO_PASSWORD}</code></div><button type="button" className="secondary" disabled={isLoading} onClick={()=>{clearError();setLocalError('');setEmail(DEMO_EMAIL);setPassword(DEMO_PASSWORD);}}>استخدام بيانات الحساب التجريبي</button><p className="fine">لا تستخدم بيانات ذهب حقيقية في الحساب المشترك.</p></div>}
     </form>
-    <p className="fine auth-policy">الحساب الجديد بصلاحية مستخدم. صلاحيات التاجر والمدير تُمنح من الإدارة.</p>
+    <p className="fine auth-policy">هذه النسخة مخصصة لحساب المستخدم فقط.</p>
    </section>
    <footer className="auth-footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer>
   </section>

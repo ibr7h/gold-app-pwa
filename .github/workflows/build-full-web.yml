@@ -5,6 +5,7 @@ on:
     branches: ["main"]
     paths:
       - ".github/workflows/build-full-web.yml"
+      - "apps/user/**"
   workflow_dispatch:
 
 permissions:
@@ -49,6 +50,19 @@ jobs:
             input: "./global.css",
           });
           EOF
+
+      - name: Apply isolated User app overrides
+        shell: bash
+        run: cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
+
+      - name: Strip Trader and Admin routes from User build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SRC"
+          for route in chat admin new-order new-client admin-stats admin-users trader-home order-detail admin-invites trader-orders admin-settings trader-clients trader-reports trader-location trader-messages admin-permissions trader-notifications; do
+            find app -type f \( -name "$route.tsx" -o -name "$route.web.tsx" -o -name "$route.jsx" -o -name "$route.js" \) -delete
+          done
 
       - name: Install dependencies
         shell: bash

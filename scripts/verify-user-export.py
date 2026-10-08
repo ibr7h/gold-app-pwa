@@ -12,6 +12,9 @@ assert 'calc-total-card' in javascript, 'Approved calculator screen is missing'
 assert '/prices/history?currency=' in javascript and '/prices/latest?currency=' in javascript, 'Backend price endpoints are missing from the user build'
 assert 'raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-live.json' not in javascript, 'Legacy GitHub live-price source leaked into the user build'
 assert 'raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-history.json' not in javascript, 'Legacy GitHub price-history source leaked into the user build'
+html_paths=[p.relative_to(root).as_posix().lower() for p in root.rglob('*.html')]
+forbidden_routes=('trader-home','trader-orders','trader-clients','trader-reports','trader-location','trader-messages','trader-notifications','admin-users','admin-invites','admin-permissions','admin-stats','admin-settings')
+assert not any(any(route in path for route in forbidden_routes) for path in html_paths), 'Trader/Admin HTML routes leaked into the User export'
 assert '.desktop-nav' in css and '.form-grid' in css, 'Responsive stylesheet missing'
 assert '.mobile-bottom-nav' in css, 'Mobile bottom navigation styles are missing'
 assert '@media' in css and '800px' in css, 'Mobile breakpoint missing'

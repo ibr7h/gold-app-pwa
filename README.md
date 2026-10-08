@@ -1,37 +1,36 @@
-# ذهبي — Gold App PWA
+# ذهبي — Dhahabi Frontend Apps
 
-نسخة PWA مستقلة للواجهة العامة من تطبيق **ذهبي**.
+واجهة ذهبي مقسمة إلى **ثلاثة تطبيقات مستقلة** تشترك فقط في Backend واحد.
 
-## البنية
-- `ibr7h/gold-app`: Backend مبني بـ NestJS + PostgreSQL.
-- `ibr7h/gold-app-pwa`: واجهة PWA مستقلة للمستخدم.
-- نسختا Trader وAdmin محفوظتان لمرحلة لاحقة كمشاريع مستقلة.
+## التطبيقات
 
-## v0.2.0
-- أسعار الذهب 24/22/21/18 عبر `GET /prices/latest`.
-- تسجيل الدخول عبر `POST /auth/login`.
-- تجديد access token تلقائيًا عبر `POST /auth/refresh`.
-- Portfolio API حقيقي: إنشاء محفظة افتراضية، قراءة المشتريات، الإضافة والحذف والملخص.
-- Alerts API حقيقي: قراءة، إضافة، حذف، وتبديل Active/Paused.
-- Offline/Demo fallback للمشتريات والتنبيهات عند غياب الاتصال.
-- Manifest + Service Worker + Install Prompt.
-- واجهة التجار محفوظة كنموذج حتى يضاف API التجار.
+| التطبيق | المصدر | الدور المقبول | رابط GitHub Pages |
+|---|---|---|---|
+| المستخدم | `apps/user` | `USER` | https://ibr7h.github.io/gold-app-pwa/full/ |
+| التاجر | `apps/trader` | `MERCHANT` | https://ibr7h.github.io/gold-app-pwa/trader/ |
+| الإدارة | `apps/admin` | `ADMIN` | https://ibr7h.github.io/gold-app-pwa/admin/ |
 
-## Backend
-من الإعدادات أدخل عنوان الـAPI المنشور عبر HTTPS.
+Backend المشترك موجود في مستودع `ibr7h/gold-app`.
 
-يجب أن يسمح الـBackend بهذا الـOrigin:
+## قواعد الفصل
 
-```env
-CORS_ORIGINS=https://ibr7h.github.io
-```
+- لا يوجد Role Switcher في أي شاشة دخول.
+- لكل تطبيق Manifest وService Worker وأيقونة وجلسة مستقلة.
+- مفاتيح الجلسة:
+  - User: `dhahabi_user_*`
+  - Trader: `dhahabi_trader_*`
+  - Admin: `dhahabi_admin_*`
+- تطبيق المستخدم يرفض حسابات `MERCHANT` و`ADMIN`.
+- تطبيق التاجر يقبل `MERCHANT` فقط.
+- تطبيق الإدارة يقبل `ADMIN` فقط.
+- التسجيل الذاتي موجود للمستخدم فقط.
+- وظائف Trader/Admin غير الموجودة في Backend لا تُحاكى ببيانات وهمية؛ تظهر كتكاملات قيد التنفيذ.
+- ألوان الهوية الثابتة: `#001F3F`, `#C5A021`, `#D4AF37`.
 
-## GitHub Pages
-الرابط المتوقع بعد تفعيل Pages:
+راجع `apps/README.md` لعقد الفصل بين التطبيقات.
 
-https://ibr7h.github.io/gold-app-pwa/
+## ملاحظة التوافق
+
+المسار `/full/` هو تطبيق المستخدم الحالي، وقد تم الإبقاء عليه للحفاظ على الروابط والتثبيتات السابقة. جذر المستودع لم يعد تطبيقًا رابعًا؛ يحول فقط إلى تطبيق المستخدم.
 
 Copyright © 2026 Ibrahim Alneami — All Rights Reserved
-
-
-<!-- pages-trigger: 2026-10-05 -->
