@@ -68,7 +68,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   return verified;};
  const refreshBiometricState=async(me:User|null):Promise<boolean>=>{
   const c=await readLocalCredential();
-  const supported=c?await localBiometricSupported():await localBiometricSupported();
+  const supported=await localBiometricSupported();
   const matched=!!(c&&me&&c.accountId===String(me.id));
   enrollment.current=matched?c:null;
   setBiometricAvailable(supported);
@@ -117,7 +117,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   try{await authenticate('/auth/register',{email:email.trim(),password,fullName:name.trim()||undefined});const me=await loadMe();if(current===version.current){
    setLockedAccount(null);setUser(me);await refreshBiometricState(me);
   }return true;}catch(e){setError(errorMessage(e));return false;}finally{setLoading(false);}};
- const enableBiometric=async()=>{if(!user?.id||user.role!=='user'||!await hasSession())throw new Error('سجّل الدخول أولًا قبل تفعيل بصمة الجهاز.');
+ const enableBiometric=async()=>{if(!user?.id||user.role!=='user')throw new Error('سجّل الدخول أولًا قبل تفعيل بصمة الجهاز.');
   const accountId=String(user.id);
   const c=await enrollLocalCredential(accountId,user.email);
   enrollment.current=c;setBiometricAvailable(true);setBiometricEnrolled(true);setBiometricEnabled(true);
