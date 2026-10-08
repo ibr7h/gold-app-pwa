@@ -81,7 +81,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
    <p className="mockup-app-subtitle">دخول المستثمرين ومتابعي الأسعار</p>
    <section className="mockup-auth-card">
     <button className="mockup-biometric" type="button" onClick={()=>void biometric()} aria-label="الدخول بالبصمة الحيوية">
-     <span className="mockup-biometric-circle"><img className="mockup-biometric-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="" aria-hidden="true"/></span>
+     <img className="mockup-app-icon biometric-identical-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="" aria-hidden="true"/>
      <strong>الدخول بالبصمة الحيوية</strong>
      <small>Face ID أو بصمة الإصبع المسجلة</small>
     </button>
