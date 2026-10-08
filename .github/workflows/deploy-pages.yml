@@ -496,6 +496,18 @@ jobs:
       - name: Apply reviewed user web overrides
         run: cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
 
+      - name: Stamp deployed User build identity
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          path = Path(os.environ['SRC']) / 'web/app-version.ts'
+          source = path.read_text()
+          assert source.count('__USER_BUILD_SHA__') == 1
+          path.write_text(source.replace('__USER_BUILD_SHA__', os.environ['GITHUB_SHA'][:8]))
+          PY
+
       - name: Strip Trader and Admin routes from User build
         shell: bash
         run: |
