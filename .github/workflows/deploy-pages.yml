@@ -544,7 +544,7 @@ jobs:
             "scope": "/gold-app-pwa/full/",
             "display": "standalone",
             
-            "background_color": "#0C1626",
+            "background_color": "#001F3F",
             "theme_color": "#001F3F",
             "icons": [
               {"src":"/gold-app-pwa/full/pwa-icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
