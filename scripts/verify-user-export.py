@@ -15,6 +15,7 @@ assert '.desktop-nav' in css and '.form-grid' in css, 'Responsive stylesheet mis
 assert '.mobile-bottom-nav' in css, 'Mobile bottom navigation styles are missing'
 assert '@media' in css and '800px' in css, 'Mobile breakpoint missing'
 css_lower=css.lower()
-assert '#001f3f' in css_lower and '#c5a021' in css_lower and '#d4af37' in css_lower, 'Fixed Dhahabi identity colors are missing'\nassert 'approved-services-grid' in css and 'approved-login-shell' in css, 'Approved UI.zip stylesheet layer is missing'
+assert '#001f3f' in css_lower and '#c5a021' in css_lower and '#d4af37' in css_lower, 'Fixed Dhahabi identity colors are missing'
+assert 'approved-services-grid' in css and 'approved-login-shell' in css, 'Approved UI.zip stylesheet layer is missing'
 
 print('Verified: current user workspace, approved UI.zip visual baseline, and responsive navigation are included in the exported build.')
