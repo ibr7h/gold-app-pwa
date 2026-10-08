@@ -21,5 +21,6 @@ assert '@media' in css and '800px' in css, 'Mobile breakpoint missing'
 css_lower=css.lower()
 assert '#001f3f' in css_lower and '#c5a021' in css_lower and '#d4af37' in css_lower, 'Fixed Dhahabi identity colors are missing'
 assert 'approved-services-grid' in css and 'approved-login-shell' in css, 'Approved UI.zip stylesheet layer is missing'
+assert 'mockup-login-container' in css and 'mockup-biometric-circle' in css and 'mockup-guest-btn' in css, 'User login does not match the approved mockup structure'
 
 print('Verified: current user workspace, approved UI.zip visual baseline, and responsive navigation are included in the exported build.')

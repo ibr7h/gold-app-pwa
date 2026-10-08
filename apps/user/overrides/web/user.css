@@ -658,3 +658,336 @@
 @media(prefers-reduced-motion:reduce){.gold-web .live-badge i{animation:none}}
 
 @media(max-width:800px){.gold-web .topbar.home-topbar{display:none}.gold-web .topbar.home-topbar+.workspace-content{padding-top:max(16px,env(safe-area-inset-top))}}
+
+
+/* =========================================================
+   USER LOGIN — EXACT VISUAL BASELINE FROM UI.zip/02_login_user.html
+   Role switcher intentionally omitted: User/Trader/Admin are separate apps.
+   ========================================================= */
+.gold-auth.auth-mockup{
+  min-height:100dvh!important;
+  height:auto!important;
+  display:block!important;
+  overflow:auto!important;
+  padding:0!important;
+  background:#001F3F!important;
+}
+.gold-auth .mockup-login-container{
+  width:100%;
+  max-width:460px;
+  min-height:100dvh;
+  margin:0 auto;
+  padding:32px 24px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.gold-auth .mockup-login-container>.emblem-circle{
+  width:80px!important;
+  height:80px!important;
+  margin:0 auto 16px!important;
+  border-radius:50%!important;
+  background:#C5A021!important;
+  color:#001F3F!important;
+  border:0!important;
+  box-shadow:0 4px 20px rgba(212,175,55,.35)!important;
+}
+.gold-auth .mockup-login-container>.emblem-circle .emblem-text{
+  color:#001F3F!important;
+  font-size:38px!important;
+  font-weight:800!important;
+  line-height:1!important;
+}
+.gold-auth .mockup-app-title{
+  margin:0!important;
+  text-align:center;
+  color:#C5A021!important;
+  font-size:26px!important;
+  font-weight:800!important;
+  line-height:1.45!important;
+}
+.gold-auth .mockup-app-subtitle{
+  margin:4px 0 28px!important;
+  text-align:center;
+  color:#94A3B8!important;
+  font-size:14px!important;
+  font-weight:400!important;
+  line-height:1.6!important;
+}
+.gold-auth .mockup-auth-card{
+  width:100%;
+  max-width:none!important;
+  margin:0!important;
+  padding:24px!important;
+  overflow:visible!important;
+  background:#FFFFFF!important;
+  color:#1E293B!important;
+  border:1px solid #E2E8F0!important;
+  border-radius:16px!important;
+  box-shadow:0 8px 30px rgba(0,0,0,.25)!important;
+}
+.gold-auth .mockup-biometric{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:14px 0 18px;
+  border:0;
+  border-bottom:1px solid #E2E8F0;
+  border-radius:12px 12px 0 0;
+  background:transparent;
+  color:#1E293B;
+  transition:background .2s;
+}
+.gold-auth .mockup-biometric:hover{background:rgba(197,160,33,.055)}
+.gold-auth .mockup-biometric:active .mockup-biometric-circle{transform:scale(.96)}
+.gold-auth .mockup-biometric-circle{
+  width:76px;
+  height:76px;
+  margin-bottom:10px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  border:2px solid #C5A021;
+  background:rgba(197,160,33,.15);
+  color:#001F3F;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+}
+.gold-auth .mockup-biometric strong{
+  color:#1E293B;
+  font-size:15px;
+  font-weight:700;
+  line-height:1.5;
+}
+.gold-auth .mockup-biometric small{
+  margin-top:2px;
+  color:#64748B;
+  font-size:12px;
+  font-weight:400;
+}
+.gold-auth .mockup-divider{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:16px 0;
+  color:#64748B;
+  font-size:12px;
+}
+.gold-auth .mockup-divider::before,
+.gold-auth .mockup-divider::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:#E2E8F0;
+}
+.gold-auth .mockup-divider span{
+  padding:0 12px;
+  white-space:nowrap;
+}
+.gold-auth .mockup-auth-card .form-group{
+  display:block;
+  margin:0 0 16px!important;
+}
+.gold-auth .mockup-auth-card .form-label{
+  display:block;
+  margin:0 0 8px!important;
+  color:#1E293B!important;
+  text-align:right;
+  font-size:13px!important;
+  font-weight:600!important;
+}
+.gold-auth .mockup-input-wrap{
+  position:relative;
+  width:100%;
+}
+.gold-auth .mockup-input-wrap .form-input{
+  width:100%;
+  min-height:48px!important;
+  margin:0!important;
+  padding:13px 46px 13px 44px!important;
+  border:1.5px solid #E2E8F0!important;
+  border-radius:12px!important;
+  background:#FFFFFF!important;
+  color:#1E293B!important;
+  font-size:15px!important;
+  outline:none!important;
+  box-shadow:none!important;
+}
+.gold-auth .mockup-input-wrap .form-input[dir="ltr"]{
+  text-align:left;
+}
+.gold-auth .mockup-input-wrap .form-input:focus{
+  border-color:#C5A021!important;
+  box-shadow:0 0 0 3px rgba(197,160,33,.20)!important;
+}
+.gold-auth .mockup-field-icon,
+.gold-auth .mockup-eye-btn{
+  position:absolute;
+  left:13px;
+  top:50%;
+  transform:translateY(-50%);
+  width:24px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  color:#64748B;
+}
+.gold-auth .mockup-eye-btn{
+  border:0!important;
+  background:transparent!important;
+  border-radius:8px;
+  cursor:pointer;
+}
+.gold-auth .mockup-eye-btn:hover{color:#8B6B00;background:rgba(197,160,33,.08)!important}
+.gold-auth .mockup-login-options{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin:0 0 18px;
+  font-size:13px;
+}
+.gold-auth .mockup-remember{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  gap:6px!important;
+  margin:0!important;
+  color:#64748B!important;
+  font-size:13px!important;
+  font-weight:400!important;
+}
+.gold-auth .mockup-remember input{
+  width:17px!important;
+  min-height:17px!important;
+  height:17px!important;
+  margin:0!important;
+  padding:0!important;
+  accent-color:#C5A021;
+  border-radius:4px!important;
+}
+.gold-auth .mockup-forgot{
+  min-height:auto!important;
+  padding:2px 0!important;
+  background:transparent!important;
+  color:#8B6B00!important;
+  font-size:13px!important;
+  font-weight:600!important;
+  border:0!important;
+}
+.gold-auth .mockup-primary-btn{
+  width:100%!important;
+  min-height:48px!important;
+  padding:14px 20px!important;
+  border-radius:12px!important;
+  background:#C5A021!important;
+  color:#001F3F!important;
+  font-size:15px!important;
+  font-weight:700!important;
+  box-shadow:0 4px 14px rgba(197,160,33,.35)!important;
+}
+.gold-auth .mockup-primary-btn:hover:not(:disabled){
+  background:#D4AF37!important;
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(212,175,55,.38)!important;
+}
+.gold-auth .mockup-guest-btn{
+  width:100%!important;
+  min-height:46px!important;
+  margin-top:14px!important;
+  padding:12px 18px!important;
+  border:1.5px solid #C5A021!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  color:#8B6B00!important;
+  font-size:13px!important;
+  font-weight:700!important;
+}
+.gold-auth .mockup-guest-btn:hover{background:rgba(197,160,33,.08)!important}
+.gold-auth .mockup-register-link{
+  margin-top:20px;
+  text-align:center;
+  color:#64748B;
+  font-size:13px;
+}
+.gold-auth .mockup-register-link button{
+  min-height:auto!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#8B6B00!important;
+  font-weight:700!important;
+}
+.gold-auth .mockup-auth-card .error-banner{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0 0 16px!important;
+  padding:12px 14px!important;
+  border-radius:8px!important;
+  border:1px solid #FECACA!important;
+  background:#FEF2F2!important;
+  color:#DC2626!important;
+  font-size:13px!important;
+  font-weight:600!important;
+}
+.gold-auth .auth-icon{display:block;flex:0 0 auto}
+.gold-auth .guest-back{
+  align-self:flex-start;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin:0 0 18px;
+  padding:7px 0;
+  background:transparent;
+  color:#D4AF37;
+  font-size:12px;
+  font-weight:700;
+}
+.gold-auth .guest-card h2{
+  margin:0 0 16px;
+  color:#1E293B;
+  text-align:right;
+  font-size:17px;
+}
+.gold-auth .guest-status{
+  padding:18px 0;
+  text-align:center;
+  color:#64748B!important;
+  font-size:13px;
+}
+.gold-auth .guest-price-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:18px;
+}
+.gold-auth .guest-price-grid article{
+  display:grid;
+  gap:4px;
+  padding:14px;
+  border:1px solid #E2E8F0;
+  border-radius:12px;
+  background:#F8FAFC;
+}
+.gold-auth .guest-price-grid span{color:#64748B;font-size:11px}
+.gold-auth .guest-price-grid strong{color:#8B6B00;font-size:14px}
+@media(max-width:520px){
+ .gold-auth .mockup-login-container{
+   min-height:100svh;
+   justify-content:flex-start;
+   padding:max(26px,env(safe-area-inset-top)) 20px max(26px,env(safe-area-inset-bottom));
+ }
+ .gold-auth .mockup-login-container>.emblem-circle{margin-top:6px!important}
+ .gold-auth .mockup-auth-card{padding:22px!important}
+}
+@media(max-width:360px){
+ .gold-auth .mockup-login-container{padding-inline:16px}
+ .gold-auth .mockup-auth-card{padding:18px!important}
+ .gold-auth .mockup-app-subtitle{margin-bottom:22px!important}
+ .gold-auth .mockup-login-options{font-size:12px}
+ .gold-auth .mockup-forgot{font-size:12px!important}
+}
