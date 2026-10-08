@@ -4,6 +4,7 @@ import {useAuth} from '../contexts/AuthContext';
 import {API_BASE} from './api';
 import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
+import {canShowBiometricLogin} from './biometric-visibility';
 
 type AuthIconName='fingerprint'|'mail'|'lock'|'eye'|'eyeOff'|'login'|'guest'|'userPlus'|'back';
 function MockupFingerprintIcon(){
@@ -53,7 +54,8 @@ function GuestPrices({onBack}:{onBack:()=>void}){
 }
 
 export default function AuthForm({register=false}:{register?:boolean}){
- const {user,isLoading,error,login,startRegistration,clearError,biometricAvailable,loginWithBiometric}=useAuth();
+ const {user,isLoading,error,login,startRegistration,clearError,biometricAvailable,biometricEnrolled,biometricEnabled,loginWithBiometric}=useAuth();
+ const showBiometricLogin=canShowBiometricLogin({biometricAvailable,biometricEnrolled,biometricEnabled});
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
  useEffect(()=>{if(user)router.replace('/');},[user]);
  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(isLoading)return;clearError();setLocalError('');
@@ -61,7 +63,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
   if(new TextEncoder().encode(password).length>72){setLocalError('كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.');return;}
   try{if(register)await startRegistration(name,email,password);else await login(email,password);}catch{}
  };
- const biometric=async()=>{clearError();setLocalError('');if(!biometricAvailable){setLocalError('البصمة الحيوية غير مفعلة في نسخة الويب الحالية.');return;}const ok=await loginWithBiometric();if(!ok)setLocalError('تعذر تسجيل الدخول بالبصمة الحيوية.');};
+ const biometric=async()=>{clearError();setLocalError('');if(!showBiometricLogin){return;}const ok=await loginWithBiometric();if(!ok)setLocalError('تعذر تسجيل الدخول بالبصمة الحيوية.');};
  if(guest&&!register)return <GuestPrices onBack={()=>setGuest(false)}/>;
  if(register)return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
   <section className="mockup-login-container">
@@ -89,12 +91,12 @@ export default function AuthForm({register=false}:{register?:boolean}){
    <p className="mockup-app-subtitle">دخول المستثمرين ومتابعي الأسعار</p>
    <p className="app-version-stamp" dir="ltr" style={{color:"#D4AF37",textAlign:"center",fontSize:12,margin:"6px auto 0"}}>{APP_DISPLAY_VERSION}</p>
    <section className="mockup-auth-card">
-    <button className="mockup-biometric" type="button" onClick={()=>void biometric()} aria-label="الدخول بالبصمة الحيوية">
+    {showBiometricLogin&&<button className="mockup-biometric" type="button" onClick={()=>void biometric()} aria-label="الدخول بالبصمة الحيوية">
      <span className="mockup-biometric-circle"><MockupFingerprintIcon/></span>
      <strong>الدخول بالبصمة الحيوية</strong>
      <small>Face ID أو بصمة الإصبع المسجلة</small>
-    </button>
-    <div className="mockup-divider"><span>أو بالبريد الإلكتروني</span></div>
+    </button>}
+    <div className="mockup-divider"><span>{showBiometricLogin?'أو بالبريد الإلكتروني':'الدخول بالبريد الإلكتروني'}</span></div>
     {(localError||error)&&<p className="error-banner" role="alert">{localError||error}</p>}
     <form onSubmit={submit} aria-busy={isLoading}>
      <label className="form-group"><span className="form-label">البريد الإلكتروني</span><div className="mockup-input-wrap"><input className="form-input" type="email" dir="ltr" autoComplete="email" value={email} required placeholder="user@gold.app" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
