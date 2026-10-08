@@ -55,6 +55,18 @@ jobs:
         shell: bash
         run: cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
 
+      - name: Stamp User release in build validation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          p=Path(os.environ['SRC'])/'web/app-version.ts'
+          content=p.read_text()
+          assert content.count('__USER_BUILD_SHA__') == 1
+          p.write_text(content.replace('__USER_BUILD_SHA__',os.environ['GITHUB_SHA'][:8]))
+          PY
+
       - name: Strip Trader and Admin routes from User build
         shell: bash
         run: |
