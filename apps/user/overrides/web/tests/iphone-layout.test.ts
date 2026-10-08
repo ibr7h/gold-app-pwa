@@ -4,11 +4,15 @@ import {describe,it,expect} from 'vitest';
 const source=(relative:string)=>readFileSync(new URL(relative,import.meta.url).pathname,'utf8');
 
 describe('User app identity',()=>{
-  it('uses the canonical JPEG in login, biometric entry, and boot',()=>{
+  it('keeps the canonical JPEG for app and boot, and the approved mockup fingerprint for biometric entry',()=>{
     const auth=source('../AuthForm.tsx');
     const workspace=source('../UserWorkspace.tsx');
     expect(auth).toContain('className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg"');
-    expect(auth).toContain('className="mockup-biometric-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg"');
+    expect(auth).toContain('function MockupFingerprintIcon()');
+    expect(auth).toContain('viewBox="0 0 512 512"');
+    expect(auth).toContain('width="40" height="40"');
+    expect(auth).toContain('<span className="mockup-biometric-circle"><MockupFingerprintIcon/></span>');
+    expect(auth).not.toContain('className="mockup-biometric-app-icon" src=');
     expect(workspace).toContain('className="boot-photo-icon" src="/gold-app-pwa/full/app_icon_user.jpg"');
   });
 });
