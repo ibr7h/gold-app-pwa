@@ -533,9 +533,9 @@ jobs:
           cd "$SRC/dist-pwa"
 
           if command -v magick >/dev/null 2>&1; then
-            magick -background none "$GITHUB_WORKSPACE/apps/user/assets/icon.svg" -resize 512x512 pwa-icon.png
+            magick -background none "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" -resize 512x512 pwa-icon.png
           elif command -v convert >/dev/null 2>&1; then
-            convert -background none "$GITHUB_WORKSPACE/apps/user/assets/icon.svg" -resize 512x512 pwa-icon.png
+            convert -background none "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" -resize 512x512 pwa-icon.png
           else
             cp "$SRC/assets/images/icon.png" pwa-icon.png
           fi
