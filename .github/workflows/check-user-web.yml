@@ -537,6 +537,7 @@ jobs:
           else
             cp "$SRC/assets/images/icon.png" pwa-icon.png
           fi
+          cp "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" app_icon_user.jpg
           cp "$GITHUB_WORKSPACE/prices-live.json" prices-live.json 2>/dev/null || true
           touch .nojekyll
 
