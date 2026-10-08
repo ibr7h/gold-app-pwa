@@ -105,7 +105,7 @@ export async function verifyLocalCredential(c:LocalCredential):Promise<void>{
  const challenge=freshChallenge();
  // Keep this request as the first asynchronous operation following the real user gesture.
  const credential=await navigator.credentials.get({publicKey:{
-  challenge,rpId:c.rpId,allowCredentials:[{type:'public-key',id:bytes64(c.credentialId)}],
+  challenge,rpId:c.rpId,allowCredentials:[{type:'public-key',id:bytes64(c.credentialId).buffer as ArrayBuffer}],
   userVerification:'required',timeout:60000
  }}) as PublicKeyCredential|null;
  if(!credential||b64(new Uint8Array(credential.rawId))!==c.credentialId)throw new Error('لم يتم تأكيد هوية الجهاز.');
@@ -120,10 +120,10 @@ export async function verifyLocalCredential(c:LocalCredential):Promise<void>{
  const clientHash=new Uint8Array(await crypto.subtle.digest('SHA-256',response.clientDataJSON));
  const signed=new Uint8Array(authenticatorData.length+clientHash.length);
  signed.set(authenticatorData);signed.set(clientHash,authenticatorData.length);
- const publicKey=await crypto.subtle.importKey('spki',bytes64(c.publicKeySpki),
+ const publicKey=await crypto.subtle.importKey('spki',bytes64(c.publicKeySpki).buffer as ArrayBuffer,
   {name:'ECDSA',namedCurve:'P-256'},false,['verify']);
  const valid=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},publicKey,
-  toRawSignature(new Uint8Array(response.signature)),signed);
+  toRawSignature(new Uint8Array(response.signature)).buffer as ArrayBuffer,signed.buffer as ArrayBuffer);
  if(!valid)throw new Error('فشل التحقق من توقيع الجهاز.');
  if(counter>c.counter){await AsyncStorage.setItem(STORAGE,JSON.stringify({...c,counter}));}
 }
