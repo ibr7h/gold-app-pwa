@@ -15,9 +15,9 @@ describe('biometric entry requires an explicit secure opt-in',()=>{
   expect(canShowBiometricLogin({biometricAvailable:true,biometricEnrolled:true,biometricEnabled:true})).toBe(true);
  });
  it('actually applies the gate in the sign-in view and exposes an accurate status in profile',()=>{
-  const auth=readFileSync(new URL('../AuthForm.tsx',import.meta.url),'utf8');
-  const workspace=readFileSync(new URL('../UserWorkspace.tsx',import.meta.url),'utf8');
-  const context=readFileSync(new URL('../../contexts/AuthContext.web.tsx',import.meta.url),'utf8');
+  const auth=readFileSync(new URL('../AuthForm.tsx',import.meta.url).pathname,'utf8');
+  const workspace=readFileSync(new URL('../UserWorkspace.tsx',import.meta.url).pathname,'utf8');
+  const context=readFileSync(new URL('../../contexts/AuthContext.web.tsx',import.meta.url).pathname,'utf8');
   expect(auth).toContain('showBiometricLogin&&<button className="mockup-biometric"');
   expect(auth).toContain("showBiometricLogin?'أو بالبريد الإلكتروني':'الدخول بالبريد الإلكتروني'");
   expect(workspace).toContain('const biometricActive=canShowBiometricLogin(');
