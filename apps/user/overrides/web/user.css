@@ -1285,3 +1285,80 @@
   box-shadow:0 16px 46px rgba(197,160,33,.28);
 }
 
+
+
+/* USER IPHONE VIEWPORT / CANONICAL BIOMETRIC 2026-10-08
+   Keep the mobile tab bar content-sized; let only the page body scroll. */
+.gold-auth .mockup-biometric-circle{
+  overflow:hidden!important;
+}
+.gold-auth .mockup-biometric-app-icon{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%;
+}
+@media(max-width:800px){
+  .gold-web.workspace{
+    height:100dvh!important;
+    max-height:100dvh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  .gold-web .workspace-main{
+    display:flex!important;
+    flex-direction:column!important;
+    height:100%!important;
+    min-height:0!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  .gold-web .workspace-content{
+    flex:1 1 0%!important;
+    height:auto!important;
+    min-height:0!important;
+    min-width:0!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .gold-web .mobile-bottom-nav{
+    flex:0 0 auto!important;
+    align-self:stretch!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:calc(80px + env(safe-area-inset-bottom))!important;
+    align-content:center!important;
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  }
+  .gold-web .mobile-tab{
+    min-width:0!important;
+    height:auto!important;
+    max-height:56px!important;
+    white-space:normal;
+  }
+}
+@media(max-width:600px){
+  .gold-web .live-price-main{
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:12px!important;
+  }
+  .gold-web .price-tag-large{
+    font-size:clamp(24px,6.2vw,32px)!important;
+    overflow-wrap:anywhere;
+  }
+  .gold-web .buy-sell-mini{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    text-align:right!important;
+    gap:6px 12px!important;
+  }
+  .gold-web .buy-sell-mini>span{
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .gold-web .live-card-footer{
+    flex-wrap:wrap;
+  }
+}
