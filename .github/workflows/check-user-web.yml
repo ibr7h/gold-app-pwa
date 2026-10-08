@@ -531,12 +531,13 @@ jobs:
           cd "$SRC/dist-pwa"
 
           if command -v magick >/dev/null 2>&1; then
-            magick -background none "$GITHUB_WORKSPACE/apps/user/assets/icon.svg" -resize 512x512 pwa-icon.png
+            magick -background none "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" -resize 512x512 pwa-icon.png
           elif command -v convert >/dev/null 2>&1; then
-            convert -background none "$GITHUB_WORKSPACE/apps/user/assets/icon.svg" -resize 512x512 pwa-icon.png
+            convert -background none "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" -resize 512x512 pwa-icon.png
           else
             cp "$SRC/assets/images/icon.png" pwa-icon.png
           fi
+          cp "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" app_icon_user.jpg
           cp "$GITHUB_WORKSPACE/prices-live.json" prices-live.json 2>/dev/null || true
           touch .nojekyll
 
@@ -568,7 +569,8 @@ jobs:
             '/gold-app-pwa/full/',
             '/gold-app-pwa/full/index.html',
             '/gold-app-pwa/full/manifest.webmanifest',
-            '/gold-app-pwa/full/pwa-icon.png'
+            '/gold-app-pwa/full/pwa-icon.png',
+            '/gold-app-pwa/full/app_icon_user.jpg'
           ];
 
           self.addEventListener('install',event=>{
