@@ -991,3 +991,32 @@
  .gold-auth .mockup-login-options{font-size:12px}
  .gold-auth .mockup-forgot{font-size:12px!important}
 }
+
+
+/* User photo icon — canonical app_icon_user.jpg */
+.gold-auth .mockup-app-icon{
+  display:block;
+  width:88px;
+  height:88px;
+  margin:0 auto 16px;
+  object-fit:cover;
+  border-radius:24px;
+  box-shadow:0 8px 26px rgba(197,160,33,.34);
+}
+.gold-auth .mockup-biometric-circle{
+  width:78px!important;
+  height:78px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:20px!important;
+  overflow:hidden;
+  background:transparent!important;
+  box-shadow:0 4px 18px rgba(197,160,33,.24);
+}
+.gold-auth .mockup-biometric-app-icon{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:20px;
+}
