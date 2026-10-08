@@ -72,7 +72,8 @@ export default function UserWorkspace(){
  return <Workspace key={String(user.id)} email={user.email} role={user.role} logout={logout}/>;
 }
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
- const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric}=useAuth();
+ const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric}=useAuth();
+ const [biometricNotice,setBiometricNotice]=useState('');
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
@@ -217,7 +218,29 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='map')return <><section className="approved-card map-placeholder"><div className="map-surface"><span/><span/><span/><div><Icon name="map"/><strong>التجار القريبون</strong><small>بانتظار ربط بيانات المواقع الحقيقية</small></div></div><div className="approved-card-title"><span>نطاق البحث</span><b className="pill gold">قريبًا</b></div><p className="approved-muted">لن نعرض أسماء متاجر أو مواقع وهمية. ستُفعّل هذه الشاشة عند اكتمال Merchant Location في الـBackend.</p></section></>;
 
-  if(page==='account')return <><section className="approved-card profile-approved"><span className="avatar large">{email[0].toUpperCase()}</span><h2 dir="ltr">{email}</h2><span className="pill gold">{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</span><small className="app-version-account" dir="ltr" style={{display:"block",marginTop:10,color:"#C5A021",fontSize:12}}>{APP_DISPLAY_VERSION}</small></section><section className="approved-card settings-list"><button onClick={()=>navigate('portfolio')}><span><Icon name="wallet"/>محفظتي الذهبية</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>سجل المشتريات</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span><Icon name="refresh"/>التحقق من تحديث التطبيق</span><Icon name="chevron"/></button><button className="danger-row" onClick={logout}><span><Icon name="logout"/>تسجيل الخروج</span><Icon name="chevron"/></button></section><section className="approved-card"><div className="approved-card-title">الحماية والأمان</div><div className="settings-choice"><span>الدخول بالبصمة الحيوية</span><b className={'pill '+(biometricActive?'good':'')}>{biometricActive?'مفعّلة':'غير مفعّلة'}</b></div>{!biometricAvailable?<p className="fine">تفعيل الدخول بالبصمة يتطلب دعمًا آمنًا من الخادم. لذلك لن يظهر زر البصمة في شاشة الدخول قبل توفر التسجيل والتحقق الفعليين.</p>:<><p className="fine">{biometricActive?'يمكنك إيقاف الدخول بالبصمة لهذا الحساب.':'فعّل بصمة الجهاز لهذا الحساب حتى يظهر زرها في شاشة الدخول.'}</p><button className="secondary" type="button" onClick={()=>void (biometricActive?disableBiometric():enableBiometric())}>{biometricActive?'إيقاف الدخول بالبصمة':'تفعيل الدخول بالبصمة'}</button></>}</section></>;
+  if(page==='account')return <><section className="approved-card profile-approved"><span className="avatar large">{email[0].toUpperCase()}</span><h2 dir="ltr">{email}</h2><span className="pill gold">{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</span><small className="app-version-account" dir="ltr" style={{display:"block",marginTop:10,color:"#C5A021",fontSize:12}}>{APP_DISPLAY_VERSION}</small></section><section className="approved-card settings-list"><button onClick={()=>navigate('portfolio')}><span><Icon name="wallet"/>محفظتي الذهبية</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>سجل المشتريات</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span><Icon name="refresh"/>التحقق من تحديث التطبيق</span><Icon name="chevron"/></button><button className="danger-row" onClick={logout}><span><Icon name="logout"/>تسجيل الخروج</span><Icon name="chevron"/></button></section><section className="approved-card"><div className="approved-card-title">الحماية والأمان</div>
+ <div className="settings-choice"><span>فتح الجلسة ببصمة الجهاز</span><b className={'pill '+(biometricActive?'good':'')}>{biometricActive?'مفعّلة':'غير مفعّلة'}</b></div>
+ <p className="fine">{biometricAvailable
+  ? biometricActive
+   ? 'يمكنك قفل التطبيق الآن ثم فتح الجلسة المحفوظة باستخدام Face ID أو Touch ID أو قفل الجهاز. يتطلب الوصول للبيانات استمرار صلاحية الجلسة.'
+   : 'فعّل التحقق على هذا الجهاز بعد إدخال كلمة المرور؛ لن يظهر خيار البصمة قبل اكتمال تسجيلها.'
+  : 'التحقق الحيوي المحلي غير مدعوم في هذا المتصفح أو الجهاز حاليًا. يمكنك الاستمرار باستخدام كلمة المرور.'}</p>
+ {biometricNotice&&<p className="notice info" role="status">{biometricNotice}</p>}
+ {biometricAvailable&&<div className="actions">
+  <button className="secondary" type="button" onClick={()=>void (async()=>{
+   setBiometricNotice('');
+   try{
+    if(biometricActive){await disableBiometric();setBiometricNotice('تم إيقاف فتح الجلسة بالبصمة لهذا الجهاز.');}
+    else{await enableBiometric();setBiometricNotice('تم تفعيل التحقق المحلي بنجاح. يمكنك الآن قفل التطبيق وتجربة فتحه.');}
+   }catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر تغيير إعداد التحقق الحيوي.');}
+  })()}>{biometricActive?'إيقاف بصمة الجهاز':'تفعيل بصمة الجهاز'}</button>
+  {biometricActive&&<button className="primary" type="button" onClick={()=>void (async()=>{
+   setBiometricNotice('');
+   if(!await lockWithBiometric())setBiometricNotice('تعذر قفل التطبيق. تأكد من استمرار الجلسة.');
+  })()}>قفل التطبيق الآن</button>}
+ </div>}
+ <p className="fine">البصمة تفتح واجهة الجلسة المحفوظة على هذا الجهاز فقط، ولا تنشئ جلسة جديدة إذا انتهت صلاحيتها. يحفظ التطبيق المفتاح العام فقط وليس بيانات البصمة.</p>
+ </section></>;
 
   if(page==='help')return <section className="approved-card help-panel"><div className="approved-card-title">المساعدة</div>{[['كيف أبدأ؟','أنشئ محفظة ثم أضف مشترياتك الفعلية.'],['كيف تُحسب قيمة المحفظة؟','تعتمد على أسعار Backend ذهبي الحالية، مع إبقاء العملات منفصلة.'],['كيف أقرأ الرسم؟','كل نقطة سعر تمثل تحديثًا محفوظًا فعليًا في قاعدة البيانات.'],['لماذا التجار غير ظاهرين؟','لأن بيانات Merchant Location لم تُنفذ في الـBackend بعد؛ لا نعرض بيانات وهمية.']].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>;
 
