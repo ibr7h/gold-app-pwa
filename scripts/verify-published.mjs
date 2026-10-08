@@ -16,12 +16,15 @@ for(let attempt=0;attempt<12;attempt++){
   for(const url of scripts){
    const js=await text(url.toString(),20000);
    if(js.includes('User Web 1.4.0')&&js.includes('mobile-bottom-nav')){
-    assert(!js.includes('trader-home'),'Trader route leaked into published User bundle');
-    assert(!js.includes('admin-users'),'Admin route leaked into published User bundle');
     userFound=true;
    }
   }
   assert(userFound,'Published User JavaScript does not contain User Web 1.4.0');
+
+  for(const forbidden of ['trader-home','trader-orders','trader-clients','admin-users','admin-invites','admin-permissions']){
+    const response=await fetch(userBase+forbidden+'?verify='+Date.now(),{redirect:'manual',signal:AbortSignal.timeout(15000)});
+    assert.equal(response.status,404,'Forbidden role route is published in User app: '+forbidden);
+  }
 
   for(const spec of [
    {path:'trader/',role:'merchant',session:'dhahabi_trader_',name:'Trader'},
