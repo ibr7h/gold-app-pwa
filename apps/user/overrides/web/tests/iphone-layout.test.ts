@@ -42,7 +42,7 @@ describe('User startup and release visibility',()=>{
   expect(workspace).toContain('className="app-version-account"');
   expect(workspace).toContain('className="app-version-stamp"');
   expect(auth.match(/className="app-version-stamp"/g)).toHaveLength(3);
-  expect(release).toContain('__USER_BUILD_SHA__');
+  expect(release).toMatch(/export const APP_BUILD = '(?:__USER_BUILD_SHA__|[a-f0-9]{8})';/);
  });
  it('renders a previously verified User shell before slower remote session verification',()=>{
   const context=source('../../contexts/AuthContext.web.tsx');
