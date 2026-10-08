@@ -40,7 +40,7 @@ function GuestPrices({onBack}:{onBack:()=>void}){
    <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
    <p className="mockup-app-subtitle">تصفح أسعار الذهب كزائر</p>
-   <p className="app-version-stamp" dir="ltr">{APP_DISPLAY_VERSION}</p>
+   <p className="app-version-stamp" dir="ltr" style={{color:"#D4AF37",textAlign:"center",fontSize:12,margin:"6px auto 0"}}>{APP_DISPLAY_VERSION}</p>
    <section className="mockup-auth-card guest-card">
     <h2>أسعار الجرام الحالية</h2>
     {loading&&<p className="guest-status">جارٍ تحميل الأسعار…</p>}
@@ -68,7 +68,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
    <div className="emblem-circle"><span className="emblem-text">ذ</span></div>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
    <p className="mockup-app-subtitle">إنشاء حساب مستخدم جديد</p>
-   <p className="app-version-stamp" dir="ltr">{APP_DISPLAY_VERSION}</p>
+   <p className="app-version-stamp" dir="ltr" style={{color:"#D4AF37",textAlign:"center",fontSize:12,margin:"6px auto 0"}}>{APP_DISPLAY_VERSION}</p>
    <section className="mockup-auth-card">
     <form onSubmit={submit} aria-busy={isLoading}>
      <label className="form-group"><span className="form-label">الاسم الكامل</span><div className="mockup-input-wrap"><input className="form-input" value={name} autoComplete="name" maxLength={80} placeholder="الاسم الكامل" onChange={e=>setName(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="userPlus"/></span></div></label>
@@ -87,7 +87,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
    <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
    <p className="mockup-app-subtitle">دخول المستثمرين ومتابعي الأسعار</p>
-   <p className="app-version-stamp" dir="ltr">{APP_DISPLAY_VERSION}</p>
+   <p className="app-version-stamp" dir="ltr" style={{color:"#D4AF37",textAlign:"center",fontSize:12,margin:"6px auto 0"}}>{APP_DISPLAY_VERSION}</p>
    <section className="mockup-auth-card">
     <button className="mockup-biometric" type="button" onClick={()=>void biometric()} aria-label="الدخول بالبصمة الحيوية">
      <span className="mockup-biometric-circle"><MockupFingerprintIcon/></span>
