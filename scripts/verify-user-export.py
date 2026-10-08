@@ -7,7 +7,8 @@ css='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.css'))
 
 assert 'User Web 1.4.0' in javascript, 'The current user workspace is missing from the export'
 assert 'workspace-content' in javascript, 'User workspace markup is missing'
-assert 'mobile-bottom-nav' in javascript and 'calculator' in javascript and 'المزيد' in javascript, 'Approved five-tab user navigation is missing'
+assert 'mobile-bottom-nav' in javascript and 'approved-services-grid' in javascript, 'Approved five-tab user navigation is missing'
+assert 'calc-total-card' in javascript, 'Approved calculator screen is missing'
 assert '/prices/history?currency=' in javascript and '/prices/latest?currency=' in javascript, 'Backend price endpoints are missing from the user build'
 assert 'raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-live.json' not in javascript, 'Legacy GitHub live-price source leaked into the user build'
 assert 'raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-history.json' not in javascript, 'Legacy GitHub price-history source leaked into the user build'
