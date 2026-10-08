@@ -479,7 +479,7 @@ jobs:
           EOF
 
       - name: Apply reviewed user web overrides
-        run: cp -R "$GITHUB_WORKSPACE/web-overrides/." "$SRC/"
+        run: cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
 
       - name: Install and verify full app
         shell: bash
@@ -521,7 +521,13 @@ jobs:
           set -euo pipefail
           cd "$SRC/dist-pwa"
 
-          cp "$SRC/assets/images/icon.png" pwa-icon.png
+          if command -v magick >/dev/null 2>&1; then
+            magick -background none "$GITHUB_WORKSPACE/apps/user/assets/icon.svg" -resize 512x512 pwa-icon.png
+          elif command -v convert >/dev/null 2>&1; then
+            convert -background none "$GITHUB_WORKSPACE/apps/user/assets/icon.svg" -resize 512x512 pwa-icon.png
+          else
+            cp "$SRC/assets/images/icon.png" pwa-icon.png
+          fi
           cp "$GITHUB_WORKSPACE/prices-live.json" prices-live.json 2>/dev/null || true
           touch .nojekyll
 
