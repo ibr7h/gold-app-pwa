@@ -2,6 +2,10 @@ name: Check responsive user web
 on:
   push:
     branches: ["fix/user-responsive-20261006", "ui/user-photo-icon-biometric"]
+  pull_request:
+    paths:
+      - "apps/user/**"
+      - ".github/workflows/check-user-web.yml"
   workflow_dispatch:
 permissions:
   contents: read
