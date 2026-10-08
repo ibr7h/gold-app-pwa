@@ -991,3 +991,255 @@
  .gold-auth .mockup-login-options{font-size:12px}
  .gold-auth .mockup-forgot{font-size:12px!important}
 }
+
+
+/* =========================================================
+   USER WEB 1.5 — MOCKUP SOURCE OF TRUTH
+   Reference: attached mockups/styles.css + mockups/user.html
+   ========================================================= */
+.gold-web{
+  --navy-950:#03101e;
+  --navy-900:#061b32;
+  --navy-850:#0b2642;
+  --navy-800:#123252;
+  --navy:#061b32;
+  --navy-dark:#03101e;
+  --navy-surface:#0b2642;
+  --gold:#c5a021;
+  --gold-500:#c5a021;
+  --gold-400:#d4af37;
+  --gold-300:#e3c564;
+  --gold-secondary:#d4af37;
+  --gold-accent:#e3c564;
+  --gold-gradient:linear-gradient(135deg,#e3c564,#c5a021);
+  --pearl-100:#f8f9fa;
+  --pearl-200:#eef1f5;
+  --ink:#132238;
+  --ink-900:#132238;
+  --ink-700:#475569;
+  --ink-500:#748092;
+  --muted:#748092;
+  --line:rgba(10,34,58,.12);
+  --border:rgba(10,34,58,.12);
+  --canvas:#061b32;
+  --app-background:#061b32;
+  --app-surface-light:#f8f9fa;
+  --surface:#f8f9fa;
+  --surface-card:#f8f9fa;
+  --navy-card:#f8f9fa;
+  --navy-card-border:rgba(10,34,58,.12);
+  --text-primary:#f8f9fa;
+  --text-secondary:rgba(248,249,250,.72);
+  --text-dark:#132238;
+  --radius-sm:12px;
+  --radius-md:18px;
+  --radius-lg:24px;
+  font-family:"Avenir Next","Segoe UI","Tahoma",sans-serif;
+}
+.gold-web.workspace,
+.gold-web .workspace-main,
+.gold-web .workspace-content,
+.gold-auth,
+.gold-web.boot{
+  background:linear-gradient(180deg,#061b32 0%,#03101e 100%)!important;
+}
+.gold-web .desktop-nav,
+.gold-web .mobile-nav{
+  background:linear-gradient(180deg,#061b32,#03101e)!important;
+  color:#f8f9fa;
+}
+.gold-web .topbar{
+  background:#061b32!important;
+  color:#f8f9fa!important;
+  border-bottom:1px solid rgba(255,255,255,.08)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.gold-web .topbar h1{color:#f8f9fa!important}
+.gold-web .topbar .eyebrow{color:rgba(248,249,250,.62)!important}
+.gold-web .menu-trigger,
+.gold-web .refresh-button{
+  color:#d4af37!important;
+  background:transparent!important;
+  border-color:transparent!important;
+}
+.gold-web .mock-welcome h2{color:#f8f9fa!important;font-size:24px!important}
+.gold-web .mock-welcome .mock-supporting{color:rgba(248,249,250,.70)!important}
+
+.gold-web .approved-card,
+.gold-web .panel,
+.gold-web .mock-light-card,
+.gold-web .mock-chart-card,
+.gold-web .mock-stat-card,
+.gold-web .summary-card,
+.gold-web .portfolio-card,
+.gold-web .record,
+.gold-web .table-card{
+  background:#f8f9fa!important;
+  color:#132238!important;
+  border:1px solid rgba(10,34,58,.12)!important;
+  border-radius:18px!important;
+  box-shadow:0 8px 20px rgba(0,0,0,.06)!important;
+}
+.gold-web .approved-card h1,
+.gold-web .approved-card h2,
+.gold-web .approved-card h3,
+.gold-web .panel h1,
+.gold-web .panel h2,
+.gold-web .panel h3{color:#132238!important}
+.gold-web .approved-muted,
+.gold-web .approved-card .muted,
+.gold-web .approved-card .fine,
+.gold-web .approved-card dt{color:#748092!important}
+.gold-web .approved-card-title{
+  color:#132238!important;
+  border-bottom-color:rgba(10,34,58,.12)!important;
+}
+.gold-web .approved-card.live-price-card{
+  padding:18px!important;
+  border-radius:22px!important;
+  color:#f8f9fa!important;
+  background:linear-gradient(135deg,rgba(248,249,250,.14),rgba(6,27,50,.90))!important;
+  border:1px solid rgba(197,160,33,.28)!important;
+  box-shadow:none!important;
+}
+.gold-web .live-price-card .live-card-top>strong{color:#f8f9fa!important}
+.gold-web .live-price-card .price-tag-large{color:#c5a021!important}
+.gold-web .live-price-card .price-tag-large small,
+.gold-web .live-price-card .approved-muted,
+.gold-web .live-price-card .buy-sell-mini,
+.gold-web .live-price-card .live-card-footer{color:rgba(248,249,250,.70)!important}
+.gold-web .live-price-card .buy-sell-mini b{color:#f8f9fa!important}
+.gold-web .live-price-card .live-card-footer{border-top-color:rgba(255,255,255,.08)!important}
+
+.gold-web .approved-section-title h3{color:rgba(248,249,250,.92)!important}
+.gold-web .approved-services-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+.gold-web .approved-service-item{
+  min-height:76px!important;
+  padding:14px 10px!important;
+  border-radius:16px!important;
+  color:#132238!important;
+  background:#f8f9fa!important;
+  border:1px solid rgba(10,34,58,.12)!important;
+  box-shadow:none!important;
+}
+.gold-web .approved-service-icon{
+  width:38px!important;
+  height:38px!important;
+  border-radius:50%!important;
+  color:#c5a021!important;
+  background:rgba(197,160,33,.12)!important;
+  border:1px solid rgba(197,160,33,.20)!important;
+}
+.gold-web .history-chart,
+.gold-web .prices-header-card,
+.gold-web .portfolio-mini{color:#132238!important}
+.gold-web .chart-grid{stroke:rgba(10,34,58,.10)!important}
+.gold-web .chart-line{stroke:#c5a021!important}
+.gold-web .chart-dot{fill:#f8f9fa!important;stroke:#c5a021!important}
+.gold-web .chart-legend{color:#475569!important}
+.gold-web .chart-axis,
+.gold-web .chart-caption{color:#748092!important}
+.gold-web .three-stats>div,
+.gold-web .mock-mini-stat{background:#eef1f5!important;border-color:rgba(10,34,58,.08)!important}
+.gold-web .three-stats span,
+.gold-web .mock-mini-stat span{color:#748092!important}
+.gold-web .three-stats b,
+.gold-web .mock-mini-stat strong{color:#132238!important}
+.gold-web .price-row{border-top-color:rgba(10,34,58,.12)!important}
+.gold-web .price-row.head{color:#748092!important}
+.gold-web .market-table{border-color:rgba(10,34,58,.12)!important}
+.gold-web .market-table-row{background:#f8f9fa!important;color:#132238!important;border-top-color:rgba(10,34,58,.08)!important}
+.gold-web .market-table-row.head{background:#eef1f5!important;color:#748092!important}
+
+.gold-web .mock-map-preview,
+.gold-web .map-surface{
+  background:
+    linear-gradient(135deg,rgba(197,160,33,.18),transparent 40%),
+    linear-gradient(180deg,#ecf3f8 0%,#e0ebf2 100%)!important;
+  border:1px solid rgba(10,34,58,.12)!important;
+  color:#475569!important;
+}
+.gold-web .mock-map-preview::before,
+.gold-web .mock-map-preview::after{opacity:.35}
+
+.gold-web .nav-item{color:rgba(248,249,250,.72)!important}
+.gold-web .nav-item.selected{
+  color:#d4af37!important;
+  background:rgba(197,160,33,.10)!important;
+  box-shadow:inset -3px 0 #c5a021!important;
+}
+.gold-web .brand-mark,
+.gold-web .boot-mark,
+.gold-auth .emblem-circle{
+  background:linear-gradient(135deg,#e3c564,#c5a021)!important;
+  color:#03101e!important;
+}
+.gold-web footer{color:rgba(248,249,250,.62)!important}
+
+/* Authentication follows the same mockup palette. */
+.gold-auth.auth-mockup{background:linear-gradient(180deg,#061b32,#03101e)!important}
+.gold-auth .mockup-login-container>.emblem-circle{background:linear-gradient(135deg,#e3c564,#c5a021)!important;color:#03101e!important}
+.gold-auth .mockup-login-container>.emblem-circle .emblem-text{color:#03101e!important}
+.gold-auth .mockup-app-title{color:#d4af37!important}
+.gold-auth .mockup-app-subtitle{color:rgba(248,249,250,.70)!important}
+.gold-auth .mockup-auth-card{background:#f8f9fa!important;color:#132238!important;border-color:rgba(10,34,58,.12)!important;border-radius:18px!important}
+.gold-auth .mockup-auth-card .form-label,
+.gold-auth .mockup-biometric strong{color:#132238!important}
+.gold-auth .mockup-biometric small,
+.gold-auth .mockup-divider,
+.gold-auth .mockup-remember,
+.gold-auth .mockup-register-link{color:#748092!important}
+.gold-auth .mockup-input-wrap .form-input{background:#f8f9fa!important;color:#132238!important;border-color:rgba(10,34,58,.16)!important}
+.gold-auth .mockup-biometric-circle{color:#061b32!important;border-color:#c5a021!important;background:rgba(197,160,33,.12)!important}
+.gold-auth .mockup-primary-btn{background:linear-gradient(135deg,#e3c564,#c5a021)!important;color:#03101e!important}
+
+@media(max-width:800px){
+  .gold-web .workspace-main{height:100dvh}
+  .gold-web .workspace-content{
+    background:linear-gradient(180deg,#061b32 0%,#03101e 100%)!important;
+    padding:14px 18px 20px!important;
+  }
+  .gold-web .topbar{
+    display:flex!important;
+    min-height:58px;
+    padding:12px 18px!important;
+    background:#061b32!important;
+  }
+  .gold-web .topbar h1{font-size:18px!important;color:#f8f9fa!important}
+  .gold-web .mobile-bottom-nav{
+    display:grid!important;
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:6px!important;
+    padding:10px 12px max(12px,env(safe-area-inset-bottom))!important;
+    background:rgba(248,249,250,.97)!important;
+    border-top:1px solid rgba(10,34,58,.12)!important;
+    box-shadow:none!important;
+  }
+  .gold-web .mobile-tab{
+    min-height:44px!important;
+    padding:7px 2px!important;
+    border-radius:14px!important;
+    color:#748092!important;
+    font-size:9px!important;
+    font-weight:700!important;
+    gap:4px!important;
+  }
+  .gold-web .mobile-tab svg{width:18px!important;height:18px!important}
+  .gold-web .mobile-tab.selected{
+    color:#c5a021!important;
+    background:rgba(197,160,33,.10)!important;
+  }
+  .gold-web .notification-dot{border-color:#061b32!important}
+  .gold-web .approved-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .gold-web .approved-card{padding:16px!important}
+}
+@media(max-width:390px){
+  .gold-web .workspace-content{padding-inline:14px!important}
+  .gold-web .mobile-bottom-nav{gap:3px!important;padding-inline:5px!important}
+  .gold-web .mobile-tab{font-size:8px!important;padding-inline:0!important}
+  .gold-web .mobile-tab svg{width:17px!important;height:17px!important}
+}
