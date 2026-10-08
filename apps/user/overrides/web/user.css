@@ -878,6 +878,10 @@
   border:0!important;
 }
 .gold-auth .mockup-primary-btn{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
   width:100%!important;
   min-height:48px!important;
   padding:14px 20px!important;
@@ -894,6 +898,7 @@
   box-shadow:0 6px 18px rgba(212,175,55,.38)!important;
 }
 .gold-auth .mockup-guest-btn{
+  gap:8px!important;
   width:100%!important;
   min-height:46px!important;
   margin-top:14px!important;
@@ -998,20 +1003,20 @@
    Reference: attached mockups/styles.css + mockups/user.html
    ========================================================= */
 .gold-web{
-  --navy-950:#03101e;
-  --navy-900:#061b32;
+  --navy-950:#001f3f;
+  --navy-900:#001f3f;
   --navy-850:#0b2642;
   --navy-800:#123252;
-  --navy:#061b32;
-  --navy-dark:#03101e;
+  --navy:#001f3f;
+  --navy-dark:#001f3f;
   --navy-surface:#0b2642;
   --gold:#c5a021;
   --gold-500:#c5a021;
   --gold-400:#d4af37;
-  --gold-300:#e3c564;
+  --gold-300:#d4af37;
   --gold-secondary:#d4af37;
-  --gold-accent:#e3c564;
-  --gold-gradient:linear-gradient(135deg,#e3c564,#c5a021);
+  --gold-accent:#d4af37;
+  --gold-gradient:linear-gradient(135deg,#d4af37,#c5a021);
   --pearl-100:#f8f9fa;
   --pearl-200:#eef1f5;
   --ink:#132238;
@@ -1021,8 +1026,8 @@
   --muted:#748092;
   --line:rgba(10,34,58,.12);
   --border:rgba(10,34,58,.12);
-  --canvas:#061b32;
-  --app-background:#061b32;
+  --canvas:#001f3f;
+  --app-background:#001f3f;
   --app-surface-light:#f8f9fa;
   --surface:#f8f9fa;
   --surface-card:#f8f9fa;
@@ -1041,15 +1046,15 @@
 .gold-web .workspace-content,
 .gold-auth,
 .gold-web.boot{
-  background:linear-gradient(180deg,#061b32 0%,#03101e 100%)!important;
+  background:linear-gradient(180deg,#001f3f 0%,#001f3f 100%)!important;
 }
 .gold-web .desktop-nav,
 .gold-web .mobile-nav{
-  background:linear-gradient(180deg,#061b32,#03101e)!important;
+  background:linear-gradient(180deg,#001f3f,#001f3f)!important;
   color:#f8f9fa;
 }
 .gold-web .topbar{
-  background:#061b32!important;
+  background:#001f3f!important;
   color:#f8f9fa!important;
   border-bottom:1px solid rgba(255,255,255,.08)!important;
   backdrop-filter:none!important;
@@ -1099,7 +1104,7 @@
   padding:18px!important;
   border-radius:22px!important;
   color:#f8f9fa!important;
-  background:linear-gradient(135deg,rgba(248,249,250,.14),rgba(6,27,50,.90))!important;
+  background:linear-gradient(135deg,rgba(248,249,250,.14),rgba(0,31,63,.90))!important;
   border:1px solid rgba(197,160,33,.28)!important;
   box-shadow:none!important;
 }
@@ -1175,15 +1180,15 @@
 .gold-web .brand-mark,
 .gold-web .boot-mark,
 .gold-auth .emblem-circle{
-  background:linear-gradient(135deg,#e3c564,#c5a021)!important;
-  color:#03101e!important;
+  background:linear-gradient(135deg,#d4af37,#c5a021)!important;
+  color:#001f3f!important;
 }
 .gold-web footer{color:rgba(248,249,250,.62)!important}
 
-/* Authentication follows the same mockup palette. */
-.gold-auth.auth-mockup{background:linear-gradient(180deg,#061b32,#03101e)!important}
-.gold-auth .mockup-login-container>.emblem-circle{background:linear-gradient(135deg,#e3c564,#c5a021)!important;color:#03101e!important}
-.gold-auth .mockup-login-container>.emblem-circle .emblem-text{color:#03101e!important}
+/* Approved authentication layout with the fixed Dhahabi identity colors. */
+.gold-auth.auth-mockup{background:linear-gradient(180deg,#001f3f,#001f3f)!important}
+.gold-auth .mockup-login-container>.emblem-circle{background:linear-gradient(135deg,#d4af37,#c5a021)!important;color:#001f3f!important}
+.gold-auth .mockup-login-container>.emblem-circle .emblem-text{color:#001f3f!important}
 .gold-auth .mockup-app-title{color:#d4af37!important}
 .gold-auth .mockup-app-subtitle{color:rgba(248,249,250,.70)!important}
 .gold-auth .mockup-auth-card{background:#f8f9fa!important;color:#132238!important;border-color:rgba(10,34,58,.12)!important;border-radius:18px!important}
@@ -1194,20 +1199,21 @@
 .gold-auth .mockup-remember,
 .gold-auth .mockup-register-link{color:#748092!important}
 .gold-auth .mockup-input-wrap .form-input{background:#f8f9fa!important;color:#132238!important;border-color:rgba(10,34,58,.16)!important}
-.gold-auth .mockup-biometric-circle{color:#061b32!important;border-color:#c5a021!important;background:rgba(197,160,33,.12)!important}
-.gold-auth .mockup-primary-btn{background:linear-gradient(135deg,#e3c564,#c5a021)!important;color:#03101e!important}
+.gold-auth .mockup-input-wrap .form-input::placeholder{color:#748092;opacity:1}
+.gold-auth .mockup-biometric-circle{color:#001f3f!important;border-color:#c5a021!important;background:rgba(197,160,33,.12)!important}
+.gold-auth .mockup-primary-btn{background:linear-gradient(135deg,#d4af37,#c5a021)!important;color:#001f3f!important}
 
 @media(max-width:800px){
   .gold-web .workspace-main{height:100dvh}
   .gold-web .workspace-content{
-    background:linear-gradient(180deg,#061b32 0%,#03101e 100%)!important;
+    background:linear-gradient(180deg,#001f3f 0%,#001f3f 100%)!important;
     padding:14px 18px 20px!important;
   }
   .gold-web .topbar{
     display:flex!important;
     min-height:58px;
     padding:12px 18px!important;
-    background:#061b32!important;
+    background:#001f3f!important;
   }
   .gold-web .topbar h1{font-size:18px!important;color:#f8f9fa!important}
   .gold-web .mobile-bottom-nav{
@@ -1233,7 +1239,7 @@
     color:#c5a021!important;
     background:rgba(197,160,33,.10)!important;
   }
-  .gold-web .notification-dot{border-color:#061b32!important}
+  .gold-web .notification-dot{border-color:#001f3f!important}
   .gold-web .approved-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .gold-web .approved-card{padding:16px!important}
 }
@@ -1268,13 +1274,6 @@
   color:#001F3F!important;
   box-shadow:none!important;
   margin-bottom:10px!important;
-}
-.gold-auth .mockup-fingerprint-icon{
-  width:40px;
-  height:40px;
-  display:block;
-  fill:currentColor;
-  color:#001F3F;
 }
 .gold-web .boot-photo-icon{
   display:block;

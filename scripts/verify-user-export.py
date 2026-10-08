@@ -19,8 +19,8 @@ assert '.desktop-nav' in css and '.form-grid' in css, 'Responsive stylesheet mis
 assert '.mobile-bottom-nav' in css, 'Mobile bottom navigation styles are missing'
 assert '@media' in css and '800px' in css, 'Mobile breakpoint missing'
 css_lower=css.lower()
-assert '#061b32' in css_lower and '#03101e' in css_lower and '#c5a021' in css_lower and '#d4af37' in css_lower and '#e3c564' in css_lower, 'Attached mockup palette is missing'
+assert '#001f3f' in css_lower and '#c5a021' in css_lower and '#d4af37' in css_lower, 'Fixed Dhahabi identity colors are missing'
 assert 'approved-services-grid' in css and 'repeat(7,minmax(0,1fr))' in css.replace(' ', ''), 'Mockup service grid or seven-tab navigation stylesheet is missing'
 assert 'mockup-login-container' in css and 'mockup-biometric-circle' in css and 'mockup-guest-btn' in css, 'User login does not match the approved mockup structure'
 
-print('Verified: User Web 1.5, attached mockup palette, seven-tab navigation, and responsive layout are included in the exported build.')
+print('Verified: User Web 1.5, fixed Dhahabi identity colors, seven-tab navigation, and responsive layout are included in the exported build.')
