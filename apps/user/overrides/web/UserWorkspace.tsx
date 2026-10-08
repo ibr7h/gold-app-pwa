@@ -72,7 +72,7 @@ export default function UserWorkspace(){
  return <Workspace key={String(user.id)} email={user.email} role={user.role} logout={logout}/>;
 }
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
- const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric}=useAuth();
+ const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric}=useAuth() as ReturnType<typeof useAuth> & {lockWithBiometric:()=>Promise<boolean>};
  const [biometricNotice,setBiometricNotice]=useState('');
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false);
