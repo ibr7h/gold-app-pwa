@@ -532,14 +532,7 @@ jobs:
           set -euo pipefail
           cd "$SRC/dist-pwa"
 
-          if command -v magick >/dev/null 2>&1; then
-            magick -background none "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" -resize 512x512 pwa-icon.png
-          elif command -v convert >/dev/null 2>&1; then
-            convert -background none "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" -resize 512x512 pwa-icon.png
-          else
-            echo "ImageMagick is required to generate the User PWA icon from app_icon_user.jpg" >&2
-            exit 1
-          fi
+          node "$GITHUB_WORKSPACE/apps/user/scripts/generate-icon.cjs" "$SRC"
           cp "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" app_icon_user.jpg
           cp "$GITHUB_WORKSPACE/prices-live.json" prices-live.json 2>/dev/null || true
           touch .nojekyll
