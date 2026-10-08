@@ -5,6 +5,7 @@ on:
     branches: ["main"]
     paths:
       - ".github/workflows/build-full-web.yml"
+      - "apps/user/**"
   workflow_dispatch:
 
 permissions:
@@ -49,6 +50,10 @@ jobs:
             input: "./global.css",
           });
           EOF
+
+      - name: Apply isolated User app overrides
+        shell: bash
+        run: cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
 
       - name: Install dependencies
         shell: bash
