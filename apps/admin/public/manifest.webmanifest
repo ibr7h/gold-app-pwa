@@ -1,0 +1,26 @@
+{
+  "id": "/gold-app-pwa/admin/",
+  "name": "ذهبي للإدارة",
+  "short_name": "ذهبي إدارة",
+  "description": "بوابة ذهبي المستقلة للإدارة",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/gold-app-pwa/admin/",
+  "scope": "/gold-app-pwa/admin/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#001F3F",
+  "theme_color": "#001F3F",
+  "categories": [
+    "finance",
+    "business"
+  ],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
