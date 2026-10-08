@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe,it,expect} from 'vitest';
 
-const source=(relative:string)=>readFileSync(new URL(relative,import.meta.url),'utf8');
+const source=(relative:string)=>readFileSync(new URL(relative,import.meta.url).pathname,'utf8');
 
 describe('User app identity',()=>{
   it('uses the canonical JPEG in login, biometric entry, and boot',()=>{
