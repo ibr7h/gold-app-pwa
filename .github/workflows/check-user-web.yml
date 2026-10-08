@@ -1,7 +1,7 @@
 name: Check responsive user web
 on:
   push:
-    branches: ["fix/user-responsive-20261006", "ui/apply-approved-ui-zip-v14"]
+    branches: ["fix/user-responsive-20261006"]
   workflow_dispatch:
 permissions:
   contents: read
