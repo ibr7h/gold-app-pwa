@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 export const API_BASE='https://gold-app-api-u8dl.onrender.com';
-const ACCESS='dhahabi_access_token',REFRESH='dhahabi_refresh_token';
+const ACCESS='dhahabi_user_access_token',REFRESH='dhahabi_user_refresh_token',PROFILE='dhahabi_user_profile';
 let epoch=0,refreshFlight:Promise<string>|null=null;
 const listeners=new Set<()=>void>();
 export class ApiError extends Error{constructor(message:string,public status=0){super(message);}}
 export function onSessionEnded(fn:()=>void){listeners.add(fn);return()=>{listeners.delete(fn);};}
-export async function clearSession(){epoch++;await AsyncStorage.multiRemove([ACCESS,REFRESH,'dhahabi_user']);listeners.forEach(fn=>fn());}
+export async function clearSession(){epoch++;await AsyncStorage.multiRemove([ACCESS,REFRESH,PROFILE]);listeners.forEach(fn=>fn());}
 export async function hasSession(){return !!(await AsyncStorage.getItem(REFRESH));}
 export async function saveSession(tokens:any){
  if(!tokens?.accessToken||!tokens?.refreshToken)throw new ApiError('استجابة الدخول غير مكتملة.');
@@ -37,7 +37,7 @@ async function refreshAccess(expiredToken:string|null):Promise<string>{
    if(!tokens?.accessToken||!tokens?.refreshToken)throw new ApiError('استجابة الجلسة غير صالحة.');
    await AsyncStorage.multiSet([[ACCESS,tokens.accessToken],[REFRESH,tokens.refreshToken]]);return tokens.accessToken as string;
   };
-  const flight:Promise<string>=(async()=>{if(typeof navigator!=='undefined'&&navigator.locks)return await navigator.locks.request('dhahabi-full-refresh',refresh);return await refresh();})();
+  const flight:Promise<string>=(async()=>{if(typeof navigator!=='undefined'&&navigator.locks)return await navigator.locks.request('dhahabi-user-refresh',refresh);return await refresh();})();
   refreshFlight=flight.catch(async e=>{if(started===epoch&&e instanceof ApiError&&e.status===401)await clearSession();throw e;}).finally(()=>{refreshFlight=null;});
  }return refreshFlight!;
 }
