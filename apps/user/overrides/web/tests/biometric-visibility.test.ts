@@ -21,9 +21,9 @@ describe('biometric entry requires an explicit secure opt-in',()=>{
   expect(auth).toContain('showBiometricLogin&&<button className="mockup-biometric"');
   expect(auth).toContain("showBiometricLogin?'أو بالبريد الإلكتروني':'الدخول بالبريد الإلكتروني'");
   expect(workspace).toContain('const biometricActive=canShowBiometricLogin(');
-  expect(workspace).toContain('الحماية والأمان');
-  expect(workspace).toContain('قفل التطبيق الآن');
-  expect(workspace).toContain('تفعيل بصمة الجهاز');
+  expect(workspace).toContain('الدخول السريع والأمان');
+  expect(workspace).toContain('قفل ذهبي الآن');
+  expect(workspace).toContain('خدمة بصمة الوجه/الإصبع');
   expect(context).toContain('await verifyLocalCredential(c)');
   expect(context).toContain('setLockedAccount(cached)');
   expect(context).toContain('enrollLocalCredential(accountId,user.email)');

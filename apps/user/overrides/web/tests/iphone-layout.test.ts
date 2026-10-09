@@ -160,3 +160,39 @@ describe('Non-intrusive iOS device unlock and native SVG currency',()=>{
   expect(source('../model.ts')).toContain('unitPrice=totalPrice/weightGrams;');
  });
 });
+
+describe('Screenshot-inspired quick lock screen and explicit biometric options',()=>{
+ it('shows PIN screen before cached portfolio and only unlocks against same server account',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const provider=source('../../contexts/AuthContext.web.tsx');
+  expect(workspace).toContain('if(lockedAccount)return <QuickLockScreen');
+  expect(workspace).toContain('onPin={unlockWithPin}');
+  expect(workspace).toContain('onForgot={logout}');
+  expect(provider).toContain('const pinReady=cached?.id?await hasQuickPin(String(cached.id)):false');
+  expect(provider).toContain('const result=await checkQuickPin(String(account.id),pin);');
+  expect(provider).toContain('if(!await hasSession())');
+  expect(provider).toContain("if(String(me.id)!==String(account.id))");
+  expect(provider).toContain('Date.now()-hiddenAt>=60000');
+ });
+ it('renders six PIN dots and a large keypad, with a user-controlled biometric tap',()=>{
+  const screen=source('../QuickLockScreen.tsx');
+  expect(screen).toContain('Array.from({length:PIN_LENGTH}');
+  expect(screen).toContain("['1','2','3','4','5','6','7','8','9','bio','0','delete']");
+  expect(screen).toContain('onClick={onBiometric}');
+  expect(screen).toContain('onPin(value)');
+  expect(screen).toContain('نسيت رمز الدخول السريع؟');
+  expect(screen).toContain('stage===\'enter\'');
+  expect(screen).not.toContain('navigator.credentials.get');
+ });
+ it('adds separate on/off switches for quick PIN and biometric without changing original app theme',()=>{
+  const workspace=source('../UserWorkspace.tsx'),css=source('../user.css');
+  expect(workspace).toContain('role="switch" aria-label="تفعيل رمز الدخول السريع"');
+  expect(workspace).toContain('role="switch" aria-label="خدمة بصمة الوجه والإصبع"');
+  expect(workspace).toContain('QuickPinSetup mode={pinSetup}');
+  expect(workspace).toContain("onClick={()=>setPinSetup('change')}");
+  expect(css).toContain('.dh-quick-lock{');
+  expect(css).toContain('.dh-pin-keypad{');
+  expect(css).toContain('#C5A021');
+  expect(css).toContain('#001F3F');
+ });
+});
