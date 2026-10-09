@@ -73,9 +73,9 @@ describe('inclusive purchase totals and itemized VAT accounting',()=>{
  const base=()=>{const f=new FormData();for(const [k,v] of Object.entries({portfolioId:'portfolio-id',karat:'21',weightGrams:'2',currency:'SAR',purchasedAt:'2026-01-05'}))f.set(k,v);return f;};
  it('records an invoice-inclusive total exactly once and derives the paid gram cost',()=>{
   const f=base();f.set('pricingMode','inclusive');f.set('invoiceTotal','800');
-  f.set('sellerName','محل الذهب');f.set('invoiceNumber','123');f.set('itemDescription','خاتم');
+  f.set('sellerName','محل الذهب');f.set('sellerAddress','جدة');f.set('buyerName','مشتري');f.set('invoiceNumber','123');f.set('stoneColor','أبيض');f.set('itemDescription','خاتم');
   const p=purchasePayload(f);
-  expect(p).toMatchObject({totalPrice:800,unitPrice:400,invoiceDetails:{pricingMode:'inclusive',sellerName:'محل الذهب',invoiceNumber:'123'}});
+  expect(p).toMatchObject({totalPrice:800,unitPrice:400,invoiceDetails:{pricingMode:'inclusive',sellerName:'محل الذهب',sellerAddress:'جدة',buyerName:'مشتري',stoneColor:'أبيض',invoiceNumber:'123'}});
  });
  it('adds making, stone cost and explicitly selected 15% VAT without double counting',()=>{
   const f=base();f.set('pricingMode','itemized');f.set('goldUnitPrice','300');f.set('makingCharge','40');

@@ -102,6 +102,12 @@ export default function PurchaseFormFields({portfolios,purchase}:{portfolios:Por
     <label>اسم المتجر أو البائع
      <input name="sellerName" maxLength={150} value={sellerName} onChange={e=>setSellerName(e.target.value)} placeholder="الاسم التجاري"/>
     </label>
+    <label>عنوان المحل
+     <input name="sellerAddress" maxLength={250} defaultValue={text(details.sellerAddress)} placeholder="عنوان المتجر كما يظهر في الفاتورة"/>
+    </label>
+    <label>اسم المشتري في الفاتورة
+     <input name="buyerName" maxLength={120} defaultValue={text(details.buyerName)} placeholder="اسم المشتري إن وجد"/>
+    </label>
     <label>رقم الفاتورة
      <input name="invoiceNumber" maxLength={120} value={invoiceNumber} onChange={e=>setInvoiceNumber(e.target.value)}/>
     </label>
@@ -140,6 +146,7 @@ export default function PurchaseFormFields({portfolios,purchase}:{portfolios:Por
     <div className="form-grid">
      <label>اسم الحجر<input name="stoneName" maxLength={120} defaultValue={text(details.stoneName)}/></label>
      <label>نوع الحجر<input name="stoneKind" maxLength={100} defaultValue={text(details.stoneKind)}/></label>
+     <label>لون الحجر<input name="stoneColor" maxLength={100} defaultValue={text(details.stoneColor)}/></label>
      <label>شكل الحجر<input name="stoneShape" maxLength={100} defaultValue={text(details.stoneShape)}/></label>
      <label>درجة النقاء/الجودة<input name="stoneQuality" maxLength={150} defaultValue={text(details.stoneQuality)}/></label>
      <label>نوع القطع/التشطيب<input name="stoneCut" maxLength={100} defaultValue={text(details.stoneCut)}/></label>
