@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {totals,marketUnitPrice,purchasePerformance,purchasePayload,MarketPrice,Purchase} from '../model';
+import {totals,marketUnitPrice,purchasePerformance,purchasePayload,purchaseQuote,MarketPrice,Purchase} from '../model';
 
 const prices:MarketPrice[]=[
  {id:'sar24',source:'fixture',currency:'SAR',karat:24,buyPrice:'375',sellPrice:'375',timestamp:'2026-10-05T20:00:00Z',createdAt:'2026-10-05T20:00:01Z'},
@@ -66,5 +66,42 @@ describe('expanded wallet purchase-by-purchase valuation',()=>{
   expect(purchasePerformance(purchase({weightGrams:'0'}),prices).difference).toBeNull();
   expect(purchasePerformance(purchase({weightGrams:'Infinity'}),prices).difference).toBeNull();
   expect(purchasePerformance(purchase(),[{...prices[0],buyPrice:'NaN'}]).difference).toBeNull();
+ });
+});
+
+describe('inclusive purchase totals and itemized VAT accounting',()=>{
+ const base=()=>{const f=new FormData();for(const [k,v] of Object.entries({portfolioId:'portfolio-id',karat:'21',weightGrams:'2',currency:'SAR',purchasedAt:'2026-01-05'}))f.set(k,v);return f;};
+ it('records an invoice-inclusive total exactly once and derives the paid gram cost',()=>{
+  const f=base();f.set('pricingMode','inclusive');f.set('invoiceTotal','800');
+  f.set('sellerName','محل الذهب');f.set('invoiceNumber','123');f.set('itemDescription','خاتم');
+  const p=purchasePayload(f);
+  expect(p).toMatchObject({totalPrice:800,unitPrice:400,invoiceDetails:{pricingMode:'inclusive',sellerName:'محل الذهب',invoiceNumber:'123'}});
+ });
+ it('adds making, stone cost and explicitly selected 15% VAT without double counting',()=>{
+  const f=base();f.set('pricingMode','itemized');f.set('goldUnitPrice','300');f.set('makingCharge','40');
+  f.set('stonePrice','10');f.set('vatMode','rate');f.set('vatRate','15');
+  expect(purchasePayload(f)).toMatchObject({unitPrice:373.75,totalPrice:747.5,
+   invoiceDetails:{goldUnitPrice:300,makingCharge:40,stonePrice:10,vatRate:15,vatAmount:97.5}});
+  expect(purchaseQuote({mode:'itemized',weight:2,goldUnitPrice:300,makingCharge:40,stonePrice:10,vatRate:15})?.total).toBe(747.5);
+ });
+ it('allows a directly-entered VAT amount as stated on a receipt',()=>{
+  const f=base();f.set('pricingMode','itemized');f.set('goldUnitPrice','300');f.set('makingCharge','40');
+  f.set('vatMode','manual');f.set('vatAmount','35');
+  expect(purchasePayload(f)).toMatchObject({unitPrice:337.5,totalPrice:675,
+   invoiceDetails:{vatRate:0,vatAmount:35}});
+ });
+ it('keeps metal weight independent of gemstone weight, rejects contradictory gross weights',()=>{
+  const f=base();f.set('pricingMode','inclusive');f.set('invoiceTotal','700');
+  f.set('grossWeightGrams','2.5');f.set('stoneWeightGrams','0.4');
+  expect(purchasePayload(f)).toMatchObject({weightGrams:2,invoiceDetails:{grossWeightGrams:2.5,stoneWeightGrams:0.4}});
+  f.set('grossWeightGrams','1');
+  expect(()=>purchasePayload(f)).toThrow(/الوزن الإجمالي/);
+ });
+ it('rejects missing or nonnumeric prices and does not silently use 15% VAT',()=>{
+  const f=base();f.set('pricingMode','inclusive');f.set('invoiceTotal','');
+  expect(()=>purchasePayload(f)).toThrow();
+  f.set('invoiceTotal','abc');expect(()=>purchasePayload(f)).toThrow();
+  f.set('pricingMode','itemized');f.set('goldUnitPrice','300');f.set('vatMode','rate');
+  expect(purchasePayload(f).invoiceDetails).toMatchObject({vatRate:0,vatAmount:0});
  });
 });

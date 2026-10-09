@@ -1408,3 +1408,36 @@
  .gold-web .portfolio-purchase-metrics{gap:6px}
  .gold-web .portfolio-purchase-metrics dd{font-size:12px}
 }
+
+/* Purchase invoice entry – user's original navy/gold identity, scrollable on handhelds */
+.gold-web .dialog:has(.gold-purchase-form){width:min(100%,680px);max-height:calc(100dvh - 24px);padding:22px 20px;overscroll-behavior:contain}
+.gold-web .gold-purchase-form{display:grid;gap:14px;color:#132238}
+.gold-web .gold-purchase-form label{display:grid;gap:6px;color:#132238!important;font-size:12px;font-weight:700;min-width:0}
+.gold-web .gold-purchase-form input,.gold-web .gold-purchase-form select,.gold-web .gold-purchase-form textarea{width:100%;min-width:0;max-width:100%;min-height:42px;border:1px solid #CBD5E1!important;background:#fff!important;border-radius:9px;color:#132238!important;padding:9px 11px;font:inherit;font-size:13px}
+.gold-web .gold-purchase-form input:focus-visible,.gold-web .gold-purchase-form select:focus-visible,.gold-web .gold-purchase-form textarea:focus-visible{outline:2px solid #C5A021}
+.gold-web .gold-purchase-fieldset{padding:13px;margin:2px 0 0;border:1px solid rgba(197,160,33,.48);background:#FFFEFA;border-radius:13px;display:grid;gap:12px;min-width:0}
+.gold-web .gold-purchase-fieldset>legend{padding:0 7px;font-size:14px;font-weight:800;color:#8B6B00}
+.gold-web .gold-purchase-mode{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.gold-web .gold-purchase-mode label{display:flex;gap:8px;align-items:center;line-height:1.6;background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:10px;font-size:12px}
+.gold-web .gold-purchase-mode input[type=radio]{width:18px;min-height:18px;height:18px;flex:0 0 18px;accent-color:#C5A021}
+.gold-web .gold-purchase-fieldset .fine{margin:0;font-size:11px;line-height:1.8;color:#64748B!important}
+.gold-web .gold-purchase-estimate{display:grid;gap:8px;padding:12px;border-radius:11px;background:#001F3F;color:#fff}
+.gold-web .gold-purchase-estimate>div:not(.gold-breakdown-note){display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.gold-web .gold-purchase-estimate span{font-size:11px;color:#D9E3EA}
+.gold-web .gold-purchase-estimate strong{color:#D4AF37;font-size:15px;overflow-wrap:anywhere}
+.gold-web .gold-breakdown-note{border-top:1px solid rgba(255,255,255,.25);padding-top:8px;font-size:11px;color:#D9E3EA}
+.gold-web .gold-purchase-details,.gold-web .gold-stones-more{border:1px solid #E2E8F0;border-radius:11px;padding:12px;min-width:0;color:#132238}
+.gold-web .gold-purchase-details>summary,.gold-web .gold-stones-more>summary{font-size:14px;font-weight:800;cursor:pointer;color:#001F3F;padding:4px}
+.gold-web .gold-purchase-details>summary small{font-weight:500;font-size:11px;color:#64748B}
+.gold-web .gold-purchase-details[open]{display:grid;gap:12px}
+.gold-web .gold-purchase-details .form-grid{gap:8px 12px}
+.gold-web .gold-purchase-completeness{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E;padding:10px;border-radius:9px;font-size:11px;line-height:1.8}
+.gold-web .gold-purchase-stone-warning{background:#FFF1F2;border:1px solid #FECDD3;color:#991B1B;padding:10px;border-radius:9px;font-size:11px;line-height:1.8}
+.gold-web .portfolio-return-percent{display:inline;font-size:11px;margin-inline-start:4px;color:inherit}
+.gold-web .portfolio-purchase-metrics dt{color:#64748B!important}
+@media(max-width:480px){
+ .gold-web .dialog:has(.gold-purchase-form){padding:16px 12px;max-height:calc(100dvh - 14px)}
+ .gold-web .gold-purchase-form .form-grid{grid-template-columns:minmax(0,1fr);gap:8px}
+ .gold-web .gold-purchase-mode{grid-template-columns:minmax(0,1fr)}
+ .gold-web .gold-purchase-fieldset{padding:10px}
+}
