@@ -13,6 +13,16 @@
       overflow: hidden !important;
       overscroll-behavior: none;
     }
+    /* Keyboard: shift only the User shell into visualViewport, then release tab space. */
+    .gold-web.workspace[data-iphone-keyboard="open"] {
+      top: var(--iphone-viewport-offset-top, 0px) !important;
+      bottom: auto !important;
+      height: var(--iphone-visible-height, 100dvh) !important;
+      max-height: var(--iphone-visible-height, 100dvh) !important;
+    }
+    .gold-web.workspace[data-iphone-keyboard="open"] nav.mobile-bottom-nav {
+      display: none !important;
+    }
     .gold-web.workspace .workspace-main {
       display: flex !important;
       flex-direction: column !important;
@@ -92,6 +102,13 @@
     .gold-web.workspace .dialog {
       max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
       -webkit-overflow-scrolling: touch;
+    }
+    .gold-web.workspace[data-iphone-keyboard="open"] .dialog-backdrop {
+      max-height: var(--iphone-visible-height, 100dvh);
+    }
+    .gold-web.workspace[data-iphone-keyboard="open"] .dialog {
+      max-height: calc(var(--iphone-visible-height, 100dvh) - 24px);
+      scroll-padding-bottom: 16px;
     }
     .dh-quick-lock {
       height: 100dvh;
