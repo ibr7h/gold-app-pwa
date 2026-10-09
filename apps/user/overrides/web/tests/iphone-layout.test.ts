@@ -54,3 +54,31 @@ describe('User startup and release visibility',()=>{
   expect(context).toContain('saveVerifiedUser(');
  });
 });
+
+describe('User wallet interaction and deletion contrast',()=>{
+ it('expands a wallet in place and shows a cost difference for every purchase',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  expect(workspace).toContain('onClick={()=>setExpandedPortfolioId(expanded?null:portfolio.id)}');
+  expect(workspace).toContain('aria-expanded={expanded}');
+  expect(workspace).toContain('className="portfolio-purchases-list"');
+  expect(workspace).toContain('rows.map(purchase=>');
+  expect(workspace).toContain('purchasePerformance(purchase,allMarketRows)');
+  expect(workspace).toContain('الفرق عن تكلفة الشراء');
+  expect(workspace).toContain("position.difference===null?'غير متاح'");
+ });
+ it('shows delete warnings with proper color on a light surface',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const css=source('../user.css');
+  expect(workspace).toContain("role={confirm?'alertdialog':'dialog'}");
+  expect(workspace).toContain('id="confirm-warning-description"');
+  expect(workspace).toContain('className="confirm-warning"');
+  expect(css).toMatch(/\.gold-web \.dialog\.confirm-dialog\{[^}]*background:#fff!important;[^}]*color:#132238!important;/s);
+  expect(css).toMatch(/\.gold-web \.dialog\.confirm-dialog \.confirm-warning strong\{[^}]*color:#B91C1C!important;/s);
+ });
+ it('keeps responsive wallet rows and a visible keyboard focus target',()=>{
+  const css=source('../user.css');
+  expect(css).toContain('.portfolio-expand-trigger:focus-visible');
+  expect(css).toContain('.portfolio-purchase-metrics');
+  expect(css).toContain('@media(max-width:420px)');
+ });
+});
