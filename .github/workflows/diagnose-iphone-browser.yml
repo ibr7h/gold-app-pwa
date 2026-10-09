@@ -1,0 +1,57 @@
+name: Diagnose live User iPhone preview browsers
+on:
+  push:
+    branches: ["feat/user-iphone-stable-viewport-20261009"]
+    paths: [".github/workflows/diagnose-iphone-browser.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install real headless WebKit and Chromium
+        run: |
+          pip install playwright==1.57.0
+          python -m playwright install --with-deps webkit chromium
+      - name: Inspect live site errors and initial screen
+        run: |
+          cat > /tmp/check.py <<'PY'
+          from playwright.sync_api import sync_playwright
+          URL = 'https://dhahabi-user-iphone-preview.onrender.com/gold-app-pwa/full/'
+          with sync_playwright() as p:
+              for engine in ['webkit','chromium']:
+                  browser=getattr(p,engine).launch(headless=True)
+                  context=browser.new_context(viewport={'width':390,'height':844},device_scale_factor=3,
+                                              is_mobile=True,has_touch=True)
+                  page=context.new_page()
+                  errors=[];responses=[]; logs=[]
+                  page.on('pageerror',lambda error:errors.append(str(error)))
+                  page.on('console',lambda msg:logs.append(msg.type+': '+msg.text) if msg.type in ('error','warning') else None)
+                  page.on('response',lambda response:responses.append(str(response.status)+' '+response.url) if response.status>=400 else None)
+                  try:
+                      response=page.goto(URL,wait_until='domcontentloaded',timeout=30000)
+                      page.wait_for_timeout(10000)
+                      body=page.locator('body').inner_text(timeout=5000)
+                      root=page.locator('#root').inner_text(timeout=5000)
+                      page.screenshot(path=f'/tmp/{engine}.png',full_page=True)
+                      print(f'BROWSER {engine}: status={response.status}, title={page.title()}, url={page.url}',flush=True)
+                      print(f'body={body[:850]!r}, root={root[:850]!r}',flush=True)
+                      print(f'pageerrors={errors[:12]!r}',flush=True)
+                      print(f'console={logs[:14]!r}',flush=True)
+                      print(f'bad-responses={responses[:15]!r}',flush=True)
+                  except Exception as e:
+                      print(f'BROWSER {engine} EXCEPTION {str(e)}',flush=True)
+                  finally:
+                      context.close()
+                      browser.close()
+          PY
+          python /tmp/check.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: live-preview-browser-shots
+          path: /tmp/*.png
