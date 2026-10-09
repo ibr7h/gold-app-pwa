@@ -26,7 +26,7 @@ describe('User mobile viewport regressions',()=>{
   });
   it('stacks live price and buy-sell values on narrow screens',()=>{
     const css=source('../user.css');
-    const narrow=css.split('@media(max-width:600px)').at(-1)||'';
+    const narrow=css.split('@media(max-width:600px)').slice(1).join('\n');
     expect(narrow).toContain('flex-direction:column!important;');
     expect(narrow).toContain('grid-template-columns:repeat(2,minmax(0,1fr))!important;');
   });
@@ -102,5 +102,31 @@ describe('User price alert editor and Push continuity',()=>{
   expect(workspace).toContain('إعادة تفعيل');
   expect(model).toContain('return {currency,karat,targetPrice,direction}');
   expect(model).not.toContain('return {currency,karat,targetPrice,direction,status}');
+ });
+});
+
+describe('Mockup-aligned User gold-price chart',()=>{
+ it('draws the new touch and keyboard accessible real-time chart in both User pages',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const chart=source('../PriceHistoryChart.tsx');
+  expect(workspace).toContain('PriceHistoryChart rows={visibleHistory}');
+  expect(workspace).toContain("historyQuery===priceCurrency+':'+chartKarat?history:[]");
+  expect(chart).toContain('role="slider"');
+  expect(chart).toContain('onPointerMove');
+  expect(chart).toContain("e.key==='ArrowLeft'");
+  expect(chart).toContain("role=\"group\"");
+  expect(chart).toContain("priceTrendRange(all,range)");
+  expect(chart).toContain('priceTrendDomain(points)');
+  expect(chart).toContain('dh-trend-summary');
+  expect(chart).toContain('preserveAspectRatio="none"');
+ });
+ it('keeps fixed navy/gold identity, quiet grids and comfortable responsive touch targets',()=>{
+  const css=source('../user.css');
+  expect(css).toContain('.gold-web .dh-trend-line');
+  expect(css).toContain('stroke:#C5A021');
+  expect(css).toContain('.gold-web .dh-trend-plot:focus-visible');
+  expect(css).toContain('.gold-web .dh-trend-controls button');
+  expect(css).toContain('min-height:37px');
+  expect(css).toContain('.gold-web .dh-price-trend.compact .dh-trend-plot');
  });
 });
