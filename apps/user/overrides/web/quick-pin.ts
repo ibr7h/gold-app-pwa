@@ -31,7 +31,7 @@ function recordValid(value:unknown):value is PinRecord{
  return !!p&&p.version===1&&typeof p.accountId==='string'&&
   p.origin===location.origin&&typeof p.hash==='string'&&/^[a-f0-9]{64}$/.test(p.hash)&&
   typeof p.salt==='string'&&/^[a-f0-9]{32}$/.test(p.salt)&&
-  Number.isInteger(p.failures)&&p.failures>=0&&Number.isFinite(p.lockedUntil);
+  typeof p.failures==='number'&&Number.isInteger(p.failures)&&p.failures>=0&&Number.isFinite(p.lockedUntil);
 }
 async function read():Promise<PinRecord|null>{
  try{const value=await AsyncStorage.getItem(KEY);if(!value)return null;const data=JSON.parse(value);return recordValid(data)?data:null;}catch{return null;}
