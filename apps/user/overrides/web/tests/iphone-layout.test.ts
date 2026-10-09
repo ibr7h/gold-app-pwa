@@ -26,7 +26,7 @@ describe('User mobile viewport regressions',()=>{
   });
   it('stacks live price and buy-sell values on narrow screens',()=>{
     const css=source('../user.css');
-    const narrow=css.split('@media(max-width:600px)').at(-1)||'';
+    const narrow=css.split('@media(max-width:600px)').slice(1).join('\n');
     expect(narrow).toContain('flex-direction:column!important;');
     expect(narrow).toContain('grid-template-columns:repeat(2,minmax(0,1fr))!important;');
   });
