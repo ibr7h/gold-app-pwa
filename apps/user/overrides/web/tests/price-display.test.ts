@@ -28,6 +28,17 @@ describe('User money display — two decimal places and original currency symbol
   expect(html).toContain('⃁');
   expect(formattedMoney(1234.5,'SAR')).toBe('١٬٢٣٤٫٥٠ ⃁');
  });
+ it('draws the official Saudi Rial contours as SVG on any desktop OS, not as unsupported text',()=>{
+  const html=renderToStaticMarkup(React.createElement(Money,{amount:359.95,currency:'SAR'}));
+  expect(html).toContain('viewBox="0 0 1124.14 1256.39"');
+  expect(html).toContain('class="dh-riyal-svg"');
+  expect(html).toContain('<path');
+  expect(html).toContain('٣٥٩');
+  expect(html).toContain('٩٥');
+  const usd=renderToStaticMarkup(React.createElement(Money,{amount:359.95,currency:'USD'}));
+  expect(usd).not.toContain('dh-riyal-svg');
+  expect(usd).toContain('$');
+ });
  it('does not present NaN or infinities as real financial prices',()=>{
   expect(formattedMoney(Number.NaN,'SAR')).toBe('غير متاح');
   expect(formattedMoney(Number.POSITIVE_INFINITY,'SAR')).toBe('غير متاح');
