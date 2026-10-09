@@ -16,6 +16,6 @@ describe('Web Push health does not overclaim device delivery',()=>{
  it('does not treat a missing backend as a valid push subscription',()=>{
   expect(classifyPush({...base,serverReachable:false})).toBe('server-unavailable');
   expect(classifyPush({...base,serverConfigured:false})).toBe('not-configured');
-  expect(humanStatus('ready')).toMatch(/الخادم/);
+  expect(humanStatus('ready')).toMatch(/خادم/);
  });
 });
