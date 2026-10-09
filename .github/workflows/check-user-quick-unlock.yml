@@ -1,0 +1,60 @@
+name: Check User quick unlock in browser
+on:
+  pull_request:
+    paths:
+      - 'apps/user/**'
+      - '.github/workflows/check-user-quick-unlock.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare the existing User app
+        run: |
+          python3 apps/user/scripts/prepare-validation.py "$RUNNER_TEMP/dhahabi-user-validation"
+          echo "SRC=$RUNNER_TEMP/dhahabi-user-validation/user-app" >> "$GITHUB_ENV"
+      - name: Install frozen application dependencies
+        run: cd "$SRC" && pnpm install --frozen-lockfile
+      - name: TypeScript and all User regression tests
+        run: |
+          cd "$SRC"
+          pnpm check
+          pnpm exec vitest run web/tests
+          node --test "$GITHUB_WORKSPACE/apps/user/scripts/user-update.test.cjs"
+      - name: Build and verify the production User export
+        env:
+          EXPO_NO_TELEMETRY: '1'
+          EXPO_PUBLIC_APP_VARIANT: user
+        run: |
+          cd "$SRC"
+          pnpm exec expo export --platform web --output-dir dist-pwa --clear
+          cp "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" dist-pwa/app_icon_user.jpg
+          python3 "$GITHUB_WORKSPACE/scripts/verify-user-export.py" "$SRC/dist-pwa"
+      - name: Install isolated browser test tooling
+        run: |
+          npm install --prefix "$RUNNER_TEMP/dhahabi-playwright" --ignore-scripts --no-audit --no-fund playwright@1.62.1
+          node "$RUNNER_TEMP/dhahabi-playwright/node_modules/playwright/cli.js" install --with-deps chromium webkit
+      - name: Verify actual quick unlock flows and virtual platform WebAuthn
+        run: |
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/dhahabi-playwright/node_modules/playwright" \
+          TEST_WEBKIT=1 \
+          SCREENSHOT_DIR="$RUNNER_TEMP/dhahabi-browser-screens" \
+          node apps/user/scripts/quick-unlock-browser.cjs "$SRC/dist-pwa"
+      - name: Save browser visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: user-quick-unlock-browser-screens
+          path: ${{ runner.temp }}/dhahabi-browser-screens
+          if-no-files-found: ignore
+          retention-days: 14

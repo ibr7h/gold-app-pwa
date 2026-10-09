@@ -1286,6 +1286,12 @@
 
 
 
+.dh-pin-biometric-action{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 10px;padding:10px 18px;border:1px solid #C5A021;border-radius:14px;background:#001F3F;color:#D4AF37;font:inherit;cursor:pointer}
+.dh-pin-password-form{display:grid;gap:16px;margin:18px 0;color:#001F3F}
+.dh-pin-password-form label{display:grid;gap:8px;font-weight:600}
+.dh-pin-password-form input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #C5A021;border-radius:12px;background:white;color:#001F3F;font:inherit}
+.dh-pin-password-form button{border:0;border-radius:12px;background:#C5A021;color:#001F3F;padding:12px;font:inherit;font-weight:700;cursor:pointer}
+
 /* USER IPHONE VIEWPORT / CANONICAL BIOMETRIC 2026-10-08
    Keep the mobile tab bar content-sized; let only the page body scroll. */
 .gold-auth .mockup-biometric-circle{

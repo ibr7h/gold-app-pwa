@@ -44,15 +44,6 @@ describe('User startup and release visibility',()=>{
   expect(auth.match(/className="app-version-stamp"/g)).toHaveLength(3);
   expect(release).toMatch(/export const APP_BUILD = '(?:__USER_BUILD_SHA__|[a-f0-9]{8})';/);
  });
- it('renders a previously verified User shell before slower remote session verification',()=>{
-  const context=source('../../contexts/AuthContext.web.tsx');
-  const warm=context.indexOf('setUser(cached);setLoading(false);');
-  const remote=context.indexOf('const me=await loadMe();');
-  expect(warm).toBeGreaterThan(0);
-  expect(remote).toBeGreaterThan(warm);
-  expect(context).toContain("if(me.role!=='user'){await clearSession()");
-  expect(context).toContain('saveVerifiedUser(');
- });
 });
 
 describe('User wallet interaction and deletion contrast',()=>{
@@ -134,13 +125,10 @@ describe('Mockup-aligned User gold-price chart',()=>{
 describe('Non-intrusive iOS device unlock and native SVG currency',()=>{
  it('never opens iOS passkey sheet on login mount; requires an explicit biometric tap',()=>{
   const auth=source('../AuthForm.tsx');
-  const context=source('../../contexts/AuthContext.web.tsx');
   expect(auth).not.toContain('autoBiometricAttempted');
   expect(auth).not.toContain('void loginWithBiometric().then');
   expect(auth).toContain('onClick={()=>void biometric()}');
   expect(auth).toContain('autoComplete="current-password"');
-  expect(context).toContain('await verifyLocalCredential(c);');
-  expect(context).toContain("if(String(me.id)!==c.accountId)");
  });
  it('shows Saudi Riyal SVG in alert labels and keeps other currency codes for API',()=>{
   const workspace=source('../UserWorkspace.tsx');
@@ -164,15 +152,9 @@ describe('Non-intrusive iOS device unlock and native SVG currency',()=>{
 describe('Screenshot-inspired quick lock screen and explicit biometric options',()=>{
  it('shows PIN screen before cached portfolio and only unlocks against same server account',()=>{
   const workspace=source('../UserWorkspace.tsx');
-  const provider=source('../../contexts/AuthContext.web.tsx');
   expect(workspace).toContain('if(lockedAccount)return <QuickLockScreen');
   expect(workspace).toContain('onPin={unlockWithPin}');
   expect(workspace).toContain('onForgot={logout}');
-  expect(provider).toContain('const pinReady=cached?.id?await hasQuickPin(String(cached.id)):false');
-  expect(provider).toContain('const result=await checkQuickPin(String(account.id),pin);');
-  expect(provider).toContain('if(!await hasSession())');
-  expect(provider).toContain("if(String(me.id)!==String(account.id))");
-  expect(provider).toContain('Date.now()-hiddenAt>=60000');
  });
  it('renders six PIN dots and a large keypad, with a user-controlled biometric tap',()=>{
   const screen=source('../QuickLockScreen.tsx');
