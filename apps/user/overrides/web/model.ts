@@ -23,6 +23,21 @@ export function totals(buys:Purchase[],prices:MarketPrice[]){
  return Array.from(rows.values());
 }
 
+/** Estimated position for one purchase, in its own currency and karat only.
+ * No invented conversions or zero-valued market prices; exclude fees and resale spread. */
+export function purchasePerformance(purchase:Purchase,prices:MarketPrice[]){
+ const cost=Number(purchase.totalPrice);
+ const weight=Number(purchase.weightGrams);
+ const validCost=Number.isFinite(cost)&&cost>0;
+ const unit=marketUnitPrice(prices,purchase.currency,purchase.karat);
+ if(!validCost||!Number.isFinite(weight)||weight<=0||unit===null){
+  return {cost:validCost?cost:null,value:null,difference:null};
+ }
+ const value=weight*unit;
+ if(!Number.isFinite(value))return {cost,value:null,difference:null};
+ return {cost,value,difference:value-cost};
+}
+
 export function localDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 export function purchasePayload(data:FormData){
  const portfolioId=String(data.get('portfolioId')||''),karat=Number(data.get('karat')),weightGrams=Number(data.get('weightGrams')),unitPrice=Number(data.get('unitPrice')),currency=String(data.get('currency')),date=String(data.get('purchasedAt'));
