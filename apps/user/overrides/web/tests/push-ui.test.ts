@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-const source=(name:string)=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
+const source=(name:string)=>readFileSync(new URL('../'+name,import.meta.url).pathname,'utf8');
 describe('User Push UX guards',()=>{
  it('shows backend, permission and subscription status separately',()=>{
   const s=source('NotificationSettings.tsx');
@@ -21,7 +21,7 @@ describe('User Push UX guards',()=>{
   expect(source('UserWorkspace.tsx')).toContain('onClick={signOut}');
  });
  it('supports actual remote Push messages and scoped click navigation',()=>{
-  const sw=readFileSync(new URL('../../../scripts/user-service-worker.js',import.meta.url),'utf8');
+  const sw=readFileSync(new URL('../../../scripts/user-service-worker.js',import.meta.url).pathname,'utf8');
   expect(sw).toContain("self.addEventListener('push'");
   expect(sw).toContain('self.registration.showNotification');
   expect(sw).toContain("self.addEventListener('notificationclick'");
