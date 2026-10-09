@@ -1,0 +1,35 @@
+name: Diagnose Render User iPhone preview HTTP
+on:
+  push:
+    branches: ["feat/user-iphone-stable-viewport-20261009"]
+    paths: [".github/workflows/diagnose-iphone-preview.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - name: Check Render preview public headers and asset resolution
+        shell: bash
+        run: |
+          set -uo pipefail
+          host="https://dhahabi-user-iphone-preview.onrender.com"
+          paths=(
+            "/"
+            "/gold-app-pwa/full/"
+            "/gold-app-pwa/full/index.html"
+            "/gold-app-pwa/full/manifest.webmanifest"
+            "/gold-app-pwa/full/version.json"
+            "/gold-app-pwa/full/_expo/static/js/web/entry-254699eb6918ae4fd93a7916bffc51eb.js"
+            "/gold-app-pwa/full/_expo/static/css/iphone-aab660a0b11b13aa239162ee04cf996a.css"
+          )
+          for path in "${paths[@]}"; do
+            echo "::group::GET $path"
+            curl -sSL --max-time 20 -o /tmp/body -D /tmp/headers -w "status=%{http_code} bytes=%{size_download} content_type=%{content_type} final_url=%{url_effective}\n" "$host$path" || true
+            grep -iE '^HTTP/|^content-type:|^content-disposition:|^location:|^content-length:|^x-|^cache-control:' /tmp/headers || true
+            head -c 180 /tmp/body | sed 's/[[:cntrl:]]/ /g'
+            echo
+            echo "::endgroup::"
+          done
