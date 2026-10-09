@@ -118,7 +118,7 @@ describe('Mockup-aligned User gold-price chart',()=>{
   expect(chart).toContain("priceTrendRange(all,range)");
   expect(chart).toContain('priceTrendDomain(points)');
   expect(chart).toContain('dh-trend-summary');
-  expect(chart).not.toContain('preserveAspectRatio="none"');
+  expect(chart).toContain('preserveAspectRatio="none"');
  });
  it('keeps fixed navy/gold identity, quiet grids and comfortable responsive touch targets',()=>{
   const css=source('../user.css');
