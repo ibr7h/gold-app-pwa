@@ -8,6 +8,12 @@ const KEY='dhahabi_user_quick_pin_v1';
 const ITERATIONS=210000;
 const MAX_ATTEMPTS=5;
 const LOCK_MS=15*60*1000;
+let pending:Promise<unknown>=Promise.resolve();
+function serial<T>(operation:()=>Promise<T>):Promise<T>{
+ const run=async():Promise<T>=>typeof navigator!=='undefined'&&navigator.locks
+  ?await navigator.locks.request('dhahabi-user-pin',operation):await operation();
+ const result=pending.then(run,run);pending=result.catch(()=>{});return result;
+}
 interface PinRecord{
  version:1;accountId:string;origin:string;salt:string;hash:string;
  failures:number;lockedUntil:number;
@@ -40,7 +46,7 @@ export async function hasQuickPin(accountId:string):Promise<boolean>{
  if(typeof window==='undefined'||!window.isSecureContext||!crypto?.subtle)return false;
  const p=await read();return !!p&&p.accountId===accountId;
 }
-export async function setQuickPin(accountId:string,pin:string):Promise<void>{
+async function setPin(accountId:string,pin:string):Promise<void>{
  if(!accountId||!validPin(pin))throw new Error('رمز الدخول السريع يجب أن يتكوّن من ٦ أرقام.');
  if(typeof window==='undefined'||!window.isSecureContext||!crypto?.subtle)throw new Error('الدخول السريع يحتاج اتصال HTTPS ومتصفحًا حديثًا.');
  const salt=new Uint8Array(16);crypto.getRandomValues(salt);
@@ -48,10 +54,10 @@ export async function setQuickPin(accountId:string,pin:string):Promise<void>{
  const p:PinRecord={version:1,accountId,origin:location.origin,salt:encode(salt),hash,failures:0,lockedUntil:0};
  await AsyncStorage.setItem(KEY,JSON.stringify(p));
 }
-export async function removeQuickPin(accountId:string):Promise<void>{
+async function removePin(accountId:string):Promise<void>{
  const p=await read();if(p?.accountId===accountId)await AsyncStorage.removeItem(KEY);
 }
-export async function checkQuickPin(accountId:string,pin:string):Promise<PinResult>{
+async function checkPin(accountId:string,pin:string):Promise<PinResult>{
  const p=await read();
  if(!p||p.accountId!==accountId||!validPin(pin))return {ok:false,waitSeconds:0,remaining:0};
  const now=Date.now();
@@ -67,3 +73,6 @@ export async function checkQuickPin(accountId:string,pin:string):Promise<PinResu
  await AsyncStorage.setItem(KEY,JSON.stringify({...p,failures:locked?0:failures,lockedUntil}));
  return {ok:false,waitSeconds:locked?Math.ceil(LOCK_MS/1000):0,remaining:Math.max(0,MAX_ATTEMPTS-failures)};
 }
+export const setQuickPin=(accountId:string,pin:string)=>serial(()=>setPin(accountId,pin));
+export const removeQuickPin=(accountId:string)=>serial(()=>removePin(accountId));
+export const checkQuickPin=(accountId:string,pin:string)=>serial(()=>checkPin(accountId,pin));

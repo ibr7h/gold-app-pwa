@@ -10,6 +10,15 @@ export interface LocalCredential {
  credentialId:string;
  publicKeySpki:string;
  counter:number;
+ prfSalt?:string;
+ /** Ephemeral PRF output; non-enumerable and never serialized. */
+ unlockSecret?:Uint8Array;
+}
+type PrfInputs=AuthenticationExtensionsClientInputs&{prf:{eval:{first:ArrayBuffer}}};
+function prfResult(credential:PublicKeyCredential):Uint8Array|null{
+ const extensions=credential.getClientExtensionResults?.() as {prf?:{results?:{first?:ArrayBuffer}}}|undefined;
+ const value=extensions?.prf?.results?.first;
+ return value&&value.byteLength===32?new Uint8Array(value):null;
 }
 const STORAGE='dhahabi_user_local_biometric_v1';
 function b64(bytes:Uint8Array):string {
@@ -72,17 +81,18 @@ export async function readLocalCredential():Promise<LocalCredential|null> {
  }catch{return null;}
 }
 export async function forgetLocalCredential():Promise<void>{await AsyncStorage.removeItem(STORAGE);}
-export async function enrollLocalCredential(accountId:string,email:string):Promise<LocalCredential> {
+export async function enrollLocalCredential(accountId:string,email:string,signal?:AbortSignal):Promise<LocalCredential> {
  // The platform chooser must be opened directly from the user's click (transient activation).
  if(typeof window==='undefined'||!window.isSecureContext||!navigator.credentials?.create||!crypto?.subtle)
   throw new Error('التحقق الحيوي غير مدعوم على هذا الجهاز أو المتصفح.');
  const challenge=freshChallenge();
  const userId=freshChallenge();
- const credential=await navigator.credentials.create({publicKey:{
+ const prfSalt=freshChallenge();
+ const credential=await navigator.credentials.create({signal,publicKey:{
   challenge,rp:{name:'ذهبي',id:location.hostname},
   user:{id:userId,name:email,displayName:email},pubKeyCredParams:[{type:'public-key',alg:-7}],
   authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'discouraged',userVerification:'required'},
-  attestation:'none',timeout:60000
+  attestation:'none',timeout:60000,extensions:{prf:{eval:{first:prfSalt.buffer as ArrayBuffer}}} as PrfInputs
  }}) as PublicKeyCredential|null;
  if(!credential||credential.type!=='public-key')throw new Error('لم يكتمل تفعيل التحقق الحيوي.');
  const response=credential.response as AuthenticatorAttestationResponse & {
@@ -95,18 +105,23 @@ export async function enrollLocalCredential(accountId:string,email:string):Promi
  await crypto.subtle.importKey('spki',key,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
  const authData=response.getAuthenticatorData?.();
  if(authData&&!flagsVerified(new Uint8Array(authData)))throw new Error('لم يؤكد الجهاز هوية صاحبه.');
+ const secret=prfResult(credential);
  const c:LocalCredential={version:1,accountId,email,rpId:location.hostname,
   credentialId:b64(new Uint8Array(credential.rawId)),publicKeySpki:b64(new Uint8Array(key)),counter:0};
+ if(secret)c.prfSalt=b64(prfSalt);
+ if(signal?.aborted)throw new Error('أُلغي تفعيل بصمة الجهاز.');
  await AsyncStorage.setItem(STORAGE,JSON.stringify(c));
+ if(secret)Object.defineProperty(c,'unlockSecret',{value:secret,enumerable:false});
  return c;
 }
-export async function verifyLocalCredential(c:LocalCredential):Promise<void>{
+export async function verifyLocalCredential(c:LocalCredential,signal?:AbortSignal):Promise<Uint8Array|null>{
  if(c.rpId!==location.hostname)throw new Error('اعتماد الجهاز لا يخص هذه النسخة.');
  const challenge=freshChallenge();
  // Keep this request as the first asynchronous operation following the real user gesture.
- const credential=await navigator.credentials.get({publicKey:{
+ const credential=await navigator.credentials.get({signal,publicKey:{
   challenge,rpId:c.rpId,allowCredentials:[{type:'public-key',id:bytes64(c.credentialId).buffer as ArrayBuffer}],
-  userVerification:'required',timeout:60000
+  userVerification:'required',timeout:60000,
+  ...(c.prfSalt?{extensions:{prf:{eval:{first:bytes64(c.prfSalt).buffer as ArrayBuffer}}} as PrfInputs}:{})
  }}) as PublicKeyCredential|null;
  if(!credential||b64(new Uint8Array(credential.rawId))!==c.credentialId)throw new Error('لم يتم تأكيد هوية الجهاز.');
  const response=credential.response as AuthenticatorAssertionResponse;
@@ -125,5 +140,7 @@ export async function verifyLocalCredential(c:LocalCredential):Promise<void>{
  const valid=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},publicKey,
   toRawSignature(new Uint8Array(response.signature)).buffer as ArrayBuffer,signed.buffer as ArrayBuffer);
  if(!valid)throw new Error('فشل التحقق من توقيع الجهاز.');
- if(counter>c.counter){await AsyncStorage.setItem(STORAGE,JSON.stringify({...c,counter}));}
+ if(signal?.aborted)throw new Error('أُلغي التحقق من بصمة الجهاز.');
+ if(counter>c.counter){await AsyncStorage.setItem(STORAGE,JSON.stringify({...c,counter}));c.counter=counter;}
+ return prfResult(credential);
 }
