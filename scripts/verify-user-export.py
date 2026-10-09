@@ -6,7 +6,7 @@ root=Path(sys.argv[1])
 javascript='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.js'))
 css='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.css'))
 
-assert '1.8.0' in javascript and os.environ['GITHUB_SHA'][:8] in javascript, 'The deployed User release identity is missing from the export'
+assert '1.8.1' in javascript and os.environ['GITHUB_SHA'][:8] in javascript, 'The deployed User release identity is missing from the export'
 assert 'workspace-content' in javascript, 'User workspace markup is missing'
 assert 'mobile-bottom-nav' in javascript and 'approved-services-grid' in javascript, 'Mockup seven-tab user navigation is missing'
 assert 'calc-total-card' in javascript, 'Approved calculator screen is missing'
