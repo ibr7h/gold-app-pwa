@@ -1,0 +1,661 @@
+name: Publish verified User iPhone preview to Render
+on:
+  push:
+    branches: ["feat/user-iphone-stable-viewport-20261009"]
+    paths:
+      - "apps/user/**"
+      - ".github/workflows/deploy-iphone-render-preview.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Prepare existing stable root
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site/icons
+          for f in index.html styles.css app.js manifest.webmanifest sw.js version.json .nojekyll prices-live.json; do
+            [ -f "$f" ] && cp "$f" "_site/$f"
+          done
+          [ -d icons ] && cp -R icons/. _site/icons/
+
+      - name: Extract full Gold App source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/gold-full /tmp/gold-app
+          mkdir -p /tmp/gold-full
+          unzip -q "gold-app 17 apr 15-19 adimin icon.zip" -d /tmp/gold-full
+          mv "/tmp/gold-full/gold-app 17 apr 15-19 adimin icon" /tmp/gold-app
+          echo "SRC=/tmp/gold-app" >> "$GITHUB_ENV"
+
+      - name: Apply web-only PWA compatibility patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SRC"
+
+          cat > metro.config.js <<'EOF'
+          const { getDefaultConfig } = require("expo/metro-config");
+          const { withNativeWind } = require("nativewind/metro");
+
+          const config = getDefaultConfig(__dirname);
+
+          module.exports = withNativeWind(config, {
+            input: "./global.css",
+          });
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app.config.ts")
+          s=p.read_text()
+          marker='experiments: {'
+          if marker in s and 'baseUrl:' not in s:
+              s=s.replace(marker, 'experiments: {\n    baseUrl: "/gold-app-pwa/full",', 1)
+          p.write_text(s)
+          PY
+
+          cat > contexts/AuthContext.web.tsx <<'EOF'
+          import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+          import AsyncStorage from '@react-native-async-storage/async-storage';
+
+          export type UserRole = 'user' | 'admin' | 'trader';
+          export type BiometricType = 'face' | 'fingerprint' | 'none';
+          export type ResetStep = 'email' | 'code' | 'newPassword' | 'success';
+          export type RegisterStep = 'form' | 'verify' | 'success';
+
+          export interface User {
+            id?: string | number;
+            openId?: string;
+            email: string;
+            role: UserRole;
+            name?: string;
+          }
+
+          interface AuthContextType {
+            user: User | null;
+            isLoggedIn: boolean;
+            isLoading: boolean;
+            error: string | null;
+            login: (email: string, password: string) => Promise<void>;
+            logout: () => void;
+            clearError: () => void;
+            biometricType: BiometricType;
+            biometricAvailable: boolean;
+            biometricEnrolled: boolean;
+            biometricEnabled: boolean;
+            enableBiometric: () => Promise<void>;
+            disableBiometric: () => Promise<void>;
+            loginWithBiometric: () => Promise<boolean>;
+            checkBiometricAvailability: () => Promise<void>;
+            resetStep: ResetStep;
+            resetEmail: string;
+            resetCode: string;
+            sendResetCode: (email: string) => Promise<boolean>;
+            verifyResetCode: (code: string) => Promise<boolean>;
+            resetPassword: (newPassword: string) => Promise<boolean>;
+            resendResetCode: () => Promise<boolean>;
+            cancelReset: () => void;
+            registerStep: RegisterStep;
+            registerEmail: string;
+            registerCode: string;
+            startRegistration: (name: string, email: string, password: string) => Promise<boolean>;
+            verifyRegistration: (code: string) => Promise<boolean>;
+            resendRegisterCode: () => Promise<boolean>;
+            cancelRegistration: () => void;
+            updateName: (newName: string) => Promise<boolean>;
+            changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+          }
+
+          const AuthContext=createContext<AuthContextType|null>(null);
+          const ACCESS='dhahabi_access_token';
+          const REFRESH='dhahabi_refresh_token';
+          const USER='dhahabi_user';
+          const PROD_API='https://gold-app-api-u8dl.onrender.com';
+
+          function getApiBase(){
+            return PROD_API;
+          }
+
+          async function request(path:string, options:RequestInit={}, token?:string){
+            const base=getApiBase();
+            if(!base) throw new Error('api_url_required');
+            const headers:Record<string,string>={'Content-Type':'application/json',...((options.headers as Record<string,string>)||{})};
+            if(token) headers.Authorization='Bearer '+token;
+            const r=await fetch(base+path,{...options,headers});
+            const d=await r.json().catch(()=>({}));
+            if(!r.ok){
+              const msg=Array.isArray(d?.message)?d.message.join('، '):(d?.message||'request_failed');
+              throw new Error(msg);
+            }
+            return d;
+          }
+
+          function mapRole(role:string):UserRole{
+            if(role==='admin') return 'admin';
+            if(role==='merchant') return 'trader';
+            return 'user';
+          }
+
+          async function storeSession(tokens:any){
+            await AsyncStorage.setItem(ACCESS,tokens.accessToken||'');
+            await AsyncStorage.setItem(REFRESH,tokens.refreshToken||'');
+          }
+
+          export function AuthProvider({children}:{children:React.ReactNode}){
+            const [user,setUser]=useState<User|null>(null);
+            const [isLoading,setIsLoading]=useState(true);
+            const [error,setError]=useState<string|null>(null);
+
+            const loadMe=async(token?:string)=>{
+              const access=token||await AsyncStorage.getItem(ACCESS)||'';
+              if(!access) return null;
+              try{
+                const me=await request('/auth/me',{},access);
+                const u:User={id:me.userId,email:me.email||'',role:mapRole(me.role||'user')};
+                await AsyncStorage.setItem(USER,JSON.stringify(u));
+                setUser(u);
+                return u;
+              }catch{
+                return null;
+              }
+            };
+
+            useEffect(()=>{
+              (async()=>{
+                try{
+                  const cached=await AsyncStorage.getItem(USER);
+                  if(cached) setUser(JSON.parse(cached));
+                  const access=await AsyncStorage.getItem(ACCESS);
+                  if(access) await loadMe(access);
+                }finally{setIsLoading(false)}
+              })();
+            },[]);
+
+            const login=async(email:string,password:string)=>{
+              setIsLoading(true);setError(null);
+              try{
+                const tokens=await request('/auth/login',{method:'POST',body:JSON.stringify({email:email.trim(),password})});
+                await storeSession(tokens);
+                const me=await loadMe(tokens.accessToken);
+                if(!me) throw new Error('login_failed');
+              }catch(e:any){
+                setError(e?.message||'login_failed');
+                throw e;
+              }finally{setIsLoading(false)}
+            };
+
+            const logout=()=>{
+              Promise.all([AsyncStorage.removeItem(ACCESS),AsyncStorage.removeItem(REFRESH),AsyncStorage.removeItem(USER)]);
+              setUser(null);setError(null);
+            };
+
+            const startRegistration=async(name:string,email:string,password:string)=>{
+              setIsLoading(true);setError(null);
+              try{
+                const tokens=await request('/auth/register',{method:'POST',body:JSON.stringify({email:email.trim(),password,fullName:name.trim()||undefined})});
+                await storeSession(tokens);
+                await loadMe(tokens.accessToken);
+                return true;
+              }catch(e:any){
+                setError(e?.message||'registration_failed');
+                return false;
+              }finally{setIsLoading(false)}
+            };
+
+            const updateName=async(newName:string)=>{
+              if(!user) return false;
+              const next={...user,name:newName};
+              setUser(next);await AsyncStorage.setItem(USER,JSON.stringify(next));return true;
+            };
+
+            const noopTrue=async()=>true;
+            const noopFalse=async()=>false;
+            const value=useMemo<AuthContextType>(()=>({
+              user,isLoggedIn:!!user,isLoading,error,login,logout,clearError:()=>setError(null),
+              biometricType:'none',biometricAvailable:false,biometricEnrolled:false,biometricEnabled:false,
+              enableBiometric:noopFalse as any,disableBiometric:noopFalse as any,loginWithBiometric:noopFalse,
+              checkBiometricAvailability:async()=>{},
+              resetStep:'email',resetEmail:'',resetCode:'',
+              sendResetCode:noopFalse,verifyResetCode:noopFalse,resetPassword:noopFalse,resendResetCode:noopFalse,cancelReset:()=>{},
+              registerStep:'form',registerEmail:'',registerCode:'',
+              startRegistration,verifyRegistration:noopTrue,resendRegisterCode:noopTrue,cancelRegistration:()=>{},
+              updateName,changePassword:noopFalse,
+            }),[user,isLoading,error]);
+
+            return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+          }
+
+          export function useAuth(){
+            const ctx=useContext(AuthContext);
+            if(!ctx) throw new Error('useAuth must be used within AuthProvider');
+            return ctx;
+          }
+          EOF
+
+          cat > app/login.web.tsx <<'EOF'
+          import React,{useEffect,useState} from 'react';
+          import {View,Text,StyleSheet,TextInput,TouchableOpacity,ActivityIndicator,ScrollView} from 'react-native';
+          import {SafeAreaView} from 'react-native-safe-area-context';
+          import {router} from 'expo-router';
+          import AsyncStorage from '@react-native-async-storage/async-storage';
+          import {useAuth} from '@/contexts/AuthContext';
+
+          export default function LoginWeb(){
+            const {login,isLoading,error,isLoggedIn,clearError}=useAuth();
+            const [email,setEmail]=useState('');
+            const [password,setPassword]=useState('');
+            const [localError,setLocalError]=useState('');
+
+            useEffect(()=>{if(isLoggedIn) router.replace('/');},[isLoggedIn]);
+
+            const submit=async()=>{
+              clearError();setLocalError('');
+              try{await login(email,password)}catch{}
+            };
+
+            return <View style={s.screen}><SafeAreaView style={s.safe}><ScrollView contentContainerStyle={s.wrap}>
+              <View style={s.logo}><Text style={s.logoText}>ذ</Text></View>
+              <Text style={s.title}>ذهبي</Text>
+              <Text style={s.sub}>تسجيل الدخول إلى حسابك</Text>
+
+              <View style={s.card}>
+                <Text style={s.label}>البريد الإلكتروني</Text>
+                <TextInput style={s.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" placeholder="name@example.com" />
+
+                <Text style={s.label}>كلمة المرور</Text>
+                <TextInput style={s.input} value={password} onChangeText={setPassword} secureTextEntry autoComplete="password" placeholder="••••••••" />
+
+                {!!(localError||error) && <Text style={s.error}>{localError||error}</Text>}
+
+                <TouchableOpacity style={s.primary} onPress={submit} disabled={isLoading}>
+                  {isLoading?<ActivityIndicator color="#001F3F"/>:<Text style={s.primaryText}>تسجيل الدخول</Text>}
+                </TouchableOpacity>
+
+                <TouchableOpacity style={s.linkBtn} onPress={()=>router.push('/register')}>
+                  <Text style={s.link}>إنشاء حساب جديد</Text>
+                </TouchableOpacity>
+
+              </View>
+
+              <Text style={s.note}>الحسابات الجديدة تُنشأ بصلاحية مستخدم. صلاحية التاجر أو المدير تُمنح من الإدارة.</Text>
+            </ScrollView></SafeAreaView></View>
+          }
+
+          const s=StyleSheet.create({
+            screen:{flex:1,backgroundColor:'#001F3F'},safe:{flex:1},wrap:{flexGrow:1,justifyContent:'center',padding:24,maxWidth:480,width:'100%',alignSelf:'center'},
+            logo:{width:80,height:80,borderRadius:40,backgroundColor:'#C5A021',alignItems:'center',justifyContent:'center',alignSelf:'center',marginBottom:14},
+            logoText:{fontSize:36,fontWeight:'800',color:'#001F3F'},title:{fontSize:30,fontWeight:'800',color:'#C5A021',textAlign:'center'},
+            sub:{fontSize:14,color:'#F8F9FA',opacity:.75,textAlign:'center',marginTop:4,marginBottom:28},
+            card:{backgroundColor:'#F8F9FA',borderRadius:18,padding:22},label:{fontSize:13,fontWeight:'700',color:'#1A1A1B',marginBottom:7,textAlign:'right'},
+            input:{backgroundColor:'#fff',borderWidth:1,borderColor:'#D9DDE2',borderRadius:12,paddingHorizontal:14,paddingVertical:13,fontSize:15,marginBottom:14,textAlign:'right'},
+            help:{fontSize:11,color:'#6C737F',textAlign:'right',marginTop:-6,marginBottom:14},error:{color:'#DC2626',fontSize:12,textAlign:'right',marginBottom:12},
+            primary:{backgroundColor:'#C5A021',padding:14,borderRadius:12,alignItems:'center',marginTop:2},primaryText:{fontWeight:'800',color:'#001F3F',fontSize:15},
+            linkBtn:{padding:10,alignItems:'center'},link:{color:'#8B6B00',fontWeight:'700'},muted:{color:'#6C737F',fontSize:12},
+            note:{color:'#F8F9FA',opacity:.65,fontSize:11,textAlign:'center',lineHeight:18,marginTop:18}
+          });
+          EOF
+
+          cat > app/register.web.tsx <<'EOF'
+          import React,{useEffect,useState} from 'react';
+          import {View,Text,StyleSheet,TextInput,TouchableOpacity,ActivityIndicator,ScrollView} from 'react-native';
+          import {SafeAreaView} from 'react-native-safe-area-context';
+          import {router} from 'expo-router';
+          import {useAuth} from '@/contexts/AuthContext';
+
+          export default function RegisterWeb(){
+            const {startRegistration,isLoading,error,isLoggedIn,clearError}=useAuth();
+            const [name,setName]=useState('');
+            const [email,setEmail]=useState('');
+            const [password,setPassword]=useState('');
+            const [confirm,setConfirm]=useState('');
+            const [localError,setLocalError]=useState('');
+
+            useEffect(()=>{if(isLoggedIn) router.replace('/');},[isLoggedIn]);
+
+            const submit=async()=>{
+              clearError();setLocalError('');
+              if(password.length<8){setLocalError('كلمة المرور يجب ألا تقل عن 8 أحرف');return;}
+              if(password!==confirm){setLocalError('كلمتا المرور غير متطابقتين');return;}
+              const ok=await startRegistration(name,email,password);
+              if(ok) router.replace('/');
+            };
+
+            return <View style={s.screen}><SafeAreaView style={s.safe}><ScrollView contentContainerStyle={s.wrap}>
+              <Text style={s.title}>إنشاء حساب</Text>
+              <Text style={s.sub}>حساب مستخدم جديد في ذهبي</Text>
+              <View style={s.card}>
+                <Text style={s.label}>الاسم</Text><TextInput style={s.input} value={name} onChangeText={setName} placeholder="الاسم الكامل"/>
+                <Text style={s.label}>البريد الإلكتروني</Text><TextInput style={s.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" placeholder="name@example.com"/>
+                <Text style={s.label}>كلمة المرور</Text><TextInput style={s.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="8 أحرف على الأقل"/>
+                <Text style={s.label}>تأكيد كلمة المرور</Text><TextInput style={s.input} value={confirm} onChangeText={setConfirm} secureTextEntry placeholder="أعد كتابة كلمة المرور"/>
+                {!!(localError||error)&&<Text style={s.error}>{localError||error}</Text>}
+                <TouchableOpacity style={s.primary} onPress={submit} disabled={isLoading}>{isLoading?<ActivityIndicator color="#001F3F"/>:<Text style={s.primaryText}>إنشاء الحساب</Text>}</TouchableOpacity>
+                <TouchableOpacity style={s.linkBtn} onPress={()=>router.replace('/login')}><Text style={s.link}>لدي حساب بالفعل</Text></TouchableOpacity>
+              </View>
+            </ScrollView></SafeAreaView></View>
+          }
+
+          const s=StyleSheet.create({
+            screen:{flex:1,backgroundColor:'#001F3F'},safe:{flex:1},wrap:{flexGrow:1,justifyContent:'center',padding:24,maxWidth:480,width:'100%',alignSelf:'center'},
+            title:{fontSize:28,fontWeight:'800',color:'#C5A021',textAlign:'center'},sub:{fontSize:14,color:'#F8F9FA',opacity:.75,textAlign:'center',marginTop:5,marginBottom:24},
+            card:{backgroundColor:'#F8F9FA',borderRadius:18,padding:22},label:{fontSize:13,fontWeight:'700',color:'#1A1A1B',marginBottom:7,textAlign:'right'},
+            input:{backgroundColor:'#fff',borderWidth:1,borderColor:'#D9DDE2',borderRadius:12,paddingHorizontal:14,paddingVertical:13,fontSize:15,marginBottom:14,textAlign:'right'},
+            error:{color:'#DC2626',fontSize:12,textAlign:'right',marginBottom:12},primary:{backgroundColor:'#C5A021',padding:14,borderRadius:12,alignItems:'center'},
+            primaryText:{fontWeight:'800',color:'#001F3F',fontSize:15},linkBtn:{padding:12,alignItems:'center'},link:{color:'#8B6B00',fontWeight:'700'}
+          });
+          EOF
+
+          cat > services/GoldApiService.web.ts <<'EOF'
+          import AsyncStorage from '@react-native-async-storage/async-storage';
+
+          export interface GoldApiResponse {
+            timestamp: number;
+            metal: string;
+            currency: string;
+            exchange: string;
+            symbol: string;
+            prev_close_price: number;
+            open_price: number;
+            low_price: number;
+            high_price: number;
+            open_time: number;
+            price: number;
+            ch: number;
+            chp: number;
+            ask: number;
+            bid: number;
+            price_gram_24k: number;
+            price_gram_22k: number;
+            price_gram_21k: number;
+            price_gram_20k: number;
+            price_gram_18k: number;
+            price_gram_16k: number;
+            price_gram_14k: number;
+            price_gram_10k: number;
+          }
+
+          export interface KaratPrice {
+            karat: string;
+            pricePerGram: number;
+          }
+
+          export interface GoldPriceData {
+            pricePerOunce: number;
+            pricePerGram24K: number;
+            currency: string;
+            change: number;
+            changePercent: number;
+            high: number;
+            low: number;
+            open: number;
+            prevClose: number;
+            ask: number;
+            bid: number;
+            timestamp: number;
+            karatPrices: KaratPrice[];
+            source: string;
+            isLive: boolean;
+          }
+
+          export interface FetchOptions {
+            currency?: string;
+            forceRefresh?: boolean;
+            apiKey?: string;
+            onKeyFailed?: (key: string, error: string) => void;
+            getNextKey?: () => string | null;
+          }
+
+          const CACHE_KEY='gold_pwa_backend_price';
+          const API='https://gold-app-api-u8dl.onrender.com';
+          const OZ_GRAMS=31.1034768;
+          const KARATS=[24,22,21,20,18,16,14,10];
+
+          async function latest(currency:string,karat:number){
+            const r=await fetch(API+'/prices/latest?currency='+encodeURIComponent(currency)+'&karat='+karat,{cache:'no-store'});
+            if(!r.ok) throw new Error('Backend price unavailable: '+r.status);
+            const row=await r.json();
+            const price=Number(row?.buyPrice);
+            if(!Number.isFinite(price)||price<=0) throw new Error('Backend price is invalid');
+            return row;
+          }
+
+          export async function fetchGoldPrice(options:FetchOptions={}):Promise<GoldPriceData>{
+            const currency=(options.currency||'SAR').toUpperCase();
+            if(!['SAR','USD'].includes(currency)) throw new Error('Unsupported backend price currency: '+currency);
+            try{
+              const base=await latest(currency,24);
+              const gram24=Number(base.buyPrice);
+              const kp=(k:number)=>gram24*(k/24);
+              const ts=Date.parse(base.timestamp);
+              const data:GoldPriceData={
+                pricePerOunce:gram24*OZ_GRAMS,
+                pricePerGram24K:gram24,
+                currency,
+                change:0,
+                changePercent:0,
+                high:gram24*OZ_GRAMS,
+                low:gram24*OZ_GRAMS,
+                open:gram24*OZ_GRAMS,
+                prevClose:gram24*OZ_GRAMS,
+                ask:Number(base.sellPrice)||gram24,
+                bid:gram24,
+                timestamp:Number.isFinite(ts)?ts:Date.now(),
+                karatPrices:KARATS.map(k=>({karat:k+'K',pricePerGram:kp(k)})),
+                source:String(base.source||'Dhahabi Backend'),
+                isLive:true,
+              };
+              await AsyncStorage.setItem(CACHE_KEY+'_'+currency,JSON.stringify(data));
+              return data;
+            }catch(e){
+              const cached=await AsyncStorage.getItem(CACHE_KEY+'_'+currency);
+              if(cached) return {...JSON.parse(cached),isLive:false,source:'Cached backend'};
+              throw e;
+            }
+          }
+
+          export async function clearCache():Promise<void>{
+            for(const code of ['SAR','USD']) await AsyncStorage.removeItem(CACHE_KEY+'_'+code);
+          }
+
+          export const SUPPORTED_CURRENCIES=[
+            {code:'SAR',nameAr:'ريال سعودي',nameEn:'Saudi Riyal',nameFr:'Riyal saoudien',symbol:'ر.س'},
+            {code:'USD',nameAr:'دولار أمريكي',nameEn:'US Dollar',nameFr:'Dollar américain',symbol:'$'},
+          ];
+          export const KARAT_OPTIONS=['24K','22K','21K','18K'];
+          EOF
+
+      - name: Apply reviewed user web overrides
+        run: cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
+
+      - name: Stamp deployed User build identity
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          path = Path(os.environ['SRC']) / 'web/app-version.ts'
+          source = path.read_text()
+          assert source.count('__USER_BUILD_SHA__') == 1
+          path.write_text(source.replace('__USER_BUILD_SHA__', os.environ['GITHUB_SHA'][:8]))
+          PY
+
+      - name: Strip Trader and Admin routes from User build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SRC"
+          for route in chat admin new-order new-client admin-stats admin-users trader-home order-detail admin-invites trader-orders admin-settings trader-clients trader-reports trader-location trader-messages admin-permissions trader-notifications; do
+            find app -type f \( -name "$route.tsx" -o -name "$route.web.tsx" -o -name "$route.jsx" -o -name "$route.js" \) -delete
+          done
+
+      - name: Test User PWA update lifecycle
+        run: node --test apps/user/scripts/user-update.test.cjs
+
+      - name: Install and verify full app
+        shell: bash
+        run: |
+          cd "$SRC"
+          pnpm install --frozen-lockfile
+          pnpm check
+          pnpm exec vitest run web/tests
+
+      - name: Verify persisted price history
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          doc=json.loads(Path('prices-history.json').read_text())
+          points=doc.get('points',[])
+          assert len(points) >= 2, 'price history must contain at least two snapshots'
+          assert all('updatedAt' in p and 'spotUsdPerOunce' in p for p in points)
+          print(f'Verified {len(points)} historical price snapshots.')
+          PY
+
+      - name: Export full app for web
+        shell: bash
+        env:
+          EXPO_NO_TELEMETRY: "1"
+          EXPO_PUBLIC_APP_VARIANT: "user"
+        run: |
+          cd "$SRC"
+          rm -rf .expo node_modules/.cache
+          pnpm exec expo export --platform web --output-dir dist-pwa --clear
+
+      - name: Verify user workspace is present in export
+        run: python3 scripts/verify-user-export.py "$SRC/dist-pwa"
+
+      - name: Add PWA layer to full app
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SRC/dist-pwa"
+
+          node "$GITHUB_WORKSPACE/apps/user/scripts/generate-icon.cjs" "$SRC"
+          cp "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" app_icon_user.jpg
+          cp "$GITHUB_WORKSPACE/prices-live.json" prices-live.json 2>/dev/null || true
+          touch .nojekyll
+
+          cat > manifest.webmanifest <<'EOF'
+          {
+            "id": "/gold-app-pwa/full/",
+            "name": "ذهبي",
+            "short_name": "ذهبي",
+            "lang": "ar",
+            "dir": "rtl",
+            "start_url": "/gold-app-pwa/full/",
+            "scope": "/gold-app-pwa/full/",
+            "display": "standalone",
+            
+            "background_color": "#001F3F",
+            "theme_color": "#001F3F",
+            "icons": [
+              {"src":"/gold-app-pwa/full/app_icon_user.jpg","sizes":"1024x1024","type":"image/jpeg","purpose":"any"},
+              {"src":"/gold-app-pwa/full/pwa-icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+            ]
+          }
+          EOF
+
+          printf '{"version":"full-%s","force":true}\n' "${GITHUB_SHA::8}" > version.json
+
+          cp "$GITHUB_WORKSPACE/apps/user/scripts/user-service-worker.js" sw.js
+          cp "$GITHUB_WORKSPACE/apps/user/scripts/user-update-client.js" pwa-update.js
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+          for name in ('sw.js','pwa-update.js'):
+              p=Path(name)
+              p.write_text(p.read_text().replace('__BUILD_VERSION__',os.environ['GITHUB_SHA'][:8]))
+          head='''\n<link rel="manifest" href="/gold-app-pwa/full/manifest.webmanifest">\n<meta name="theme-color" content="#001F3F">\n<link rel="apple-touch-icon" href="/gold-app-pwa/full/pwa-icon.png">\n<link rel="icon" type="image/jpeg" href="/gold-app-pwa/full/app_icon_user.jpg">\n'''
+          body=f'''\n<script src="/gold-app-pwa/full/pwa-update.js?v={os.environ['GITHUB_SHA'][:8]}"></script>\n'''
+          for p in Path('.').rglob('*.html'):
+              s=p.read_text()
+              # iOS visual safe-area support without disabling accessibility zoom.
+              s=re.sub(r'<meta\s+name="viewport"\s+content="[^"]*"\s*/?>',
+                       '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>',
+                       s,count=1)
+              s=s.replace('<html  lang="en">','<html lang="ar">')
+              if 'manifest.webmanifest' not in s:
+                  s=s.replace('</head>',head+'</head>')
+              if 'pwa-update.js' not in s:
+                  s=s.replace('</body>',body+'</body>')
+              p.write_text(s)
+          PY
+
+      - name: Assemble Pages artifact
+        shell: bash
+        run: |
+          mkdir -p _site/full
+          cp -R "$SRC/dist-pwa/." _site/full/
+
+      - name: Verify generated PWA
+        run: |
+          node --check "$SRC/dist-pwa/sw.js"
+          node --check "$SRC/dist-pwa/pwa-update.js"
+          python3 -m json.tool "$SRC/dist-pwa/manifest.webmanifest" >/dev/null
+          test -f "$SRC/dist-pwa/app_icon_user.jpg"
+          test -s "$SRC/dist-pwa/app_icon_user.jpg"
+          cmp "$GITHUB_WORKSPACE/apps/user/assets/app_icon_user.jpg" "$SRC/dist-pwa/app_icon_user.jpg"
+
+      - name: Verify independent Trader and Admin app shells
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/trader/public/app.js
+          node --check apps/admin/public/app.js
+          node --check apps/trader/public/sw.js
+          node --check apps/admin/public/sw.js
+          python3 -m json.tool apps/trader/public/manifest.webmanifest >/dev/null
+          python3 -m json.tool apps/admin/public/manifest.webmanifest >/dev/null
+          grep -q 'data-role="merchant"' apps/trader/public/index.html
+          grep -q 'data-role="admin"' apps/admin/public/index.html
+          ! grep -q 'role-pills' apps/trader/public/index.html
+          ! grep -q 'role-pills' apps/admin/public/index.html
+          grep -q 'dhahabi_trader_' apps/trader/public/app.js
+          grep -q 'dhahabi_admin_' apps/admin/public/app.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: user-web-validated-build
+          path: /tmp/gold-app/dist-pwa
+
+      - name: Commit verified standalone User preview (never GitHub Pages)
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/dhahabi-preview/gold-app-pwa/full
+          cp -R "$SRC/dist-pwa/." /tmp/dhahabi-preview/gold-app-pwa/full/
+          printf '%s\n' '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=/gold-app-pwa/full/"></head><body><p>جاري الانتقال إلى نسخة الآيفون التجريبية...</p><a href="/gold-app-pwa/full/">فتح التطبيق</a></body></html>' > /tmp/dhahabi-preview/index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin preview/iphone-render
+          git checkout -B preview/iphone-render origin/preview/iphone-render
+          rm -rf _render_preview
+          mkdir -p _render_preview
+          cp -R /tmp/dhahabi-preview/. _render_preview/
+          git add _render_preview
+          if git diff --cached --quiet; then
+            echo 'Identical verified preview already committed.'
+          else
+            git commit -m "preview(user): validated iPhone build ${GITHUB_SHA:0:8} [skip ci]"
+            git push origin HEAD:preview/iphone-render
+          fi
