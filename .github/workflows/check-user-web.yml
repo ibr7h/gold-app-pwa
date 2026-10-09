@@ -582,6 +582,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import os
+          import re
           for name in ('sw.js','pwa-update.js'):
               p=Path(name)
               p.write_text(p.read_text().replace('__BUILD_VERSION__',os.environ['GITHUB_SHA'][:8]))
@@ -589,6 +590,11 @@ jobs:
           body=f'''\n<script src="/gold-app-pwa/full/pwa-update.js?v={os.environ['GITHUB_SHA'][:8]}"></script>\n'''
           for p in Path('.').rglob('*.html'):
               s=p.read_text()
+              # iOS visual safe-area support without disabling accessibility zoom.
+              s=re.sub(r'<meta\\s+name="viewport"\\s+content="[^"]*"\\s*/?>',
+                       '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>',
+                       s,count=1)
+              s=s.replace('<html  lang="en">','<html lang="ar">')
               if 'manifest.webmanifest' not in s:
                   s=s.replace('</head>',head+'</head>')
               if 'pwa-update.js' not in s:
