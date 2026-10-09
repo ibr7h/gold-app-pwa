@@ -4,8 +4,8 @@ export interface InvoiceDetails {
  goldUnitPrice?:number; makingCharge?:number;stonePrice?:number;vatRate?:number;vatAmount?:number;
  grossWeightGrams?:number;stoneWeightGrams?:number;
  itemCondition?:'new'|'used';itemDescription?:string;hallmark?:string;manufacturerMark?:string;
- invoiceNumber?:string;sellerName?:string;sellerCommercialRegistration?:string;sellerPhone?:string;
- stoneName?:string;stoneKind?:string;stoneShape?:string;stoneQuality?:string;stoneCut?:string;
+ invoiceNumber?:string;sellerName?:string;sellerAddress?:string;buyerName?:string;sellerCommercialRegistration?:string;sellerPhone?:string;
+ stoneName?:string;stoneKind?:string;stoneColor?:string;stoneShape?:string;stoneQuality?:string;stoneCut?:string;
  stoneDefects?:string;stoneSafety?:string;
 }
 export interface Purchase{id:string;portfolioId:string;karat:number;weightGrams:string;unitPrice:string;totalPrice:string;currency:string;purchasedAt:string;invoiceDetails?:InvoiceDetails|null}
@@ -92,8 +92,8 @@ export function purchasePayload(data:FormData){
   const meta:InvoiceDetails={pricingMode:mode};
   const fields:({key:keyof InvoiceDetails;max:number})[]=[
    {key:'itemDescription',max:500},{key:'hallmark',max:120},{key:'manufacturerMark',max:120},
-   {key:'invoiceNumber',max:120},{key:'sellerName',max:150},{key:'sellerCommercialRegistration',max:60},
-   {key:'sellerPhone',max:40},{key:'stoneName',max:120},{key:'stoneKind',max:100},{key:'stoneShape',max:100},
+   {key:'invoiceNumber',max:120},{key:'sellerName',max:150},{key:'sellerAddress',max:250},{key:'buyerName',max:120},{key:'sellerCommercialRegistration',max:60},
+   {key:'sellerPhone',max:40},{key:'stoneName',max:120},{key:'stoneKind',max:100},{key:'stoneColor',max:100},{key:'stoneShape',max:100},
    {key:'stoneQuality',max:150},{key:'stoneCut',max:100},{key:'stoneDefects',max:300},{key:'stoneSafety',max:300}
   ];
   for(const field of fields){const value=note(field.key,field.max);if(value)(meta as Record<string,unknown>)[field.key]=value;}
