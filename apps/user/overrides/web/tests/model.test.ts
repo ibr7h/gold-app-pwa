@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {totals,marketUnitPrice,purchasePayload,MarketPrice} from '../model';
+import {totals,marketUnitPrice,purchasePerformance,purchasePayload,MarketPrice} from '../model';
 
 const prices:MarketPrice[]=[
  {id:'sar24',source:'fixture',currency:'SAR',karat:24,buyPrice:'375',sellPrice:'375',timestamp:'2026-10-05T20:00:00Z',createdAt:'2026-10-05T20:00:01Z'},
@@ -40,4 +40,31 @@ it('preserves existing currencies and less common karats when editing',()=>{
 it('does not invent exchange rates for currencies without backend prices',()=>{
  const rows=totals([{id:'e',portfolioId:'p',karat:20,weightGrams:'1',unitPrice:'80',totalPrice:'80',currency:'EUR',purchasedAt:''}],prices);
  expect(rows[0]).toMatchObject({currency:'EUR',cost:80,value:null});
+});
+
+describe('expanded wallet purchase-by-purchase valuation',()=>{
+ const purchase=(overrides:Record<string,string>={})=>({
+  id:'purchase-1',portfolioId:'wallet-1',karat:24,weightGrams:'2',unitPrice:'300',
+  totalPrice:'600',currency:'SAR',purchasedAt:'2026-10-01T10:00:00Z',...overrides
+ });
+ it('shows a positive difference for the exact matching karat and currency',()=>{
+  expect(purchasePerformance(purchase(),prices)).toEqual({cost:600,value:750,difference:150});
+ });
+ it('shows a negative difference rather than hiding a loss',()=>{
+  expect(purchasePerformance(purchase({totalPrice:'800'}),prices)).toEqual({cost:800,value:750,difference:-50});
+ });
+ it('keeps each purchase in its own currency',()=>{
+  expect(purchasePerformance(purchase({karat:'18' as any,currency:'USD',weightGrams:'1',totalPrice:'60'}),prices))
+   .toEqual({cost:60,value:75,difference:15});
+ });
+ it('never substitutes a different karat, currency or a fabricated exchange rate',()=>{
+  expect(purchasePerformance(purchase({karat:'21' as any}),prices).value).toBeNull();
+  expect(purchasePerformance(purchase({currency:'EUR'}),prices).difference).toBeNull();
+  expect(purchasePerformance(purchase(),[]).difference).toBeNull();
+ });
+ it('refuses non-positive or non-finite market data and invalid weights',()=>{
+  expect(purchasePerformance(purchase({weightGrams:'0'}),prices).difference).toBeNull();
+  expect(purchasePerformance(purchase({weightGrams:'Infinity'}),prices).difference).toBeNull();
+  expect(purchasePerformance(purchase(),[{...prices[0],buyPrice:'NaN'}]).difference).toBeNull();
+ });
 });
