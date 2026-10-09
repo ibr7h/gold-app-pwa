@@ -13,6 +13,18 @@ import {priceFreshness} from './price-status';
 import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
+/** Build-time type bridge for the extracted native app's older AuthContext.
+ * The Web bundle uses the specialized contexts/AuthContext.web provider.
+ */
+type UserLockAuth=ReturnType<typeof useAuth> & {
+ lockedAccount:{id?:number|string;email:string;role:'user'|'admin'|'trader';name?:string}|null;
+ quickPinEnabled:boolean;
+ unlockWithPin:(pin:string)=>Promise<{ok:boolean;waitSeconds:number;remaining:number}>;
+ enableQuickPin:(pin:string)=>Promise<void>;
+ disableQuickPin:()=>Promise<void>;
+ lockWithBiometric:()=>Promise<boolean>;
+};
+const useUserLockAuth=()=>useAuth() as UserLockAuth;
 type Page='home'|'prices'|'calculator'|'portfolio'|'more'|'purchases'|'alerts'|'notification-settings'|'map'|'account'|'help';
 const pages:{id:Page;label:string;icon:string;navLabel?:string}[]=[
  {id:'home',label:'الرئيسية',icon:'home'},
@@ -54,7 +66,7 @@ function BootScreen(){
  </div>;
 }
 export default function UserWorkspace(){
- const {user,lockedAccount,isLoading,error,logout,quickPinEnabled,biometricEnabled,unlockWithPin,loginWithBiometric}=useAuth();
+ const {user,lockedAccount,isLoading,error,logout,quickPinEnabled,biometricEnabled,unlockWithPin,loginWithBiometric}=useUserLockAuth();
  if(isLoading&&!user&&!lockedAccount)return <BootScreen/>;
  if(lockedAccount)return <QuickLockScreen key={String(lockedAccount.id)}
   account={lockedAccount} quickPinEnabled={quickPinEnabled} biometricEnabled={biometricEnabled}
@@ -64,7 +76,7 @@ export default function UserWorkspace(){
  return <Workspace key={String(user.id)} email={user.email} role={user.role} logout={logout}/>;
 }
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
- const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin}=useAuth();
+ const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
  const [pinSetup,setPinSetup]=useState<'enable'|'change'|null>(null);
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
