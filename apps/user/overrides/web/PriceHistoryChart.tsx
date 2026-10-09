@@ -57,7 +57,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
   const observer=new ResizeObserver(measure);
   observer.observe(node);
   return()=>observer.disconnect();
- },[points.length>0]);
+ },[points.length>=2]);
  useEffect(()=>setSelectedIndex(null),[range,karat,currency,rows]);
 
  return <div className={'dh-price-trend '+(compact?'compact':'')} dir="rtl">
