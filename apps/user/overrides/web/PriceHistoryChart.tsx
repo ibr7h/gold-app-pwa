@@ -1,8 +1,9 @@
 import React,{useEffect,useId,useMemo,useRef,useState} from 'react';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
+import {Money,formatTwo,formattedMoney} from './price-display';
 
 interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean}
-const currencyNumber=(value:number)=>new Intl.NumberFormat('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:4}).format(value);
+const currencyNumber=formatTwo;
 const timeLabel=(ms:number,range:TrendRange)=>{
  const date=new Date(ms);
  return range==='day'?
@@ -64,7 +65,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
   <div className="dh-trend-header">
    <div className="dh-trend-reading">
     <span className="dh-trend-overline">سعر الجرام · عيار {karat}</span>
-    <div className="dh-trend-price"><strong dir="ltr">{selected?currencyNumber(selected.price):'—'}</strong><span>{currency}</span></div>
+    <div className="dh-trend-price"><strong className="dh-trend-amount">{selected?<Money amount={selected.price} currency={currency}/>:'—'}</strong></div>
     {selected&&<small>التحديث: {completeDate(selected.time)}</small>}
    </div>
    <div className="dh-trend-movement">
@@ -89,7 +90,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
     <div className="dh-trend-plot" ref={plotRef} tabIndex={0} role="slider"
      aria-label={'استعراض أسعار الذهب عيار '+karat+' زمنيًا'}
      aria-valuemin={0} aria-valuemax={points.length-1} aria-valuenow={index}
-     aria-valuetext={currencyNumber(selected.price)+' '+currency+'، '+completeDate(selected.time)}
+     aria-valuetext={formattedMoney(selected.price,currency)+'، '+completeDate(selected.time)}
      onPointerMove={e=>movePointer(e.clientX)}
      onPointerDown={e=>movePointer(e.clientX)}
      onPointerLeave={()=>setSelectedIndex(null)}
@@ -124,9 +125,9 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
      </svg>
     </div>
     <div className="dh-trend-summary" aria-label="ملخص حركة الأسعار خلال الفترة المعروضة">
-     <div><span>الأعلى</span><strong dir="ltr">{currencyNumber(domain.high)} <small>{currency}</small></strong></div>
-     <div><span>الأدنى</span><strong dir="ltr">{currencyNumber(domain.low)} <small>{currency}</small></strong></div>
-     <div><span>بداية الفترة</span><strong dir="ltr">{currencyNumber(points[0].price)} <small>{currency}</small></strong></div>
+     <div><span>الأعلى</span><strong><Money amount={domain.high} currency={currency}/></strong></div>
+     <div><span>الأدنى</span><strong><Money amount={domain.low} currency={currency}/></strong></div>
+     <div><span>بداية الفترة</span><strong><Money amount={points[0].price} currency={currency}/></strong></div>
     </div>
    </>
   }
