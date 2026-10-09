@@ -644,6 +644,18 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/dhahabi-preview/gold-app-pwa/full
           cp -R "$SRC/dist-pwa/." /tmp/dhahabi-preview/gold-app-pwa/full/
+          # Render serves unknown .webmanifest extensions as octet-stream on Safari.
+          # A JSON alias has the correct Content-Type and prevents unwanted downloads.
+          python3 - <<'PY'
+          from pathlib import Path
+          base=Path('/tmp/dhahabi-preview/gold-app-pwa/full')
+          (base/'manifest.json').write_bytes((base/'manifest.webmanifest').read_bytes())
+          for page in base.rglob('*.html'):
+              markup=page.read_text()
+              markup=markup.replace('/gold-app-pwa/full/manifest.webmanifest',
+                                    '/gold-app-pwa/full/manifest.json')
+              page.write_text(markup)
+          PY
           printf '%s\n' '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=/gold-app-pwa/full/"></head><body><p>جاري الانتقال إلى نسخة الآيفون التجريبية...</p><a href="/gold-app-pwa/full/">فتح التطبيق</a></body></html>' > /tmp/dhahabi-preview/index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
