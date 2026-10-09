@@ -65,7 +65,7 @@ export default function NotificationSettings(){
    </dl>
    <div className="dh-push-actions">
     {recoverable&&<button type="button" className="primary" disabled={busy||loading}
-     onClick={()=>void run(()=>enablePush(state.config), 'سُجل هذا الجهاز لدى خدمة إشعارات ذهبي.')}>
+     onClick={()=>void run(()=>enablePush(state.config,info==='server-missing'), 'سُجل هذا الجهاز لدى خدمة إشعارات ذهبي.')}>
      {busy?'جارٍ التنفيذ…':info==='server-missing'?'إصلاح الاشتراك':'تفعيل الإشعارات'}
     </button>}
     {enabled&&<button className="primary" type="button" disabled={busy}
