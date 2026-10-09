@@ -82,3 +82,25 @@ describe('User wallet interaction and deletion contrast',()=>{
   expect(css).toContain('@media(max-width:420px)');
  });
 });
+
+describe('User price alert editor and Push continuity',()=>{
+ it('adds edit action for each alert and reuses the persisted fields',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  expect(workspace).toContain('onClick={()=>openAlertDialog(a)}>تعديل</button>');
+  expect(workspace).toContain("dialog.alert?'تعديل التنبيه':'تنبيه جديد'");
+  expect(workspace).toContain('value={dialog.alert?.karat||24}');
+  expect(workspace).toContain("value={dialog.alert?.currency||'SAR'}");
+  expect(workspace).toContain("defaultValue={dialog.alert?.targetPrice||''}");
+  expect(workspace).toContain("defaultValue={dialog.alert?.direction||'above'}");
+ });
+ it('edits the existing ID with PATCH and never implicitly rearms triggered alerts',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const model=source('../model.ts');
+  expect(workspace).toContain("dialog.alert?'/alerts/'+dialog.alert.id:'/alerts'");
+  expect(workspace).toContain("dialog.alert?'PATCH':'POST'");
+  expect(workspace).toContain('سيبقى التنبيه متوقفًا');
+  expect(workspace).toContain('إعادة تفعيل');
+  expect(model).toContain('return {currency,karat,targetPrice,direction}');
+  expect(model).not.toContain('return {currency,karat,targetPrice,direction,status}');
+ });
+});
