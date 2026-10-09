@@ -130,3 +130,27 @@ describe('Mockup-aligned User gold-price chart',()=>{
   expect(css).toContain('.gold-web .dh-price-trend.compact .dh-trend-plot');
  });
 });
+
+describe('Automatic device biometric unlock and formatted currency',()=>{
+ it('attempts the enrolled local credential exactly once on opening without hiding password fallback',()=>{
+  const auth=source('../AuthForm.tsx');
+  const context=source('../../contexts/AuthContext.web.tsx');
+  expect(auth).toContain('let autoBiometricAttempted=false;');
+  expect(auth).toContain('if(autoBiometricAttempted||register||guest||user||isLoading||!showBiometricLogin)return;');
+  expect(auth).toContain('autoBiometricAttempted=true;');
+  expect(auth).toContain('void loginWithBiometric().then');
+  expect(auth).toContain('onClick={()=>void biometric()}');
+  expect(auth).toContain('autoComplete="current-password"');
+  expect(context).toContain('await verifyLocalCredential(c);');
+  expect(context).toContain("if(String(me.id)!==c.accountId)");
+ });
+ it('only alters presentation, not persisted weights, invoice values or navigation',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const purchase=source('../PurchaseFormFields.tsx');
+  expect(workspace).toContain('const money=(n:number|null,c:string)=><Money amount={n} currency={c}/>;');
+  expect(workspace).toContain('const number=(n:number)=>formatTwo(n);');
+  expect(purchase).toContain('formatTwo(value)');
+  expect(workspace).toContain("dialog.alert?'PATCH':'POST'");
+  expect(source('../model.ts')).toContain('unitPrice=totalPrice/weightGrams;');
+ });
+});
