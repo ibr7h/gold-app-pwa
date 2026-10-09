@@ -65,7 +65,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
    if(e.altKey||e.ctrlKey||e.metaKey||loading||
     e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||
     (e.target instanceof HTMLElement&&e.target.isContentEditable))return;
-   if(/^\\d$/.test(e.key)){e.preventDefault();add(e.key);}
+   if(/^\d$/.test(e.key)){e.preventDefault();add(e.key);}
    if(e.key==='Backspace'){e.preventDefault();erase();}
   };
   window.addEventListener('keydown',handler);
