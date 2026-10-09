@@ -13,6 +13,7 @@ import {priceFreshness} from './price-status';
 import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
+import {calculatorQuote} from './calculator-quote';
 /** Build-time type bridge for the extracted native app's older AuthContext.
  * The Web bundle uses the specialized contexts/AuthContext.web provider.
  */
@@ -20,8 +21,8 @@ type UserLockAuth=ReturnType<typeof useAuth> & {
  lockedAccount:{id?:number|string;email:string;role:'user'|'admin'|'trader';name?:string}|null;
  quickPinEnabled:boolean;
  unlockWithPin:(pin:string)=>Promise<{ok:boolean;waitSeconds:number;remaining:number}>;
- enableQuickPin:(pin:string)=>Promise<void>;
- disableQuickPin:()=>Promise<void>;
+ enableQuickPin:(pin:string,currentPin?:string)=>Promise<void>;
+ disableQuickPin:(currentPin:string)=>Promise<void>;
  lockWithBiometric:()=>Promise<boolean>;
 };
 const useUserLockAuth=()=>useAuth() as UserLockAuth;
@@ -78,7 +79,7 @@ export default function UserWorkspace(){
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
  const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
- const [pinSetup,setPinSetup]=useState<'enable'|'change'|null>(null);
+ const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|null>(null);
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
@@ -176,7 +177,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const calcMarket=allMarketRows.find(r=>r.currency==='SAR'&&r.karat===calcKarat);
  const calcUnit=calcMarket?Number(calcMarket.buyPrice):null;
  const calcWeightN=Math.max(0,Number(calcWeight)||0),calcFeeN=Math.max(0,Number(calcFee)||0);
- const calcRaw=calcUnit===null?null:calcWeightN*calcUnit,calcFeeTotal=calcWeightN*calcFeeN,calcTax=calcVat?calcFeeTotal*.15:0,calcTotal=calcRaw===null?null:calcRaw+calcFeeTotal+calcTax;
+ const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuote(calcUnit,calcWeightN,calcFeeN,calcVat);
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
  const sarSummary=summary.find(x=>x.currency==='SAR');
  const content=()=>{
@@ -212,7 +213,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <label>1. اختر عيار الذهب<div className="karat-switch">{[24,22,21,18].map(k=><button type="button" key={k} className={calcKarat===k?'active':''} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div></label>
     <label>2. الوزن بالجرام<input type="number" inputMode="decimal" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(e.target.value)}/><div className="weight-presets">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(String(w))}>{w===31.1?'أونصة 31.1g':w+' جرام'}</button>)}</div></label>
     <label>3. أجرة المصنعية لكل جرام (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
-    <div className="calc-toggle"><div><strong>احتساب ضريبة 15% على المصنعية</strong><small>حساب تقديري فقط ولا يُعد معالجة ضريبية نهائية.</small></div><input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/></div>
+    <div className="calc-toggle"><div><strong>احتساب ضريبة 15% على قيمة الذهب والمصنعية</strong><small>الضريبة = (قيمة الذهب + إجمالي المصنعية) × 15%.</small></div><input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/></div>
    </section>
    <section className="approved-card"><div className="approved-card-title">تفاصيل السعر المقدر</div><dl className="calc-breakdown"><div><dt>قيمة الذهب الخام</dt><dd>{money(calcRaw,'SAR')}</dd></div><div><dt>إجمالي المصنعية</dt><dd>{money(calcFeeTotal,'SAR')}</dd></div><div><dt>الضريبة التقديرية</dt><dd>{money(calcTax,'SAR')}</dd></div><div className="final"><dt>الإجمالي النهائي</dt><dd>{money(calcTotal,'SAR')}</dd></div></dl></section>
   </>;
@@ -289,7 +290,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='account')return <><section className="approved-card profile-approved"><span className="avatar large">{email[0].toUpperCase()}</span><h2 dir="ltr">{email}</h2><span className="pill gold">{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</span><small className="app-version-account" dir="ltr" style={{display:"block",marginTop:10,color:"#C5A021",fontSize:12}}>{APP_DISPLAY_VERSION}</small></section><section className="approved-card settings-list"><button onClick={()=>navigate('portfolio')}><span><Icon name="wallet"/>محفظتي الذهبية</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>سجل المشتريات</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span><Icon name="refresh"/>التحقق من تحديث التطبيق</span><Icon name="chevron"/></button><button className="danger-row" onClick={signOut}><span><Icon name="logout"/>تسجيل الخروج</span><Icon name="chevron"/></button></section><section className="approved-card dh-quick-settings">
  <div className="approved-card-title">الدخول السريع والأمان</div>
- <p className="fine">أضف رمزًا من ٦ أرقام لفتح ذهبي من شاشة قفل داخلية عند تشغيل التطبيق. يُحفظ تجزؤ الرمز محليًا، ولا تُخزن الأرقام أو بيانات بصمتك.</p>
+ <p className="fine">أضف رمزًا من ٦ أرقام لفتح ذهبي من شاشة قفل داخلية. تُحفظ الجلسة مشفرة وتجزئة الرمز محليًا؛ لا تُخزن الأرقام أو بيانات بصمتك. بدون دخول سريع، يلزم استخدام كلمة المرور بعد إعادة فتح التطبيق.</p>
  <div className="dh-quick-setting-row">
   <span><strong>رمز الدخول السريع</strong><small>شاشة قفل ولوحة أرقام على هذا الجهاز</small></span>
   <button type="button" role="switch" aria-label="تفعيل رمز الدخول السريع" aria-checked={quickPinEnabled}
@@ -297,8 +298,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    onClick={()=>void (async()=>{
     setBiometricNotice('');
     if(quickPinEnabled){
-     try{await disableQuickPin();setBiometricNotice('أُوقف رمز الدخول السريع على هذا الجهاز.');}
-     catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر إيقاف رمز الدخول.');}
+     setPinSetup('disable');
     }else setPinSetup('enable');
    })()}><span/></button>
  </div>
@@ -314,7 +314,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     setBiometricNotice('');
     try{
      if(biometricActive){await disableBiometric();setBiometricNotice('أُوقفت بصمة الجهاز في ذهبي.');}
-     else{await enableBiometric();setBiometricNotice('تم تسجيل بصمة الجهاز. يمكن فتح القفل بالضغط على زر البصمة.');}
+     else{await enableBiometric();setBiometricNotice('تم تفعيل تحقق الجهاز. قد يطلب النظام بصمة أو رمز الجهاز؛ بعض المتصفحات تحتاج رمز ذهبي أو كلمة المرور بعد إعادة فتح التطبيق.');}
     }catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر تغيير إعداد بصمة الجهاز.');}
    })()}><span/></button>
  </div>
@@ -325,7 +325,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   })()}>قفل ذهبي الآن</button>}
  </div>
  <p className="fine">يظهر قفل ذهبي عند فتحه بجلسة محفوظة، أو عند العودة بعد دقيقة من الخلفية. بصمة Face ID/Touch ID في المتصفح قد تعرض نافذة تحقق خاصة بالنظام ولا يمكن تغيير شكلها؛ لذلك لا تُفتح تلقائيًا.</p>
- <p className="fine">إذا نسيت الرمز، استخدم كلمة مرور حسابك لاستعادة الوصول وتغيير الرمز. الجلسات المنتهية تحتاج تسجيل دخول كامل.</p>
+ <p className="fine">إذا نسيت الرمز، استخدم كلمة مرور حسابك لاستعادة الوصول ثم أعد تفعيل الدخول السريع. تسجيل الدخول بكلمة المرور يعيد إعداد عوامل الدخول المحلية. الجلسات المنتهية تحتاج تسجيل دخول كامل.</p>
  </section></>;
 
   if(page==='help')return <section className="approved-card help-panel"><div className="approved-card-title">المساعدة</div>{[['كيف أبدأ؟','أنشئ محفظة ثم أضف مشترياتك الفعلية.'],['كيف تُحسب قيمة المحفظة؟','تعتمد على أسعار Backend ذهبي الحالية، مع إبقاء العملات منفصلة.'],['كيف أقرأ الرسم؟','كل نقطة سعر تمثل تحديثًا محفوظًا فعليًا في قاعدة البيانات.'],['لماذا التجار غير ظاهرين؟','لأن بيانات Merchant Location لم تُنفذ في الـBackend بعد؛ لا نعرض بيانات وهمية.']].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>;
@@ -339,7 +339,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  return <div className="gold-web workspace" dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main"><header className="topbar"><button className="icon-button menu-trigger" aria-label={page==='home'?'فتح التنبيهات':'العودة للرئيسية'} onClick={()=>page==='home'?navigate('alerts'):navigate('home')}><Icon name={page==='home'?'bell':'chevron'}/>{page==='home'&&alerts.some(a=>a.status==='active')&&<i className="notification-dot"/>}</button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{(page==='home'||page==='prices')&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketLoading?'جارٍ التحديث…':'تحديث الأسعار'}</span></button>}</header><main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{error} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{marketError}</p>}{message&&<p className="notice success" role="status">{message}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}<footer>© 2026 Ibrahim Alneami — All Rights Reserved · الإصدار {APP_DISPLAY_VERSION}</footer></main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
  {menu&&<div className="mobile-nav-backdrop" onClick={()=>setMenu(false)}><div className="mobile-nav" ref={modalRef} role="dialog" aria-modal="true" aria-label="قائمة التنقل" onClick={e=>e.stopPropagation()}><button className="icon-button close-menu" aria-label="إغلاق القائمة" onClick={()=>setMenu(false)}><Icon name="close"/></button>{nav}</div></div>}
  {pinSetup&&<QuickPinSetup mode={pinSetup} onClose={()=>setPinSetup(null)}
-  onSave={async(pin)=>{await enableQuickPin(pin);setBiometricNotice('تم تفعيل رمز الدخول السريع لهذا الجهاز.');}}/>}
+  onSave={async(pin,currentPin)=>{
+   if(pinSetup==='disable'){await disableQuickPin(currentPin||'');setBiometricNotice('أُوقف رمز الدخول السريع على هذا الجهاز.');}
+   else{await enableQuickPin(pin,currentPin);setBiometricNotice('تم حفظ رمز الدخول السريع لهذا الجهاز.');}
+  }}/>}
  {(dialog||confirm)&&<div className="dialog-backdrop"><div className={'dialog '+(confirm?'confirm-dialog':'')} ref={modalRef} role={confirm?'alertdialog':'dialog'} aria-modal="true" aria-labelledby="dialog-title" aria-describedby={confirm?'confirm-warning-description':undefined}><div className="section-heading"><h2 id="dialog-title">{confirm?'تأكيد الحذف':dialog?.type==='portfolio'?'محفظة جديدة':dialog?.type==='alert'?(dialog.alert?'تعديل التنبيه':'تنبيه جديد'):dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء'}</h2><button className="icon-button" aria-label="إغلاق" disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
  {confirm?<><div className="confirm-warning" id="confirm-warning-description"><strong>هل تريد حذف {confirm.label}؟</strong><p>هذا الإجراء نهائي، ولا يمكن التراجع عن الحذف من التطبيق.</p></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>setConfirm(null)}>إلغاء</button><button className="danger-button" disabled={busy} onClick={()=>void mutate(confirm.path,'DELETE')}>{busy?'جارٍ الحذف…':'حذف'}</button></div></>:<form onSubmit={submit}>
  {dialog?.type==='portfolio'&&<label>اسم المحفظة<input name="name" required maxLength={80} placeholder="مثال: ادخار الأسرة"/></label>}

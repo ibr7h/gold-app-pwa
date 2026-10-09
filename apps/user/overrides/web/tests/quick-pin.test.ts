@@ -54,4 +54,18 @@ describe('User quick PIN: hashed, account-scoped, and rate-limited',()=>{
   expect(correct.ok).toBe(false);
   expect(correct.waitSeconds).toBeGreaterThan(0);
  });
+ it('serializes concurrent wrong entries so parallel attempts cannot reset the counter',async()=>{
+  await setQuickPin('account','406195');
+  const results=await Promise.all(Array.from({length:8},()=>checkQuickPin('account','999999')));
+  expect(results.slice(0,4).map(r=>r.remaining)).toEqual([4,3,2,1]);
+  expect(results.slice(4).every(r=>r.waitSeconds>0)).toBe(true);
+  expect((await checkQuickPin('account','406195')).ok).toBe(false);
+ });
+ it('allows correct entry after cooldown and resets the failure budget',async()=>{
+  await setQuickPin('account','406195');
+  for(let i=0;i<5;i++)await checkQuickPin('account','999999');
+  const now=Date.now();vi.spyOn(Date,'now').mockReturnValue(now+16*60*1000);
+  expect((await checkQuickPin('account','406195')).ok).toBe(true);
+  expect((await checkQuickPin('account','999999')).remaining).toBe(4);vi.restoreAllMocks();
+ });
 });

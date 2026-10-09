@@ -23,8 +23,8 @@ beforeEach(()=>{
 });
 afterEach(()=>vi.unstubAllGlobals());
 
-function buildAssertion({verified=true,goodChallenge=true,goodRp=true,goodSignature=true}:{
- verified?:boolean;goodChallenge?:boolean;goodRp?:boolean;goodSignature?:boolean;
+function buildAssertion({verified=true,goodChallenge=true,goodRp=true,goodSignature=true,prf=false}:{
+ verified?:boolean;goodChallenge?:boolean;goodRp?:boolean;goodSignature?:boolean;prf?:boolean;
 }={}){
  const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'});
  const pub=new Uint8Array(publicKey.export({format:'der',type:'spki'}));
@@ -44,7 +44,7 @@ function buildAssertion({verified=true,goodChallenge=true,goodRp=true,goodSignat
   const signed=Buffer.concat([authData,createHash('sha256').update(responseData).digest()]);
   const signature=sign('sha256',signed,privateKey);
   if(!goodSignature)signature[signature.length-1]^=0x01;
-  return {type:'public-key',rawId:buffer(id),response:{
+  return {type:'public-key',rawId:buffer(id),getClientExtensionResults:()=>prf?{prf:{results:{first:buffer(new Uint8Array(32).fill(23))}}}:{},response:{
    clientDataJSON:buffer(responseData),authenticatorData:buffer(authData),signature:buffer(signature)
   }} as unknown as Credential;
  });
@@ -55,7 +55,7 @@ function buildAssertion({verified=true,goodChallenge=true,goodRp=true,goodSignat
 describe('device-only WebAuthn assertion verification',()=>{
  it('accepts a genuine locally signed challenge with verified user presence and matching RP',async()=>{
   const {c,get}=buildAssertion();
-  await expect(verifyLocalCredential(c)).resolves.toBeUndefined();
+  await expect(verifyLocalCredential(c)).resolves.toBeNull();
   expect(get).toHaveBeenCalledOnce();
   const request=get.mock.calls[0][0].publicKey!;
   expect(request.userVerification).toBe('required');
@@ -68,6 +68,17 @@ describe('device-only WebAuthn assertion verification',()=>{
  it('rejects a challenge mismatch (replay attempt)',async()=>{
   const {c}=buildAssertion({goodChallenge:false});
   await expect(verifyLocalCredential(c)).rejects.toThrow();
+ });
+ it('accepts PRF output only after a valid user-verified assertion and advances its replay counter',async()=>{
+  const {c,get}=buildAssertion({prf:true});c.prfSalt=encode(new Uint8Array(32).fill(42));
+  expect(await verifyLocalCredential(c)).toEqual(new Uint8Array(32).fill(23));
+  expect((get.mock.calls[0][0].publicKey?.extensions as any).prf.eval.first.byteLength).toBe(32);
+  await expect(verifyLocalCredential(c)).rejects.toThrow();
+ });
+ it('does not accept PRF output from a failed signature or an aborted request',async()=>{
+  const bad=buildAssertion({prf:true,goodSignature:false});await expect(verifyLocalCredential(bad.c)).rejects.toThrow();
+  const {c}=buildAssertion({prf:true}),controller=new AbortController();controller.abort();
+  await expect(verifyLocalCredential(c,controller.signal)).rejects.toThrow();
  });
  it('rejects an RP ID hash from a different website',async()=>{
   const {c}=buildAssertion({goodRp:false});
@@ -88,7 +99,7 @@ describe('device-only WebAuthn assertion verification',()=>{
     type:'webauthn.create',challenge:encode(new Uint8Array(request.challenge as ArrayBuffer)),origin:url
    }));
    const authData=new Uint8Array(37);authData[32]=0x05;
-   return {type:'public-key',rawId:buffer(id),response:{
+   return {type:'public-key',rawId:buffer(id),getClientExtensionResults:()=>({prf:{results:{first:buffer(new Uint8Array(32).fill(23))}}}),response:{
     clientDataJSON:buffer(clientDataJSON),getPublicKey:()=>buffer(spki),
     getPublicKeyAlgorithm:()=>-7,getAuthenticatorData:()=>buffer(authData)
    }} as unknown as Credential;
@@ -98,7 +109,9 @@ describe('device-only WebAuthn assertion verification',()=>{
   expect(create).toHaveBeenCalledOnce();
   expect(create.mock.calls[0][0].publicKey?.authenticatorSelection?.userVerification).toBe('required');
   expect(credential.publicKeySpki).toBe(encode(spki));
-  expect(await readLocalCredential()).toEqual(credential);
+  expect(credential.unlockSecret).toEqual(new Uint8Array(32).fill(23));
+  expect(await readLocalCredential()).toEqual({...credential});
+  expect([...memory.values()].join('')).not.toContain('unlockSecret');
   expect([...memory.values()].join('')).not.toContain('PRIVATE KEY');
   await forgetLocalCredential();
   expect(await readLocalCredential()).toBeNull();
@@ -106,8 +119,8 @@ describe('device-only WebAuthn assertion verification',()=>{
  it('never opens the workspace directly when a local lock is present',()=>{
   const ctx=readFileSync(new URL('../../contexts/AuthContext.web.tsx',import.meta.url).pathname,'utf8');
   expect(ctx).toContain('setLockedAccount(cached);setUser(null);setLoading(false);');
-  expect(ctx).toContain('await verifyLocalCredential(c)');
-  expect(ctx).toContain("const me=await loadMe();");
-  expect(ctx).toContain("if(String(me.id)!==c.accountId)");
+  expect(ctx).toContain('await verifyLocalCredential(c,request.current!.signal)');
+  expect(ctx).toContain("await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current)");
+  expect(ctx).toContain("await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current)");
  });
 });
