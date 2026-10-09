@@ -124,7 +124,9 @@ export async function verifyLocalCredential(c:LocalCredential,signal?:AbortSigna
  if(!expectedHash.every((b,i)=>authenticatorData[i]===b))throw new Error('جهة التحقق غير مطابقة.');
  const counter=counterOf(authenticatorData);
  const latest=await readLocalCredential();
- const previousCounter=latest?.credentialId===c.credentialId?Math.max(c.counter,latest.counter):c.counter;
+ if(!latest||latest.credentialId!==c.credentialId||latest.publicKeySpki!==c.publicKeySpki||latest.accountId!==c.accountId)
+  throw new Error('تم إيقاف اعتماد الجهاز أو تغييره. استخدم كلمة المرور.');
+ const previousCounter=Math.max(c.counter,latest.counter);
  if(counter>0&&previousCounter>0&&counter<=previousCounter)throw new Error('تعذر التحقق من تسلسل الاعتماد.');
  const clientHash=new Uint8Array(await crypto.subtle.digest('SHA-256',response.clientDataJSON));
  const signed=new Uint8Array(authenticatorData.length+clientHash.length);

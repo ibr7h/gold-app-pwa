@@ -30,6 +30,7 @@ function buildAssertion({verified=true,goodChallenge=true,goodRp=true,goodSignat
  const id=webcrypto.getRandomValues(new Uint8Array(32));
  const c:LocalCredential={version:1,accountId:'account-123',email:'person@example.test',rpId:hostname,
   credentialId:encode(id),publicKeySpki:encode(pub),counter:0};
+ memory.set('dhahabi_user_local_biometric_v1',JSON.stringify(c));
  const get=vi.fn(async (options:CredentialRequestOptions)=>{
   const req=options.publicKey!;
   const challenge=new Uint8Array(req.challenge as ArrayBuffer);
@@ -107,7 +108,8 @@ describe('device-only WebAuthn assertion verification',()=>{
   await expect(verifyLocalCredential(c)).rejects.toThrow(/تسلسل/);
  });
  it('does not revive forgotten enrollment when a late assertion completes',async()=>{
-  const {c}=buildAssertion();await verifyLocalCredential(c);expect(await readLocalCredential()).toBeNull();
+  const {c}=buildAssertion();await forgetLocalCredential();
+  await expect(verifyLocalCredential(c)).rejects.toThrow(/إيقاف/);expect(await readLocalCredential()).toBeNull();
  });
  it('rejects a repeated counter even when another tab has the older credential snapshot',async()=>{
   const {c}=buildAssertion();memory.set('dhahabi_user_local_biometric_v1',JSON.stringify({...c,counter:1}));

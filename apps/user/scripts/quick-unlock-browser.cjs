@@ -68,6 +68,7 @@ async function run(browser,url,viewport,label,virtual=false){
   else{status=404;data={message:'fixture endpoint unavailable'};}
   await route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
  });
+ try{
  await page.goto(url);await page.locator('.mockup-login-container').waitFor();await seed(page);
  assert.deepEqual(await page.evaluate(()=>window.__deviceCalls),{get:0,create:0});
  assert.equal(requests.filter(x=>x.path.startsWith('/portfolio')||x.path==='/alerts').length,0);
@@ -123,10 +124,14 @@ async function run(browser,url,viewport,label,virtual=false){
  assert.equal(await page.evaluate(()=>localStorage.getItem('dhahabi_user_session_vault_v1')),null);
  assert.equal(await page.evaluate(()=>localStorage.getItem('untouched-push-fixture')),'preserved');assert.deepEqual(errors,[]);
  report(label+': expired backend session never opens the workspace, even with the correct PIN');
- await context.close();
+ }catch(error){
+  process.stdout.write('FAILED '+label+' UI: '+(await page.locator('body').innerText()).slice(-5000)+'\n');
+  if(process.env.SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,label+'-failure.png'),fullPage:true});
+  throw error;
+ }finally{await context.close();}
 }
 (async()=>{
- await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url='http://127.0.0.1:'+server.address().port+base;
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url='http://localhost:'+server.address().port+base;
  try{
   const browser=await chromium.launch({headless:true});
   try{await run(browser,url,{width:390,height:844},'mobile',true);await run(browser,url,{width:1280,height:900},'desktop');}finally{await browser.close();}

@@ -66,7 +66,16 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const ended=onSessionEnded(()=>controller.endSession());
   const visibility=()=>controller.visibility(document.visibilityState==='hidden');
   const changed=(e:StorageEvent)=>{
-   if(e.key==='dhahabi_user_session_vault_v1'||e.key==='dhahabi_user_refresh_token'){
+   let securityChanged=false;
+   if(e.key==='dhahabi_user_local_biometric_v1'||e.key==='dhahabi_user_quick_pin_v1'){
+    try{
+     const previous=JSON.parse(e.oldValue||'null'),next=JSON.parse(e.newValue||'null');
+     // Counter/failed-attempt updates alone do not revoke another tab's active gate.
+     const fields=e.key==='dhahabi_user_local_biometric_v1'?['accountId','credentialId','publicKeySpki','rpId']:['accountId','hash','salt','origin'];
+     securityChanged=!previous||!next||fields.some(k=>previous[k]!==next[k]);
+    }catch{securityChanged=true;}
+   }
+   if(securityChanged||e.key==='dhahabi_user_session_vault_v1'||e.key==='dhahabi_user_refresh_token'){
     lockSession();controller.endSession();
    }
   };
