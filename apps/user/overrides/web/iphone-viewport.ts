@@ -22,7 +22,7 @@ export function measureIphoneViewport(s:IphoneViewportSample):IphoneViewportStat
 export function installIphoneViewportObserver(root:HTMLElement):()=>void {
  if(typeof window==='undefined'||typeof document==='undefined'||!window.visualViewport||
   typeof CSS==='undefined'||!CSS.supports('-webkit-touch-callout','none')||
-  !window.matchMedia('(max-width: 800px) and (pointer: coarse)').matches)return ()=>{};
+  !window.matchMedia('(max-width: 800px) and (pointer: coarse), (max-height: 500px) and (orientation: landscape) and (pointer: coarse)').matches)return ()=>{};
  const viewport=window.visualViewport;
  let frame=0;
  let disposed=false;
