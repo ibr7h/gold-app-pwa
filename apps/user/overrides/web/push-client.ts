@@ -1,4 +1,4 @@
-import {api,jsonRequest} from './api';
+import {api,jsonRequest,ApiError} from './api';
 import {classifyPush,PushConditions,PushHealth} from './push-status';
 
 export const PUSH_SCOPE='/gold-app-pwa/full/';
@@ -84,7 +84,18 @@ export async function enablePush(config:PushConfig|null):Promise<void>{
  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertKey(config.publicKey)});
  const serial=sub.toJSON();
  if(!serial.endpoint||!serial.keys?.p256dh||!serial.keys?.auth)throw new Error('اشتراك المتصفح لا يحتوي بيانات مفاتيح كاملة.');
- await api('/push/subscriptions',jsonRequest('POST',{endpoint:sub.endpoint,keys:{p256dh:serial.keys.p256dh,auth:serial.keys.auth}}));
+ try{
+  await api('/push/subscriptions',jsonRequest('POST',{endpoint:sub.endpoint,keys:{p256dh:serial.keys.p256dh,auth:serial.keys.auth}}));
+ }catch(e){
+  // Origin-wide subscriptions may have belonged to a previously signed-out account.
+  // Never move a subscription between accounts on the server; rotate it on this device.
+  if(!(e instanceof ApiError)||e.status!==409)throw e;
+  await sub.unsubscribe();
+  sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertKey(config.publicKey)});
+  const renewed=sub.toJSON();
+  if(!renewed.keys?.p256dh||!renewed.keys?.auth)throw new Error('تعذر تجديد اشتراك هذا الجهاز.');
+  await api('/push/subscriptions',jsonRequest('POST',{endpoint:sub.endpoint,keys:{p256dh:renewed.keys.p256dh,auth:renewed.keys.auth}}));
+ }
 }
 export async function disablePush():Promise<void>{
  const sub=await currentSubscription(false);
