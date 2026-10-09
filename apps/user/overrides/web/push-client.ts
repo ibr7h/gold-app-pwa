@@ -36,7 +36,8 @@ async function registration(create:boolean){
  if(!browserSupport())return null;
  const existing=await navigator.serviceWorker.getRegistration(PUSH_SCOPE);
  if(existing||!create)return existing||null;
- return navigator.serviceWorker.register(PUSH_SCOPE+'sw.js',{scope:PUSH_SCOPE,updateViaCache:'none'});
+ await navigator.serviceWorker.register(PUSH_SCOPE+'sw.js',{scope:PUSH_SCOPE,updateViaCache:'none'});
+ return navigator.serviceWorker.ready;
 }
 async function currentSubscription(create:boolean){
  const reg=await registration(create);
