@@ -1469,3 +1469,58 @@
  .gold-web .dh-push-actions button{width:100%;justify-content:center}
  .gold-web .dh-push-alert-entry p{min-width:0}
 }
+
+/* Dhahabi User: mockup-aligned, quiet financial trend chart (real market snapshots only). */
+.gold-web .dh-price-trend{display:grid;gap:16px;width:100%;min-width:0;direction:rtl;color:#001F3F}
+.gold-web .dh-trend-header{display:flex;align-items:start;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.gold-web .dh-trend-reading{display:grid;gap:5px;min-width:0}
+.gold-web .dh-trend-overline{font-size:12px;font-weight:700;color:#64748B}
+.gold-web .dh-trend-price{display:flex;align-items:baseline;gap:9px}
+.gold-web .dh-trend-price strong{font-size:clamp(26px,3vw,35px);letter-spacing:-.5px;font-weight:900;line-height:1.3;font-variant-numeric:tabular-nums;color:#001F3F}
+.gold-web .dh-trend-price span{font-size:12px;font-weight:700;color:#8A6A0B}
+.gold-web .dh-trend-reading>small{font-size:11px;line-height:1.7;color:#64748B}
+.gold-web .dh-trend-movement{display:grid;justify-items:start;gap:6px;padding-top:6px}
+.gold-web .dh-trend-movement>small{font-size:10px;color:#64748B}
+.gold-web .dh-change{display:inline-flex;justify-content:center;align-items:center;min-height:29px;border-radius:12px;padding:5px 11px;direction:ltr;font-weight:800;font-size:12px;font-variant-numeric:tabular-nums}
+.gold-web .dh-change.up{background:#E7F5EE;color:#16734A}
+.gold-web .dh-change.down{background:#FDEBEC;color:#AD333A}
+.gold-web .dh-change.neutral{background:#F1F5F9;color:#64748B}
+.gold-web .dh-trend-controls{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid #E5EAF0;border-radius:12px;background:#F5F7FA;width:max-content;max-width:100%;flex-wrap:wrap}
+.gold-web .dh-trend-controls button{background:transparent;color:#64748B;font-size:12px;min-height:37px;min-width:68px;padding:7px 13px;font-weight:700;border:0;border-radius:9px;transition:background .16s ease,color .16s ease}
+.gold-web .dh-trend-controls button:hover{color:#001F3F;background:rgba(197,160,33,.10)}
+.gold-web .dh-trend-controls button.selected{background:#001F3F;color:#F8F9FA;box-shadow:0 2px 7px rgba(0,31,63,.14)}
+.gold-web .dh-trend-controls button:focus-visible{outline:2px solid #C5A021;outline-offset:2px}
+.gold-web .dh-trend-plot{height:250px;width:100%;min-width:0;border-radius:16px;background:linear-gradient(180deg,#FFFFFF 0%,#FFFEFB 100%);touch-action:pan-y;cursor:crosshair;outline:none;user-select:none;-webkit-user-select:none}
+.gold-web .dh-trend-plot:focus-visible{outline:2px solid #C5A021;outline-offset:3px}
+.gold-web .dh-trend-plot svg{height:100%!important;width:100%!important;display:block;overflow:visible;max-height:none!important}
+.gold-web .dh-trend-grid{stroke:#E9EDF1;stroke-width:1;vector-effect:non-scaling-stroke;stroke-dasharray:3 5}
+.gold-web .dh-trend-line{fill:none;stroke:#C5A021;stroke-width:2.9;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.gold-web .dh-trend-y{font-size:10px;fill:#64748B;font-weight:600;direction:ltr;font-variant-numeric:tabular-nums}
+.gold-web .dh-trend-x{font-size:11px;fill:#64748B;font-weight:600;direction:ltr}
+.gold-web .dh-trend-crosshair{stroke:#B8A267;stroke-width:1.3;stroke-dasharray:4 5;vector-effect:non-scaling-stroke}
+.gold-web .dh-trend-ring{fill:rgba(212,175,55,.13);stroke:#C5A021;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.gold-web .dh-trend-point{fill:#D4AF37;stroke:#FFFFFF;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.gold-web .dh-trend-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border-top:1px solid #E9EDF1;padding-top:15px}
+.gold-web .dh-trend-summary>div{min-width:0;display:grid;gap:6px}
+.gold-web .dh-trend-summary>div+div{border-right:1px solid #E9EDF1;padding-right:11px}
+.gold-web .dh-trend-summary span{color:#64748B;font-size:11px}
+.gold-web .dh-trend-summary strong{color:#001F3F;font-weight:800;font-size:clamp(12px,1.6vw,16px);font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere}
+.gold-web .dh-trend-summary strong small{font-size:10px;color:#8A6A0B}
+.gold-web .dh-trend-footnote{font-size:10px;color:#64748B;line-height:1.8;margin:0}
+.gold-web .dh-trend-empty{display:grid;gap:9px;justify-items:center;text-align:center;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:13px;padding:26px 16px;min-height:130px}
+.gold-web .dh-trend-empty strong{color:#001F3F;font-size:14px}
+.gold-web .dh-trend-empty span{font-size:12px;line-height:1.8;color:#64748B}
+.gold-web .dh-price-trend.compact .dh-trend-plot{height:210px}
+.gold-web .dh-price-trend.compact .dh-trend-price strong{font-size:clamp(23px,3vw,31px)}
+@media(max-width:600px){
+ .gold-web .dh-price-trend{gap:13px}
+ .gold-web .dh-trend-plot{height:220px}
+ .gold-web .dh-price-trend.compact .dh-trend-plot{height:185px}
+ .gold-web .dh-trend-controls{width:100%;justify-content:space-between}
+ .gold-web .dh-trend-controls button{flex:1;min-width:0;padding:8px 7px;font-size:11px}
+ .gold-web .dh-trend-price strong{font-size:25px}
+ .gold-web .dh-trend-movement>small{font-size:9px}
+ .gold-web .dh-trend-summary{gap:5px}
+ .gold-web .dh-trend-summary>div+div{padding-right:8px}
+ .gold-web .dh-trend-summary strong{font-size:12px}
+}
