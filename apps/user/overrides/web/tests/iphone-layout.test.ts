@@ -131,18 +131,24 @@ describe('Mockup-aligned User gold-price chart',()=>{
  });
 });
 
-describe('Automatic device biometric unlock and formatted currency',()=>{
- it('attempts the enrolled local credential exactly once on opening without hiding password fallback',()=>{
+describe('Non-intrusive iOS device unlock and native SVG currency',()=>{
+ it('never opens iOS passkey sheet on login mount; requires an explicit biometric tap',()=>{
   const auth=source('../AuthForm.tsx');
   const context=source('../../contexts/AuthContext.web.tsx');
-  expect(auth).toContain('let autoBiometricAttempted=false;');
-  expect(auth).toContain('if(autoBiometricAttempted||register||guest||user||isLoading||!showBiometricLogin)return;');
-  expect(auth).toContain('autoBiometricAttempted=true;');
-  expect(auth).toContain('void loginWithBiometric().then');
+  expect(auth).not.toContain('autoBiometricAttempted');
+  expect(auth).not.toContain('void loginWithBiometric().then');
   expect(auth).toContain('onClick={()=>void biometric()}');
   expect(auth).toContain('autoComplete="current-password"');
   expect(context).toContain('await verifyLocalCredential(c);');
   expect(context).toContain("if(String(me.id)!==c.accountId)");
+ });
+ it('shows Saudi Riyal SVG in alert labels and keeps other currency codes for API',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const display=source('../price-display.tsx');
+  expect(workspace).toContain('<CurrencyMark currency={a.currency}/>');
+  expect(display).toContain('function SaudiRiyalGlyph()');
+  expect(display).toContain('viewBox="0 0 1124.14 1256.39"');
+  expect(display).toContain("currency==='SAR'?<SaudiRiyalGlyph/>:currencySymbol(currency)");
  });
  it('only alters presentation, not persisted weights, invoice values or navigation',()=>{
   const workspace=source('../UserWorkspace.tsx');

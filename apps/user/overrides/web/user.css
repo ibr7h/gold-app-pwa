@@ -1544,3 +1544,26 @@
  .gold-web .dh-trend-summary .dh-money-currency{font-size:.64em}
  .gold-web .dh-money{max-width:100%}
 }
+
+/* Saudi Riyal symbol is SAMA inline SVG, never a missing desktop-font character. */
+.gold-web .dh-money-currency,
+.gold-auth .dh-money-currency{
+ font-size:1em!important;
+ font-weight:750;
+ line-height:1;
+ min-width:1em;
+ margin-inline-start:.23em;
+ display:inline-flex;
+ align-items:baseline;
+ justify-content:center;
+ flex:0 0 auto;
+}
+.gold-web .dh-money-riyal,
+.gold-auth .dh-money-riyal{font-family:inherit;line-height:1}
+.gold-web .dh-riyal-svg,
+.gold-auth .dh-riyal-svg{display:inline-block;width:1.04em;height:1.16em;flex-shrink:0;vertical-align:-.17em;overflow:visible;color:inherit;fill:currentColor}
+.gold-web .dh-currency-symbol-svg{display:inline-flex;align-items:center;color:inherit;font-size:1.1em;line-height:1;vertical-align:middle}
+.gold-web .dh-trend-summary .dh-money-currency{font-size:.95em!important}
+@media(max-width:400px){
+ .gold-web .dh-trend-summary .dh-money-currency{font-size:.88em!important}
+}
