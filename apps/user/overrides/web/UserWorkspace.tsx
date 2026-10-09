@@ -2,6 +2,7 @@ import React,{useState,useEffect,useRef,useCallback} from 'react';
 import {useAuth} from '../contexts/AuthContext';
 import AuthForm from './AuthForm';
 import PurchaseFormFields from './PurchaseFormFields';
+import PriceHistoryChart from './PriceHistoryChart';
 import NotificationSettings from './NotificationSettings';
 import {revokePushBeforeLogout} from './push-client';
 import {api,jsonRequest,errorMessage} from './api';
@@ -37,25 +38,6 @@ function Empty({children}:{children:React.ReactNode}){return <div className="emp
 function CurrencySelect({value='SAR'}:{value?:string}){return <select name="currency" defaultValue={value}>{(CURRENCIES.includes(value)?CURRENCIES:[value,...CURRENCIES]).map(c=><option key={c}>{c}</option>)}</select>;}
 function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{(KARATS.includes(value)?KARATS:[value,...KARATS]).map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
 interface PriceHistoryRow{id:string;source:string;currency:string;karat:number;buyPrice:string;sellPrice:string;timestamp:string;createdAt:string}
-function PriceHistoryChart({rows,currency,karat}:{rows:PriceHistoryRow[];currency:string;karat:number}){
- const data=[...rows].filter(r=>Number.isFinite(Number(r.buyPrice))&&Number.isFinite(Date.parse(r.createdAt||r.timestamp))).sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
- if(data.length<2)return <div className="chart-empty">نحتاج تحديثين محفوظين على الأقل لرسم حركة السعر.</div>;
- const values=data.map(r=>Number(r.buyPrice)),min=Math.min(...values),max=Math.max(...values),span=Math.max(max-min,Math.max(max,1)*0.002);
- const left=28,right=572,top=22,bottom=142;
- const pts=data.map((r,i)=>{const x=left+(right-left)*(i/Math.max(1,data.length-1));const y=bottom-(bottom-top)*((Number(r.buyPrice)-(min-span*.12))/(span*1.24));return{x,y,row:r};});
- const path=pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
- const labels=[0,Math.floor((data.length-1)/2),data.length-1].filter((v,i,a)=>a.indexOf(v)===i).map(i=>data[i]);
- return <div className="history-chart" role="img" aria-label={`رسم سعر الذهب عيار ${karat} حسب وقت التحديث`}>
-  <div className="chart-legend"><span><i className="legend-gold"/>سعر الجرام · عيار {karat}</span><strong>{currency}</strong></div>
-  <svg viewBox="0 0 600 170" preserveAspectRatio="none" aria-hidden="true">
-   <line x1="28" y1="42" x2="572" y2="42" className="chart-grid"/><line x1="28" y1="82" x2="572" y2="82" className="chart-grid"/><line x1="28" y1="122" x2="572" y2="122" className="chart-grid"/>
-   <path d={path} className="chart-line"/>
-   {pts.map((p,i)=><circle key={p.row.id||i} cx={p.x} cy={p.y} r="3.8" className="chart-dot"><title>{dateTime(p.row.createdAt||p.row.timestamp)} · {money(Number(p.row.buyPrice),currency)}</title></circle>)}
-  </svg>
-  <div className="chart-axis">{labels.map((r,i)=><span key={i}>{new Date(r.createdAt||r.timestamp).toLocaleTimeString('ar-SA',{hour:'numeric',minute:'2-digit'})}</span>)}</div>
-  <p className="chart-caption">كل نقطة تمثل تحديثًا محفوظًا فعليًا في النظام، ويُستخدم وقت الحفظ <code>createdAt</code> للمحور الزمني.</p>
- </div>;
-}
 function BootScreen(){
  const [slow,setSlow]=useState(false);
  useEffect(()=>{const timer=setTimeout(()=>setSlow(true),6500);return()=>clearTimeout(timer);},[]);
@@ -82,7 +64,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
  const [priceCurrency,setPriceCurrency]=useState('SAR');
- const [history,setHistory]=useState<PriceHistoryRow[]>([]),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
+ const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
@@ -112,6 +94,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    const cleanLatest=latest.filter((row):row is PriceHistoryRow=>!!row&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
    if(active.current&&seq===marketLoadSequence.current){
     setHistory(historyRows);
+    setHistoryQuery(priceCurrency+':'+chartKarat);
     setAllMarketRows(cleanLatest);
     setMarketRows(cleanLatest.filter(row=>row.currency===priceCurrency));
     setMarketError('');
@@ -163,8 +146,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const stale=freshness!=='fresh'||!!marketError;
  const marketLabel=freshness==='fresh'&&!marketError?'مباشر':freshness==='missing'?'غير متاح':'آخر سعر محفوظ';
  const summary=totals(purchases,allMarketRows),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
- const historyValues=sortedHistory.map(r=>Number(r.buyPrice)).filter(Number.isFinite);
- const historyHigh=historyValues.length?Math.max(...historyValues):null,historyLow=historyValues.length?Math.min(...historyValues):null,historyOpen=historyValues.length?historyValues[0]:null;
+ const visibleHistory=historyQuery===priceCurrency+':'+chartKarat?history:[];
  const priceNote=<p className="fine">جميع الأسعار في هذه النسخة تأتي من Backend ذهبي نفسه؛ وتشترك البطاقات والمحفظة والتنبيهات والرسم البياني في المصدر ذاته. لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.</p>;
  const marketTime=(row:PriceHistoryRow|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp):'لا يوجد تحديث موثوق';
  const priceBlock=<section className="market-price-card">
@@ -193,7 +175,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    <section className="approved-card portfolio-mini"><div className="approved-card-title"><span><Icon name="wallet"/>محفظتي الذهبية</span><button className="text-button" onClick={()=>navigate('portfolio')}>التفاصيل</button></div>
     <div className="portfolio-mini-body"><div><strong>{sarSummary?money(sarSummary.value,'SAR'):'غير متاح'}</strong><span>إجمالي الوزن: {number(totalWeight)} جرام</span></div>{sarSummary&&sarSummary.value!==null&&<div className={'portfolio-delta '+(sarSummary.value>=sarSummary.cost?'positive':'negative')}><b>{money(sarSummary.value-sarSummary.cost,'SAR')}</b><small>الفرق عن تكلفة الشراء</small></div>}</div>
    </section>
-   <section className="approved-card"><div className="approved-card-title"><span>حركة السوق (عيار {chartKarat})</span><button className="text-button" onClick={()=>navigate('prices')}>التفاصيل</button></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={history} currency={priceCurrency} karat={chartKarat}/>}</section>
+   <section className="approved-card"><div className="approved-card-title"><span>حركة السوق (عيار {chartKarat})</span><button className="text-button" onClick={()=>navigate('prices')}>التفاصيل</button></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} compact/>}</section>
   </>;
 
   if(page==='prices')return <>
@@ -201,7 +183,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}><option>SAR</option><option>USD</option></select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=marketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
-   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={history} currency={priceCurrency} karat={chartKarat}/>}<div className="three-stats"><div><span>الأعلى</span><b>{money(historyHigh,priceCurrency)}</b></div><div><span>الأدنى</span><b>{money(historyLow,priceCurrency)}</b></div><div><span>أول تحديث</span><b>{money(historyOpen,priceCurrency)}</b></div></div></section>
+   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>}</section>
    {priceNote}
   </>;
 
