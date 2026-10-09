@@ -1,4 +1,4 @@
-export type TrendRange='day'|'week'|'available';
+export type TrendRange='day'|'week'|'month'|'available';
 export interface TrendSourceRow{
  id?:string; buyPrice:string|number; createdAt?:string|null; timestamp?:string|null;
 }
@@ -23,7 +23,7 @@ export function priceTrendPoints(rows:TrendSourceRow[]):TrendPoint[]{
 }
 export function priceTrendRange(points:TrendPoint[],range:TrendRange):TrendPoint[]{
  if(!points.length||range==='available')return points;
- const period=range==='day'?24*60*60*1000:7*24*60*60*1000;
+ const period=(range==='day'?1:range==='week'?7:30)*24*60*60*1000;
  const cutoff=points[points.length-1].time-period;
  return points.filter(p=>p.time>=cutoff);
 }

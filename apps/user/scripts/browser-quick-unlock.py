@@ -56,7 +56,8 @@ with sync_playwright() as p:
         expect(page.locator('.workspace')).to_be_visible(timeout=15000)
 
     def account():
-        page.locator('.mobile-bottom-nav').get_by_role('button', name='الملف', exact=True).click()
+        page.locator('.mobile-bottom-nav').get_by_role('button', name='المزيد', exact=True).click()
+        page.get_by_role('button', name='الملف الشخصي', exact=True).click()
         expect(page.get_by_text('الدخول السريع والأمان', exact=True)).to_be_visible()
 
     def digits(root, code):

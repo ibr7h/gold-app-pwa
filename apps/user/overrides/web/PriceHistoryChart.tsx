@@ -7,16 +7,17 @@ const currencyNumber=formatTwo;
 const timeLabel=(ms:number,range:TrendRange)=>{
  const date=new Date(ms);
  return range==='day'?
-  date.toLocaleTimeString('ar-SA',{hour:'numeric',minute:'2-digit'}):
-  date.toLocaleDateString('ar-SA',{day:'numeric',month:'short'});
+  date.toLocaleTimeString('ar-SA',{hour:'numeric',minute:'2-digit',timeZone:'Asia/Riyadh'}):
+  date.toLocaleDateString('ar-SA',{day:'numeric',month:'short',timeZone:'Asia/Riyadh'});
 };
 const completeDate=(ms:number)=>new Date(ms).toLocaleString('ar-SA',{dateStyle:'medium',timeStyle:'short'});
 const scopeLabels:{id:TrendRange;label:string}[]=[
- {id:'day',label:'24 ساعة'},{id:'week',label:'7 أيام'},{id:'available',label:'المتاح'}
+ {id:'day',label:'24 ساعة'},{id:'week',label:'7 أيام'},{id:'month',label:'30 يومًا'},{id:'available',label:'المتاح'}
 ];
+const compactScopes:{id:TrendRange;label:string}[]=[{id:'day',label:'يوم'},{id:'week',label:'أسبوع'},{id:'month',label:'شهر'}];
 
 export default function PriceHistoryChart({rows,currency,karat,compact=false}:Props){
- const [range,setRange]=useState<TrendRange>('available');
+ const [range,setRange]=useState<TrendRange>(compact?'day':'available');
  const [width,setWidth]=useState(640);
  const [selectedIndex,setSelectedIndex]=useState<number|null>(null);
  const plotRef=useRef<HTMLDivElement>(null);
@@ -29,7 +30,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
  const selected=points[index];
  const change=trendPercent(points);
  const rising=change!==null&&change>=0;
- const left=12,right=Math.max(left+70,width-75),top=24,bottom=204;
+ const left=12,right=Math.max(left+70,width-(compact?12:75)),top=24,bottom=compact?123:204;
  const spanTime=Math.max(1,(latest?.time||0)-(points[0]?.time||0));
  const projectX=(p:TrendPoint)=>left+(right-left)*((p.time-points[0].time)/spanTime);
  const projectY=(p:TrendPoint)=>bottom-(bottom-top)*((p.price-(domain?.min||0))/Math.max(.00001,(domain?.max||1)-(domain?.min||0)));
@@ -37,8 +38,8 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
  const line=plotted.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(2)+' '+p.y.toFixed(2)).join(' ');
  const area=plotted.length>1?line+' L'+plotted[plotted.length-1].x.toFixed(2)+' '+bottom+' L'+plotted[0].x.toFixed(2)+' '+bottom+' Z':'';
  const focus=plotted[index];
- const ticks=domain?Array.from({length:4},(_,i)=>domain.max-(domain.max-domain.min)*i/3):[];
- const tickIndices=points.length>=2?[0,Math.floor((points.length-1)/2),points.length-1].filter((n,i,arr)=>arr.indexOf(n)===i):[];
+ const ticks=domain&&!compact?Array.from({length:4},(_,i)=>domain.max-(domain.max-domain.min)*i/3):[];
+ const tickIndices=points.length>=2?(compact?[0,Math.floor((points.length-1)/3),Math.floor((points.length-1)*2/3),points.length-1]:[0,Math.floor((points.length-1)/2),points.length-1]).filter((n,i,arr)=>arr.indexOf(n)===i):[];
  const timeCoverage=all.length>1?(all[all.length-1].time-all[0].time)/(60*60*1000):0;
  const movePointer=(clientX:number)=>{
   if(!points.length||!plotRef.current)return;
@@ -62,7 +63,8 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
  useEffect(()=>setSelectedIndex(null),[range,karat,currency,rows]);
 
  return <div className={'dh-price-trend '+(compact?'compact':'')} dir="rtl">
-  <div className="dh-trend-header">
+  {compact&&<h3 className="home-chart-title">حركة السوق (عيار {karat})</h3>}
+  {!compact&&<div className="dh-trend-header">
    <div className="dh-trend-reading">
     <span className="dh-trend-overline">سعر الجرام · عيار {karat}</span>
     <div className="dh-trend-price"><strong className="dh-trend-amount">{selected?<Money amount={selected.price} currency={currency}/>:'—'}</strong></div>
@@ -74,16 +76,16 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
     </span>
     <small>التغير ضمن النطاق المعروض</small>
    </div>
-  </div>
+  </div>}
   <div className="dh-trend-controls" role="group" aria-label="الفترة الزمنية للرسم">
-   {scopeLabels.map(option=><button key={option.id} type="button"
+   {(compact?compactScopes:scopeLabels).map(option=><button key={option.id} type="button"
     aria-pressed={range===option.id} className={range===option.id?'selected':''}
     onClick={()=>setRange(option.id)}>{option.label}</button>)}
   </div>
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
     <strong>{all.length<2?'لا توجد تحديثات سعرية كافية لرسم الاتجاه.':'لا توجد نقطتان مسجلتان ضمن الفترة المختارة.'}</strong>
-    <span>نعرض الأسعار الحقيقية المسجلة فقط. يمكنك اختيار «المتاح» لعرض جميع السجلات المحمّلة.</span>
+    <span>{compact?'بانتظار تحديثات فعلية إضافية من الخادم.':'نعرض الأسعار الحقيقية المسجلة فقط. يمكنك اختيار «المتاح» لعرض جميع السجلات المحمّلة.'}</span>
    </div>
   :
    <>
@@ -101,7 +103,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
         Math.max(0,Math.min(points.length-1,index+(e.key==='ArrowLeft'?-1:1))));
       }
      }}>
-     <svg viewBox={'0 0 '+width+' 250'} preserveAspectRatio="none" aria-hidden="true">
+     <svg viewBox={'0 0 '+width+' '+(compact?162:250)} preserveAspectRatio="none" aria-hidden="true">
       <defs><linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
        <stop offset="0%" stopColor="#C5A021" stopOpacity=".24"/>
        <stop offset="100%" stopColor="#C5A021" stopOpacity="0"/>
@@ -114,27 +116,30 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
       <path className="dh-trend-area" d={area} fill={'url(#'+gradientId+')'}/>
       <path className="dh-trend-line" d={line}/>
       {focus&&<g className="dh-trend-focus">
-       <line x1={focus.x} y1={top} x2={focus.x} y2={bottom} className="dh-trend-crosshair"/>
-       <circle cx={focus.x} cy={focus.y} r="8" className="dh-trend-ring"/>
+       {(!compact||selectedIndex!==null)&&<line x1={focus.x} y1={top} x2={focus.x} y2={bottom} className="dh-trend-crosshair"/>}
+       {(!compact||selectedIndex!==null)&&<circle cx={focus.x} cy={focus.y} r="8" className="dh-trend-ring"/>}
        <circle cx={focus.x} cy={focus.y} r="4" className="dh-trend-point"/>
       </g>}
       {tickIndices.map((n,i)=><text key={n} className="dh-trend-x"
-       x={plotted[n].x} y={238} textAnchor={i===0?'start':i===tickIndices.length-1?'end':'middle'}>
+       x={plotted[n].x} y={compact?154:238} textAnchor={i===0?'start':i===tickIndices.length-1?'end':'middle'}>
        {timeLabel(points[n].time,range)}
       </text>)}
      </svg>
     </div>
-    <div className="dh-trend-summary" aria-label="ملخص حركة الأسعار خلال الفترة المعروضة">
+    {!compact&&<div className="dh-trend-summary" aria-label="ملخص حركة الأسعار خلال الفترة المعروضة">
      <div><span>الأعلى</span><strong><Money amount={domain.high} currency={currency}/></strong></div>
      <div><span>الأدنى</span><strong><Money amount={domain.low} currency={currency}/></strong></div>
      <div><span>بداية الفترة</span><strong><Money amount={points[0].price} currency={currency}/></strong></div>
-    </div>
+    </div>}
+    {compact&&selectedIndex!==null&&<p className="home-chart-selection"><Money amount={selected.price} currency={currency}/> · {completeDate(selected.time)}</p>}
    </>
   }
   <p className="dh-trend-footnote">
-   {all.length>1?'الخط يربط تحديثات فعلية، والمسافات الأفقية تمثل الزمن الحقيقي.':'بانتظار حفظ تحديثات سعرية إضافية.'}
-   {all.length>1&&timeCoverage<24&&range==='available'?' · السجل المتاح أقل من 24 ساعة.':''}
-   {' '}بحد أقصى 200 سجل من الخادم؛ لا نضيف أسعارًا افتراضية.
+   {compact?<>تحديثات فعلية من السجل المتاح فقط · بحد أقصى 200 تحديث.</>:<>
+    {all.length>1?'الخط يربط تحديثات فعلية، والمسافات الأفقية تمثل الزمن الحقيقي.':'بانتظار حفظ تحديثات سعرية إضافية.'}
+    {all.length>1&&timeCoverage<24&&range==='available'?' · السجل المتاح أقل من 24 ساعة.':''}
+    {' '}بحد أقصى 200 سجل من الخادم؛ لا نضيف أسعارًا افتراضية.
+   </>}
   </p>
  </div>;
 }
