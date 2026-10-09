@@ -1,0 +1,25 @@
+name: Check User preview CORS and JSON manifest
+on:
+  push:
+    branches: ["feat/user-iphone-stable-viewport-20261009"]
+    paths: [".github/workflows/diagnose-iphone-cors.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Inspect preview Origin against production API and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          origin='https://dhahabi-user-iphone-preview.onrender.com'
+          echo 'CHECK manifest.json after preview hotfix (may still be deploying):'
+          curl -sSL --max-time 25 -o /tmp/manifest -D /tmp/manifest-headers -w 'status=%{http_code} mime=%{content_type}\n' "$origin/gold-app-pwa/full/manifest.json" || true
+          grep -iE '^HTTP/|^content-type:' /tmp/manifest-headers || true
+          echo 'CHECK CORS OPTIONS /auth/login:'
+          curl -sS --max-time 35 -X OPTIONS -o /tmp/cors-response -D /tmp/cors-headers \
+            -H "Origin: $origin" -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type' \
+            -w 'status=%{http_code}\n' 'https://gold-app-api-u8dl.onrender.com/auth/login' || true
+          grep -iE '^HTTP/|^access-control-allow-origin:|^access-control-allow-methods:|^access-control-allow-headers:|^content-type:' /tmp/cors-headers || true
