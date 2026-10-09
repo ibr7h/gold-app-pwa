@@ -589,7 +589,7 @@ jobs:
           for p in Path('.').rglob('*.html'):
               s=p.read_text()
               # iOS visual safe-area support without disabling accessibility zoom.
-              s=re.sub(r'<meta\\s+name="viewport"\\s+content="[^"]*"\\s*/?>',
+              s=re.sub(r'<meta\s+name="viewport"\s+content="[^"]*"\s*/?>',
                        '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>',
                        s,count=1)
               s=s.replace('<html  lang="en">','<html lang="ar">')
