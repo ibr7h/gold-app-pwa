@@ -54,8 +54,6 @@ function GuestPrices({onBack}:{onBack:()=>void}){
  </main>;
 }
 
-// Once per app opening: never re-open the platform biometric prompt repeatedly after cancel/failure.
-let autoBiometricAttempted=false;
 export default function AuthForm({register=false}:{register?:boolean}){
  const {user,isLoading,error,login,startRegistration,clearError,biometricAvailable,biometricEnrolled,biometricEnabled,loginWithBiometric}=useAuth();
  const showBiometricLogin=canShowBiometricLogin({biometricAvailable,biometricEnrolled,biometricEnabled});
@@ -67,17 +65,8 @@ export default function AuthForm({register=false}:{register?:boolean}){
   try{if(register)await startRegistration(name,email,password);else await login(email,password);}catch{}
  };
  const biometric=async()=>{clearError();setLocalError('');if(!showBiometricLogin){return;}const ok=await loginWithBiometric();if(!ok)setLocalError('تعذر تسجيل الدخول بالبصمة الحيوية.');};
- useEffect(()=>{
-  // The device's saved WebAuthn credential must have been explicitly enrolled first.
-  // Browsers may require user activation for credentials.get(); retain the visible button.
-  if(autoBiometricAttempted||register||guest||user||isLoading||!showBiometricLogin)return;
-  if(typeof document==='undefined'||document.visibilityState==='hidden')return;
-  autoBiometricAttempted=true;
-  void loginWithBiometric().then(ok=>{
-   if(!ok)setLocalError('لم يكتمل الفتح التلقائي؛ يمكنك لمس زر البصمة أو إدخال كلمة المرور.');
-  }).catch(()=>setLocalError('المتصفح يحتاج الضغط على زر البصمة لفتح التطبيق.'));
- },[register,guest,user,isLoading,showBiometricLogin,loginWithBiometric]);
-
+ // Browser and iOS own the passkey sheet. Never request it before an explicit tap.
+ // WebAuthn authenticates the previously enrolled device; this does not enroll passkeys automatically.
  if(guest&&!register)return <GuestPrices onBack={()=>setGuest(false)}/>;
  if(register)return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
   <section className="mockup-login-container">
