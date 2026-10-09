@@ -1524,3 +1524,23 @@
  .gold-web .dh-trend-summary>div+div{padding-right:8px}
  .gold-web .dh-trend-summary strong{font-size:12px}
 }
+
+/* Dhahabi v1.8.3: price precision and the new Saudi riyal sign; no layout restructuring. */
+.gold-web .dh-money,
+.gold-auth .dh-money{display:inline-flex;align-items:baseline;gap:0;direction:ltr!important;unicode-bidi:isolate;white-space:nowrap;font-variant-numeric:tabular-nums;max-width:100%;vertical-align:baseline}
+.gold-web .dh-money-whole,
+.gold-auth .dh-money-whole{font:inherit;color:inherit;letter-spacing:inherit}
+.gold-web .dh-money-fraction,
+.gold-auth .dh-money-fraction{font-size:.72em;font-weight:750;color:#9C791C!important;letter-spacing:0}
+.gold-web .dh-money-currency,
+.gold-auth .dh-money-currency{font-size:.70em;font-weight:750;color:#8F711A!important;margin-inline-start:.28em;letter-spacing:0}
+.gold-web .dh-money-riyal,
+.gold-auth .dh-money-riyal{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Arabic",sans-serif;line-height:1;vertical-align:baseline}
+.gold-web .dh-currency-label{color:#9C791C;font-weight:800;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Arabic",sans-serif}
+.gold-web .dh-trend-price .dh-money-fraction{color:#94711A!important}
+.gold-web .dh-trend-summary .dh-money{font-size:inherit;white-space:nowrap}
+.gold-auth .guest-price-grid .dh-money{font-weight:inherit}
+@media(max-width:400px){
+ .gold-web .dh-trend-summary .dh-money-currency{font-size:.64em}
+ .gold-web .dh-money{max-width:100%}
+}
