@@ -19,9 +19,11 @@ import {canShowBiometricLogin} from './biometric-visibility';
 type UserLockAuth=ReturnType<typeof useAuth> & {
  lockedAccount:{id?:number|string;email:string;role:'user'|'admin'|'trader';name?:string}|null;
  quickPinEnabled:boolean;
+ sessionPersistent:boolean;
  unlockWithPin:(pin:string)=>Promise<{ok:boolean;waitSeconds:number;remaining:number}>;
  enableQuickPin:(pin:string)=>Promise<void>;
  disableQuickPin:()=>Promise<void>;
+ authorizeSecurity:(password:string)=>Promise<void>;
  lockWithBiometric:()=>Promise<boolean>;
 };
 const useUserLockAuth=()=>useAuth() as UserLockAuth;
@@ -66,20 +68,21 @@ function BootScreen(){
  </div>;
 }
 export default function UserWorkspace(){
- const {user,lockedAccount,isLoading,error,logout,quickPinEnabled,biometricEnabled,unlockWithPin,loginWithBiometric}=useUserLockAuth();
+ const {user,lockedAccount,isLoading,error,logout,quickPinEnabled,biometricEnabled,biometricAvailable,unlockWithPin,loginWithBiometric}=useUserLockAuth();
  if(isLoading&&!user&&!lockedAccount)return <BootScreen/>;
  if(lockedAccount)return <QuickLockScreen key={String(lockedAccount.id)}
-  account={lockedAccount} quickPinEnabled={quickPinEnabled} biometricEnabled={biometricEnabled}
+  account={lockedAccount} quickPinEnabled={quickPinEnabled} biometricEnabled={biometricEnabled&&biometricAvailable}
   loading={isLoading} error={error} onPin={unlockWithPin}
   onBiometric={loginWithBiometric} onForgot={logout}/>;
  if(!user)return <AuthForm/>;
  return <Workspace key={String(user.id)} email={user.email} role={user.role} logout={logout}/>;
 }
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
- const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin}=useUserLockAuth();
+ const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin,authorizeSecurity,sessionPersistent}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
- const [pinSetup,setPinSetup]=useState<'enable'|'change'|null>(null);
+ const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|null>(null);
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
+ const biometricOn=biometricEnrolled&&biometricEnabled;
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
  const [priceCurrency,setPriceCurrency]=useState('SAR');
@@ -297,8 +300,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    onClick={()=>void (async()=>{
     setBiometricNotice('');
     if(quickPinEnabled){
-     try{await disableQuickPin();setBiometricNotice('أُوقف رمز الدخول السريع على هذا الجهاز.');}
-     catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر إيقاف رمز الدخول.');}
+     setPinSetup('disable');
     }else setPinSetup('enable');
    })()}><span/></button>
  </div>
@@ -308,12 +310,12 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  <div className="dh-quick-setting-row">
   <span><strong>خدمة بصمة الوجه/الإصبع</strong><small>{biometricAvailable?'عند الضغط على زر البصمة؛ حسب دعم المتصفح':'غير مدعومة في هذا المتصفح'}</small></span>
   <button type="button" role="switch" aria-label="خدمة بصمة الوجه والإصبع"
-   aria-checked={biometricActive} disabled={!biometricAvailable}
-   className={'dh-quick-toggle '+(biometricActive?'on':'')}
+   aria-checked={biometricOn} disabled={!biometricAvailable&&!biometricOn}
+   className={'dh-quick-toggle '+(biometricOn?'on':'')}
    onClick={()=>void (async()=>{
     setBiometricNotice('');
     try{
-     if(biometricActive){await disableBiometric();setBiometricNotice('أُوقفت بصمة الجهاز في ذهبي.');}
+     if(biometricOn){await disableBiometric();setBiometricNotice('أُوقفت بصمة الجهاز في ذهبي.');}
      else{await enableBiometric();setBiometricNotice('تم تسجيل بصمة الجهاز. يمكن فتح القفل بالضغط على زر البصمة.');}
     }catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر تغيير إعداد بصمة الجهاز.');}
    })()}><span/></button>
@@ -326,6 +328,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  </div>
  <p className="fine">يظهر قفل ذهبي عند فتحه بجلسة محفوظة، أو عند العودة بعد دقيقة من الخلفية. بصمة Face ID/Touch ID في المتصفح قد تعرض نافذة تحقق خاصة بالنظام ولا يمكن تغيير شكلها؛ لذلك لا تُفتح تلقائيًا.</p>
  <p className="fine">إذا نسيت الرمز، استخدم كلمة مرور حسابك لاستعادة الوصول وتغيير الرمز. الجلسات المنتهية تحتاج تسجيل دخول كامل.</p>
+ {!sessionPersistent&&<p className="notice info" role="status">هذا المتصفح يحتفظ بجلسة الدخول حتى إغلاق الصفحة فقط. ستحتاج كلمة مرورك عند فتح ذهبي مجددًا.</p>}
  </section></>;
 
   if(page==='help')return <section className="approved-card help-panel"><div className="approved-card-title">المساعدة</div>{[['كيف أبدأ؟','أنشئ محفظة ثم أضف مشترياتك الفعلية.'],['كيف تُحسب قيمة المحفظة؟','تعتمد على أسعار Backend ذهبي الحالية، مع إبقاء العملات منفصلة.'],['كيف أقرأ الرسم؟','كل نقطة سعر تمثل تحديثًا محفوظًا فعليًا في قاعدة البيانات.'],['لماذا التجار غير ظاهرين؟','لأن بيانات Merchant Location لم تُنفذ في الـBackend بعد؛ لا نعرض بيانات وهمية.']].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>;
@@ -339,6 +342,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  return <div className="gold-web workspace" dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main"><header className="topbar"><button className="icon-button menu-trigger" aria-label={page==='home'?'فتح التنبيهات':'العودة للرئيسية'} onClick={()=>page==='home'?navigate('alerts'):navigate('home')}><Icon name={page==='home'?'bell':'chevron'}/>{page==='home'&&alerts.some(a=>a.status==='active')&&<i className="notification-dot"/>}</button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{(page==='home'||page==='prices')&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketLoading?'جارٍ التحديث…':'تحديث الأسعار'}</span></button>}</header><main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{error} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{marketError}</p>}{message&&<p className="notice success" role="status">{message}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}<footer>© 2026 Ibrahim Alneami — All Rights Reserved · الإصدار {APP_DISPLAY_VERSION}</footer></main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
  {menu&&<div className="mobile-nav-backdrop" onClick={()=>setMenu(false)}><div className="mobile-nav" ref={modalRef} role="dialog" aria-modal="true" aria-label="قائمة التنقل" onClick={e=>e.stopPropagation()}><button className="icon-button close-menu" aria-label="إغلاق القائمة" onClick={()=>setMenu(false)}><Icon name="close"/></button>{nav}</div></div>}
  {pinSetup&&<QuickPinSetup mode={pinSetup} onClose={()=>setPinSetup(null)}
+  onAuthorize={authorizeSecurity} onDisable={async()=>{await disableQuickPin();setBiometricNotice('أُوقف رمز الدخول السريع على هذا الجهاز.');}}
   onSave={async(pin)=>{await enableQuickPin(pin);setBiometricNotice('تم تفعيل رمز الدخول السريع لهذا الجهاز.');}}/>}
  {(dialog||confirm)&&<div className="dialog-backdrop"><div className={'dialog '+(confirm?'confirm-dialog':'')} ref={modalRef} role={confirm?'alertdialog':'dialog'} aria-modal="true" aria-labelledby="dialog-title" aria-describedby={confirm?'confirm-warning-description':undefined}><div className="section-heading"><h2 id="dialog-title">{confirm?'تأكيد الحذف':dialog?.type==='portfolio'?'محفظة جديدة':dialog?.type==='alert'?(dialog.alert?'تعديل التنبيه':'تنبيه جديد'):dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء'}</h2><button className="icon-button" aria-label="إغلاق" disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
  {confirm?<><div className="confirm-warning" id="confirm-warning-description"><strong>هل تريد حذف {confirm.label}؟</strong><p>هذا الإجراء نهائي، ولا يمكن التراجع عن الحذف من التطبيق.</p></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>setConfirm(null)}>إلغاء</button><button className="danger-button" disabled={busy} onClick={()=>void mutate(confirm.path,'DELETE')}>{busy?'جارٍ الحذف…':'حذف'}</button></div></>:<form onSubmit={submit}>

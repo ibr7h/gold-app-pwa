@@ -72,13 +72,17 @@ export async function readLocalCredential():Promise<LocalCredential|null> {
  }catch{return null;}
 }
 export async function forgetLocalCredential():Promise<void>{await AsyncStorage.removeItem(STORAGE);}
-export async function enrollLocalCredential(accountId:string,email:string):Promise<LocalCredential> {
+export async function localCredentialConfigured(accountId:string):Promise<boolean>{
+ const raw=await AsyncStorage.getItem(STORAGE);if(!raw)return false;
+ try{const c=JSON.parse(raw);return typeof c?.accountId==='string'?c.accountId===accountId:true;}catch{return true;}
+}
+export async function enrollLocalCredential(accountId:string,email:string,signal?:AbortSignal):Promise<LocalCredential> {
  // The platform chooser must be opened directly from the user's click (transient activation).
  if(typeof window==='undefined'||!window.isSecureContext||!navigator.credentials?.create||!crypto?.subtle)
   throw new Error('التحقق الحيوي غير مدعوم على هذا الجهاز أو المتصفح.');
  const challenge=freshChallenge();
  const userId=freshChallenge();
- const credential=await navigator.credentials.create({publicKey:{
+ const credential=await navigator.credentials.create({signal,publicKey:{
   challenge,rp:{name:'ذهبي',id:location.hostname},
   user:{id:userId,name:email,displayName:email},pubKeyCredParams:[{type:'public-key',alg:-7}],
   authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'discouraged',userVerification:'required'},
@@ -94,17 +98,20 @@ export async function enrollLocalCredential(accountId:string,email:string):Promi
  if(!key||response.getPublicKeyAlgorithm?.()!==-7)throw new Error('هذا الجهاز لا يدعم طريقة التحقق المحلية المطلوبة.');
  await crypto.subtle.importKey('spki',key,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
  const authData=response.getAuthenticatorData?.();
- if(authData&&!flagsVerified(new Uint8Array(authData)))throw new Error('لم يؤكد الجهاز هوية صاحبه.');
+ if(!authData||!flagsVerified(new Uint8Array(authData)))throw new Error('لم يؤكد الجهاز هوية صاحبه.');
+ const rpHash=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(location.hostname)));
+ if(!rpHash.every((b,i)=>new Uint8Array(authData)[i]===b))throw new Error('جهة التحقق غير مطابقة.');
  const c:LocalCredential={version:1,accountId,email,rpId:location.hostname,
   credentialId:b64(new Uint8Array(credential.rawId)),publicKeySpki:b64(new Uint8Array(key)),counter:0};
+ if(signal?.aborted)throw new DOMException('أُلغي التحقق.','AbortError');
  await AsyncStorage.setItem(STORAGE,JSON.stringify(c));
  return c;
 }
-export async function verifyLocalCredential(c:LocalCredential):Promise<void>{
+export async function verifyLocalCredential(c:LocalCredential,signal?:AbortSignal):Promise<void>{
  if(c.rpId!==location.hostname)throw new Error('اعتماد الجهاز لا يخص هذه النسخة.');
  const challenge=freshChallenge();
  // Keep this request as the first asynchronous operation following the real user gesture.
- const credential=await navigator.credentials.get({publicKey:{
+ const credential=await navigator.credentials.get({signal,publicKey:{
   challenge,rpId:c.rpId,allowCredentials:[{type:'public-key',id:bytes64(c.credentialId).buffer as ArrayBuffer}],
   userVerification:'required',timeout:60000
  }}) as PublicKeyCredential|null;
@@ -116,7 +123,11 @@ export async function verifyLocalCredential(c:LocalCredential):Promise<void>{
  const expectedHash=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(c.rpId)));
  if(!expectedHash.every((b,i)=>authenticatorData[i]===b))throw new Error('جهة التحقق غير مطابقة.');
  const counter=counterOf(authenticatorData);
- if(counter>0&&c.counter>0&&counter<=c.counter)throw new Error('تعذر التحقق من تسلسل الاعتماد.');
+ const latest=await readLocalCredential();
+ if(!latest||latest.credentialId!==c.credentialId||latest.publicKeySpki!==c.publicKeySpki||latest.accountId!==c.accountId)
+  throw new Error('تم إيقاف اعتماد الجهاز أو تغييره. استخدم كلمة المرور.');
+ const previousCounter=Math.max(c.counter,latest.counter);
+ if(counter>0&&previousCounter>0&&counter<=previousCounter)throw new Error('تعذر التحقق من تسلسل الاعتماد.');
  const clientHash=new Uint8Array(await crypto.subtle.digest('SHA-256',response.clientDataJSON));
  const signed=new Uint8Array(authenticatorData.length+clientHash.length);
  signed.set(authenticatorData);signed.set(clientHash,authenticatorData.length);
@@ -125,5 +136,10 @@ export async function verifyLocalCredential(c:LocalCredential):Promise<void>{
  const valid=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},publicKey,
   toRawSignature(new Uint8Array(response.signature)).buffer as ArrayBuffer,signed.buffer as ArrayBuffer);
  if(!valid)throw new Error('فشل التحقق من توقيع الجهاز.');
- if(counter>c.counter){await AsyncStorage.setItem(STORAGE,JSON.stringify({...c,counter}));}
+ if(signal?.aborted)throw new DOMException('أُلغي التحقق.','AbortError');
+ if(counter>c.counter){
+  c.counter=counter;
+  const saved=await readLocalCredential();
+  if(saved?.credentialId===c.credentialId)await AsyncStorage.setItem(STORAGE,JSON.stringify(c));
+ }
 }

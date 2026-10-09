@@ -1,6 +1,5 @@
 import {describe,it,expect,vi,beforeEach,afterEach} from 'vitest';
 import {generateKeyPairSync,createHash,sign,webcrypto} from 'node:crypto';
-import {readFileSync} from 'node:fs';
 
 const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{
@@ -31,6 +30,7 @@ function buildAssertion({verified=true,goodChallenge=true,goodRp=true,goodSignat
  const id=webcrypto.getRandomValues(new Uint8Array(32));
  const c:LocalCredential={version:1,accountId:'account-123',email:'person@example.test',rpId:hostname,
   credentialId:encode(id),publicKeySpki:encode(pub),counter:0};
+ memory.set('dhahabi_user_local_biometric_v1',JSON.stringify(c));
  const get=vi.fn(async (options:CredentialRequestOptions)=>{
   const req=options.publicKey!;
   const challenge=new Uint8Array(req.challenge as ArrayBuffer);
@@ -87,7 +87,7 @@ describe('device-only WebAuthn assertion verification',()=>{
    const clientDataJSON=new TextEncoder().encode(JSON.stringify({
     type:'webauthn.create',challenge:encode(new Uint8Array(request.challenge as ArrayBuffer)),origin:url
    }));
-   const authData=new Uint8Array(37);authData[32]=0x05;
+   const authData=new Uint8Array(37);authData.set(createHash('sha256').update(hostname).digest());authData[32]=0x05;
    return {type:'public-key',rawId:buffer(id),response:{
     clientDataJSON:buffer(clientDataJSON),getPublicKey:()=>buffer(spki),
     getPublicKeyAlgorithm:()=>-7,getAuthenticatorData:()=>buffer(authData)
@@ -103,11 +103,20 @@ describe('device-only WebAuthn assertion verification',()=>{
   await forgetLocalCredential();
   expect(await readLocalCredential()).toBeNull();
  });
- it('never opens the workspace directly when a local lock is present',()=>{
-  const ctx=readFileSync(new URL('../../contexts/AuthContext.web.tsx',import.meta.url).pathname,'utf8');
-  expect(ctx).toContain('setLockedAccount(cached);setUser(null);setLoading(false);');
-  expect(ctx).toContain('await verifyLocalCredential(c)');
-  expect(ctx).toContain("const me=await loadMe();");
-  expect(ctx).toContain("if(String(me.id)!==c.accountId)");
+ it('advances the live credential counter and rejects a repeated nonzero counter',async()=>{
+  const {c}=buildAssertion();await verifyLocalCredential(c);expect(c.counter).toBe(1);
+  await expect(verifyLocalCredential(c)).rejects.toThrow(/تسلسل/);
+ });
+ it('does not revive forgotten enrollment when a late assertion completes',async()=>{
+  const {c}=buildAssertion();await forgetLocalCredential();
+  await expect(verifyLocalCredential(c)).rejects.toThrow(/إيقاف/);expect(await readLocalCredential()).toBeNull();
+ });
+ it('rejects a repeated counter even when another tab has the older credential snapshot',async()=>{
+  const {c}=buildAssertion();memory.set('dhahabi_user_local_biometric_v1',JSON.stringify({...c,counter:1}));
+  await expect(verifyLocalCredential(c)).rejects.toThrow(/تسلسل/);
+ });
+ it('a canceled verification cannot update local state',async()=>{
+  const {c}=buildAssertion();const controller=new AbortController();controller.abort();
+  await expect(verifyLocalCredential(c,controller.signal)).rejects.toThrow();expect(c.counter).toBe(0);
  });
 });

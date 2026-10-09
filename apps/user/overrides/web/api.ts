@@ -1,28 +1,38 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {readSessionTokens,writeSessionTokens,eraseSessionTokens,storedSessionExists,sessionTransaction,sealSessionMemory} from './session-vault';
+export {sessionIsPersistent} from './session-vault';
 export const API_BASE='https://gold-app-api-u8dl.onrender.com';
-const ACCESS='dhahabi_user_access_token',REFRESH='dhahabi_user_refresh_token',PROFILE='dhahabi_user_profile';
-let epoch=0,refreshFlight:Promise<string>|null=null;
+const PROFILE='dhahabi_user_profile';
+let epoch=0,locked=false,refreshFlight:Promise<string>|null=null;
 const listeners=new Set<()=>void>();
 export class ApiError extends Error{constructor(message:string,public status=0){super(message);}}
+export class SessionLockedError extends ApiError{constructor(){super('افتح قفل ذهبي أولًا.',423);}}
 export function onSessionEnded(fn:()=>void){listeners.add(fn);return()=>{listeners.delete(fn);};}
-export async function clearSession(){epoch++;await AsyncStorage.multiRemove([ACCESS,REFRESH,PROFILE]);listeners.forEach(fn=>fn());}
-export async function hasSession(){return !!(await AsyncStorage.getItem(REFRESH));}
+export function lockSession(){epoch++;locked=true;refreshFlight=null;sealSessionMemory();}
+export function openSession(){locked=false;}
+export async function clearSession(){
+ epoch++;locked=false;refreshFlight=null;listeners.forEach(fn=>fn());
+ await sessionTransaction(async()=>{await eraseSessionTokens();await AsyncStorage.removeItem(PROFILE);});
+}
+export async function hasSession(){return await sessionTransaction(storedSessionExists);}
 export interface VerifiedCachedUser{ id:string|number;email:string;role:'user'; }
 export async function getVerifiedCachedUser():Promise<VerifiedCachedUser|null>{
  try{
-  const value=await AsyncStorage.getItem(PROFILE);
-  if(!value)return null;
-  const data=JSON.parse(value);
+  const value=await AsyncStorage.getItem(PROFILE);if(!value)return null;const data=JSON.parse(value);
   if(data?.role!=='user'||!(typeof data.id==='string'||typeof data.id==='number')||typeof data.email!=='string'||!data.email.includes('@'))return null;
   return {id:data.id,email:data.email,role:'user'};
  }catch{return null;}
 }
 export async function saveVerifiedUser(user:VerifiedCachedUser){
- await AsyncStorage.setItem(PROFILE,JSON.stringify({id:user.id,email:user.email,role:'user'}));
+ const started=epoch;
+ await sessionTransaction(async()=>{if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
+  await AsyncStorage.setItem(PROFILE,JSON.stringify({id:user.id,email:user.email,role:'user'}));});
 }
 export async function saveSession(tokens:any){
  if(!tokens?.accessToken||!tokens?.refreshToken)throw new ApiError('استجابة الدخول غير مكتملة.');
- epoch++;await AsyncStorage.multiRemove([PROFILE]);await AsyncStorage.multiSet([[ACCESS,tokens.accessToken],[REFRESH,tokens.refreshToken]]);
+ const started=++epoch;
+ await sessionTransaction(async()=>{if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
+  await writeSessionTokens(tokens);await AsyncStorage.removeItem(PROFILE);});
 }
 export function errorMessage(e:unknown){
  if(!(e instanceof ApiError))return 'تعذر إكمال العملية. حاول مرة أخرى.';
@@ -39,29 +49,59 @@ async function raw(path:string,options:RequestInit={},token?:string){
   return data;
  }catch(e){if(e instanceof ApiError)throw e;throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.');}finally{clearTimeout(timer);}
 }
-export async function authenticate(path:'/auth/login'|'/auth/register',data:object){await saveSession(await raw(path,{method:'POST',body:JSON.stringify(data)}));}
+export async function authenticate(path:'/auth/login'|'/auth/register',data:object){
+ const started=++epoch,tokens=await raw(path,{method:'POST',body:JSON.stringify(data)});
+ if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
+ await saveSession(tokens);
+}
+/** Password step-up never installs a session for a different account. */
+export async function confirmAccountPassword(accountId:string,email:string,password:string){
+ const started=epoch;
+ const tokens=await raw('/auth/login',{method:'POST',body:JSON.stringify({email,password})});
+ const me=await raw('/auth/me',{},tokens.accessToken);
+ if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
+ if(me?.role!=='user'||String(me?.userId)!==accountId)throw new ApiError('تعذر تأكيد الحساب الحالي.',403);
+ await saveSession(tokens);
+ await saveVerifiedUser({id:me.userId,email:me.email,role:'user'});
+}
 async function refreshAccess(expiredToken:string|null):Promise<string>{
  if(!refreshFlight){const started=epoch;
   const refresh=async()=>{
-   const current=await AsyncStorage.getItem(ACCESS);if(current&&current!==expiredToken)return current;
-   const refreshToken=await AsyncStorage.getItem(REFRESH);if(!refreshToken)throw new ApiError('انتهت الجلسة.',401);
-   const tokens=await raw('/auth/refresh',{method:'POST',body:JSON.stringify({refreshToken})});
+   const tokens=await sessionTransaction(readSessionTokens);
    if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
-   if(!tokens?.accessToken||!tokens?.refreshToken)throw new ApiError('استجابة الجلسة غير صالحة.');
-   await AsyncStorage.multiSet([[ACCESS,tokens.accessToken],[REFRESH,tokens.refreshToken]]);return tokens.accessToken as string;
+   if(tokens?.accessToken&&tokens.accessToken!==expiredToken)return tokens.accessToken;
+   if(!tokens?.refreshToken)throw new ApiError('انتهت الجلسة.',401);
+   const next=await raw('/auth/refresh',{method:'POST',body:JSON.stringify({refreshToken:tokens.refreshToken})});
+   if(!next?.accessToken||!next?.refreshToken)throw new ApiError('استجابة الجلسة غير صالحة.');
+   await sessionTransaction(async()=>{if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);await writeSessionTokens(next);});
+   return next.accessToken as string;
   };
-  const flight:Promise<string>=(async()=>{if(typeof navigator!=='undefined'&&navigator.locks)return await navigator.locks.request('dhahabi-user-refresh',refresh);return await refresh();})();
-  refreshFlight=flight.catch(async e=>{if(started===epoch&&e instanceof ApiError&&e.status===401)await clearSession();throw e;}).finally(()=>{refreshFlight=null;});
- }return refreshFlight!;
+  const run=async()=>typeof navigator!=='undefined'&&navigator.locks?
+   await navigator.locks.request('dhahabi-user-refresh',refresh):await refresh();
+  const flight=run().catch(async e=>{if(started===epoch&&e instanceof ApiError&&e.status===401)await clearSession();throw e;});
+  refreshFlight=flight;
+  void flight.finally(()=>{if(refreshFlight===flight)refreshFlight=null;}).catch(()=>{});
+ }return refreshFlight;
 }
-export async function api<T=any>(path:string,options:RequestInit={}):Promise<T>{
- const started=epoch,token=await AsyncStorage.getItem(ACCESS);
- try{const result=await raw(path,options,token||undefined);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
+async function requestSession<T=any>(path:string,options:RequestInit={},validation=false):Promise<T>{
+ if(locked&&!validation)throw new SessionLockedError();
+ const started=epoch,tokens=await sessionTransaction(readSessionTokens),token=tokens?.accessToken||null;
+ const check=()=>{if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);if(locked&&!validation)throw new SessionLockedError();};
+ check();
+ try{const result=await raw(path,options,token||undefined);check();return result;}
  catch(e){
   if(!(e instanceof ApiError)||e.status!==401||started!==epoch)throw e;
-  const current=await AsyncStorage.getItem(ACCESS),next=current&&current!==token?current:await refreshAccess(token);
-  try{const result=await raw(path,options,next);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
+  const next=await refreshAccess(token);check();
+  try{const result=await raw(path,options,next);check();return result;}
   catch(retry){if(retry instanceof ApiError&&retry.status===401&&started===epoch)await clearSession();throw retry;}
  }
+}
+export async function api<T=any>(path:string,options:RequestInit={}):Promise<T>{return requestSession<T>(path,options);}
+/** Only /auth/me is allowed while locked, following local verification; never a financial request. */
+export async function validateSession():Promise<VerifiedCachedUser>{
+ const me=await requestSession('/auth/me',{},true);
+ if(!me?.userId||!me?.email)throw new ApiError('استجابة هوية المستخدم غير صالحة.');
+ if(me.role!=='user')throw new ApiError('User app role mismatch',403);
+ return {id:me.userId,email:me.email,role:'user'};
 }
 export const jsonRequest=(method:string,data?:object):RequestInit=>({method,...(data?{body:JSON.stringify(data)}:{})});

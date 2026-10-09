@@ -1,4 +1,4 @@
-import {beforeEach,describe,it,expect,vi} from 'vitest';
+import {beforeEach,afterEach,describe,it,expect,vi} from 'vitest';
 import {webcrypto} from 'node:crypto';
 const storage=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({
@@ -16,6 +16,7 @@ beforeEach(()=>{
  vi.stubGlobal('location',{origin:'https://ibr7h.github.io',hostname:'ibr7h.github.io'});
  vi.stubGlobal('crypto',webcrypto);
 });
+afterEach(()=>vi.unstubAllGlobals());
 describe('User quick PIN: hashed, account-scoped, and rate-limited',()=>{
  it('accepts only exactly six ASCII digits and never persists the original code',async()=>{
   expect(PIN_LENGTH).toBe(6);
@@ -53,5 +54,23 @@ describe('User quick PIN: hashed, account-scoped, and rate-limited',()=>{
   const correct=await checkQuickPin('account','406195');
   expect(correct.ok).toBe(false);
   expect(correct.waitSeconds).toBeGreaterThan(0);
+ });
+ it('serializes parallel failures so overlapping attempts cannot lose retry counts',async()=>{
+  await setQuickPin('account','406195');
+  const attempts=await Promise.all(Array.from({length:7},()=>checkQuickPin('account','999999')));
+  expect(attempts.slice(0,4).map(a=>a.remaining)).toEqual([4,3,2,1]);
+  expect(attempts.slice(4).every(a=>!a.ok&&a.waitSeconds>0)).toBe(true);
+  expect((await checkQuickPin('account','406195')).ok).toBe(false);
+ });
+ it('keeps a damaged PIN record locked for password recovery instead of failing open',async()=>{
+  storage.set('dhahabi_user_quick_pin_v1','damaged');
+  expect(await hasQuickPin('account')).toBe(true);expect((await checkQuickPin('account','406195')).ok).toBe(false);
+ });
+ it('supports a released v1 hash and upgrades it after a successful check',async()=>{
+  const salt=new Uint8Array(16);webcrypto.getRandomValues(salt);
+  const key=await webcrypto.subtle.importKey('raw',new TextEncoder().encode('406195'),'PBKDF2',false,['deriveBits']);
+  const hash=await webcrypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:210000},key,256);
+  storage.set('dhahabi_user_quick_pin_v1',JSON.stringify({version:1,accountId:'account',origin:location.origin,salt:Buffer.from(salt).toString('hex'),hash:Buffer.from(hash).toString('hex'),failures:0,lockedUntil:0}));
+  expect((await checkQuickPin('account','406195')).ok).toBe(true);expect(JSON.parse(storage.get('dhahabi_user_quick_pin_v1')!).version).toBe(2);
  });
 });
