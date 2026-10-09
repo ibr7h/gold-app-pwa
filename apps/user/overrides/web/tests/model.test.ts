@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {totals,marketUnitPrice,purchasePerformance,purchasePayload,purchaseQuote,MarketPrice,Purchase} from '../model';
+import {totals,marketUnitPrice,purchasePerformance,purchasePayload,purchaseQuote,alertPayload,MarketPrice,Purchase} from '../model';
 
 const prices:MarketPrice[]=[
  {id:'sar24',source:'fixture',currency:'SAR',karat:24,buyPrice:'375',sellPrice:'375',timestamp:'2026-10-05T20:00:00Z',createdAt:'2026-10-05T20:00:01Z'},
@@ -103,5 +103,33 @@ describe('inclusive purchase totals and itemized VAT accounting',()=>{
   f.set('invoiceTotal','abc');expect(()=>purchasePayload(f)).toThrow();
   f.set('pricingMode','itemized');f.set('goldUnitPrice','300');f.set('vatMode','rate');
   expect(purchasePayload(f).invoiceDetails).toMatchObject({vatRate:0,vatAmount:0});
+ });
+});
+
+describe('edit and create User price alerts',()=>{
+ const entry=(values:Record<string,string>={})=>{
+  const form=new FormData();
+  Object.entries({currency:'SAR',karat:'21',targetPrice:'410.5000',direction:'above',...values})
+   .forEach(([key,value])=>form.set(key,value));
+  return form;
+ };
+ it('sends only editable price fields, not status or subscription data',()=>{
+  const payload=alertPayload(entry());
+  expect(payload).toEqual({currency:'SAR',karat:21,targetPrice:410.5,direction:'above'});
+  expect(payload).not.toHaveProperty('status');
+  expect(payload).not.toHaveProperty('endpoint');
+ });
+ it('supports changing price, direction, currency and karat',()=>{
+  expect(alertPayload(entry({targetPrice:'380.25',direction:'below',currency:'USD',karat:'18'})))
+   .toEqual({currency:'USD',karat:18,targetPrice:380.25,direction:'below'});
+ });
+ it.each(['','0','-10','Infinity','NaN','100000000'])('rejects invalid target price %s',targetPrice=>{
+  expect(()=>alertPayload(entry({targetPrice}))).toThrow();
+ });
+ it('rejects invalid conditions and gold properties',()=>{
+  expect(()=>alertPayload(entry({direction:'sideways'}))).toThrow();
+  expect(()=>alertPayload(entry({karat:'0'}))).toThrow();
+  expect(()=>alertPayload(entry({karat:'21.5'}))).toThrow();
+  expect(()=>alertPayload(entry({currency:'SAR/USD'}))).toThrow();
  });
 });
