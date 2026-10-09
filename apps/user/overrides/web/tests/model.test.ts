@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {totals,marketUnitPrice,purchasePerformance,purchasePayload,MarketPrice} from '../model';
+import {totals,marketUnitPrice,purchasePerformance,purchasePayload,MarketPrice,Purchase} from '../model';
 
 const prices:MarketPrice[]=[
  {id:'sar24',source:'fixture',currency:'SAR',karat:24,buyPrice:'375',sellPrice:'375',timestamp:'2026-10-05T20:00:00Z',createdAt:'2026-10-05T20:00:01Z'},
@@ -43,7 +43,7 @@ it('does not invent exchange rates for currencies without backend prices',()=>{
 });
 
 describe('expanded wallet purchase-by-purchase valuation',()=>{
- const purchase=(overrides:Record<string,string>={})=>({
+ const purchase=(overrides:Partial<Purchase>={}):Purchase=>({
   id:'purchase-1',portfolioId:'wallet-1',karat:24,weightGrams:'2',unitPrice:'300',
   totalPrice:'600',currency:'SAR',purchasedAt:'2026-10-01T10:00:00Z',...overrides
  });
@@ -54,11 +54,11 @@ describe('expanded wallet purchase-by-purchase valuation',()=>{
   expect(purchasePerformance(purchase({totalPrice:'800'}),prices)).toEqual({cost:800,value:750,difference:-50});
  });
  it('keeps each purchase in its own currency',()=>{
-  expect(purchasePerformance(purchase({karat:'18' as any,currency:'USD',weightGrams:'1',totalPrice:'60'}),prices))
+  expect(purchasePerformance(purchase({karat:18,currency:'USD',weightGrams:'1',totalPrice:'60'}),prices))
    .toEqual({cost:60,value:75,difference:15});
  });
  it('never substitutes a different karat, currency or a fabricated exchange rate',()=>{
-  expect(purchasePerformance(purchase({karat:'21' as any}),prices).value).toBeNull();
+  expect(purchasePerformance(purchase({karat:21}),prices).value).toBeNull();
   expect(purchasePerformance(purchase({currency:'EUR'}),prices).difference).toBeNull();
   expect(purchasePerformance(purchase(),[]).difference).toBeNull();
  });
