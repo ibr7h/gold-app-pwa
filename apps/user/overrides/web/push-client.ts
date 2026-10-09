@@ -70,7 +70,7 @@ export async function inspectPush():Promise<BrowserPushSnapshot>{
   lastTestAt:server?.lastTestAt||null,lastAcceptedAt:server?.lastAcceptedAt||null,
   lastFailureAt:server?.lastFailureAt||null,config,message};
 }
-export async function enablePush(config:PushConfig|null):Promise<void>{
+export async function enablePush(config:PushConfig|null,renew=false):Promise<void>{
  const {ios,standalone}=platform();
  if(ios&&!standalone)throw new Error('أضف ذهبي إلى الشاشة الرئيسية على iPhone أولًا، ثم افتحه من الأيقونة.');
  if(!browserSupport())throw new Error('هذا المتصفح لا يدعم إشعارات الويب المطلوبة.');
@@ -81,6 +81,7 @@ export async function enablePush(config:PushConfig|null):Promise<void>{
  const reg=await registration(true);
  if(!reg)throw new Error('تعذر تسجيل خدمة الإشعارات.');
  let sub=await reg.pushManager.getSubscription();
+ if(renew&&sub){await sub.unsubscribe();sub=null;}
  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertKey(config.publicKey)});
  const serial=sub.toJSON();
  if(!serial.endpoint||!serial.keys?.p256dh||!serial.keys?.auth)throw new Error('اشتراك المتصفح لا يحتوي بيانات مفاتيح كاملة.');
