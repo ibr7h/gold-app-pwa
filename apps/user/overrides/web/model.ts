@@ -47,6 +47,23 @@ export function purchasePerformance(purchase:Purchase,prices:MarketPrice[]){
  return {cost,value,difference:value-cost};
 }
 
+/** PATCH and POST accept the same four editable properties. Omit status on purpose:
+ * paused/triggered alerts must never be silently re-armed by editing. */
+export function alertPayload(data:FormData){
+ const currency=String(data.get('currency')||'').trim();
+ const karatRaw=String(data.get('karat')||'').trim();
+ const rawTarget=String(data.get('targetPrice')||'').trim();
+ const direction=String(data.get('direction')||'');
+ const karat=Number(karatRaw),targetPrice=Number(rawTarget);
+ if(!/^[A-Z]{3}$/.test(currency)||!karatRaw||!Number.isInteger(karat)||karat<1||karat>24)
+  throw new Error('تأكد من العملة وعيار الذهب.');
+ if(!rawTarget||!Number.isFinite(targetPrice)||targetPrice<=0||targetPrice>=100000000)
+  throw new Error('أدخل سعرًا موجبًا أقل من 100 مليون.');
+ if(direction!=='above'&&direction!=='below')
+  throw new Error('اختر شرط وصول السعر.');
+ return {currency,karat,targetPrice,direction};
+}
+
 export function localDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 export type PriceEntryMode='legacy'|'inclusive'|'itemized';
 const round4=(value:number)=>Number(value.toFixed(4));
