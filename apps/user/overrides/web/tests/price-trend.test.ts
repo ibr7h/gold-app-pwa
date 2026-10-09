@@ -48,4 +48,11 @@ describe('User real-time gold chart geometry',()=>{
   expect(trendPercent([data[0]])).toBeNull();
   expect(priceTrendDomain([])).toBeNull();
  });
+ it('filters a 30-day month without synthesizing missing daily prices',()=>{
+  const latest=Date.UTC(2026,9,9);
+  const points=priceTrendPoints([31,30,7,1,0].map(days=>({id:String(days),buyPrice:String(500+days),timestamp:new Date(latest-days*86400000).toISOString()})));
+  expect(priceTrendRange(points,'month').map(p=>p.id)).toEqual(['30','7','1','0']);
+  expect(priceTrendRange(points,'week').map(p=>p.id)).toEqual(['7','1','0']);
+  expect(priceTrendRange(points,'day').map(p=>p.id)).toEqual(['1','0']);
+ });
 });

@@ -1629,3 +1629,103 @@
  .dh-pin-keypad button{height:49px;min-height:49px}
  .dh-pin-security-note{margin-top:3px}
 }
+
+/* User home: approved October reference, with live API quotes and real holdings. */
+.gold-web.reference-home .home-topbar{min-height:68px;padding:12px 34px!important;justify-content:space-between;gap:12px}
+.gold-web .home-identity{display:flex;align-items:center;gap:10px;min-width:0}
+.gold-web .home-brand-emblem{width:36px;height:36px;display:grid;place-items:center;flex-shrink:0;border-radius:11px;background:linear-gradient(135deg,#D4AF37,#C5A021);color:#001F3F}
+.gold-web .home-brand-emblem svg{width:22px;height:22px}
+.gold-web .home-identity>div{min-width:0}
+.gold-web .home-identity p{color:#94A3B8;font-size:11px;line-height:1.5}
+.gold-web .home-identity h1{display:flex;align-items:center;gap:5px;font-size:16px!important;line-height:1.45;font-weight:800}
+.gold-web .home-identity h1>span:first-child{max-width:min(45vw,280px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gold-web .home-head-actions{flex-direction:row;gap:0;flex-shrink:0}
+.gold-web .home-head-actions .icon-button{width:42px;min-height:44px;color:#D4AF37!important}
+.gold-web .home-head-actions .notification-dot{top:9px;left:9px}
+.gold-web .home-menu-button{display:none}
+.gold-web.reference-home .workspace-content{padding-top:20px!important}
+.gold-web.reference-home .approved-card{background:#FFFFFF!important;border-radius:13px!important;box-shadow:0 8px 24px rgba(0,0,0,.08)!important;padding:18px!important;margin-bottom:16px}
+.gold-web.reference-home .approved-card.live-price-card{color:#132238!important;background:#FFFFFF!important;border:1px solid #E2E8F0!important;border-radius:13px!important;padding:18px!important;min-height:190px}
+.gold-web.reference-home .live-card-top{margin-bottom:18px;gap:10px}
+.gold-web.reference-home .live-card-top>strong{color:#C5A021!important;font-size:14px}
+.gold-web.reference-home .live-badge{color:#16A34A;border-color:#A7E8BE;background:#E7F9ED;font-size:12px;padding:3px 10px}
+.gold-web.reference-home .live-price-main{flex-direction:row!important;align-items:flex-end!important;gap:10px!important;margin-bottom:17px}
+.gold-web.reference-home .home-quote{min-width:0}
+.gold-web.reference-home .price-tag-large{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px;font-size:30px!important;color:#D4AF37!important;line-height:1.3;overflow-wrap:normal}
+.gold-web.reference-home .price-tag-large small{font-size:13px;color:#64748B!important;margin:0;white-space:nowrap}
+.gold-web.reference-home .dh-money-fraction{font-size:1em;color:inherit!important;font-weight:inherit}
+.gold-web.reference-home .price-tag-large .dh-money-currency{font-size:.52em!important;color:#64748B!important}
+.gold-web.reference-home .home-market-change{display:flex;align-items:center;gap:4px;margin:6px 0 0;font-size:11px;font-weight:700;flex-wrap:wrap;line-height:1.6}
+.gold-web.reference-home .home-market-change svg{width:15px;height:15px}
+.gold-web.reference-home .home-market-change.positive,.gold-web.reference-home .portfolio-delta.positive{color:#16A34A}
+.gold-web.reference-home .home-market-change.negative,.gold-web.reference-home .portfolio-delta.negative{color:#DC2626}
+.gold-web.reference-home .home-market-change.neutral{color:#64748B;font-weight:400}
+.gold-web.reference-home .home-market-change .dh-money-currency{color:inherit!important;font-size:.8em!important}
+.gold-web.reference-home .buy-sell-mini{display:grid!important;grid-template-columns:1fr!important;gap:2px!important;text-align:left!important;color:#64748B!important;font-size:10px;min-width:0;flex-shrink:0;line-height:1.6}
+.gold-web.reference-home .buy-sell-mini b{font-weight:400;color:#64748B!important}
+.gold-web.reference-home .buy-sell-mini .dh-money-currency{font-size:.85em!important;color:inherit!important}
+.gold-web.reference-home .live-card-footer{color:#64748B!important;border-top-color:#E2E8F0!important;flex-wrap:wrap;align-items:center;font-size:10px;padding-top:10px;gap:4px 12px}
+.gold-web.reference-home .home-price-refresh{font:inherit;color:inherit;min-height:24px;padding:0;background:transparent;text-align:left}
+.gold-web.reference-home .approved-section-title{margin:0 auto 10px}
+.gold-web.reference-home .approved-section-title h3{font-size:16px;font-weight:800;margin:0}
+.gold-web.reference-home .approved-services-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin-bottom:20px}
+.gold-web.reference-home .approved-service-item{min-height:100px!important;gap:8px;padding:12px 4px!important;border-radius:13px!important;background:#FFFFFF!important;font-size:11px;font-weight:500}
+.gold-web.reference-home .approved-service-icon{width:44px!important;height:44px!important;border:0!important;border-radius:9px!important;background:#F8F3E3!important;color:#D4AF37!important}
+.gold-web.reference-home .approved-service-icon svg{width:27px;height:27px;stroke-width:2.2}
+.gold-web.reference-home .portfolio-mini .approved-card-title{padding:0;margin:0 0 4px;border:0;color:#132238!important;font-size:14px}
+.gold-web.reference-home .portfolio-mini .approved-card-title svg{width:18px;height:18px;color:#D4AF37}
+.gold-web.reference-home .portfolio-mini .text-button{min-height:32px;padding:0;color:#C5A021;font-size:12px}
+.gold-web.reference-home .portfolio-mini-body{flex-direction:row!important;align-items:center!important;gap:10px}
+.gold-web.reference-home .portfolio-mini-body>div:first-child{min-width:0;gap:2px}
+.gold-web.reference-home .portfolio-mini-body>div:first-child>strong{font-size:23px;line-height:1.4;color:#D4AF37}
+.gold-web.reference-home .portfolio-mini-body>div:first-child>span{font-size:11px;color:#64748B}
+.gold-web.reference-home .portfolio-mini .dh-money-currency{color:#64748B!important;font-size:.65em!important}
+.gold-web.reference-home .portfolio-delta{padding:7px 8px;flex-shrink:0;border-radius:8px}
+.gold-web.reference-home .portfolio-delta b{display:flex;align-items:center;gap:2px;direction:ltr;font-size:11px}
+.gold-web.reference-home .portfolio-delta .dh-money-currency{color:inherit!important;font-size:.8em!important}
+.gold-web.reference-home .portfolio-delta small{font-size:10px}
+.gold-web.reference-home .home-currency-note{font-size:10px;color:#64748B;margin-top:8px}
+.gold-web .dh-price-trend.compact{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center}
+.gold-web .dh-price-trend.compact .home-chart-title{font-size:14px;color:#C5A021!important;margin:0;line-height:1.5}
+.gold-web .dh-price-trend.compact .dh-trend-controls{direction:rtl;flex-wrap:nowrap;gap:0;padding:0;border:0;border-radius:6px;background:#F1F5F9;max-width:100%;width:max-content}
+.gold-web .dh-price-trend.compact .dh-trend-controls button{font-size:10px;min-width:34px;min-height:27px;padding:4px 8px;border-radius:5px;font-weight:500}
+.gold-web .dh-price-trend.compact .dh-trend-controls button.selected{background:#D4AF37;color:#001F3F;box-shadow:none;font-weight:700}
+.gold-web .dh-price-trend.compact .dh-trend-plot{height:156px;grid-column:1/-1;border-radius:0;background:#FFFFFF}
+.gold-web .dh-price-trend.compact .dh-trend-line{stroke:#D4AF37;stroke-width:2.5}
+.gold-web .dh-price-trend.compact .dh-trend-point{fill:#D4AF37;stroke:#001F3F;stroke-width:1.3}
+.gold-web .dh-price-trend.compact .dh-trend-x{font-size:10px;font-weight:400}
+.gold-web .dh-price-trend.compact .dh-trend-empty{grid-column:1/-1;min-height:156px;padding:20px 10px}
+.gold-web .dh-price-trend.compact .dh-trend-empty strong{font-size:12px}
+.gold-web .dh-price-trend.compact .dh-trend-empty span{font-size:10px}
+.gold-web .dh-price-trend.compact .dh-trend-footnote{grid-column:1/-1;font-size:9px;line-height:1.5;color:#64748B}
+.gold-web .home-chart-selection{grid-column:1/-1;font-size:11px;color:#64748B}
+@media(min-width:801px){
+ .gold-web.reference-home .workspace-content>*{max-width:880px}
+ .gold-web.reference-home .home-topbar{padding-inline:34px!important}
+ .gold-web.reference-home .approved-services-grid{gap:16px!important}
+ .gold-web.reference-home .approved-service-item{min-height:108px!important;font-size:13px}
+ .gold-web.reference-home .price-tag-large{font-size:36px!important}
+ .gold-web.reference-home .buy-sell-mini{font-size:12px}
+ .gold-web.reference-home .dh-price-trend.compact .dh-trend-plot{height:220px}
+}
+@media(max-width:800px){
+ .gold-web .home-menu-button{display:inline-flex}
+ .gold-web.reference-home .home-topbar{padding:12px max(14px,env(safe-area-inset-right)) 12px max(14px,env(safe-area-inset-left))!important}
+ .gold-web.reference-home .workspace-content{padding:20px max(18px,env(safe-area-inset-right)) 20px max(18px,env(safe-area-inset-left))!important}
+ .gold-web.workspace .mobile-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))!important;background:#001F3F!important;border-top:1px solid rgba(148,163,184,.2)!important;gap:6px!important;padding:7px 12px max(9px,env(safe-area-inset-bottom))!important;max-height:none!important}
+ .gold-web.workspace .mobile-tab{min-height:48px!important;max-height:none!important;color:#94A3B8!important;font-size:10px!important;background:transparent!important;border-radius:0!important;padding:4px 2px!important;gap:3px!important}
+ .gold-web.workspace .mobile-tab svg{width:24px!important;height:24px!important}
+ .gold-web.workspace .mobile-tab.selected{color:#D4AF37!important;background:transparent!important}
+ .gold-web.workspace .mobile-tab.selected:first-child svg{fill:#D4AF37;stroke:#D4AF37}
+}
+@media(max-width:370px){
+ .gold-web.reference-home .workspace-content{padding-inline:12px!important}
+ .gold-web.reference-home .approved-services-grid{gap:7px!important}
+ .gold-web.reference-home .approved-service-item{font-size:10px;min-height:94px!important}
+ .gold-web.reference-home .price-tag-large{font-size:25px!important}
+ .gold-web.reference-home .buy-sell-mini{font-size:9px}
+ .gold-web.reference-home .live-card-top>strong{font-size:12px}
+ .gold-web .dh-price-trend.compact{gap:8px}
+ .gold-web .dh-price-trend.compact .home-chart-title{font-size:12px}
+ .gold-web.reference-home .portfolio-mini-body>div:first-child>strong{font-size:20px}
+}
