@@ -1,4 +1,4 @@
-name: Diagnose Render User iPhone preview HTTP
+name: Verify live iPhone preview after Render fix
 on:
   push:
     branches: ["feat/user-iphone-stable-viewport-20261009"]
@@ -7,29 +7,21 @@ on:
 permissions:
   contents: read
 jobs:
-  inspect:
+  verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 7
+    timeout-minutes: 6
     steps:
-      - name: Check Render preview public headers and asset resolution
+      - name: Check Safari manifest and app entrypoint on public Render site
         shell: bash
         run: |
-          set -uo pipefail
-          host="https://dhahabi-user-iphone-preview.onrender.com"
-          paths=(
-            "/"
-            "/gold-app-pwa/full/"
-            "/gold-app-pwa/full/index.html"
-            "/gold-app-pwa/full/manifest.webmanifest"
-            "/gold-app-pwa/full/version.json"
-            "/gold-app-pwa/full/_expo/static/js/web/entry-254699eb6918ae4fd93a7916bffc51eb.js"
-            "/gold-app-pwa/full/_expo/static/css/iphone-aab660a0b11b13aa239162ee04cf996a.css"
-          )
-          for path in "${paths[@]}"; do
-            echo "::group::GET $path"
-            curl -sSL --max-time 20 -o /tmp/body -D /tmp/headers -w "status=%{http_code} bytes=%{size_download} content_type=%{content_type} final_url=%{url_effective}\n" "$host$path" || true
-            grep -iE '^HTTP/|^content-type:|^content-disposition:|^location:|^content-length:|^x-|^cache-control:' /tmp/headers || true
-            head -c 180 /tmp/body | sed 's/[[:cntrl:]]/ /g'
-            echo
-            echo "::endgroup::"
-          done
+          set -euo pipefail
+          origin=https://dhahabi-user-iphone-preview.onrender.com
+          base=$origin/gold-app-pwa/full
+          curl -fsSL --max-time 30 -D /tmp/manifest-headers -o /tmp/manifest "$base/manifest.json?check=${GITHUB_SHA:0:8}"
+          cat /tmp/manifest-headers | grep -iE '^HTTP/|^content-type:'
+          grep -Eiq '^content-type: application/json' /tmp/manifest-headers
+          python3 -m json.tool /tmp/manifest >/dev/null
+          curl -fsSL --max-time 30 -o /tmp/page "$base/?check=${GITHUB_SHA:0:8}"
+          grep -Fq '/gold-app-pwa/full/manifest.json' /tmp/page
+          grep -Fq '/gold-app-pwa/full/_expo/static/js/web/' /tmp/page
+          printf 'PASS: Render returned JSON PWA manifest and web entrypoint HTML\n'
