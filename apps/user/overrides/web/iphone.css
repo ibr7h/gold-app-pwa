@@ -1,0 +1,148 @@
+/* Gold App User — iPhone-specific shell.
+   Imported after user.css; never changes desktop, Trader, or Admin.
+   Keep intentional pinch-to-zoom for accessibility; prevent input-focus auto zoom. */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 800px) and (pointer: coarse) {
+    .gold-web.workspace {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100dvh !important;
+      max-height: 100dvh !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      overscroll-behavior: none;
+    }
+    .gold-web.workspace .workspace-main {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 1 0% !important;
+      min-height: 0 !important;
+      min-width: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+    }
+    .gold-web.workspace .topbar {
+      flex: 0 0 auto !important;
+    }
+    .gold-web.workspace .workspace-content {
+      flex: 1 1 0% !important;
+      min-height: 0 !important;
+      height: auto !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: auto;
+    }
+    .gold-web.workspace nav.mobile-bottom-nav {
+      display: grid !important;
+      position: relative !important;
+      inset: auto !important;
+      z-index: 30 !important;
+      flex: 0 0 auto !important;
+      align-self: stretch !important;
+      width: 100% !important;
+      height: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+      min-height: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+      max-height: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+      grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+      align-items: start !important;
+      overflow: hidden !important;
+      padding: 4px 10px calc(4px + env(safe-area-inset-bottom, 0px)) !important;
+      touch-action: manipulation;
+    }
+    .gold-web.workspace nav.mobile-bottom-nav .mobile-tab {
+      min-width: 0 !important;
+      min-height: 49px !important;
+      height: 49px !important;
+      max-height: 49px !important;
+      overflow: hidden;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .gold-web.workspace .workspace-content,
+    .gold-web.workspace .topbar,
+    .gold-web.workspace nav.mobile-bottom-nav {
+      transform: none;
+    }
+    /* iOS Safari zooms form fields whose computed font is below 16px. */
+    .gold-web input,
+    .gold-web select,
+    .gold-web textarea,
+    .gold-auth input,
+    .gold-auth select,
+    .gold-auth textarea,
+    .dh-pin-setup input {
+      font-size: 16px !important;
+    }
+    .gold-web button,
+    .gold-auth button,
+    .dh-quick-lock button,
+    .dh-pin-setup button {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .gold-web.workspace .dialog-backdrop,
+    .gold-web.workspace .mobile-nav-backdrop,
+    .dh-pin-setup-backdrop {
+      max-height: 100dvh;
+      overscroll-behavior: contain;
+    }
+    .gold-web.workspace .dialog {
+      max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
+      -webkit-overflow-scrolling: touch;
+    }
+    .dh-quick-lock {
+      height: 100dvh;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+      padding: max(10px, env(safe-area-inset-top, 0px)) 16px
+               max(10px, env(safe-area-inset-bottom, 0px));
+    }
+    .dh-quick-lock-inner {
+      gap: clamp(4px, 1dvh, 10px);
+    }
+    .dh-pin-identity {
+      margin-top: 2px;
+      gap: 3px;
+    }
+    .dh-pin-identity p {
+      margin-top: 2px;
+    }
+    .dh-pin-dots {
+      margin: 5px 0 0;
+    }
+    .dh-pin-forgot {
+      margin-top: 0;
+    }
+    .dh-pin-keypad {
+      gap: clamp(2px, .6dvh, 7px) 14px;
+      width: min(100%, 330px);
+      margin-top: 0;
+    }
+    .dh-pin-keypad button {
+      height: clamp(48px, 6.8dvh, 58px);
+      min-height: 48px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .dh-pin-security-note {
+      margin-top: 1px;
+    }
+    .dh-pin-setup {
+      max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px);
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  @media (max-width: 800px) and (pointer: coarse) and (max-height: 720px) {
+    .dh-pin-brand img { width: 54px; height: 54px; border-radius: 16px; }
+    .dh-pin-avatar { width: 44px; height: 44px; font-size: 19px; }
+    .dh-pin-identity small { font-size: 12px; margin-top: 0; }
+    .dh-pin-dots span { width: 11px; height: 11px; }
+    .dh-pin-keypad button { height: 48px; min-height: 48px; }
+  }
+}
