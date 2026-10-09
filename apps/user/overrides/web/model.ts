@@ -78,7 +78,7 @@ export function purchasePayload(data:FormData){
  const portfolioId=String(data.get('portfolioId')||''),karat=Number(data.get('karat')),weightGrams=Number(data.get('weightGrams')),currency=String(data.get('currency')),date=String(data.get('purchasedAt'));
  if(!portfolioId||!Number.isInteger(karat)||karat<1||karat>24||!/^[A-Z]{3}$/.test(currency)||
  !Number.isFinite(weightGrams)||weightGrams<=0||weightGrams>=100000000||
- !/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||Number.isNaN(Date.parse(date))||
+ !/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date))||
  new Date(date+'T12:00:00Z').toISOString().slice(0,10)!==date||date>localDate())
   throw new Error('تحقق من المحفظة والعيار ووزن الذهب الصافي والتاريخ والعملة.');
  const mode=String(data.get('pricingMode')||'legacy') as PriceEntryMode;
