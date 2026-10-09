@@ -1,3 +1,4 @@
+import {formatTwo} from './price-display';
 import React,{useMemo,useState} from 'react';
 import {Portfolio,Purchase,KARATS,CURRENCIES,localDate,purchaseQuote} from './model';
 
@@ -22,7 +23,7 @@ export default function PurchaseFormFields({portfolios,purchase}:{portfolios:Por
   makingCharge:n(makingCharge),stonePrice:n(stonePrice),vatRate:n(vatRate),vatAmount:n(vatAmount),manualVat:vatMode==='manual'}),
   [mode,weight,invoiceTotal,goldUnitPrice,makingCharge,stonePrice,vatRate,vatAmount,vatMode]);
  const stoneRatio=n(grossWeight)>0?(n(stoneWeight)/n(grossWeight))*100:0;
- const num=(value:number|null|undefined)=>value===null||value===undefined?'غير محدد':new Intl.NumberFormat('ar-SA',{maximumFractionDigits:4}).format(value);
+ const num=(value:number|null|undefined)=>value===null||value===undefined?'غير محدد':formatTwo(value);
  const [sellerName,setSellerName]=useState(text(details.sellerName));
  const [invoiceNumber,setInvoiceNumber]=useState(text(details.invoiceNumber));
  const [desc,setDesc]=useState(text(details.itemDescription));
