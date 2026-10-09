@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import React from 'react';
-import {renderToStaticMarkup} from 'react-dom/server';
+const {renderToStaticMarkup}=require('react-dom/server') as {renderToStaticMarkup:(node:React.ReactElement)=>string};
 import {Money,currencySymbol,formatTwo,formattedMoney} from '../price-display';
 
 describe('User money display — two decimal places and original currency symbols',()=>{
