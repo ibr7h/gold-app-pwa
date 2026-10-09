@@ -4,6 +4,7 @@ import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerif
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {hasSessionVault,hasBiometricVault,hasOpenVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,type PinResult} from '../web/quick-pin';
+import {beginRegistration,resendRegistration,type RegistrationChallenge} from '../web/registration';
 export type UserRole = 'user' | 'admin' | 'trader';
 export type BiometricType = 'face' | 'fingerprint' | 'none';
 export type ResetStep = 'email' | 'code' | 'newPassword' | 'success';
@@ -50,7 +51,9 @@ interface AuthContextType {
   registerStep: RegisterStep;
   registerEmail: string;
   registerCode: string;
-  startRegistration: (name: string, email: string, password: string) => Promise<boolean>;
+  startRegistration: (name: string, email: string, password: string, phone?:string) => Promise<boolean>;
+  registrationExpiresAt:number;
+  registrationResendAt:number;
   verifyRegistration: (code: string) => Promise<boolean>;
   resendRegisterCode: () => Promise<boolean>;
   cancelRegistration: () => void;
@@ -72,6 +75,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const latestUser=useRef<User|null>(null),quickLockState=useRef(false),biometricLockState=useRef(false);
  latestUser.current=user;quickLockState.current=quickPinEnabled;biometricLockState.current=biometricEnabled;
  const enrollment=useRef<LocalCredential|null>(null);
+ const [registration,setRegistration]=useState<RegistrationChallenge|null>(null);
  const begin=()=>{request.current?.abort();request.current=new AbortController();return ++version.current;};
  const current=(attempt:number)=>{if(attempt!==version.current)throw new Error('تغيرت الجلسة. أعد المحاولة.');};
  const loadMe=async(attempt=version.current)=>{
@@ -92,7 +96,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  };
  useEffect(()=>{let active=true;const boot=version.current;
   const unsubscribe=onSessionEnded(()=>{
-   begin();enrollment.current=null;setLockedAccount(null);setQuickPinEnabled(false);
+   begin();setRegistration(null);enrollment.current=null;setLockedAccount(null);setQuickPinEnabled(false);
    setBiometricEnabled(false);setBiometricEnrolled(false);setUser(null);setLoading(false);
   });
   const onStorage=(event:StorageEvent)=>{
@@ -122,7 +126,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   finally{if(active&&version.current===boot)setLoading(false);}})();
   return()=>{active=false;unsubscribe();request.current?.abort();window.removeEventListener('storage',onStorage);};
  },[]);
- const passwordSession=async(path:'/auth/login'|'/auth/register',data:object)=>{
+ const passwordSession=async(path:'/auth/login'|'/auth/register/verify',data:object)=>{
   const attempt=begin();setLoading(true);setError(null);
   try{
    await authenticate(path,data);current(attempt);const me=await loadMe(attempt);
@@ -134,9 +138,24 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   finally{if(attempt===version.current)setLoading(false);}
  };
  const login=(email:string,password:string)=>passwordSession('/auth/login',{email:email.trim(),password});
- const startRegistration=async(name:string,email:string,password:string)=>{
-  try{await passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim()||undefined});return true;}catch{return false;}
+ const startRegistration=async(name:string,email:string,password:string,phone?:string)=>{
+  const attempt=begin();setLoading(true);setError(null);
+  try{const next=await beginRegistration(name,email,password,phone);current(attempt);setRegistration(next);return true;}
+  catch(e){if(attempt===version.current)setError(errorMessage(e));return false;}
+  finally{if(attempt===version.current)setLoading(false);}
  };
+ const verifyRegistration=async(code:string)=>{
+  if(!registration)return false;
+  try{await passwordSession('/auth/register/verify',{registrationId:registration.registrationId,code});setRegistration(null);return true;}catch{return false;}
+ };
+ const resendRegisterCode=async()=>{
+  if(!registration)return false;
+  const attempt=begin();setLoading(true);setError(null);
+  try{const next=await resendRegistration(registration.registrationId);current(attempt);setRegistration(next);return true;}
+  catch(e){if(attempt===version.current)setError(errorMessage(e));return false;}
+  finally{if(attempt===version.current)setLoading(false);}
+ };
+ const cancelRegistration=()=>{begin();setRegistration(null);setError(null);setLoading(false);void clearSession(false);};
  const enableBiometric=async()=>{
   if(!user?.id||user.role!=='user')throw new Error('سجّل الدخول أولًا قبل تفعيل بصمة الجهاز.');
   const attempt=begin(),accountId=String(user.id),tokens=activeSessionTokens();
@@ -220,7 +239,9 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const value:AuthContextType={user,lockedAccount,quickPinEnabled,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,clearError:()=>setError(null),
  biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
  resetStep:'email',resetEmail:'',resetCode:'',sendResetCode:unsupported,verifyResetCode:unsupported,resetPassword:unsupported,resendResetCode:unsupported,cancelReset:()=>{},
- registerStep:'form',registerEmail:'',registerCode:'',startRegistration,verifyRegistration:unsupported,resendRegisterCode:unsupported,cancelRegistration:()=>{},updateName:unsupported,changePassword:unsupported};
+ registerStep:registration?'verify':'form',registerEmail:registration?.email||'',registerCode:'',
+ registrationExpiresAt:registration?.expiresAt||0,registrationResendAt:registration?.resendAt||0,
+ startRegistration,verifyRegistration,resendRegisterCode,cancelRegistration,updateName:unsupported,changePassword:unsupported};
  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 export function useAuth(){const ctx=useContext(AuthContext);if(!ctx)throw new Error('AuthProvider required');return ctx;}

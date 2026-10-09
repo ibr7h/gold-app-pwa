@@ -1729,3 +1729,15 @@
  .gold-web .dh-price-trend.compact .home-chart-title{font-size:12px}
  .gold-web.reference-home .portfolio-mini-body>div:first-child>strong{font-size:20px}
 }
+
+/* User registration: required phone and server-authorized email confirmation. */
+.gold-auth .registration-phone-hint{font-size:11px;color:#64748B;line-height:1.7;font-weight:400}
+.gold-auth .registration-verification h2{font-size:20px;color:#001F3F;text-align:center;margin:0 0 12px}
+.gold-auth .registration-verification>p{font-size:13px;color:#64748B;text-align:center;margin:0 0 8px;line-height:1.8}
+.gold-auth .registration-verification .registration-email{font-weight:700;color:#001F3F;overflow-wrap:anywhere;margin-bottom:20px}
+.gold-auth .registration-verification .registration-code-input{font-size:26px!important;text-align:center!important;letter-spacing:8px;padding:12px!important;font-variant-numeric:tabular-nums;min-height:58px;background:#fff!important;color:#001F3F!important;border:1px solid #CBD5E1!important;border-radius:11px}
+.gold-auth .registration-verification .registration-code-input::placeholder{color:#748092;opacity:1}
+.gold-auth .registration-verification .registration-hint{font-size:11px;margin-bottom:16px}
+.gold-auth .registration-verification .registration-timer{font-size:12px;color:#8B6B00}
+.gold-auth .registration-resend,.gold-auth .registration-back{display:block;width:100%;min-height:44px;background:transparent;color:#8B6B00;font-size:13px;margin-top:8px;border-radius:8px}
+.gold-auth .registration-back{color:#64748B;font-size:12px;margin-top:0}

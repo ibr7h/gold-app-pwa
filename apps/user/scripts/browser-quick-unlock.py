@@ -8,10 +8,12 @@ import re
 import time
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright, expect
+from local_registration import register_local
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--site', default='http://127.0.0.1:8082/gold-app-pwa/full/')
-parser.add_argument('--api', default='http://127.0.0.1:3000')
+parser.add_argument('--api', default='http://127.0.0.1:3001')
+parser.add_argument('--mailbox', default='/workspace/.onboarding/registration-mailbox.json')
 args = parser.parse_args()
 for url in (args.site, args.api):
     assert urlparse(url).hostname in ('127.0.0.1', 'localhost'), 'Use disposable local services only'
@@ -21,9 +23,7 @@ with sync_playwright() as p:
     context = browser.new_context(viewport={'width': 390, 'height': 844}, service_workers='block')
     email = f'quick_unlock_{time.time_ns()}@example.test'
     password = 'Disposable-QuickUnlock-48!'
-    registered = context.request.post(args.api + '/auth/register', data={'email': email, 'password': password})
-    assert registered.status == 201
-    tokens = registered.json()
+    tokens = register_local(context.request, args.api, email, password, args.mailbox)
     page = context.new_page()
     errors = []
     observed = {}
