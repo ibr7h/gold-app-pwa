@@ -2,7 +2,7 @@ import React,{useState,useEffect,useRef,useCallback} from 'react';
 import {useAuth} from '../contexts/AuthContext';
 import AuthForm from './AuthForm';
 import {api,jsonRequest,errorMessage} from './api';
-import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePayload,localDate} from './model';
+import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePerformance,purchasePayload,localDate} from './model';
 import {priceFreshness} from './price-status';
 import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
@@ -75,7 +75,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const {biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric}=useAuth() as ReturnType<typeof useAuth> & {lockWithBiometric:()=>Promise<boolean>};
  const [biometricNotice,setBiometricNotice]=useState('');
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
- const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false);
+ const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
  const [priceCurrency,setPriceCurrency]=useState('SAR');
  const [history,setHistory]=useState<PriceHistoryRow[]>([]),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
@@ -209,7 +209,57 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='portfolio')return <>
    <section className="approved-card portfolio-summary-card"><div><span>إجمالي الوزن المسجل</span><strong>{number(totalWeight)} جرام</strong></div><button className="primary" disabled={busy||!loaded} onClick={()=>openDialog('portfolio')}><Icon name="plus"/>محفظة جديدة</button></section>
-   <section className="approved-card"><div className="approved-card-title"><span>محافظك</span><button className="text-button" disabled={busy||!loaded||!portfolios.length} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}>{portfolios.length?'تسجيل شراء':'إنشاء محفظة'}</button></div>{!loaded?<Empty>لم يتم تحميل المحافظ بعد.</Empty>:!portfolios.length?<Empty>لا توجد محافظ بعد. أنشئ محفظتك الأولى.</Empty>:<div className="approved-portfolio-list">{portfolios.map(p=>{const rows=purchases.filter(b=>b.portfolioId===p.id);const sums=totals(rows,allMarketRows);return <article key={p.id}><span className="approved-service-icon"><Icon name="wallet"/></span><div className="portfolio-list-copy"><h3>{p.name}</h3><p>{rows.length} سجلات شراء</p>{sums.map(x=><small key={x.currency}>{x.currency}: {money(x.value,x.currency)}</small>)}</div><button className="text-button" disabled={busy||rows.length>0} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/'+p.id,label:p.name});}}>حذف</button></article>;})}</div>}</section>
+   <section className="approved-card">
+    <div className="approved-card-title"><span>محافظك</span><button className="text-button" disabled={busy||!loaded||!portfolios.length} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}>{portfolios.length?'تسجيل شراء':'إنشاء محفظة'}</button></div>
+    {!loaded?<Empty>لم يتم تحميل المحافظ بعد.</Empty>:!portfolios.length?<Empty>لا توجد محافظ بعد. أنشئ محفظتك الأولى.</Empty>:
+    <div className="approved-portfolio-list">{portfolios.map((portfolio,index)=>{
+     const rows=purchases.filter(p=>p.portfolioId===portfolio.id);
+     const summary=totals(rows,allMarketRows);
+     const expanded=expandedPortfolioId===portfolio.id;
+     const detailsId='portfolio-purchases-'+index;
+     return <article className={'portfolio-entry '+(expanded?'is-expanded':'')} key={portfolio.id}>
+      <div className="portfolio-entry-header">
+       <button type="button" className="portfolio-expand-trigger" aria-expanded={expanded} aria-controls={detailsId}
+        onClick={()=>setExpandedPortfolioId(expanded?null:portfolio.id)}>
+        <span className="approved-service-icon"><Icon name="wallet"/></span>
+        <span className="portfolio-list-copy">
+         <strong className="portfolio-name">{portfolio.name}</strong>
+         <span className="portfolio-subtitle">{rows.length} سجلات شراء</span>
+         {summary.map(item=><span className="portfolio-currency-value" key={item.currency}>
+          {item.currency}: {money(item.value,item.currency)}
+          {item.value!==null&&<small className={item.value-item.cost>=0?'delta-positive':'delta-negative'}>
+           {' · الفرق: '}{item.value-item.cost>0?'+':''}{money(item.value-item.cost,item.currency)}
+          </small>}
+         </span>)}
+        </span>
+        <span className={'portfolio-chevron '+(expanded?'rotated':'')} aria-hidden="true"><Icon name="chevron"/></span>
+       </button>
+       <button type="button" className="text-button portfolio-delete" disabled={busy||rows.length>0}
+        onClick={()=>{setFormError('');setConfirm({path:'/portfolio/'+portfolio.id,label:portfolio.name});}}>حذف</button>
+      </div>
+      {expanded&&<div className="portfolio-purchases" id={detailsId} aria-label={'محتويات محفظة '+portfolio.name}>
+       <p className="portfolio-purchases-caption">القيمة تقديرية بحسب آخر سعر متاح للعيار والعملة. الفرق لا يشمل المصنعية أو الضريبة أو تكلفة البيع.</p>
+       {!rows.length?<p className="portfolio-empty">لا توجد مشتريات في هذه المحفظة حتى الآن.</p>:
+       <div className="portfolio-purchases-list">{rows.map(purchase=>{
+        const position=purchasePerformance(purchase,allMarketRows);
+        return <div className="portfolio-purchase-row" key={purchase.id}>
+         <div className="portfolio-purchase-identity"><strong>ذهب عيار {purchase.karat}</strong>
+          <span>{number(Number(purchase.weightGrams))} جرام · {purchase.purchasedAt.slice(0,10)}</span>
+         </div>
+         <dl className="portfolio-purchase-metrics">
+          <div><dt>تكلفة الشراء</dt><dd>{money(position.cost,purchase.currency)}</dd></div>
+          <div><dt>القيمة الحالية التقديرية</dt><dd>{money(position.value,purchase.currency)}</dd></div>
+         </dl>
+         <div className={'portfolio-purchase-difference '+(position.difference===null?'delta-unavailable':position.difference>=0?'delta-positive':'delta-negative')}>
+          <span>الفرق عن تكلفة الشراء</span>
+          <strong>{position.difference===null?'غير متاح':(position.difference>0?'+':'')+money(position.difference,purchase.currency)}</strong>
+         </div>
+        </div>;
+       })}</div>}
+      </div>}
+     </article>;
+    })}</div>}
+   </section>
   </>;
 
   if(page==='purchases')return <section className="approved-card"><div className="approved-card-title"><span>سجل المشتريات</span><button className="primary compact-primary" disabled={busy||!loaded} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}><Icon name="plus"/>{portfolios.length?'تسجيل شراء':'إنشاء محفظة'}</button></div>{!loaded?<Empty>لم يتم تحميل المشتريات بعد.</Empty>:!purchases.length?<Empty>لا توجد مشتريات مسجلة.</Empty>:<div className="records">{purchases.map(p=><article className="record" key={p.id}><div className="record-title"><span className="card-icon"><Icon name="receipt"/></span><div><h3>ذهب عيار {p.karat}</h3><p className="approved-muted">{portfolios.find(x=>x.id===p.portfolioId)?.name||'محفظة'} · {p.purchasedAt.slice(0,10)}</p></div><strong className="record-total">{money(Number(p.totalPrice),p.currency)}</strong></div><dl className="record-details"><div><dt>الوزن</dt><dd>{number(Number(p.weightGrams))} جم</dd></div><div><dt>سعر الجرام</dt><dd>{money(Number(p.unitPrice),p.currency)}</dd></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>openDialog('purchase',p)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/purchase/'+p.id,label:'سجل الشراء'});}}>حذف</button></div></dl></article>)}</div>}</section>;
@@ -252,8 +302,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  };
  return <div className="gold-web workspace" dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main"><header className="topbar"><button className="icon-button menu-trigger" aria-label={page==='home'?'فتح التنبيهات':'العودة للرئيسية'} onClick={()=>page==='home'?navigate('alerts'):navigate('home')}><Icon name={page==='home'?'bell':'chevron'}/>{page==='home'&&alerts.some(a=>a.status==='active')&&<i className="notification-dot"/>}</button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{(page==='home'||page==='prices')&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketLoading?'جارٍ التحديث…':'تحديث الأسعار'}</span></button>}</header><main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{error} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{marketError}</p>}{message&&<p className="notice success" role="status">{message}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}<footer>© 2026 Ibrahim Alneami — All Rights Reserved · الإصدار {APP_DISPLAY_VERSION}</footer></main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
  {menu&&<div className="mobile-nav-backdrop" onClick={()=>setMenu(false)}><div className="mobile-nav" ref={modalRef} role="dialog" aria-modal="true" aria-label="قائمة التنقل" onClick={e=>e.stopPropagation()}><button className="icon-button close-menu" aria-label="إغلاق القائمة" onClick={()=>setMenu(false)}><Icon name="close"/></button>{nav}</div></div>}
- {(dialog||confirm)&&<div className="dialog-backdrop"><div className="dialog" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div className="section-heading"><h2 id="dialog-title">{confirm?'تأكيد الحذف':dialog?.type==='portfolio'?'محفظة جديدة':dialog?.type==='alert'?'تنبيه جديد':dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء'}</h2><button className="icon-button" aria-label="إغلاق" disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
- {confirm?<><p>هل تريد حذف {confirm.label}؟ لا يمكن التراجع عن الحذف من التطبيق.</p><div className="actions"><button className="secondary" disabled={busy} onClick={()=>setConfirm(null)}>إلغاء</button><button className="danger-button" disabled={busy} onClick={()=>void mutate(confirm.path,'DELETE')}>{busy?'جارٍ الحذف…':'حذف'}</button></div></>:<form onSubmit={submit}>
+ {(dialog||confirm)&&<div className="dialog-backdrop"><div className={'dialog '+(confirm?'confirm-dialog':'')} ref={modalRef} role={confirm?'alertdialog':'dialog'} aria-modal="true" aria-labelledby="dialog-title" aria-describedby={confirm?'confirm-warning-description':undefined}><div className="section-heading"><h2 id="dialog-title">{confirm?'تأكيد الحذف':dialog?.type==='portfolio'?'محفظة جديدة':dialog?.type==='alert'?'تنبيه جديد':dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء'}</h2><button className="icon-button" aria-label="إغلاق" disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
+ {confirm?<><div className="confirm-warning" id="confirm-warning-description"><strong>هل تريد حذف {confirm.label}؟</strong><p>هذا الإجراء نهائي، ولا يمكن التراجع عن الحذف من التطبيق.</p></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>setConfirm(null)}>إلغاء</button><button className="danger-button" disabled={busy} onClick={()=>void mutate(confirm.path,'DELETE')}>{busy?'جارٍ الحذف…':'حذف'}</button></div></>:<form onSubmit={submit}>
  {dialog?.type==='portfolio'&&<label>اسم المحفظة<input name="name" required maxLength={80} placeholder="مثال: ادخار الأسرة"/></label>}
  {dialog?.type==='purchase'&&<><label>المحفظة<select name="portfolioId" defaultValue={dialog.purchase?.portfolioId||portfolios[0]?.id} required>{portfolios.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><div className="form-grid"><label>العيار<KaratSelect value={dialog.purchase?.karat}/></label><label>العملة<CurrencySelect value={dialog.purchase?.currency}/></label><label>الوزن بالجرام<input name="weightGrams" type="number" inputMode="decimal" min="0.0001" max="99999999" step="0.0001" required defaultValue={dialog.purchase?.weightGrams}/></label><label>سعر الجرام عند الشراء<input name="unitPrice" type="number" inputMode="decimal" min="0.0001" max="99999999" step="0.0001" required defaultValue={dialog.purchase?.unitPrice}/></label></div><label>تاريخ الشراء<input name="purchasedAt" type="date" required max={localDate()} defaultValue={dialog.purchase?.purchasedAt.slice(0,10)||localDate()}/></label><p className="fine">الإجمالي = الوزن بالجرام × سعر الجرام. أدخل بيانات الشراء الفعلية.</p></>}
  {dialog?.type==='alert'&&<><div className="form-grid"><label>العيار<KaratSelect/></label><label>العملة<CurrencySelect/></label></div><label>السعر المستهدف لكل جرام<input name="targetPrice" type="number" inputMode="decimal" min="0.0001" max="99999999" step="0.0001" required/></label><label>الشرط<select name="direction"><option value="above">السعر يساوي أو يتجاوز الهدف</option><option value="below">السعر يساوي أو يقل عن الهدف</option></select></label></>}
