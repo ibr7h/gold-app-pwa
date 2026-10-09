@@ -1441,3 +1441,31 @@
  .gold-web .gold-purchase-mode{grid-template-columns:minmax(0,1fr)}
  .gold-web .gold-purchase-fieldset{padding:10px}
 }
+
+/* User Web Push notification diagnostics — consistent with navy/gold identity. */
+.gold-web .dh-push-settings{display:grid;gap:16px;max-width:900px;margin:0 auto}
+.gold-web .dh-push-summary,.gold-web .dh-push-guide{min-width:0}
+.gold-web .dh-push-summary .approved-card-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.gold-web .dh-push-summary .approved-muted{color:#475569!important;font-size:13px;line-height:1.85}
+.gold-web .dh-push-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 20px}
+.gold-web .dh-push-facts>div{display:flex;flex-direction:column;gap:6px;min-width:0;padding:14px;border:1px solid #E2E8F0;border-radius:12px;background:#F8FAFC}
+.gold-web .dh-push-facts dt{font-size:11px;color:#64748B}
+.gold-web .dh-push-facts dd{font-size:13px;font-weight:800;color:#001F3F;margin:0;overflow-wrap:anywhere}
+.gold-web .dh-push-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 17px}
+.gold-web .dh-push-actions button{min-height:44px;font-size:13px}
+.gold-web .dh-push-confirm{padding:12px;background:#FFFBEB;color:#713F12;border:1px solid #FDE68A;border-radius:10px;line-height:1.8;margin:10px 0}
+.gold-web .dh-push-confirm p{font-size:12px}
+.gold-web .dh-push-last{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:1px solid #E2E8F0;padding:11px 0;color:#64748B;font-size:12px}
+.gold-web .dh-push-last strong{color:#001F3F;font-variant-numeric:tabular-nums}
+.gold-web .dh-push-settings .fine{color:#64748B!important;font-size:11px;line-height:1.9;margin:8px 0}
+.gold-web .dh-push-guide h3{font-size:14px;color:#001F3F;margin:8px 0}
+.gold-web .dh-push-guide p{font-size:13px;color:#475569;line-height:2}
+.gold-web .dh-push-alert-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:14px;margin-bottom:14px}
+.gold-web .dh-push-alert-entry p{font-size:12px;color:#334155;line-height:1.8;flex:1;min-width:220px;margin:0}
+.gold-web .dh-push-alert-entry button{min-height:40px;display:inline-flex;gap:5px;align-items:center}
+@media(max-width:500px){
+ .gold-web .dh-push-facts{grid-template-columns:1fr}
+ .gold-web .dh-push-actions{display:grid}
+ .gold-web .dh-push-actions button{width:100%;justify-content:center}
+ .gold-web .dh-push-alert-entry p{min-width:0}
+}
