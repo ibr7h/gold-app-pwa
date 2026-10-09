@@ -61,14 +61,14 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
    <div className="dh-pin-identity">
     <span className="dh-pin-avatar" aria-hidden="true">{nickname.slice(0,1).toUpperCase()}</span>
     <p>أهلًا بك</p><h1>{nickname}</h1>
-    <small>أدخل رمز الدخول السريع لفتح ذهبي</small>
+    <small>{quickPinEnabled?'أدخل رمز الدخول السريع لفتح ذهبي':'اضغط على زر البصمة أو استخدم كلمة المرور'}</small>
    </div>
    {quickPinEnabled&&<PinDots length={digits.length}/>}
    <div className="dh-pin-feedback" role="alert">{localError||remoteError||' '}</div>
    <button className="dh-pin-forgot" type="button" onClick={onForgot}>نسيت رمز الدخول السريع؟ الدخول بكلمة المرور</button>
    {quickPinEnabled?<Keypad disabled={busy||loading} onDigit={add} onDelete={erase}
     biometric={biometricEnabled} onBiometric={()=>void onBiometric().catch(()=>setLocalError('تعذر التحقق بالبصمة.'))}/>
-    :<div className="dh-pin-bio-only"><button type="button" onClick={()=>void onBiometric()} disabled={busy||loading}><FaceMark/> فتح ببصمة الجهاز</button></div>}
+    :<div className="dh-pin-bio-only">{biometricEnabled?<button type="button" onClick={()=>void onBiometric()} disabled={busy||loading}><FaceMark/> فتح ببصمة الجهاز</button>:<p role="status">بصمة الجهاز غير متاحة حاليًا؛ استخدم كلمة المرور.</p>}</div>}
    <small className="dh-pin-security-note">يعمل رمز الدخول على هذا الجهاز فقط. يتطلب فتح البيانات جلسة صالحة في خادم ذهبي.</small>
    <small className="dh-pin-release" dir="ltr">{APP_DISPLAY_VERSION}</small>
   </div>
