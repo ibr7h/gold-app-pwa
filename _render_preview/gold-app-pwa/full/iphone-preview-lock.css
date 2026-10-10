@@ -193,3 +193,23 @@ html .gold-web .dh-profile-copyright{display:block;margin-top:8px;font-size:12px
 .gold-web.workspace .dh-personal-save{background:#C5A021;color:#001F3F}
 .gold-web.workspace .dh-personal-cancel{background:#fff;color:#001F3F}
 .gold-web.workspace .dh-personal-error{color:#a32121;font-size:12px}
+
+
+/* User preview: native account edit button correction v1.9.20 */
+.gold-web.workspace .dh-profile-details .dh-profile-section-head .dh-profile-edit{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ min-height:42px;padding:8px 12px;border-radius:12px;
+}
+.gold-web.workspace .dh-profile-details .dh-profile-section-head .dh-profile-edit::before{
+ content:"";display:inline-block;flex:none;width:19px;height:19px;
+ background-color:currentColor;
+ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 20h9M16 4l4 4L9 19l-5 1 1-5L16 4z'/%3E%3C/svg%3E");
+ mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 20h9M16 4l4 4L9 19l-5 1 1-5L16 4z'/%3E%3C/svg%3E");
+ -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+}
+.gold-web.workspace .home-topbar .home-identity h1[role=link]{
+ cursor:pointer;touch-action:manipulation;
+}
+.gold-web.workspace .home-topbar .home-identity h1[role=link]:focus-visible{
+ outline:2px solid #C5A021;outline-offset:5px;border-radius:8px;
+}
