@@ -1835,3 +1835,30 @@
   padding-inline-start:50px!important;
   padding-inline-end:46px!important;
 }
+
+
+/* International phone registration: navy #001F3F / gold #C5A021 / white only. */
+.gold-auth .dh-intl-phone{position:relative;width:100%;min-width:0}
+.gold-auth .dh-intl-phone-row{display:flex;align-items:stretch;min-height:52px;border:1.5px solid #D7DEE8;border-radius:12px;background:#FFFFFF;overflow:hidden;direction:rtl}
+.gold-auth .dh-intl-phone-row:focus-within{border-color:#C5A021;box-shadow:0 0 0 3px rgba(197,160,33,.17)}
+.gold-auth .dh-intl-country-trigger{display:flex;align-items:center;justify-content:center;gap:5px;min-width:105px;max-width:126px;padding:7px 9px;background:#FFFFFF;border:0;border-left:1px solid #D7DEE8;border-radius:0;color:#001F3F;cursor:pointer;flex-shrink:0}
+.gold-auth .dh-intl-country-flag{font-size:20px;line-height:1;white-space:nowrap}
+.gold-auth .dh-intl-country-code{font-size:13px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gold-auth .dh-intl-chevron{font-size:17px;font-weight:700;line-height:1;color:#C5A021}
+.gold-auth .dh-intl-phone-row .dh-intl-number{flex:1;min-width:0;width:100%;background:#FFFFFF!important;color:#001F3F!important;border:0!important;box-shadow:none!important;outline:0!important;padding:11px 12px!important;font-size:16px!important;text-align:left!important;letter-spacing:.1px;font-variant-numeric:tabular-nums;border-radius:0!important}
+.gold-auth .dh-intl-phone-row .dh-intl-number:focus{box-shadow:none!important;border:0!important}
+.gold-auth .dh-intl-number::placeholder{color:#677589!important;opacity:1}
+.gold-auth .dh-intl-country-panel{position:relative;z-index:12;display:flex;flex-direction:column;width:100%;background:#FFFFFF;border:1px solid #C5A021;border-radius:12px;margin:8px 0 0;padding:8px;box-shadow:0 8px 22px rgba(0,31,63,.12)}
+.gold-auth .dh-intl-country-search{display:block;width:100%;min-height:46px;padding:10px 12px!important;background:white!important;color:#001F3F!important;border:1px solid #D7DEE8!important;border-radius:9px!important;font-size:16px!important}
+.gold-auth .dh-intl-country-options{max-height:min(260px,36dvh);overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:grid;gap:2px;margin-top:7px}
+.gold-auth .dh-intl-country-option{min-height:45px;display:grid;grid-template-columns:25px 1fr auto;align-items:center;gap:9px;padding:8px 10px;border:0;border-radius:8px;background:#FFFFFF;color:#001F3F;text-align:right;font-size:13px;cursor:pointer;width:100%}
+.gold-auth .dh-intl-country-option.dh-intl-active,.gold-auth .dh-intl-country-option[aria-selected="true"]{background:rgba(197,160,33,.12)}
+.gold-auth .dh-intl-option-dial{color:#001F3F;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.gold-auth .dh-intl-no-results{color:#001F3F;padding:12px;font-size:12px}
+.gold-auth .dh-intl-phone-feedback{color:#001F3F!important;font-size:11px;line-height:1.7;margin:7px 0 0;min-height:19px}
+.gold-auth .dh-intl-phone-feedback.valid{font-weight:700;color:#001F3F!important}
+.gold-auth .dh-intl-phone-feedback.invalid{color:#A82323!important;font-weight:700}
+.gold-auth .dh-intl-phone-feedback.pending{opacity:.85}
+.gold-auth .dh-intl-phone-mask{margin:3px 0 0;font-size:11px;color:#66778A;text-align:left;letter-spacing:.06em}
+.gold-auth .dh-intl-country-trigger:focus-visible,.gold-auth .dh-intl-country-option:focus-visible,.gold-auth .dh-intl-country-search:focus-visible{outline:2px solid #C5A021!important;outline-offset:2px}
+@media(max-width:390px){.gold-auth .dh-intl-country-trigger{min-width:94px;padding:6px 5px}.gold-auth .dh-intl-country-code{font-size:12px}.gold-auth .dh-intl-phone-row .dh-intl-number{padding:10px 7px!important}}
