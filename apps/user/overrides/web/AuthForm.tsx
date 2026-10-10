@@ -37,7 +37,7 @@ function GuestPrices({onBack}:{onBack:()=>void}){
   if(active)setRows(data);
  }catch{if(active)setError('تعذر تحميل الأسعار الآن.');}finally{if(active)setLoading(false);}})();return()=>{active=false;};},[]);
  const money=(v:string)=><Money amount={Number(v)} currency="SAR"/>;
- return <main ref={formRoot} className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
+ return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
   <section className="mockup-login-container guest-price-view">
    <button className="guest-back" type="button" onClick={onBack}><AuthIcon name="back"/>العودة لتسجيل الدخول</button>
    <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
