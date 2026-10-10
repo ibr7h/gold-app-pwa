@@ -1729,3 +1729,8 @@
  .gold-web .dh-price-trend.compact .home-chart-title{font-size:12px}
  .gold-web.reference-home .portfolio-mini-body>div:first-child>strong{font-size:20px}
 }
+
+/* iPhone dialing prefix on left — visual identity unchanged. */
+.gold-auth .dh-intl-phone-row{direction:ltr!important;flex-direction:row!important}
+.gold-auth .dh-intl-country-trigger{direction:rtl!important;order:0!important;border-left:0!important;border-right:1px solid #d7dee8!important}
+.gold-auth .dh-intl-number{direction:ltr!important;order:1!important}
