@@ -607,6 +607,17 @@
 .gold-web .profile-shortcut{display:flex;align-items:center;gap:12px}.gold-web .profile-shortcut>div{display:grid;min-width:0;flex:1}.gold-web .profile-shortcut>div strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.gold-web .profile-shortcut>div span{font-size:10px;color:#64748B}
 .gold-web .settings-list{padding:0!important}.gold-web .settings-list button{width:100%;min-height:52px;padding:12px 16px;background:#FFFFFF;color:#1E293B;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center}.gold-web .settings-list button:last-child{border-bottom:0}.gold-web .settings-list button>span{display:flex;align-items:center;gap:10px}.gold-web .settings-list button>span svg{color:#C5A021}.gold-web .settings-list .danger-row,.gold-web .settings-list .danger-row>span svg{color:#EF4444}
 .gold-web .settings-choice{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 0;border-top:1px solid #E2E8F0}.gold-web .settings-choice:first-of-type{border-top:0}.gold-web .settings-choice>span:first-child{font-weight:700;margin-inline-end:auto}.gold-web .disabled-choice{font-size:10px;color:#94A3B8}
+/* One shared price currency preference: accessible two-choice control. */
+.gold-web .currency-preference{display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:100%}
+.gold-web .currency-preference-option{min-width:99px;min-height:44px;border:1px solid #D8DEE7;border-radius:10px;background:#FFFFFF;color:#001F3F;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 10px;cursor:pointer}
+.gold-web .currency-preference-option b{font-size:13px;letter-spacing:.03em}
+.gold-web .currency-preference-option small{font-size:10px;color:#64748B}
+.gold-web .currency-preference-option.active{border-color:#C5A021;background:rgba(197,160,33,.13);box-shadow:inset 0 0 0 1px #C5A021}
+.gold-web .currency-preference-option.active small{color:#001F3F}
+.gold-web .currency-preference-option:focus-visible{outline:3px solid rgba(197,160,33,.5);outline-offset:2px}
+.gold-web .currency-preference-note{font-size:11px;color:#64748B;line-height:1.8;margin:6px 0 0}
+@media(max-width:440px){.gold-web .currency-preference{width:100%}.gold-web .currency-preference-option{flex:1 1 45%;min-width:0}}
+
 .gold-web .approved-logout{width:100%;margin-bottom:12px}
 .gold-web .pill{background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0}.gold-web .pill.gold{background:#C5A021;color:#001F3F;border-color:#C5A021}.gold-web .pill.good{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.25);color:#15803D}.gold-web .pill.warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.25);color:#B45309}
 .gold-web input,.gold-web select{background:#FFFFFF!important;color:#1E293B!important;border:1.5px solid #E2E8F0!important}.gold-web input:focus-visible,.gold-web select:focus-visible{border-color:#C5A021!important;box-shadow:0 0 0 3px rgba(197,160,33,.18)!important}.gold-web label{color:#1E293B}
