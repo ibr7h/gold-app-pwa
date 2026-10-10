@@ -21,7 +21,18 @@
  '.dh-nearby-location [hidden]{display:none!important}'
  ].join('');
  document.head.appendChild(style);
- function activeNearbyPage(){ return location.hash.slice(1).split(/[?\/]/,1)[0]==='map'; }
+ function activeNearbyPage(){
+  // URL hashes and pathname do not reliably reflect the selected SPA screen.
+  // Require the visible User Workspace title AND the map section inside its active main content.
+  var workspace=document.querySelector('#root .gold-web.workspace');
+  if(!workspace)return false;
+  var heading=workspace.querySelector('.workspace-main > header.topbar h1');
+  var map=workspace.querySelector('.workspace-main > main.workspace-content > .map-placeholder');
+  return !!(heading&&map&&heading.textContent&&
+    heading.textContent.trim()==='التجار القريبون'&&
+    map.getClientRects().length>0&&
+    getComputedStyle(map).visibility!=='hidden');
+ }
  function cleanupInjected(){ document.querySelectorAll('.dh-nearby-location[data-dh-injected="true"]').forEach(function(node){node.remove();}); }
  function attach(){
   document.documentElement.classList.toggle('dh-nearby-page-active',activeNearbyPage());
