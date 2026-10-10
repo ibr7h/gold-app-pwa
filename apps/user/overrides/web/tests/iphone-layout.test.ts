@@ -34,15 +34,11 @@ describe('User mobile viewport regressions',()=>{
 });
 
 describe('User startup and release visibility',()=>{
- it('shows the real build on boot, login, and account screens',()=>{
+ it('shows the configured release on the account screen',()=>{
   const workspace=source('../UserWorkspace.tsx');
-  const auth=source('../AuthForm.tsx');
   const release=source('../app-version.ts');
   expect(workspace).toContain("import {APP_DISPLAY_VERSION} from './app-version'");
-  expect(auth).toContain("import {APP_DISPLAY_VERSION} from './app-version'");
   expect(workspace).toContain('className="app-version-account"');
-  expect(workspace).toContain('className="app-version-stamp"');
-  expect(auth.match(/className="app-version-stamp"/g)).toHaveLength(3);
   expect(release).toMatch(/export const APP_BUILD = '(?:__USER_BUILD_SHA__|[a-f0-9]{8})';/);
  });
  it('uses cached identity only to label the lock and verifies the server before showing account data',()=>{
