@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {enablePush,disablePush,inspectPush,testPush,BrowserPushSnapshot} from './push-client';
 import {humanStatus} from './push-status';
-import {errorMessage} from './api';
+import {ApiError,errorMessage} from './api';
 import './user.css';
 
 const asDate=(value:string|null)=>value&&Number.isFinite(Date.parse(value))
@@ -22,6 +22,7 @@ export default function NotificationSettings(){
  const [state,setState]=useState<BrowserPushSnapshot|null>(null);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [feedback,setFeedback]=useState(''),[error,setError]=useState('');
+ const [now,setNow]=useState(()=>Date.now());
  const [awaitingConfirmation,setAwaitingConfirmation]=useState(false);
  const [userConfirmed,setUserConfirmed]=useState(false);
  const mounted=useRef(true);
@@ -32,6 +33,7 @@ export default function NotificationSettings(){
   }catch(e){if(mounted.current)setError('تعذر قراءة حالة الإشعارات.');}
   finally{if(mounted.current)setLoading(false);}
  },[]);
+ useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>window.clearInterval(timer);},[]);
  useEffect(()=>{
   mounted.current=true;void refresh();
   const onFocus=()=>{if(document.visibilityState==='visible')void refresh();};
@@ -45,9 +47,10 @@ export default function NotificationSettings(){
   if(busy)return;
   setBusy(true);setFeedback('');setError('');setUserConfirmed(false);
   try{await op();if(mounted.current)setFeedback(success);}
-  catch(e){if(mounted.current)setError(e instanceof Error?e.message:errorMessage(e));}
+  catch(e){if(mounted.current)setError(e instanceof ApiError&&e.status===429?'يمكن إرسال اختبار جديد بعد مرور دقيقة على الاختبار السابق.':e instanceof Error?e.message:errorMessage(e));}
   finally{await refresh();if(mounted.current)setBusy(false);}
  };
+ const cooldownSeconds=Math.max(0,Math.ceil(((state?.lastTestAt?Date.parse(state.lastTestAt):0)+60_000-now)/1000));
  const enabled=state?.health==='ready';
  const recoverable=state&&(['permission-required','subscription-missing','server-missing'].includes(state.health));
  const info=state?.health||'server-unavailable';
@@ -68,14 +71,14 @@ export default function NotificationSettings(){
      onClick={()=>void run(()=>enablePush(state.config,info==='server-missing'), 'سُجل هذا الجهاز لدى خدمة إشعارات ذهبي.')}>
      {busy?'جارٍ التنفيذ…':info==='server-missing'?'إصلاح الاشتراك':'تفعيل الإشعارات'}
     </button>}
-    {enabled&&<button className="primary" type="button" disabled={busy}
+    {enabled&&<button className="primary" type="button" disabled={busy||cooldownSeconds>0}
      onClick={()=>void run(async()=>{
       if(!state?.endpoint)throw new Error('اشتراك هذا الجهاز غير متاح.');
       const result=await testPush(state.endpoint);
       if(!result.accepted)throw new Error('لم يقبل مزود Push رسالة الاختبار ('+result.providerStatus+').');
       if(mounted.current){setAwaitingConfirmation(true);setUserConfirmed(false);}
      },'قبل مزود Push رسالة الاختبار. انتظر إشعار الجهاز؛ هذا لا يؤكد ظهوره.')}>
-     إرسال إشعار اختبار حقيقي
+     {cooldownSeconds>0?`إعادة الاختبار بعد ${cooldownSeconds} ثانية`:'إرسال إشعار اختبار حقيقي'}
     </button>}
     {enabled&&<button type="button" className="secondary" disabled={busy}
      onClick={()=>void run(disablePush,'تم إلغاء اشتراك الإشعارات على هذا الجهاز.')}>إيقاف إشعارات هذا الجهاز</button>}
