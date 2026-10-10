@@ -1729,3 +1729,12 @@
  .gold-web .dh-price-trend.compact .home-chart-title{font-size:12px}
  .gold-web.reference-home .portfolio-mini-body>div:first-child>strong{font-size:20px}
 }
+
+
+/* Keep authentication inputs accessible above the iOS software keyboard. */
+.gold-auth.auth-mockup{overflow-y:auto!important;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.gold-auth .mockup-login-container{padding-bottom:max(40px,env(safe-area-inset-bottom))!important}
+.gold-auth .mockup-auth-card .form-group{scroll-margin-block:22vh}
+.gold-auth .mockup-eye-btn{z-index:3;min-width:44px!important;width:44px!important;min-height:44px!important;height:44px!important;left:3px!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto!important}
+.gold-auth .mockup-eye-btn svg{pointer-events:none}
+@media(max-width:520px){.gold-auth.auth-mockup{height:100dvh!important;max-height:100dvh!important}.gold-auth .mockup-login-container{min-height:100%;padding-bottom:max(140px,env(safe-area-inset-bottom))!important}}
