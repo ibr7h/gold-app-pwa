@@ -117,7 +117,35 @@ html.dh-iphone-page-lock .gold-auth .mockup-eye-btn{
 html.dh-iphone-page-lock .gold-auth .mockup-eye-btn svg{pointer-events:none}
 html.dh-iphone-page-lock .gold-auth .mockup-input-wrap:has(.mockup-eye-btn)>.form-input{padding-left:52px!important}
 
-/* Correct iPhone dialing code location: +966 selector is on the LEFT, number on the RIGHT. */
-html.dh-iphone-page-lock .gold-auth .dh-intl-phone-row{direction:ltr!important;flex-direction:row!important}
-html.dh-iphone-page-lock .gold-auth .dh-intl-country-trigger{direction:rtl!important;order:0!important;border-left:0!important;border-right:1px solid #d7dee8!important}
-html.dh-iphone-page-lock .gold-auth .dh-intl-number{direction:ltr!important;order:1!important}
+/* Country selector physically LEFT; mobile number RIGHT, independent of RTL. 
+   Grid columns are physical left-to-right; Safari user-agent direction does not affect placement. */
+html .gold-auth .dh-intl-phone-row{
+  display:grid!important;
+  grid-template-columns:112px minmax(0,1fr)!important;
+  direction:ltr!important;
+  align-items:stretch!important;
+}
+html .gold-auth .dh-intl-country-trigger{
+  grid-column:1!important;
+  grid-row:1!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  border-left:0!important;
+  border-right:1px solid #d7dee8!important;
+}
+html .gold-auth .dh-intl-number{
+  grid-column:2!important;
+  grid-row:1!important;
+  width:100%!important;
+  min-width:0!important;
+  direction:ltr!important;
+  text-align:left!important;
+}
+html.dh-iphone-page-lock .gold-auth .dh-intl-country-trigger,
+html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
+  direction:ltr!important;
+}
+@media(max-width:360px){
+  html .gold-auth .dh-intl-phone-row{grid-template-columns:100px minmax(0,1fr)!important}
+}
