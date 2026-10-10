@@ -201,8 +201,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const mobilePage=mobilePages.some(p=>p.id===page)?page:'more';
  const content=()=>{
   if(page==='home')return <>
-   <section className="approved-card live-price-card" aria-label="سعر الذهب الآن عيار 24">
-    <div className="live-card-top"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{marketLabel}</span><strong>سعر الذهب الآن - عيار 24</strong></div>
+   <section className="approved-card live-price-card" aria-label={marketClosed?'آخر سعر مسجل عيار 24':'سعر الذهب الآن عيار 24'}>
+    <div className="live-card-top"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{marketLabel}</span><strong>{marketClosed?'آخر سعر مسجل - عيار 24':'سعر الذهب الآن - عيار 24'}</strong></div>
     <div className="live-price-main"><div className="home-quote"><div className="price-tag-large">{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}<small>/جرام</small></div>
      <p className={'home-market-change '+(homeMovement===null?'neutral':homeMovement.difference>=0?'positive':'negative')} title="مقارنة بأول تحديث متاح اليوم بتوقيت السعودية">
       {homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),'SAR')} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:(marketClosed?'لا تداول حاليًا':'لا توجد مقارنة كافية اليوم')}
