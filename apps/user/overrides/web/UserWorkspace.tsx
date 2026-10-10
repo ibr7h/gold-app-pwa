@@ -17,7 +17,7 @@ import {installIphoneViewportObserver} from './iphone-viewport';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {calculatorQuote} from './calculator-quote';
-import {homeMarketMovement,homePortfolioSummary,homeUpdateAge} from './home-data';
+import {homeMarketMovement,homePortfolioSummary} from './home-data';
 /** Build-time type bridge for the extracted native app's older AuthContext.
  * The Web bundle uses the specialized contexts/AuthContext.web provider.
  */
