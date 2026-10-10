@@ -43,6 +43,16 @@ export function numberToArabicWords(value:number):string{
  return chunks.join(' و');
 }
 
+
+const feminineUnits=['','واحدة','اثنتان','ثلاث','أربع','خمس','ست','سبع','ثمان','تسع'];
+const feminineTeens=['عشر','إحدى عشرة','اثنتا عشرة','ثلاث عشرة','أربع عشرة','خمس عشرة','ست عشرة','سبع عشرة','ثماني عشرة','تسع عشرة'];
+function halalaCountWords(n:number):string{
+ if(n<10)return feminineUnits[n];
+ if(n<20)return feminineTeens[n-10];
+ const rest=n%10,decade=Math.floor(n/10);
+ return rest?feminineUnits[rest]+' و'+tens[decade]:tens[decade];
+}
+
 function unitName(amount:number,type:'riyals'|'halalas'):string{
  const end=amount%100;
  const count=end%10;
@@ -53,7 +63,7 @@ function unitName(amount:number,type:'riyals'|'halalas'):string{
  }
  if(amount===1)return 'هللة واحدة';
  if(amount===2)return 'هللتان';
- return numberToArabicWords(amount)+' '+(end>=3&&end<=10?'هللات':'هللة');
+ return halalaCountWords(amount)+' '+(end>=3&&end<=10?'هللات':'هللة');
 }
 
 export function amountToSaudiRiyalWords(amount:number|null|undefined):string{
