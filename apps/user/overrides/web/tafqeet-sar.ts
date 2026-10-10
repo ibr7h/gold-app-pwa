@@ -1,11 +1,20 @@
-/** Arabic Riyal/Halala spelling for the calculator's displayed total.
- * Derived from the user's taf.html (convertSubHundred, convertHundreds,
- * convertInteger, getCurrencyUnitGrammar and buildCurrencyPhrase).
- * The calculator's numerical quote remains authoritative; this is view-only.
+/** Arabic financial spelling for the calculator's displayed currency.
+ * Derived from the supplied taf.html's Arabic number and currency rules.
+ * The numeric calculator quote remains authoritative; this is view-only.
  */
 type Unit={single:string;dual:string;plural:string;accusative:string;gender:'masc'|'fem'};
-const SAR:Unit={single:'ريال سعودي',dual:'ريالان سعوديان',plural:'ريالات سعودية',accusative:'ريالاً سعودياً',gender:'masc'};
-const HALALA:Unit={single:'هللة',dual:'هللتان',plural:'هللات',accusative:'هللةً',gender:'fem'};
+import type {PriceCurrency} from './price-currency-preference';
+type CurrencyWords={main:Unit;sub:Unit};
+const CURRENCIES:Record<PriceCurrency,CurrencyWords>={
+ SAR:{
+  main:{single:'ريال سعودي',dual:'ريالان سعوديان',plural:'ريالات سعودية',accusative:'ريالاً سعودياً',gender:'masc'},
+  sub:{single:'هللة',dual:'هللتان',plural:'هللات',accusative:'هللةً',gender:'fem'},
+ },
+ USD:{
+  main:{single:'دولار أمريكي',dual:'دولاران أمريكيان',plural:'دولارات أمريكية',accusative:'دولاراً أمريكياً',gender:'masc'},
+  sub:{single:'سنت',dual:'سنتان',plural:'سنتات',accusative:'سنتاً',gender:'masc'},
+ },
+};
 const tens=['','عشرة','عشرون','ثلاثون','أربعون','خمسون','ستون','سبعون','ثمانون','تسعون'];
 const hundreds=['','مائة','مائتان','ثلاثمائة','أربعمائة','خمسمائة','ستمائة','سبعمائة','ثمانمائة','تسعمائة'];
 const scales=[
@@ -80,21 +89,25 @@ function currencyPhrase(n:number,unit:Unit):string{
  if(n===2)return unit.dual;
  return integerWords(n,unit.gender==='fem')+' '+currencyUnit(n,unit);
 }
-/** Match visible 2-decimal SAR price, including rounding of the display
- * (not the raw quote); reject unavailable, negative and unsupported totals.
- * No dependency on taf.html's browser-global event handlers or CDN styling.
+/** Spell precisely the price the user sees (two decimals), with no FX conversion.
+ * Invalid or unavailable quotes return null rather than a fabricated amount.
  */
-export function tafqeetSar(total:number|null|undefined):string|null{
- if(total==null||!Number.isFinite(total)||total<0||total>=1_000_000_000_000_000)return null;
+export function tafqeetCurrency(total:number|null|undefined,currency:PriceCurrency):string|null{
+ const words=CURRENCIES[currency];
+ if(!words||total==null||!Number.isFinite(total)||total<0||total>=1_000_000_000_000_000)return null;
  const displayed=new Intl.NumberFormat('en-US',{
   useGrouping:false,minimumFractionDigits:2,maximumFractionDigits:2,
  }).format(total);
  const [integerPart,subPart='00']=displayed.split('.');
- const integer=Number(integerPart),halalas=Number(subPart);
- if(!Number.isSafeInteger(integer)||!Number.isInteger(halalas)||halalas<0||halalas>99)return null;
+ const integer=Number(integerPart),fraction=Number(subPart);
+ if(!Number.isSafeInteger(integer)||!Number.isInteger(fraction)||fraction<0||fraction>99)return null;
  const parts:string[]=[];
- if(integer>0)parts.push(currencyPhrase(integer,SAR));
- else if(halalas===0)parts.push('صفر '+SAR.single);
- if(halalas>0)parts.push(currencyPhrase(halalas,HALALA));
+ if(integer>0)parts.push(currencyPhrase(integer,words.main));
+ else if(fraction===0)parts.push('صفر '+words.main.single);
+ if(fraction>0)parts.push(currencyPhrase(fraction,words.sub));
  return 'فقط '+parts.join(' و')+' لا غير';
+}
+/** Compatibility with earlier SAR calculator tests and any imports. */
+export function tafqeetSar(total:number|null|undefined):string|null{
+ return tafqeetCurrency(total,'SAR');
 }
