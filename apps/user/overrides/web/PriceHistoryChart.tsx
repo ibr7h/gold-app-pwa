@@ -2,7 +2,7 @@ import React,{useEffect,useId,useMemo,useRef,useState} from 'react';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
 import {Money,formatTwo,formattedMoney} from './price-display';
 
-interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean}
+interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean;marketClosed?:boolean}
 const currencyNumber=formatTwo;
 const timeLabel=(ms:number,range:TrendRange)=>{
  const date=new Date(ms);
@@ -16,7 +16,7 @@ const scopeLabels:{id:TrendRange;label:string}[]=[
 ];
 const compactScopes:{id:TrendRange;label:string}[]=[{id:'day',label:'يوم'},{id:'week',label:'أسبوع'},{id:'month',label:'شهر'}];
 
-export default function PriceHistoryChart({rows,currency,karat,compact=false}:Props){
+export default function PriceHistoryChart({rows,currency,karat,compact=false,marketClosed=false}:Props){
  const [range,setRange]=useState<TrendRange>(compact?'day':'available');
  const [width,setWidth]=useState(640);
  const [selectedIndex,setSelectedIndex]=useState<number|null>(null);
@@ -64,11 +64,12 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
 
  return <div className={'dh-price-trend '+(compact?'compact':'')} dir="rtl">
   {compact&&<h3 className="home-chart-title">حركة السوق (عيار {karat})</h3>}
+  {marketClosed&&<p className="dh-trend-market-status" role="status">السوق العالمي مغلق · يعرض الرسم آخر تغيرات سعرية مسجلة، دون تحديثات وهمية.</p>}
   {!compact&&<div className="dh-trend-header">
    <div className="dh-trend-reading">
     <span className="dh-trend-overline">سعر الجرام · عيار {karat}</span>
     <div className="dh-trend-price"><strong className="dh-trend-amount">{selected?<Money amount={selected.price} currency={currency}/>:'—'}</strong></div>
-    {selected&&<small>التحديث: {completeDate(selected.time)}</small>}
+    {selected&&<small>سُجّل السعر: {completeDate(selected.time)}</small>}
    </div>
    <div className="dh-trend-movement">
     <span className={'dh-change '+(change===null?'neutral':rising?'up':'down')}>
@@ -84,8 +85,8 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
   </div>
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
-    <strong>{all.length<2?'لا توجد تحديثات سعرية كافية لرسم الاتجاه.':'لا توجد نقطتان مسجلتان ضمن الفترة المختارة.'}</strong>
-    <span>{compact?'بانتظار تحديثات فعلية إضافية من الخادم.':'نعرض الأسعار الحقيقية المسجلة فقط. يمكنك اختيار «المتاح» لعرض جميع السجلات المحمّلة.'}</span>
+    <strong>{all.length<2?'لا توجد تغيرات سعرية كافية لرسم الاتجاه.':'لا توجد نقطتان مختلفتان مسجلتان ضمن الفترة المختارة.'}</strong>
+    <span>{marketClosed?'لن نضيف نقاطًا جديدة حتى يستأنف سوق الذهب العالمي تداولاته ويصل سعر مختلف.':compact?'بانتظار تغير سعري فعلي من الخادم.':'نعرض نقاط الأسعار التي تغيرت بالفعل. يمكنك اختيار «المتاح» لعرض السجلات السابقة.'}</span>
    </div>
   :
    <>
@@ -135,7 +136,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
    </>
   }
   <p className="dh-trend-footnote">
-   {compact?<>تحديثات فعلية من السجل المتاح فقط · بحد أقصى 200 تحديث.</>:<>
+   {compact?<>تغيرات سعرية حقيقية من السجل المتاح، دون تكرار الأسعار الثابتة.</>:<>
     {all.length>1?'الخط يربط تحديثات فعلية، والمسافات الأفقية تمثل الزمن الحقيقي.':'بانتظار حفظ تحديثات سعرية إضافية.'}
     {all.length>1&&timeCoverage<24&&range==='available'?' · السجل المتاح أقل من 24 ساعة.':''}
     {' '}بحد أقصى 200 سجل من الخادم؛ لا نضيف أسعارًا افتراضية.
