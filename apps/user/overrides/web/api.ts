@@ -61,7 +61,7 @@ export async function saveSession(tokens:any){
 export function resumeSession(tokens:SessionTokens){session={...tokens};blocked=false;epoch++;}
 export function errorMessage(e:unknown){
  if(!(e instanceof ApiError))return 'تعذر إكمال العملية. حاول مرة أخرى.';
- const messages:Record<string,string>={'Invalid credentials':'البريد الإلكتروني أو كلمة المرور غير صحيحة.','Email already exists':'هذا البريد مسجل بالفعل. استخدم تسجيل الدخول.','Cannot delete a portfolio that has purchases':'احذف سجلات المشتريات المرتبطة أولًا، ثم احذف المحفظة.','User app role mismatch':'هذا التطبيق مخصص لحساب المستخدم فقط.'};
+ const messages:Record<string,string>={'Invalid credentials':'البريد الإلكتروني أو رقم الجوال أو كلمة المرور غير صحيحة.','Email already exists':'هذا البريد مسجل بالفعل. استخدم تسجيل الدخول.','Cannot delete a portfolio that has purchases':'احذف سجلات المشتريات المرتبطة أولًا، ثم احذف المحفظة.','User app role mismatch':'هذا التطبيق مخصص لحساب المستخدم فقط.'};
  return messages[e.message]||(e.status===401?'انتهت الجلسة. سجّل الدخول مجددًا.':e.status===403?'ليست لديك صلاحية لهذه العملية.':e.status>=500?'الخادم غير متاح حاليًا. حاول لاحقًا.':e.message);
 }
 async function raw(path:string,options:RequestInit={},token?:string){
