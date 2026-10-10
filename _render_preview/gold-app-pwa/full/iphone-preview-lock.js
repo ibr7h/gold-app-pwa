@@ -113,6 +113,7 @@
  function repair(){
   var auth=document.querySelector('#root > .gold-auth');
   if(!auth)return;
+  auth.querySelectorAll('.app-version-stamp').forEach(function(el){if(el.textContent!==releaseVersion)el.textContent=releaseVersion;});
   var walker=document.createTreeWalker(auth,NodeFilter.SHOW_TEXT);
   var node;
   while((node=walker.nextNode())){
@@ -121,7 +122,7 @@
     if(host&&host.childElementCount===0)host.style.display='none';
     else node.nodeValue='';
    }
-   if(node.nodeValue&&/v\d+\.\d+\.\d+\s*·\s*[a-f0-9]{8}/i.test(node.nodeValue))node.nodeValue=node.nodeValue.replace(/v\d+\.\d+\.\d+\s*·\s*[a-f0-9]{8}/gi,releaseVersion);
+   if(node.nodeValue&&node.parentElement?.closest('.app-version-stamp'))node.nodeValue=releaseVersion;
   }
  }
  var queued=false;
