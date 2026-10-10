@@ -1,0 +1,22 @@
+name: Check iPhone purchase UI
+on:
+  push:
+    branches: ["preview/iphone-render"]
+    paths:
+      - "_render_preview/gold-app-pwa/full/**"
+      - "apps/user/overrides/web/PurchaseFormFields.tsx"
+      - "apps/user/overrides/web/user.css"
+      - "apps/user/scripts/test-iphone-purchase.cjs"
+      - ".github/workflows/check-iphone-purchase.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node apps/user/scripts/test-iphone-purchase.cjs

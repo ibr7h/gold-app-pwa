@@ -320,3 +320,121 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
  else start();
 })();
+
+
+/* Purchase form: compact Arabic field captions and iPhone keyboard-safe sheet.
+   Pure DOM presentation: never alters a field's value, name, or React event. */
+(function(){
+ 'use strict';
+ const names={
+  portfolioId:['المحفظة','wallet'],karat:['العيار','gem'],currency:['العملة','coins'],
+  weightGrams:['الوزن الصافي (جم)','weight'],purchasedAt:['التاريخ','calendar'],
+  invoiceTotal:['المبلغ المدفوع','coins'],goldUnitPrice:['سعر الجرام','coins'],
+  makingCharge:['المصنعية','coins'],stonePrice:['قيمة الأحجار','gem'],
+  vatMode:['طريقة الضريبة','receipt'],vatRate:['نسبة الضريبة','receipt'],
+  vatAmount:['قيمة الضريبة','coins'],sellerName:['اسم المتجر','store'],
+  sellerAddress:['العنوان','store'],buyerName:['المشتري','user'],
+  invoiceNumber:['رقم الفاتورة','receipt'],sellerCommercialRegistration:['السجل التجاري','receipt'],
+  sellerPhone:['هاتف المتجر','phone'],itemCondition:['حالة القطعة','gem'],
+  hallmark:['الدمغة','gem'],manufacturerMark:['علامة الصانع','gem'],
+  grossWeightGrams:['وزن القطعة (جم)','weight'],stoneWeightGrams:['وزن الأحجار (جم)','weight'],
+  itemDescription:['وصف القطعة','receipt'],
+  stoneName:['اسم الحجر','gem'],stoneKind:['نوع الحجر','gem'],
+  stoneColor:['لون الحجر','gem'],stoneShape:['شكل الحجر','gem'],
+  stoneQuality:['جودة الحجر','gem'],stoneCut:['القطع والتشطيب','gem'],
+  stoneDefects:['عيوب الحجر','gem'],stoneSafety:['سلامة الحجر','gem']
+ };
+ const paths={
+  wallet:'M20 7H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v3m0 0H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h15V7ZM16 14h4',
+  gem:'M6 3h12l4 6-10 12L2 9l4-6ZM2 9h20M6 3l6 6 6-6M12 9v12',
+  coins:'M12 6c5 0 9-1 9-3s-4-3-9-3-9 1-9 3 4 3 9 3Zm-9-3v5c0 2 4 3 9 3s9-1 9-3V3M3 8v5c0 2 4 3 9 3s9-1 9-3V8M3 13v5c0 2 4 3 9 3s9-1 9-3v-5',
+  weight:'M4 20h16l-2-12H6L4 20ZM9 8a3 3 0 0 1 6 0M12 12v4',
+  calendar:'M4 5h16v16H4V5ZM4 10h16M8 3v4M16 3v4',
+  receipt:'M4 3h16v18l-4-2-4 2-4-2-4 2V3ZM8 8h8M8 12h7M8 16h5',
+  store:'M3 10 5 4h14l2 6M3 10v11h18V10M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M9 21v-7h6v7',
+  user:'M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21v-2a8 8 0 0 1 16 0v2',
+  phone:'M6 3h4l1 5-3 2a16 16 0 0 0 6 6l2-3 5 1v4a3 3 0 0 1-3 3A17 17 0 0 1 3 6a3 3 0 0 1 3-3Z'
+ };
+ const iconURL={};
+ for(const [key,d] of Object.entries(paths)){
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="'+d+'" fill="none" stroke="black" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  iconURL[key]='url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
+ }
+ const seen=new WeakSet();
+ const firstTextNode=(node)=>Array.from(node.childNodes).find(x=>x.nodeType===3&&x.nodeValue.trim());
+ function shorten(label,short,icon){
+  const original=firstTextNode(label);
+  if(!original)return;
+  if(!label.dataset.dhPurchaseFieldOriginal)label.dataset.dhPurchaseFieldOriginal=original.nodeValue.trim();
+  if(original.nodeValue.trim()!==short)original.nodeValue=short;
+  label.dataset.dhPurchaseIcon=icon;
+  if(label.style.getPropertyValue('--dh-purchase-icon')!==iconURL[icon])
+   label.style.setProperty('--dh-purchase-icon',iconURL[icon]);
+ }
+ function patch(){
+  const sheet=document.querySelector('#root .gold-web.workspace .dialog:has(.gold-purchase-form)');
+  if(!sheet)return;
+  const form=sheet.querySelector('.gold-purchase-form');
+  if(!form)return;
+  for(const label of form.querySelectorAll('label')){
+   const input=label.querySelector('input[name],select[name],textarea[name]');
+   if(!input || !Object.prototype.hasOwnProperty.call(names,input.name))continue;
+   const [short,icon]=names[input.name];
+   shorten(label,short,icon);
+  }
+  const radios=form.querySelectorAll('.gold-purchase-mode label');
+  for(let i=0;i<radios.length;i++){
+   const node=firstTextNode(radios[i]);
+   const short=i===0?'شامل التكاليف':'تفصيل السعر';
+   if(node && node.nodeValue.trim()!==short)node.nodeValue=' '+short;
+  }
+  const info=form.querySelector('.gold-purchase-details');
+  if(info&&!seen.has(info)){
+   seen.add(info);
+   const title=sheet.querySelector('#dialog-title')?.textContent||'';
+   if(title.includes('تسجيل شراء'))info.open=false;
+   const summary=info.querySelector(':scope > summary');
+   if(summary){
+    const text=firstTextNode(summary);
+    if(text)text.nodeValue='بيانات الفاتورة ';
+    const small=summary.querySelector('small');if(small)small.textContent='اختياري';
+   }
+  }
+  const stones=form.querySelector('.gold-stones-more > summary');
+  if(stones && !seen.has(stones)){seen.add(stones);const node=firstTextNode(stones);if(node)node.nodeValue='تفاصيل الأحجار';}
+  const backdrop=sheet.closest('.dialog-backdrop');
+  if(backdrop && window.visualViewport && document.documentElement.classList.contains('dh-iphone-page-lock')){
+   const vv=window.visualViewport;
+   const top=Math.max(0,Math.round(vv.offsetTop));
+   const height=Math.max(180,Math.floor(vv.height));
+   if(backdrop.style.getPropertyValue('--dh-purchase-height')!==height+'px')backdrop.style.setProperty('--dh-purchase-height',height+'px');
+   if(backdrop.style.getPropertyValue('--dh-purchase-top')!==top+'px')backdrop.style.setProperty('--dh-purchase-top',top+'px');
+  }
+ }
+ let queued=false;
+ function schedule(){
+  if(queued)return;queued=true;
+  requestAnimationFrame(()=>{queued=false;patch();});
+ }
+ const observer=new MutationObserver(schedule);
+ function start(){
+  observer.observe(document.getElementById('root')||document.body,{childList:true,subtree:true,characterData:true});
+  schedule();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+ if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',schedule,{passive:true});
+  window.visualViewport.addEventListener('scroll',schedule,{passive:true});
+ }
+ document.addEventListener('focusin',function(e){
+  if(!e.target?.closest?.('.gold-purchase-form'))return;
+  setTimeout(()=>{
+   const scroller=e.target.closest('.gold-purchase-form');
+   if(!scroller)return;
+   const er=e.target.getBoundingClientRect(), sr=scroller.getBoundingClientRect();
+   if(er.bottom>sr.bottom-18)scroller.scrollTop+=er.bottom-sr.bottom+32;
+   if(er.top<sr.top+12)scroller.scrollTop-=sr.top-er.top+22;
+   schedule();
+  },320);
+ },true);
+})();

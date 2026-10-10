@@ -45,68 +45,68 @@ export default function PurchaseFormFields({portfolios,purchase}:{portfolios:Por
      {(CURRENCIES.includes(purchase?.currency||'')?CURRENCIES:[purchase?.currency||'SAR',...CURRENCIES]).filter((v,i,a)=>a.indexOf(v)===i).map(c=><option key={c} value={c}>{c}</option>)}
     </select>
    </label>
-   <label>وزن الذهب الصافي (جرام)
+   <label>الوزن الصافي (جم)
     <input name="weightGrams" type="number" min="0.0001" max="99999999" step="any" inputMode="decimal" required value={weight} onChange={e=>setWeight(e.target.value)} placeholder="مثال: 5.250"/>
    </label>
-   <label>تاريخ الشراء
+   <label>التاريخ
     <input name="purchasedAt" type="date" required max={localDate()} defaultValue={purchase?.purchasedAt?.slice(0,10)||localDate()}/>
    </label>
   </div>
   <fieldset className="gold-purchase-fieldset">
-   <legend>طريقة احتساب سعر الشراء</legend>
+   <legend>حساب السعر</legend>
    <div className="gold-purchase-mode">
-    <label><input type="radio" name="pricingMode" checked={mode==='inclusive'} value="inclusive" onChange={()=>setMode('inclusive')}/> الإجمالي شامل المصنعية والضريبة</label>
-    <label><input type="radio" name="pricingMode" checked={mode==='itemized'} value="itemized" onChange={()=>setMode('itemized')}/> إدخال التفاصيل يدويًا</label>
+    <label><input type="radio" name="pricingMode" checked={mode==='inclusive'} value="inclusive" onChange={()=>setMode('inclusive')}/> شامل التكاليف</label>
+    <label><input type="radio" name="pricingMode" checked={mode==='itemized'} value="itemized" onChange={()=>setMode('itemized')}/> تفصيل السعر</label>
    </div>
    {mode==='inclusive'?<>
-    <label>إجمالي المبلغ المدفوع في الفاتورة (بالعملة المختارة)
+    <label>المبلغ المدفوع
      <input type="number" name="invoiceTotal" min="0.0001" step="any" inputMode="decimal" required value={invoiceTotal} onChange={e=>setInvoiceTotal(e.target.value)} placeholder="المبلغ النهائي المدفوع"/>
     </label>
     <p className="fine">سنسجل الإجمالي كما دفعته تمامًا، ونحسب التكلفة الفعلية لكل جرام. لا نضيف مصنعية أو ضريبة مرة أخرى.</p>
    </>:<>
     <div className="form-grid">
-     <label>سعر جرام الذهب قبل المصنعية والضريبة
+     <label>سعر الجرام
       <input name="goldUnitPrice" type="number" min="0.0001" step="any" inputMode="decimal" required value={goldUnitPrice} onChange={e=>setGoldUnitPrice(e.target.value)}/>
      </label>
-     <label>المصنعية (إجمالي المبلغ)
+     <label>المصنعية
       <input name="makingCharge" type="number" min="0" step="any" inputMode="decimal" value={makingCharge} onChange={e=>setMakingCharge(e.target.value)}/>
      </label>
-     <label>قيمة الأحجار إن وجدت
+     <label>قيمة الأحجار
       <input name="stonePrice" type="number" min="0" step="any" inputMode="decimal" value={stonePrice} onChange={e=>setStonePrice(e.target.value)}/>
      </label>
-     <label>حساب الضريبة
+     <label>طريقة الضريبة
       <select name="vatMode" value={vatMode} onChange={e=>setVatMode(e.target.value as 'rate'|'manual')}>
        <option value="rate">بنسبة مئوية</option><option value="manual">إدخال مبلغ الضريبة يدويًا</option>
       </select>
      </label>
-     {vatMode==='rate'?<label>نسبة الضريبة بحسب الفاتورة (%)
+     {vatMode==='rate'?<label>نسبة الضريبة (%)
       <select name="vatRate" value={vatRate} onChange={e=>setVatRate(e.target.value)}>
        <option value="0">0% — لا تطبق/صفرية بحسب الفاتورة</option>
        <option value="15">15% — إذا كانت المعاملة خاضعة لها</option>
        {!['0','15'].includes(vatRate)&&<option value={vatRate}>{vatRate}%</option>}
       </select>
-     </label>:<label>مبلغ الضريبة في الفاتورة
+     </label>:<label>قيمة الضريبة
       <input name="vatAmount" type="number" min="0" step="any" inputMode="decimal" value={vatAmount} onChange={e=>setVatAmount(e.target.value)}/>
      </label>}
     </div>
     <p className="fine">تحقق من طريقة تطبيق الضريبة في فاتورتك. السلع الاستثمارية المؤهلة قد تختلف ضريبتها عن المشغولات؛ لا يفترض التطبيق نسبة موحدة.</p>
    </>}
    <div className="gold-purchase-estimate" aria-live="polite">
-    <div><span>المبلغ النهائي المسجل</span><strong>{quote?num(quote.total):'أدخل الوزن والسعر'}</strong></div>
-    <div><span>التكلفة الفعلية للجرام شاملة الإضافات</span><strong>{quote?num(quote.effectiveUnitPrice):'غير متاح'}</strong></div>
+    <div><span>الإجمالي المسجل</span><strong>{quote?num(quote.total):'أدخل الوزن والسعر'}</strong></div>
+    <div><span>تكلفة الجرام</span><strong>{quote?num(quote.effectiveUnitPrice):'غير متاح'}</strong></div>
     {mode==='itemized'&&quote&&<div className="gold-breakdown-note">قيمة الذهب: {num(quote.metalSubtotal)} · إضافات: {num(quote.fees)} · ضريبة: {num(quote.vat)}</div>}
    </div>
   </fieldset>
-  <details className="gold-purchase-details" open>
-   <summary>تفاصيل القطعة والفاتورة <small>لتوثيق حقوقك</small></summary>
+  <details className="gold-purchase-details" open={Boolean(purchase)}>
+   <summary>بيانات الفاتورة <small>اختياري</small></summary>
    <div className="form-grid">
-    <label>اسم المتجر أو البائع
+    <label>اسم المتجر
      <input name="sellerName" maxLength={150} value={sellerName} onChange={e=>setSellerName(e.target.value)} placeholder="الاسم التجاري"/>
     </label>
     <label>عنوان المحل
      <input name="sellerAddress" maxLength={250} defaultValue={text(details.sellerAddress)} placeholder="عنوان المتجر كما يظهر في الفاتورة"/>
     </label>
-    <label>اسم المشتري في الفاتورة
+    <label>اسم المشتري
      <input name="buyerName" maxLength={120} defaultValue={text(details.buyerName)} placeholder="اسم المشتري إن وجد"/>
     </label>
     <label>رقم الفاتورة
@@ -123,27 +123,27 @@ export default function PurchaseFormFields({portfolios,purchase}:{portfolios:Por
       <option value="">غير محدد</option><option value="new">جديد</option><option value="used">مستعمل</option>
      </select>
     </label>
-    <label>العيار/الدمغة أو علامة الفحص
+    <label>الدمغة
      <input name="hallmark" maxLength={120} defaultValue={text(details.hallmark)} placeholder="الدمغة كما تظهر على القطعة"/>
     </label>
-    <label>علامة الصانع/المستورد
+    <label>علامة الصانع
      <input name="manufacturerMark" maxLength={120} defaultValue={text(details.manufacturerMark)}/>
     </label>
-    <label>الوزن الإجمالي للقطعة (جرام)
+    <label>وزن القطعة (جم)
      <input name="grossWeightGrams" type="number" min="0" step="any" inputMode="decimal" value={grossWeight} onChange={e=>setGrossWeight(e.target.value)}/>
     </label>
-    <label>وزن الأحجار فقط (جرام)
+    <label>وزن الأحجار (جم)
      <input name="stoneWeightGrams" type="number" min="0" step="any" inputMode="decimal" value={stoneWeight} onChange={e=>setStoneWeight(e.target.value)}/>
     </label>
    </div>
-   <label>وصف المشغول (نوعه وشكله وصفته)
+   <label>وصف القطعة
     <textarea name="itemDescription" rows={2} maxLength={500} value={desc} onChange={e=>setDesc(e.target.value)} placeholder="مثال: سوار ذهب عيار 21 ..."/>
    </label>
    {n(stoneWeight)>0&&<p className={stoneRatio>5?'gold-purchase-stone-warning':'fine'} role="status">
     وزن الأحجار {num(stoneRatio)}% من الوزن الإجمالي. {stoneRatio>5?'يتجاوز 5%؛ تأكد من بيان وزن المعدن الثمين والأحجار كلٍّ على حدة في الفاتورة.':'تحقق من فصل وزن الذهب الصافي عن الأحجار في بيانات الفاتورة.'}
    </p>}
    <details className="gold-stones-more">
-    <summary>تفاصيل الأحجار الكريمة إن وجدت</summary>
+    <summary>تفاصيل الأحجار</summary>
     <div className="form-grid">
      <label>اسم الحجر<input name="stoneName" maxLength={120} defaultValue={text(details.stoneName)}/></label>
      <label>نوع الحجر<input name="stoneKind" maxLength={100} defaultValue={text(details.stoneKind)}/></label>
