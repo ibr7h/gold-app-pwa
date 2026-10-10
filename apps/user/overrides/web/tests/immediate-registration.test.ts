@@ -6,7 +6,7 @@ const auth=readFileSync(new URL('../../contexts/AuthContext.web.tsx',import.meta
 describe('Immediate user registration without email or SMS OTP',()=>{
  it('collects full name, email and mobile and requires password confirmation',()=>{
   expect(form).toContain('الاسم الكامل');
-  expect(form).toContain('رقم الجوال');
+  expect(form).toContain('رقم الهاتف الدولي');
   expect(form).toContain('<InternationalPhoneField');
   expect(form).toContain('country={phoneCountry}');
   expect(form).toContain('readInternationalPhone(phone,phoneCountry)');
