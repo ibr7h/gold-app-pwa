@@ -526,6 +526,17 @@ jobs:
           cd "$SRC"
           pnpm install --frozen-lockfile
           pnpm check
+          # The upstream fixture checks the former email-only divider verbatim.
+          # Update its assertion to the approved dual-identifier label; keep the test enabled.
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('web/tests/biometric-visibility.test.ts')
+          s=p.read_text()
+          previous="showBiometricLogin?'أو بالبريد الإلكتروني':'الدخول بالبريد الإلكتروني'"
+          updated="showBiometricLogin?'أو بالبريد الإلكتروني أو رقم الجوال':'الدخول بالبريد الإلكتروني أو رقم الجوال'"
+          assert s.count(previous)==1, 'Expected biometric divider assertion not found'
+          p.write_text(s.replace(previous,updated))
+          PY
           pnpm exec vitest run web/tests
 
       - name: Export full app for web
