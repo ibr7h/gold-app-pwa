@@ -153,3 +153,12 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 /* Only Profile displays release metadata; hide stale cached variants. */
 html .gold-auth .app-version-stamp,html .gold-web.boot .app-version-stamp,html .dh-quick-lock .dh-pin-release,html .gold-web .workspace-content>footer{display:none!important}
 html .gold-web .dh-profile-copyright{display:block;margin-top:8px;font-size:12px;text-align:center;line-height:1.7;color:#748092}
+
+
+/* The installed preview replaces the obsolete nearby-markets placeholder.
+   Do not show the old 'not connected / no data' notice behind live location controls. */
+.gold-web.workspace .workspace-content > section.map-placeholder:has(.dh-nearby-location[data-dh-injected="true"]) > .map-surface,
+.gold-web.workspace .workspace-content > section.map-placeholder:has(.dh-nearby-location[data-dh-injected="true"]) > .approved-card-title,
+.gold-web.workspace .workspace-content > section.map-placeholder:has(.dh-nearby-location[data-dh-injected="true"]) > p.approved-muted {
+  display: none !important;
+}
