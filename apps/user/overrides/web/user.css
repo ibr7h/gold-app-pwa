@@ -1748,3 +1748,58 @@
  .gold-web .dh-price-trend.compact .home-chart-title{font-size:12px}
  .gold-web.reference-home .portfolio-mini-body>div:first-child>strong{font-size:20px}
 }
+
+/* User account/profile UX; scoped to User web only. */
+.gold-web .dh-profile{display:grid;gap:14px;min-width:0}
+.gold-web .dh-profile-hero{background:linear-gradient(135deg,#062447,#001F3F 78%);border:1px solid rgba(197,160,33,.35);color:#fff;padding:21px!important}
+.gold-web .dh-profile-hero-main{display:flex;align-items:center;gap:16px;min-width:0}
+.gold-web .dh-profile-avatar{width:68px;height:68px;flex:0 0 68px;display:grid;place-items:center;background:linear-gradient(135deg,#F5DD8B,#C5A021);color:#001F3F;border-radius:21px;font-size:25px;font-weight:850}
+.gold-web .dh-profile-identity{min-width:0;display:grid;gap:4px;text-align:start}
+.gold-web .dh-profile-eyebrow{font-size:11px;color:#F0D47E;font-weight:700}
+.gold-web .dh-profile-identity h2{font-size:clamp(17px,3.6vw,22px);color:#fff;line-height:1.5;overflow-wrap:anywhere;margin:0}
+.gold-web .dh-profile-email{font-size:12px;color:#DBE4EF;overflow-wrap:anywhere;text-align:start;unicode-bidi:plaintext}
+.gold-web .dh-profile-hero-footer{margin-top:17px;padding-top:12px;border-top:1px solid #ffffff30;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:11px;color:#CBD5E1}
+.gold-web .dh-profile-account-type{font-weight:800;color:#F7DD8B}
+.gold-web .dh-profile-section-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:15px}
+.gold-web .dh-profile-section-head h3{font-size:16px;color:#001F3F;font-weight:800;margin:0}
+.gold-web .dh-profile-section-head p{font-size:12px;color:#64748B;margin:4px 0 0;line-height:1.7}
+.gold-web .dh-profile-edit{min-height:44px;border:1px solid #C5A021;border-radius:10px;padding:8px 14px;background:#FCF6DF;color:#001F3F;font-size:12px;font-weight:800}
+.gold-web .dh-profile-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gold-web .dh-profile-info{min-width:0;display:grid;align-content:start;gap:6px;border:1px solid #E2E8F0;border-radius:11px;padding:12px;background:#FAFBFD}
+.gold-web .dh-profile-info span{color:#64748B;font-size:11px}
+.gold-web .dh-profile-info strong{color:#001F3F;font-size:13px;overflow-wrap:anywhere;line-height:1.6;text-align:start}
+.gold-web .dh-profile-info small{font-size:10px;color:#64748B;line-height:1.6}
+.gold-web .dh-profile-loading{background:#F1F5F9;border-radius:10px;padding:18px;color:#475569;font-size:12px}
+.gold-web .dh-profile-feedback{margin:10px 0 0;border-radius:10px;padding:12px;font-size:12px;line-height:1.7}
+.gold-web .dh-profile-feedback.warning{background:#FFF7DC;color:#78540C;border:1px solid #EFDAA5}
+.gold-web .dh-profile-feedback.error{background:#FFF1F0;color:#A32323;border:1px solid #F4C4C1}
+.gold-web .dh-profile-feedback.success{background:#ECF9F1;color:#175D3A;border:1px solid #C1E6D0}
+.gold-web .dh-profile-feedback button{display:block;margin-top:9px;min-height:44px;padding:7px 14px;background:#001F3F;color:#fff;border:0;border-radius:9px}
+.gold-web .dh-profile-edit-form{display:grid;gap:14px}
+.gold-web .dh-profile-edit-form label{display:grid;gap:7px;font-size:12px;font-weight:800;color:#001F3F}
+.gold-web .dh-profile-edit-form input{min-height:47px;width:100%;padding:10px 12px;border:1px solid #CBD5E1;border-radius:10px;background:white;color:#001F3F;font-size:16px!important}
+.gold-web .dh-profile-optional,.gold-web .dh-profile-help{font-size:11px;color:#64748B;font-weight:400;line-height:1.75}
+.gold-web .dh-profile-edit-actions{display:flex;flex-wrap:wrap;gap:10px}
+.gold-web .dh-profile-edit-actions button{min-height:44px;border-radius:10px;padding:10px 18px;font-weight:700}
+.gold-web .dh-profile-edit-actions button:disabled{opacity:.65}
+.gold-web .dh-profile-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.gold-web .dh-profile-shortcuts button{display:flex;gap:9px;align-items:center;min-height:60px;border:1px solid #E2E8F0;border-radius:11px;background:#FCFDFE;color:#001F3F;text-align:start;font-weight:700;font-size:12px;padding:10px 12px}
+.gold-web .dh-profile-shortcuts button>span:nth-child(2){min-width:0;flex:1}
+.gold-web .dh-profile-shortcuts button>svg:last-child{width:15px;opacity:.6}
+.gold-web .dh-profile-shortcut-icon{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:9px;background:#FFF5D5;color:#9B7510}
+.gold-web .dh-profile-security{padding:0!important;overflow:hidden}
+.gold-web .dh-profile-security-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:19px;cursor:pointer;list-style:none}
+.gold-web .dh-profile-security-summary::-webkit-details-marker{display:none}
+.gold-web .dh-profile-security-summary>span:first-child{display:grid;gap:4px}
+.gold-web .dh-profile-security-summary strong{color:#001F3F;font-size:15px}
+.gold-web .dh-profile-security-summary small{color:#64748B;font-size:11px}
+.gold-web .dh-profile-security-action{display:flex;gap:6px;align-items:center;color:#957016;font-weight:800;font-size:12px}
+.gold-web details[open]>.dh-profile-security-summary .dh-profile-security-action svg{transform:rotate(90deg)}
+.gold-web .dh-profile-security-body{border-top:1px solid #E2E8F0;padding:0 18px 18px}
+.gold-web .dh-profile-security-title{font-size:13px;color:#001F3F;margin:14px 0 8px}
+.gold-web .dh-profile-security-body>.fine{font-size:11px;line-height:1.7}
+.gold-web .dh-profile-signout-button{width:100%;display:flex;justify-content:center;align-items:center;gap:9px;min-height:49px;border:1px solid #F2C6C6;border-radius:12px;background:#FFF7F6;color:#B42323;font-size:13px;font-weight:800}
+.gold-web .dh-profile-signout-button svg{width:18px}
+.gold-web .dh-profile-version{color:#64748B;font-size:11px;text-align:center;margin:0 0 12px}
+.gold-web .dh-profile-edit:focus-visible,.gold-web .dh-profile-shortcuts button:focus-visible,.gold-web .dh-profile-security-summary:focus-visible,.gold-web .dh-profile-signout-button:focus-visible,.gold-web .dh-profile-edit-form input:focus-visible{outline:3px solid #C5A021;outline-offset:2px}
+@media(max-width:540px){.gold-web .dh-profile-hero{padding:17px!important}.gold-web .dh-profile-avatar{width:55px;height:55px;flex-basis:55px;border-radius:16px;font-size:20px}.gold-web .dh-profile-hero-main{gap:11px}.gold-web .dh-profile-info-grid,.gold-web .dh-profile-shortcuts{grid-template-columns:minmax(0,1fr)}.gold-web .dh-profile-shortcuts button{min-height:53px}.gold-web .dh-profile-edit{width:100%}.gold-web .dh-profile-edit-actions button{flex:1}}
