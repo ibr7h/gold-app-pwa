@@ -109,7 +109,7 @@
 (function(){
  'use strict';
  var notice='يُحفظ الرقم الدولي بصيغة E.164';
- var shown=false;
+ var releaseVersion='v1.9.8';
  function repair(){
   var auth=document.querySelector('#root > .gold-auth');
   if(!auth)return;
@@ -121,7 +121,7 @@
     if(host&&host.childElementCount===0)host.style.display='none';
     else node.nodeValue='';
    }
-   if(node.nodeValue&&/v1\.9\.0\s*·\s*[a-f0-9]{8}/i.test(node.nodeValue))node.nodeValue=node.nodeValue.replace(/v1\.9\.0\s*·\s*[a-f0-9]{8}/gi,'v1.9.8');
+   if(node.nodeValue&&/v\d+\.\d+\.\d+\s*·\s*[a-f0-9]{8}/i.test(node.nodeValue))node.nodeValue=node.nodeValue.replace(/v\d+\.\d+\.\d+\s*·\s*[a-f0-9]{8}/gi,releaseVersion);
   }
  }
  var queued=false;
