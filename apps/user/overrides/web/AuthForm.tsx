@@ -1,4 +1,4 @@
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {Money} from './price-display';
 import {router} from 'expo-router';
 import {useAuth} from '../contexts/AuthContext';
@@ -37,7 +37,7 @@ function GuestPrices({onBack}:{onBack:()=>void}){
   if(active)setRows(data);
  }catch{if(active)setError('تعذر تحميل الأسعار الآن.');}finally{if(active)setLoading(false);}})();return()=>{active=false;};},[]);
  const money=(v:string)=><Money amount={Number(v)} currency="SAR"/>;
- return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
+ return <main ref={formRoot} className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
   <section className="mockup-login-container guest-price-view">
    <button className="guest-back" type="button" onClick={onBack}><AuthIcon name="back"/>العودة لتسجيل الدخول</button>
    <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
@@ -57,9 +57,25 @@ function GuestPrices({onBack}:{onBack:()=>void}){
 
 export default function AuthForm({register=false}:{register?:boolean}){
  const {user,isLoading,error,login,startRegistration,clearError,biometricAvailable,biometricEnrolled,biometricEnabled,loginWithBiometric}=useAuth();
+ const formRoot=useRef<HTMLElement|null>(null);
  const showBiometricLogin=canShowBiometricLogin({biometricAvailable,biometricEnrolled,biometricEnabled});
  const [email,setEmail]=useState(''),[phone,setPhone]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
  useEffect(()=>{if(user)router.replace('/');},[user]);
+ useEffect(()=>{
+  const el=formRoot.current;
+  if(!el||typeof window==='undefined')return;
+  let timer:ReturnType<typeof setTimeout>|undefined;
+  const onFocus=(event:FocusEvent)=>{
+   if(!(event.target instanceof HTMLInputElement))return;
+   if(timer)clearTimeout(timer);
+   timer=setTimeout(()=>event.target instanceof HTMLInputElement&&event.target.isConnected&&event.target.scrollIntoView({behavior:'smooth',block:'center'}),220);
+  };
+  const vv=window.visualViewport;
+  const onViewport=()=>{if(document.activeElement instanceof HTMLInputElement&&el.contains(document.activeElement))document.activeElement.scrollIntoView({block:'nearest'});};
+  el.addEventListener('focusin',onFocus);
+  vv?.addEventListener('resize',onViewport);
+  return()=>{if(timer)clearTimeout(timer);el.removeEventListener('focusin',onFocus);vv?.removeEventListener('resize',onViewport);};
+ },[register,guest]);
  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(isLoading)return;clearError();setLocalError('');
   if(register&&!/^(?:\+9665\d{8}|05\d{8}|9665\d{8})$/.test(phone.replace(/[\s()-]/g,''))){setLocalError('أدخل رقم جوال سعودي صحيحًا مثل 0501234567.');return;}
   if(!register&&!email.trim()){setLocalError('أدخل البريد الإلكتروني أو رقم الجوال.');return;}
@@ -71,7 +87,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
  // Browser and iOS own the passkey sheet. Never request it before an explicit tap.
  // WebAuthn authenticates the previously enrolled device; this does not enroll passkeys automatically.
  if(guest&&!register)return <GuestPrices onBack={()=>setGuest(false)}/>;
- if(register)return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
+ if(register)return <main ref={formRoot} className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
   <section className="mockup-login-container">
    <div className="emblem-circle"><span className="emblem-text">ذ</span></div>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
@@ -82,7 +98,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
      <label className="form-group"><span className="form-label">الاسم الكامل</span><div className="mockup-input-wrap"><input className="form-input" value={name} autoComplete="name" maxLength={80} placeholder="الاسم الكامل" onChange={e=>setName(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="userPlus"/></span></div></label>
      <label className="form-group"><span className="form-label">البريد الإلكتروني</span><div className="mockup-input-wrap"><input className="form-input" type="email" dir="ltr" autoComplete="email" value={email} required placeholder="user@gold.app" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
      <label className="form-group"><span className="form-label">رقم الجوال</span><div className="mockup-input-wrap"><input className="form-input" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" required value={phone} placeholder="05xxxxxxxx" onChange={e=>setPhone(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="phone"/></span></div></label>
-     <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={password} placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
+     <div className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={password} placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onPointerDown={e=>e.preventDefault()} onClick={e=>{e.preventDefault();setVisible(v=>!v);}} aria-pressed={visible} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></div>
      <label className="form-group"><span className="form-label">تأكيد كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={confirm} placeholder="أعد كتابة كلمة المرور" onChange={e=>setConfirm(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="lock"/></span></div></label>
      {(localError||error)&&<p className="error-banner" role="alert">{localError||error}</p>}
      <button className="gold-btn mockup-primary-btn" disabled={isLoading}><AuthIcon name="userPlus"/><span>{isLoading?'جارٍ إنشاء الحساب…':'إنشاء الحساب'}</span></button>
@@ -91,7 +107,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
    </section>
   </section>
  </main>;
- return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
+ return <main ref={formRoot} className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
   <section className="mockup-login-container">
    <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
@@ -107,7 +123,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
     {(localError||error)&&<p className="error-banner" role="alert">{localError||error}</p>}
     <form onSubmit={submit} aria-busy={isLoading}>
      <label className="form-group"><span className="form-label">البريد الإلكتروني أو رقم الجوال</span><div className="mockup-input-wrap"><input className="form-input" type="text" dir="ltr" autoComplete="username" inputMode="text" value={email} required placeholder="user@example.com أو 0501234567" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
-     <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="current-password" value={password} required placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
+     <div className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="current-password" value={password} required placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onPointerDown={e=>e.preventDefault()} onClick={e=>{e.preventDefault();setVisible(v=>!v);}} aria-pressed={visible} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></div>
      <div className="mockup-login-options"><label className="mockup-remember"><input type="checkbox" disabled/><span>الدخول السريع من إعدادات الحساب</span></label><button type="button" className="mockup-forgot" onClick={()=>setLocalError('استعادة كلمة المرور لم تُفعّل في الخادم بعد.')}>نسيت كلمة المرور؟</button></div>
      <button className="gold-btn mockup-primary-btn" disabled={isLoading}><AuthIcon name="login"/><span>{isLoading?'جارٍ تسجيل الدخول…':'تسجيل الدخول'}</span></button>
      <button type="button" className="gold-btn-outline mockup-guest-btn" onClick={()=>setGuest(true)}><AuthIcon name="guest"/><span>المتابعة كزائر (تصفح الأسعار فقط)</span></button>
