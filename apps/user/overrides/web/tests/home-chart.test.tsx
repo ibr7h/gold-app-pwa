@@ -15,10 +15,11 @@ describe('Compact home chart',()=>{
   expect(html).toContain('dh-trend-line');
   expect(html).not.toContain('class="dh-trend-summary"');
  });
- it('explains paused trading rather than offering useless timestamp refreshes',()=>{
-  const html=renderToStaticMarkup(<PriceHistoryChart rows={[]} currency="SAR" karat={24} compact marketClosed/>);
-  expect(html).toContain('السوق العالمي مغلق');
-  expect(html).toContain('حتى يستأنف سوق الذهب العالمي');
+ it('keeps the chart free of redundant market closure notices',()=>{
+  const html=renderToStaticMarkup(<PriceHistoryChart rows={[]} currency="SAR" karat={24} compact/>);
+  expect(html).not.toContain('السوق العالمي مغلق');
+  expect(html).not.toContain('حتى يستأنف سوق الذهب العالمي');
+  expect(html).not.toContain('dh-trend-market-status');
  });
  it('shows an honest empty state for insufficient data, without a decorative fake curve',()=>{
   const html=renderToStaticMarkup(<PriceHistoryChart rows={[]} currency="SAR" karat={24} compact/>);
