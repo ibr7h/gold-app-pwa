@@ -11,7 +11,7 @@ describe('Immediate user registration without email or SMS OTP',()=>{
   expect(form).toContain('autoComplete="tel"');
   expect(form).toContain('value={phone} required');
   expect(form).toContain('register&&password!==confirm');
-  expect(form).toContain("startRegistration(name,email,password,cleanedPhone)");
+  expect(form).toContain("startRegistration(name,email,password,cleanedPhone!)");
  });
  it('issues user session directly through existing protected registration API',()=>{
   expect(auth).toContain("passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim(),phone:phone.trim()})");
