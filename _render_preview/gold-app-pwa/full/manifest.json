@@ -7,11 +7,26 @@
   "start_url": "/gold-app-pwa/full/",
   "scope": "/gold-app-pwa/full/",
   "display": "standalone",
-  
   "background_color": "#001F3F",
   "theme_color": "#001F3F",
   "icons": [
-    {"src":"/gold-app-pwa/full/app_icon_user-af89c21a.jpg","sizes":"1024x1024","type":"image/jpeg","purpose":"any"},
-    {"src":"/gold-app-pwa/full/pwa-icon-af89c21a.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {
+      "src": "/gold-app-pwa/full/iphone-apple-touch-67084b40.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/gold-app-pwa/full/app_icon_user-af89c21a.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/gold-app-pwa/full/pwa-icon-af89c21a.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
