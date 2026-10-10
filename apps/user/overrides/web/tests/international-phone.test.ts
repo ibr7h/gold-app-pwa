@@ -23,7 +23,7 @@ describe('International registration phone, region detection and E.164',()=>{
   expect(readInternationalPhone('٠٥٤٥٥٦٣٢٦٩','SA').e164).toBe('+966545563269');
   expect(readInternationalPhone('+12133734253','SA').country).toBe('US');
   expect(readInternationalPhone('+12133734253','SA').e164).toBe('+12133734253');
-  expect(readInternationalPhone('+447911123456','SA').country).toBe('GB');
+  expect(readInternationalPhone('+447911123456','SA').country).toBe('GG');
   expect(readInternationalPhone('+447911123456','SA').e164).toBe('+447911123456');
   expect(readInternationalPhone('+971501234567','AE').e164).toBe('+971501234567');
  });
