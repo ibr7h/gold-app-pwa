@@ -205,9 +205,32 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).not.toContain("المصدر: {homeMarket?.source");
   expect(s).toContain("marketClosed?'لا تداول حاليًا'");
  });
- it('does not render either price chart when closed',()=>{
+ it('keeps historical charts visible but halts automatic refresh while the market is closed',()=>{
   const s=source('../UserWorkspace.tsx');
-  expect(s).toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
-  expect(s).toContain('{!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
+  expect(s).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart');
+  expect(s).toContain('<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
+  expect(s).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
+  expect(s).toContain("document.visibilityState==='visible'&&isGlobalGoldMarketOpen(Date.now())");
+  expect(s).toContain('disabled={marketLoading||marketClosed}');
+ });
+});
+
+
+describe('Approved iPhone calculator layout and written amount',()=>{
+ it('does not duplicate the estimated total at the top',()=>{
+  const s=source('../UserWorkspace.tsx');
+  expect(s).not.toContain('<section className="approved-card calc-total-card">');
+  expect(s).toContain('className="calc-gram-reference"');
+  expect(s).toContain('سعر الجرام الأساسي · عيار {calcKarat}');
+  expect(s).toContain('className="calc-final-amount"');
+  expect(s).toContain('amountToSaudiRiyalWords(calcTotal)');
+  expect(s).toContain('calcTotal!==null');
+ });
+ it('retains karats, weight presets, workmanship, VAT and the breakdown',()=>{
+  const s=source('../UserWorkspace.tsx');
+  for(const label of ['[24,22,21,18]','[5,10,20,31.1,50]','المصنعية / جرام','ضريبة 15%','قيمة الذهب الخام','إجمالي المصنعية','الضريبة التقديرية'])expect(s).toContain(label);
+  const css=source('../user.css');
+  expect(css).toContain('.calc-tafqeet');
+  expect(css).toContain('.calc-gram-reference');
  });
 });

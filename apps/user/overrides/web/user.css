@@ -1884,3 +1884,28 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web .portfolio-money-row{grid-template-columns:1fr;row-gap:2px}
  .gold-web .portfolio-market-value,.gold-web .portfolio-change-value{font-size:15px}
 }
+
+
+/* Calculator restored from the approved iPhone layout: no duplicate total card. */
+.gold-web.workspace .calculator-form .calc-karat-group{display:grid;gap:11px;min-width:0}
+.gold-web.workspace .calculator-form .calc-karat-group>label{font-size:15px!important;font-weight:800!important;margin:0!important;color:#001F3F!important}
+.gold-web.workspace .calculator-form .calc-gram-reference{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;align-items:baseline;
+ margin:0!important;padding:12px 13px;border:1px solid #E6D9A9;border-radius:12px;
+ background:#FFFCF1;min-width:0
+}
+.gold-web.workspace .calculator-form .calc-gram-reference>span{color:#334155;font-size:13px;font-weight:700;line-height:1.6}
+.gold-web.workspace .calculator-form .calc-gram-reference>strong{font-size:17px;font-weight:900;color:#8E6C13;direction:ltr;text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gold-web.workspace .calculator-form .calc-gram-reference>small{grid-column:1/-1;font-size:11px;color:#64748B;line-height:1.65}
+.gold-web.workspace .calc-breakdown .calc-final-amount{display:grid;justify-items:start;gap:7px;min-width:0;max-width:100%;text-align:start}
+.gold-web.workspace .calc-breakdown .calc-final-amount>.dh-money{white-space:nowrap;font-size:17px;font-variant-numeric:tabular-nums}
+.gold-web.workspace .calc-breakdown .calc-tafqeet{
+ font-size:12px!important;color:#566477!important;line-height:1.9!important;
+ font-weight:600!important;max-width:100%;white-space:normal;overflow-wrap:break-word;direction:rtl
+}
+@media(max-width:420px){
+ .gold-web.workspace .calculator-form .calc-gram-reference{grid-template-columns:1fr;gap:4px}
+ .gold-web.workspace .calculator-form .calc-gram-reference>strong{text-align:start}
+ .gold-web.workspace .calc-breakdown .final{display:grid;grid-template-columns:1fr;gap:9px}
+ .gold-web.workspace .calc-breakdown .calc-final-amount{justify-items:stretch}
+}

@@ -24,13 +24,14 @@ describe('User price update freshness',()=>{
 describe('User-only backend price refresh integration',()=>{
  const source=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url)),'utf8');
  it('polls the backend only every five minutes while the app is visible',()=>{
-  expect(source).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000)");
+  expect(source).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible'&&isGlobalGoldMarketOpen(Date.now()))void loadMarket();},5*60000)");
   expect(source).toContain("api<PriceHistoryRow|null>('/prices/latest?currency='");
   expect(source).not.toContain('api.gold-api.com');
  });
  it('offers manual refresh without granting clients access to the admin refresh route',()=>{
   expect(source).toContain('aria-label="تحديث أسعار الذهب من خادم ذهبي"');
-  expect(source).toContain('onClick={()=>void loadMarket()}');
+  expect(source).toContain('onClick={()=>{if(!marketClosed)void loadMarket();}}');
+  expect(source).toContain('disabled={marketLoading||marketClosed}');
   expect(source).not.toContain("api('/prices/refresh'");
  });
  it('does not erase a real cached price on a temporary request failure',()=>{

@@ -16,6 +16,7 @@ import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {calculatorQuote} from './calculator-quote';
+import {amountToSaudiRiyalWords} from './arabic-amount-words';
 import {homeMarketMovement,homePortfolioSummary,homeUpdateAge} from './home-data';
 /** Build-time type bridge for the extracted native app's older AuthContext.
  * The Web bundle uses the specialized contexts/AuthContext.web provider.
@@ -137,8 +138,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  },[priceCurrency,chartKarat]);
  useEffect(()=>{active.current=true;void loadData();void loadMarket();
   const clockTimer=setInterval(()=>setClock(Date.now()),60000);
-  const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000);
-  const focus=()=>{if(document.visibilityState==='visible'){setClock(Date.now());void loadData();void loadMarket();}};
+  const marketTimer=setInterval(()=>{if(document.visibilityState==='visible'&&isGlobalGoldMarketOpen(Date.now()))void loadMarket();},5*60000);
+  const focus=()=>{if(document.visibilityState==='visible'){setClock(Date.now());void loadData();if(isGlobalGoldMarketOpen(Date.now()))void loadMarket();}};
   document.addEventListener('visibilitychange',focus);
   return()=>{active.current=false;loadSequence.current++;marketLoadSequence.current++;clearInterval(clockTimer);clearInterval(marketTimer);document.removeEventListener('visibilitychange',focus);};},[loadData,loadMarket]);
  useEffect(()=>{const read=()=>{const id=location.hash.slice(1);if(pages.some(p=>p.id===id))setPage(id as Page);};read();window.addEventListener('hashchange',read);return()=>window.removeEventListener('hashchange',read);},[]);
@@ -201,7 +202,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
      <p className={'home-market-change '+(homeMovement===null?'neutral':homeMovement.difference>=0?'positive':'negative')} title="مقارنة بأول تحديث متاح اليوم بتوقيت السعودية">
       {marketClosed?'لا تداول حاليًا':homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),'SAR')} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:'لا توجد مقارنة كافية اليوم'}
      </p></div><div className="buy-sell-mini"><span>سعر الشراء: <b>{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}</b></span><span>سعر البيع: <b>{money(homeMarket?Number(homeMarket.sellPrice):null,'SAR')}</b></span></div></div>
-    <div className="live-card-footer"><span>السعر العالمي الاسترشادي</span><button className="home-price-refresh" title={marketTime(homeMarket)} aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}>{marketLoading?'جارٍ التحديث…':homeUpdateAge(homeMarket?.timestamp,clock)}</button></div>
+    <div className="live-card-footer"><span>السعر العالمي الاسترشادي</span><button className="home-price-refresh" title={marketTime(homeMarket)} aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading||marketClosed} onClick={()=>{if(!marketClosed)void loadMarket();}}>{marketClosed?'آخر تحديث: '+marketTime(homeMarket):marketLoading?'جارٍ التحديث…':homeUpdateAge(homeMarket?.timestamp,clock)}</button></div>
    </section>
    <div className="approved-section-title"><h3>الخدمات السريعة</h3></div>
    <section className="approved-services-grid">{[
@@ -211,7 +212,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <div className="portfolio-mini-body"><div><strong>{money(homePortfolio.value,'SAR')}</strong><span>إجمالي الوزن: {homePortfolio.weight===null?'غير متاح':number(homePortfolio.weight)+' جرام'}</span></div>{homePortfolio.difference!==null&&homePortfolio.percent!==null&&<div className={'portfolio-delta '+(homePortfolio.difference>=0?'positive':'negative')} title="الفرق عن تكلفة الشراء"><b><span>{homePortfolio.difference>=0?'+':'−'}</span>{money(Math.abs(homePortfolio.difference),'SAR')}</b><small dir="ltr">{homePortfolio.percent>=0?'+':'−'}{number(Math.abs(homePortfolio.percent))}%</small></div>}</div>
     {homePortfolio.hasOtherCurrencies&&<p className="home-currency-note">المعروض مشتريات الريال السعودي؛ بقية العملات في التفاصيل.</p>}
    </section>
-   {!marketClosed&&<section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>}
+   <section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>
   </>;
 
   if(page==='prices')return <>
@@ -219,19 +220,20 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}><option>SAR</option><option>USD</option></select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=marketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
-   {!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>}</section>}
+   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>}</section>
    {priceNote}
   </>;
 
   if(page==='calculator')return <>
-   <section className="approved-card calc-total-card"><span>السعر الإجمالي التقريبي</span><strong>{money(calcTotal,'SAR')}</strong><small>سعر الجرام الأساسي: {money(calcUnit,'SAR')} · عيار {calcKarat}</small></section>
    <section className="approved-card calculator-form">
-    <label>1. اختر عيار الذهب<div className="karat-switch">{[24,22,21,18].map(k=><button type="button" key={k} className={calcKarat===k?'active':''} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div></label>
+    <div className="calc-karat-group"><label>اختر عيار الذهب</label><div className="karat-switch" role="group" aria-label="عيار الذهب">{[24,22,21,18].map(k=><button type="button" key={k} className={calcKarat===k?'active':''} aria-pressed={calcKarat===k} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div>
+     <p className="calc-gram-reference"><span>سعر الجرام الأساسي · عيار {calcKarat}</span><strong>{money(calcUnit,'SAR')}</strong><small>{marketClosed?'آخر سعر مسجل — السعر العالمي الاسترشادي':'السعر العالمي الاسترشادي'}</small></p>
+    </div>
     <label>الوزن (جرام)<input type="number" inputMode="decimal" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(e.target.value)}/><div className="weight-presets">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(String(w))}>{w===31.1?'أونصة 31.1g':w+' جرام'}</button>)}</div></label>
     <label>المصنعية / جرام (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
     <div className="calc-toggle"><div><strong>ضريبة 15% (اختيارية)</strong><small>الضريبة = (قيمة الذهب + إجمالي المصنعية) × 15%.</small></div><input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/></div>
    </section>
-   <section className="approved-card"><div className="approved-card-title">تفاصيل السعر المقدر</div><dl className="calc-breakdown"><div><dt>قيمة الذهب الخام</dt><dd>{money(calcRaw,'SAR')}</dd></div><div><dt>إجمالي المصنعية</dt><dd>{money(calcFeeTotal,'SAR')}</dd></div><div><dt>الضريبة التقديرية</dt><dd>{money(calcTax,'SAR')}</dd></div><div className="final"><dt>الإجمالي النهائي</dt><dd>{money(calcTotal,'SAR')}</dd></div></dl></section>
+   <section className="approved-card"><div className="approved-card-title">تفاصيل السعر المقدر</div><dl className="calc-breakdown"><div><dt>قيمة الذهب الخام</dt><dd>{money(calcRaw,'SAR')}</dd></div><div><dt>إجمالي المصنعية</dt><dd>{money(calcFeeTotal,'SAR')}</dd></div><div><dt>الضريبة التقديرية</dt><dd>{money(calcTax,'SAR')}</dd></div><div className="final"><dt>الإجمالي النهائي</dt><dd className="calc-final-amount">{money(calcTotal,'SAR')}{calcTotal!==null&&<small className="calc-tafqeet" aria-label="الإجمالي كتابة">{amountToSaudiRiyalWords(calcTotal)}</small>}</dd></div></dl></section>
   </>;
 
   if(page==='portfolio')return <>
