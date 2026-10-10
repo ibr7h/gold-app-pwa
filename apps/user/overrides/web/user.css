@@ -1766,3 +1766,10 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 /* Release number and rights only inside Profile. */
 .gold-web .app-version-stamp,.gold-web .dh-pin-release,.gold-web .workspace-content>footer{display:none!important}
 .gold-web .dh-profile-copyright{display:block;margin-top:8px;color:#748092;font-size:12px;text-align:center;line-height:1.7}
+
+
+/* Accessible name shortcut to the User profile (source build). */
+.home-name-link{appearance:none;border:0;background:transparent;color:inherit;font:inherit;font-weight:inherit;
+  display:inline-flex;gap:8px;align-items:center;text-align:inherit;padding:0;cursor:pointer;
+  text-decoration:underline;text-decoration-color:#C5A021;text-underline-offset:5px}
+.home-name-link:focus-visible{outline:2px solid #C5A021;outline-offset:5px;border-radius:5px}

@@ -1,105 +1,194 @@
-
-/* Preview-only, on-demand geolocation for the nearby gold-market page.
-   Nothing is sent to Dhahabi's API or stored in the database. */
+/* Dhahabi nearby markets, opt-in last location on the authenticated User API.
+   One current position only, no history. Loaded only in the installed User preview. */
 (function(){
  'use strict';
- var style=document.createElement('style');
- style.textContent=[
- 'html:not(.dh-nearby-page-active) .dh-nearby-location[data-dh-injected="true"]{display:none!important}',
- '.dh-nearby-location{margin-top:14px;padding:18px;border-radius:18px;background:#fbfaf5;',
- 'border:1px solid #e5d7a3;color:#001F3F;direction:rtl;text-align:right}',
- '.dh-nearby-location h3{margin:0 0 8px;font-size:17px}',
- '.dh-nearby-location p{margin:6px 0 13px;line-height:1.75;font-size:13px;color:#475569}',
- '.dh-nearby-location button{min-height:48px;padding:10px 18px;border:0;border-radius:12px;',
- 'background:#C5A021;color:#001F3F;font-weight:800;font-size:15px;cursor:pointer;width:100%}',
- '.dh-nearby-location button:disabled{opacity:.7;cursor:wait}',
- '.dh-nearby-location .dh-nearby-result{margin:14px 0 0;border-radius:12px;',
- 'padding:11px 12px;background:white;border:1px solid #e0ddcf;line-height:1.85;font-size:13px}',
- '.dh-nearby-location .dh-nearby-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}',
- '.dh-nearby-location a{flex:1;min-width:140px;padding:12px;text-align:center;border-radius:12px;',
- 'background:#001F3F;color:white!important;text-decoration:none;font-weight:700;font-size:13px}',
- '.dh-nearby-location [hidden]{display:none!important}'
+ const css=document.createElement('style');
+ css.textContent=[
+  '.dh-nearby-location{background:#fffdf7;border:1px solid #e4d4a0;border-radius:18px;padding:16px;',
+  'margin-top:12px;direction:rtl;text-align:right;color:#001F3F;box-sizing:border-box}',
+  '.dh-nearby-location *{box-sizing:border-box}',
+  '.dh-nearby-location .dh-location-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:6px 0 12px}',
+  '.dh-nearby-location .dh-location-row strong{font-size:15px}',
+  '.dh-nearby-location .dh-location-switch{position:relative;width:53px;height:30px;flex:none;cursor:pointer}',
+  '.dh-nearby-location input[type=checkbox]{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}',
+  '.dh-nearby-location .dh-switch-track{display:block;width:53px;height:30px;border-radius:20px;background:#97a4b3;',
+  'transition:background .15s ease;pointer-events:none}',
+  '.dh-nearby-location .dh-switch-track:after{content:"";display:block;position:absolute;top:3px;right:3px;',
+  'width:24px;height:24px;border-radius:50%;background:white;box-shadow:0 1px 4px #0003;transition:transform .15s ease}',
+  '.dh-nearby-location .dh-location-switch:has(input:checked) .dh-switch-track{background:#C5A021}',
+  '.dh-nearby-location .dh-location-switch:has(input:checked) .dh-switch-track:after{transform:translateX(-23px)}',
+  '.dh-nearby-location input:focus-visible+.dh-switch-track{outline:3px solid #001F3F;outline-offset:3px}',
+  '.dh-nearby-location .dh-location-note{font-size:13px;color:#526276;line-height:1.8;margin:8px 0 13px}',
+  '.dh-nearby-location .dh-location-status{font-size:13px;color:#001F3F;line-height:1.8;min-height:22px;margin:0 0 12px}',
+  '.dh-nearby-location .dh-location-status[data-error=true]{color:#a12121}',
+  '.dh-nearby-location button{width:100%;min-height:46px;border:0;border-radius:12px;background:#C5A021;',
+  'color:#001F3F;font-size:14px;font-weight:750;cursor:pointer;margin:4px 0 12px}',
+  '.dh-nearby-location button:disabled{opacity:.55;cursor:wait}',
+  '.dh-nearby-location .dh-location-map-links{display:flex;flex-wrap:wrap;gap:8px}',
+  '.dh-nearby-location .dh-location-map-links a{flex:1;min-width:126px;padding:12px;text-align:center;',
+  'border-radius:12px;background:#001F3F;color:white!important;text-decoration:none;font-size:13px;font-weight:650}',
+  '.dh-nearby-location [hidden]{display:none!important}',
+  '.gold-web.workspace.reference-home .home-identity h1[role=link]{cursor:pointer;text-decoration:underline;',
+  'text-decoration-color:#C5A021;text-decoration-thickness:1px;text-underline-offset:5px}',
+  '.gold-web.workspace.reference-home .home-identity h1[role=link]:focus-visible{outline:2px solid #C5A021;outline-offset:5px;border-radius:5px}',
+  '.gold-web.workspace .workspace-content .settings-list.dh-more-reordered{display:flex;flex-direction:column}',
+  '.gold-web.workspace .workspace-content .dh-profile-shortcuts.dh-profile-reordered{display:flex;flex-wrap:wrap}',
+  '.gold-web.workspace .workspace-content .dh-profile-shortcuts.dh-profile-reordered>button{flex:1 1 135px}'
  ].join('');
- document.head.appendChild(style);
- function activeNearbyPage(){
-  // URL hashes and pathname do not reliably reflect the selected SPA screen.
-  // Require the visible User Workspace title AND the map section inside its active main content.
-  var workspace=document.querySelector('#root .gold-web.workspace');
-  if(!workspace)return false;
-  var heading=workspace.querySelector('.workspace-main > header.topbar h1');
-  var map=workspace.querySelector('.workspace-main > main.workspace-content > .map-placeholder');
-  return !!(heading&&map&&heading.textContent&&
-    heading.textContent.trim()==='التجار القريبون'&&
-    map.getClientRects().length>0&&
-    getComputedStyle(map).visibility!=='hidden');
+ document.head.appendChild(css);
+ let current=null,seq=0;
+ const api=(path,body)=>{if(typeof window.__dhahabiLocationRequest!=='function')return Promise.reject(new Error('الخدمة غير جاهزة. حدّث التطبيق ثم حاول مجددًا.'));return window.__dhahabiLocationRequest(path,body);};
+ const valid=(lat,lon)=>Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180;
+ function activeMap(){
+  const app=document.querySelector('#root .gold-web.workspace');
+  if(!app)return null;
+  // The mounted map section is the source of truth; URL hashes and titles
+  // can lag behind React navigation and must not block the control.
+  const map=app.querySelector('.workspace-main > main.workspace-content > section.map-placeholder');
+  if(!map||!map.getClientRects().length||getComputedStyle(map).display==='none')return null;
+  return map;
  }
- function cleanupInjected(){ document.querySelectorAll('.dh-nearby-location[data-dh-injected="true"]').forEach(function(node){node.remove();}); }
- function attach(){
-  document.documentElement.classList.toggle('dh-nearby-page-active',activeNearbyPage());
-  if(!activeNearbyPage()){cleanupInjected();return;}
-  var map=document.querySelector('#root .map-placeholder');
-  if(!map){cleanupInjected();return;}
-  document.querySelectorAll('.dh-nearby-location[data-dh-injected="true"]').forEach(function(node){if(!map.contains(node))node.remove();});
-  if(map.querySelector('.dh-nearby-location'))return;
-  var box=document.createElement('section');
-  box.className='dh-nearby-location';
+ function applyPageExtras(){
+  const app=document.querySelector('#root .gold-web.workspace');
+  if(!app)return;
+  const homeName=app.querySelector('.home-topbar .home-identity h1');
+  if(homeName&&!homeName.hasAttribute('data-dh-account-link')){
+   homeName.dataset.dhAccountLink='true';
+   homeName.tabIndex=0;homeName.setAttribute('role','link');homeName.setAttribute('aria-label','فتح الملف الشخصي');
+   const go=()=>{location.hash='account';};
+   homeName.addEventListener('click',go);
+   homeName.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});
+  }
+  const more=app.querySelector('.workspace-content .settings-list');
+  if(more&&app.querySelector('.workspace-content .profile-shortcut')){
+   more.classList.add('dh-more-reordered');
+   for(const button of more.querySelectorAll(':scope > button')){
+    const t=button.textContent||'';
+    button.style.order=/قريب/.test(t)?'0':/مشتريات/.test(t)?'1':/تنبيهات/.test(t)?'2':/إشعارات/.test(t)?'3':/مساعدة/.test(t)?'4':'5';
+   }
+  }
+  const profile=app.querySelector('.workspace-content .dh-profile-shortcuts');
+  if(profile&&!profile.classList.contains('dh-profile-reordered')){
+   profile.classList.add('dh-profile-reordered');
+   for(const button of profile.querySelectorAll(':scope > button')){
+    const t=button.textContent||'';
+    button.style.order=/إشعارات/.test(t)?'0':/تحديث التطبيق/.test(t)?'1':/مشتريات/.test(t)?'2':/محفظ/.test(t)?'3':/تنبيهات/.test(t)?'4':'5';
+   }
+  }
+ }
+ function status(box,text,error){
+  const x=box.querySelector('.dh-location-status');
+  x.textContent=text;x.dataset.error=error?'true':'false';
+ }
+ function build(map){
+  const box=document.createElement('section');
+  box.className='dh-nearby-location';box.setAttribute('aria-label','الموقع وأسواق الذهب القريبة');
+  box.innerHTML='<div class="dh-location-row"><strong id="dh-location-label">تفعيل الموقع</strong>'+
+   '<label class="dh-location-switch"><input class="dh-location-toggle" type="checkbox" role="switch" aria-labelledby="dh-location-label" disabled>'+
+   '<span class="dh-switch-track"></span></label></div>'+
+   '<p class="dh-location-note">يُحدَّث موقعك عند فتح «التجار القريبون» إذا كانت الخدمة مفعّلة.</p>'+
+   '<p class="dh-location-status" role="status" aria-live="polite">جارٍ التحقق من إعدادات الموقع…</p>'+
+   '<button class="dh-location-refresh" type="button" disabled>تحديث الموقع</button>'+
+   '<div class="dh-location-map-links" hidden>'+
+   '<a class="dh-location-google" target="_blank" rel="noopener noreferrer">خرائط Google</a>'+
+   '<a class="dh-location-apple" target="_blank" rel="noopener noreferrer">خرائط Apple</a></div>';
+  map.querySelectorAll('.dh-nearby-location[data-dh-injected=true]').forEach(n=>n.remove());
   box.setAttribute('data-dh-injected','true');
-  box.setAttribute('aria-label','البحث عن أسواق الذهب حسب موقعي');
-  box.innerHTML='<h3>أسواق الذهب القريبة من موقعك</h3>'+
-   '<p>نطلب إذن الموقع عند الضغط فقط. لن نخزّن إحداثياتك في قاعدة بيانات ذهبي. '+
-   'بيانات التجار المعتمدين غير متاحة حاليًا؛ يمكنك البحث في خرائط خارجية بدلًا منها.</p>'+
-   '<button type="button" class="dh-nearby-find">تحديد موقعي والبحث بالقرب مني</button>'+
-   '<div class="dh-nearby-result" role="status" aria-live="polite" hidden></div>'+
-   '<div class="dh-nearby-links" hidden>'+
-   '<a class="dh-nearby-google" target="_blank" rel="noopener noreferrer">البحث في خرائط Google</a>'+
-   '<a class="dh-nearby-apple" target="_blank" rel="noopener noreferrer">البحث في خرائط Apple</a></div>'+
-   '<p class="dh-nearby-disclosure" hidden>عند فتح إحدى الخرائط، يُرسل موقعك إلى مزود الخرائط الخارجي لإجراء البحث. '+
-   'لا تعني نتائج الخرائط أن المتاجر مسجلة أو معتمدة لدى ذهبي.</p>';
   map.appendChild(box);
-  var button=box.querySelector('button'),result=box.querySelector('.dh-nearby-result');
-  var links=box.querySelector('.dh-nearby-links'),disclosure=box.querySelector('.dh-nearby-disclosure');
-  function info(t){result.hidden=false;result.textContent=t;}
-  button.addEventListener('click',function(){
-   if(!navigator.geolocation){info('خدمة تحديد الموقع غير مدعومة في هذا المتصفح.');return;}
-   button.disabled=true;button.textContent='جارٍ تحديد الموقع…';
-   links.hidden=true;disclosure.hidden=true;
-   navigator.geolocation.getCurrentPosition(function(pos){
-    if(!activeNearbyPage()||!box.isConnected)return;
-    button.disabled=false;button.textContent='تحديث موقعي';
-    var lat=pos.coords.latitude,lon=pos.coords.longitude;
-    if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){
-     info('تعذر الحصول على إحداثيات صحيحة. أعد المحاولة.');return;
+  const toggle=box.querySelector('.dh-location-toggle');
+  const button=box.querySelector('.dh-location-refresh');
+  const links=box.querySelector('.dh-location-map-links');
+  let enabled=false,busy=true;
+  const alive=()=>current===box&&box.isConnected&&activeMap()===map;
+  const controls=()=>{toggle.disabled=busy;button.disabled=busy||!enabled;toggle.checked=enabled;};
+  const linkTo=(lat,lon)=>{
+   if(!valid(lat,lon)){links.hidden=true;return;}
+   const pair=lat.toFixed(5)+','+lon.toFixed(5);
+   box.querySelector('.dh-location-google').href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('محلات ذهب بالقرب من '+pair);
+   box.querySelector('.dh-location-apple').href='https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب')+'&ll='+encodeURIComponent(pair);
+   links.hidden=false;
+  };
+  const locate=async()=>{
+   if(!navigator.geolocation)throw Error('خدمة تحديد الموقع غير مدعومة على هذا الجهاز.');
+   if(navigator.permissions&&navigator.permissions.query){
+    try{const p=await navigator.permissions.query({name:'geolocation'});if(p.state==='denied')
+     throw Error('إذن الموقع معطّل. فعّله من إعدادات الجهاز ليتحدّث موقعك.');}
+    catch(e){if(e instanceof Error&&e.message.startsWith('إذن الموقع'))throw e;}
+   }
+   return await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(
+    p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracyMeters:p.coords.accuracy}),
+    e=>reject(Error(e.code===1?'لم يتم السماح بالوصول إلى الموقع. فعّل الإذن من إعدادات الجهاز.':
+      e.code===2?'تعذر تحديد الموقع حاليًا. تحقق من خدمات الموقع.':
+      e.code===3?'انتهت مهلة تحديد الموقع. حاول مرة أخرى.':'تعذر تحديد الموقع.')),
+    {enableHighAccuracy:true,maximumAge:0,timeout:20000}));
+  };
+  const refresh=async(pos)=>{
+   busy=true;controls();status(box,'جارٍ تحديث موقعك…',false);
+   try{
+    const point=pos||await locate();
+    if(!valid(point.latitude,point.longitude))throw Error('إحداثيات الموقع غير صالحة.');
+    if(!alive())return;
+    const data=await api('/auth/location/position',point);
+    if(!alive())return;
+    enabled=data.locationEnabled===true;
+    linkTo(point.latitude,point.longitude);
+    status(box,'تم تحديث الموقع وحفظه في حسابك'+
+      (Number.isFinite(point.accuracyMeters)?' (دقة تقريبية '+Math.round(point.accuracyMeters)+' متر).':'.'),false);
+   }catch(e){if(alive()){status(box,e.message||'تعذر تحديث الموقع.',true);}}
+   finally{if(alive()){busy=false;controls();}}
+  };
+  toggle.addEventListener('change',async()=>{
+   const next=toggle.checked;
+   toggle.checked=enabled;
+   if(busy)return;
+   busy=true;controls();status(box,next?'جارٍ تفعيل الموقع…':'جارٍ إيقاف الموقع…',false);
+   try{
+    if(next){
+     const p=await locate();if(!alive())return;
+     await api('/auth/location/preference',{enabled:true});if(!alive())return;
+     enabled=true;busy=false;controls();await refresh(p);
+    }else{
+     await api('/auth/location/preference',{enabled:false});if(!alive())return;
+     enabled=false;links.hidden=true;status(box,'الموقع متوقف. حُذفت الإحداثيات المحفوظة.',false);
     }
-    var readable=lat.toFixed(5)+', '+lon.toFixed(5);
-    var acc=Number.isFinite(pos.coords.accuracy)?' (الدقة التقريبية: '+Math.round(pos.coords.accuracy)+' متر)':'';
-    info('تم تحديد موقعك: '+readable+acc+'. اختر خدمة الخرائط للبحث عن أسواق الذهب القريبة.');
-    var query=encodeURIComponent('محلات ذهب بالقرب من '+lat.toFixed(5)+','+lon.toFixed(5));
-    box.querySelector('.dh-nearby-google').href='https://www.google.com/maps/search/?api=1&query='+query;
-    box.querySelector('.dh-nearby-apple').href='https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب')+'&ll='+encodeURIComponent(lat.toFixed(5)+','+lon.toFixed(5));
-    links.hidden=false;disclosure.hidden=false;
-   },function(e){
-    if(!activeNearbyPage()||!box.isConnected)return;
-    button.disabled=false;button.textContent='إعادة محاولة تحديد الموقع';
-    var msg=e.code===1?'تم رفض إذن الموقع. فعّله من إعدادات المتصفح أو الجهاز ثم أعد المحاولة.':
-      e.code===2?'الموقع غير متاح حاليًا. تحقق من إعدادات GPS والاتصال.':
-      e.code===3?'انتهت مهلة تحديد الموقع. جرّب مرة أخرى في مكان مكشوف.':'تعذر تحديد الموقع. أعد المحاولة.';
-    info(msg);
-   },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+   }catch(e){if(alive()){status(box,e.message||'تعذر تعديل إعداد الموقع.',true);}}
+   finally{if(alive()){busy=false;controls();}}
   });
+  button.addEventListener('click',()=>{if(!busy&&enabled)void refresh();});
+  (async()=>{
+   try{
+    const data=await api('/auth/profile');if(!alive())return;
+    enabled=data.locationEnabled===true;
+    if(!enabled){status(box,'الموقع غير مفعل.',false);return;}
+    if(data.latitude!=null&&data.longitude!=null&&valid(Number(data.latitude),Number(data.longitude)))linkTo(Number(data.latitude),Number(data.longitude));
+    await refresh();
+   }catch(e){if(alive())status(box,e.message||'تعذر التحقق من إعدادات الموقع.',true);}
+   finally{if(alive()){busy=false;controls();}}
+  })();
+  controls();
+  return box;
  }
- function ready(){
-  attach();
-  var host=document.getElementById('root')||document.body;
-  var queued=false;
-  var observer=new MutationObserver(function(){
-   if(queued)return;
-   queued=true;
-   requestAnimationFrame(function(){queued=false;attach();});
-  });
-  observer.observe(host,{childList:true,subtree:true});
-  window.addEventListener('hashchange',function(){attach();requestAnimationFrame(attach);});
-  window.addEventListener('popstate',attach);
+ function sync(){
+  applyPageExtras();
+  const map=activeMap();
+  if(!map){
+   if(current){current.remove();current=null;seq++;}
+   return;
+  }
+  if(current&&current.isConnected&&current.parentElement===map)return;
+  if(current)current.remove();
+  seq++;
+  current=build(map);
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});
- else ready();
+ let pending=false;
+ function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;sync();});}
+ function start(){
+  sync();
+  const root=document.getElementById('root')||document.body;
+  new MutationObserver(schedule).observe(root,{subtree:true,childList:true});
+  window.addEventListener('hashchange',schedule);
+  window.addEventListener('popstate',schedule);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+ else start();
 })();
