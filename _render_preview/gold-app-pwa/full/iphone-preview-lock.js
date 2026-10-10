@@ -249,11 +249,16 @@
     const pair=lat.toFixed(5)+','+lon.toFixed(5);
     const km=Number(radius.value)||25;
     lastCoordinates={lat,lon};
-    const search='محلات ذهب في نطاق '+km+' كم بالقرب من '+pair;
-    google.href='https://www.google.com/maps/search/?api=1&query='+
-      encodeURIComponent(search);
-    apple.href='https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب في نطاق '+km+' كم')+
-      '&ll='+encodeURIComponent(pair);
+    // Google Maps website deep link: zoom approximates the requested area.
+    // It is NOT an API-enforced radius; the map application may adjust the viewport.
+    const zoom=({5:12,10:11,25:10,50:9})[km]||10;
+    google.href='https://www.google.com/maps/search/'+encodeURIComponent('محلات ذهب')+
+      '/@'+pair+','+zoom+'z';
+    // Apple Maps officially supports center and span on unified /search URLs.
+    const latSpan=(2*km/111.32).toFixed(5);
+    const lonSpan=(2*km/(111.32*Math.cos(lat*Math.PI/180))).toFixed(5);
+    apple.href='https://maps.apple.com/search?query='+encodeURIComponent('محلات ذهب')+
+      '&center='+encodeURIComponent(pair)+'&span='+encodeURIComponent(latSpan+','+lonSpan);
     links.hidden=false;
   };
   radius.addEventListener('change',()=>{

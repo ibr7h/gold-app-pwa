@@ -53,6 +53,13 @@ export default function NearbyMarkets(){
   return()=>{canceled=true;};
  },[]);
  const pair=point?point.latitude.toFixed(5)+','+point.longitude.toFixed(5):'';
+ const zoom=({5:12,10:11,25:10,50:9} as Record<number,number>)[radius];
+ const googleUrl=point?'https://www.google.com/maps/search/'+encodeURIComponent('محلات ذهب')+
+   '/@'+pair+','+zoom+'z':'';
+ const latSpan=(2*radius/111.32).toFixed(5);
+ const lonSpan=point?(2*radius/(111.32*Math.cos(point.latitude*Math.PI/180))).toFixed(5):'';
+ const appleUrl=point?'https://maps.apple.com/search?query='+encodeURIComponent('محلات ذهب')+
+   '&center='+encodeURIComponent(pair)+'&span='+encodeURIComponent(latSpan+','+lonSpan):'';
  const apple=/(iPhone|iPad|iPod|Macintosh|Mac OS X)/i.test(navigator.userAgent||'')||/^Mac/i.test(navigator.platform||'');
  return <section className="approved-card map-placeholder" aria-label="محلات الذهب القريبة">
   <div className="approved-card-title"><span>أسواق الذهب القريبة</span><b className="pill gold">حسب موقعك</b></div>
@@ -62,11 +69,11 @@ export default function NearbyMarkets(){
      <option value={5}>5 كم</option><option value={10}>10 كم</option><option value={25}>25 كم</option><option value={50}>50 كم</option>
     </select>
    </div>
-   <p className="dh-location-radius-hint">النطاق استرشادي؛ قد تظهر محلات أبعد في الخرائط.</p>
+   <p className="dh-location-radius-hint">النطاق استرشادي؛ يتغير تقريب الخريطة وقد تظهر محلات أبعد.</p>
    {failure?<p className="notice warning" role="alert">{failure}</p>:<p role="status">{notice}</p>}
    {point&&<div className="dh-location-links" style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:12}}>
-    <a target="_blank" rel="noopener noreferrer" href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('محلات ذهب في نطاق '+radius+' كم بالقرب من '+pair)}>خرائط Google</a>
-    {apple&&<a target="_blank" rel="noopener noreferrer" href={'https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب في نطاق '+radius+' كم')+'&ll='+encodeURIComponent(pair)}>خرائط Apple</a>}
+    <a target="_blank" rel="noopener noreferrer" href={googleUrl}>خرائط Google</a>
+    {apple&&<a target="_blank" rel="noopener noreferrer" href={appleUrl}>خرائط Apple</a>}
    </div>}
   </div>
  </section>;
