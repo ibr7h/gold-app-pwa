@@ -99,10 +99,10 @@ export default function AuthForm({register=false}:{register?:boolean}){
      <strong>الدخول بالبصمة الحيوية</strong>
      <small>Face ID أو بصمة الإصبع المسجلة</small>
     </button>}
-    <div className="mockup-divider"><span>{showBiometricLogin?'أو بالبريد الإلكتروني':'الدخول بالبريد الإلكتروني'}</span></div>
+    <div className="mockup-divider"><span>{showBiometricLogin?'أو بالبريد الإلكتروني أو رقم الجوال':'الدخول بالبريد الإلكتروني أو رقم الجوال'}</span></div>
     {(localError||error)&&<p className="error-banner" role="alert">{localError||error}</p>}
     <form onSubmit={submit} aria-busy={isLoading}>
-     <label className="form-group"><span className="form-label">البريد الإلكتروني</span><div className="mockup-input-wrap"><input className="form-input" type="email" dir="ltr" autoComplete="email" value={email} required placeholder="user@gold.app" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
+     <label className="form-group"><span className="form-label">البريد الإلكتروني أو رقم الجوال</span><div className="mockup-input-wrap"><input className="form-input" type="text" dir="ltr" autoComplete="username" value={email} required placeholder="البريد الإلكتروني أو 05xxxxxxxx" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
      <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="current-password" value={password} required placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
      <div className="mockup-login-options"><label className="mockup-remember"><input type="checkbox" disabled/><span>الدخول السريع من إعدادات الحساب</span></label><button type="button" className="mockup-forgot" onClick={()=>setLocalError('استعادة كلمة المرور لم تُفعّل في الخادم بعد.')}>نسيت كلمة المرور؟</button></div>
      <button className="gold-btn mockup-primary-btn" disabled={isLoading}><AuthIcon name="login"/><span>{isLoading?'جارٍ تسجيل الدخول…':'تسجيل الدخول'}</span></button>
