@@ -15,6 +15,7 @@ describe('Gold App total as Saudi Riyal words from taf.html',()=>{
   expect(tafqeetSar(125.75)).toBe('فقط مائة وخمسة وعشرون ريالاً سعودياً وخمس وسبعون هللةً لا غير');
   expect(tafqeetSar(10.01)).toBe('فقط عشرة ريالات سعودية وهللة لا غير');
   expect(tafqeetSar(5.02)).toBe('فقط خمسة ريالات سعودية وهللتان لا غير');
+  expect(tafqeetSar(2.02)).toBe('فقط ريالان سعوديان وهللتان لا غير');
   expect(tafqeetSar(0.50)).toBe('فقط خمسون هللةً لا غير');
  });
  it('handles zero, thousands and millions from the source grouping logic',()=>{
