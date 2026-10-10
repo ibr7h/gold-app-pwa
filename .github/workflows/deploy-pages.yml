@@ -496,6 +496,39 @@ jobs:
       - name: Apply reviewed user web overrides
         run: cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
 
+      - name: Remove obsolete unverified-phone notice from User source
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          root=Path(os.environ['SRC'])
+          fragments=(
+            'يُحفظ الرقم الدولي بصيغة E.164',
+            'تُستخدم الدولة كتفضيل أولي قابل للتعديل',
+            'لا يُرسل رمز تحقق في هذه المرحلة',
+          )
+          for directory in (root/'app', root/'web', root/'components'):
+            if not directory.exists(): continue
+            for path in directory.rglob('*'):
+              if path.suffix not in ('.tsx','.ts','.jsx','.js','.html'): continue
+              content=path.read_text(encoding='utf-8')
+              if not any(fragment in content for fragment in fragments): continue
+              lines=content.splitlines(keepends=True)
+              changed=[]
+              for line in lines:
+                if all(fragment in line for fragment in fragments):
+                  # Only remove this specific obsolete disclosure, not unrelated UI.
+                  import re
+                  line=re.sub(r'<(?:Text|p|span|small)[^>]*>[^<>]*يُحفظ الرقم الدولي بصيغة E\\.164[^<>]*</(?:Text|p|span|small)>','',line)
+                changed.append(line)
+              result=''.join(changed)
+              for fragment in fragments:
+                if fragment in result:
+                  raise SystemExit(f'Obsolete notice must be removed explicitly: {path}')
+              if result!=content:path.write_text(result,encoding='utf-8')
+          PY
+
       - name: Stamp deployed User build identity
         shell: bash
         run: |
