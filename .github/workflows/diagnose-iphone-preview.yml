@@ -25,3 +25,17 @@ jobs:
           grep -Fq '/gold-app-pwa/full/manifest.json' /tmp/page
           grep -Fq '/gold-app-pwa/full/_expo/static/js/web/' /tmp/page
           printf 'PASS: Render returned JSON PWA manifest and web entrypoint HTML\n'
+          # Confirm the exact new icon build is public and correctly typed.
+          stamp=f1859a06
+          grep -Fq "app_icon_user-${stamp}.jpg" /tmp/manifest
+          grep -Fq "pwa-icon-${stamp}.png" /tmp/manifest
+          grep -Fq "app_icon_user-${stamp}.jpg" /tmp/page
+          for item in "app_icon_user-${stamp}.jpg:image/jpeg" "pwa-icon-${stamp}.png:image/png" "apple-touch-icon-${stamp}.png:image/png"; do
+            name="${item%%:*}"
+            expected="${item#*:}"
+            curl -fsSL --max-time 30 -D /tmp/icon-headers -o "/tmp/${name}" "$base/$name"
+            grep -Eiq "^content-type: ${expected}" /tmp/icon-headers
+            test "$(wc -c < "/tmp/${name}")" -gt 3000
+            echo "PASS: $name ($expected)"
+          done
+          file /tmp/app_icon_user-${stamp}.jpg /tmp/pwa-icon-${stamp}.png
