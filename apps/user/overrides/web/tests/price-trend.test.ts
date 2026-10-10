@@ -24,7 +24,7 @@ describe('User real-time gold chart geometry',()=>{
   const rows=[
     {id:'first',timestamp:'2026-10-09T20:55:00Z',createdAt:'2026-10-09T20:55:10Z',buyPrice:'500'},
     {id:'same',timestamp:'2026-10-09T20:55:00Z',createdAt:'2026-10-09T20:56:10Z',buyPrice:'500'},
-    {id:'late-check',timestamp:'2026-10-09T21:30:00Z',createdAt:'2026-10-09T21:30:10Z',buyPrice:'500.004'},
+    {id:'late-check',timestamp:'2026-10-09T21:30:00Z',createdAt:'2026-10-09T21:30:10Z',buyPrice:'501.004'},
     {id:'real-change',timestamp:'2026-10-09T20:56:00Z',createdAt:'2026-10-09T20:56:08Z',buyPrice:'501'},
     {id:'closed-check',timestamp:'2026-10-10T11:30:00Z',createdAt:'2026-10-10T11:30:12Z',buyPrice:'501'},
   ];
