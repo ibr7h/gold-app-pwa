@@ -50,7 +50,7 @@ interface AuthContextType {
   registerStep: RegisterStep;
   registerEmail: string;
   registerCode: string;
-  startRegistration: (name: string, email: string, password: string, phone: string) => Promise<boolean>;
+  startRegistration: (name: string, email: string, password: string, phone: string, countryCode: string) => Promise<boolean>;
   verifyRegistration: (code: string) => Promise<boolean>;
   resendRegisterCode: () => Promise<boolean>;
   cancelRegistration: () => void;
@@ -134,10 +134,10 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   finally{if(attempt===version.current)setLoading(false);}
  };
  const login=(email:string,password:string)=>passwordSession('/auth/login',{email:email.trim(),password});
- const startRegistration=async(name:string,email:string,password:string,phone:string)=>{
+ const startRegistration=async(name:string,email:string,password:string,phone:string,countryCode:string)=>{
   // Registration is intentionally password-based without email/SMS OTP for now.
   // Phone is required by the user web form but optional on the API for older clients.
-  try{await passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim(),phone:phone.trim()});return true;}catch{return false;}
+  try{await passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim(),phone:phone.trim(),countryCode});return true;}catch{return false;}
  };
  const enableBiometric=async()=>{
   if(!user?.id||user.role!=='user')throw new Error('سجّل الدخول أولًا قبل تفعيل بصمة الجهاز.');
