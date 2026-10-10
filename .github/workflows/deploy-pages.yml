@@ -514,18 +514,13 @@ jobs:
               if path.suffix not in ('.tsx','.ts','.jsx','.js','.html'): continue
               content=path.read_text(encoding='utf-8')
               if not any(fragment in content for fragment in fragments): continue
-              lines=content.splitlines(keepends=True)
-              changed=[]
-              for line in lines:
-                if all(fragment in line for fragment in fragments):
-                  # Only remove this specific obsolete disclosure, not unrelated UI.
-                  import re
-                  line=re.sub(r'<(?:Text|p|span|small)[^>]*>[^<>]*يُحفظ الرقم الدولي بصيغة E\\.164[^<>]*</(?:Text|p|span|small)>','',line)
-                changed.append(line)
-              result=''.join(changed)
+              import re
+              # Remove only a UI text node that contains all three clauses.
+              pattern=r'<(Text|p|span|small)\\b[^>]*>[^<>]*يُحفظ الرقم الدولي بصيغة E[.]164[^<>]*</\\1>'
+              result=re.sub(pattern,'',content)
               for fragment in fragments:
                 if fragment in result:
-                  raise SystemExit(f'Obsolete notice must be removed explicitly: {path}')
+                  raise SystemExit(f'Obsolete notice requires a source-specific fix: {path}')
               if result!=content:path.write_text(result,encoding='utf-8')
           PY
 
