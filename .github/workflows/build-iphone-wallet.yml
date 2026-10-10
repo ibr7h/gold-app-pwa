@@ -1,4 +1,4 @@
-name: Build iPhone wallet UI bundle
+name: Build and version iPhone User preview
 on:
   push:
     branches: ["preview/iphone-render"]
