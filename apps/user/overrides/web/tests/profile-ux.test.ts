@@ -35,6 +35,8 @@ describe('User profile UX integration',()=>{
  it('keeps verified email and phone read-only with safe explanations',()=>{
   expect(source).toContain('تغيير البريد يتطلب تحققًا آمنًا');
   expect(source).toContain('تغيير الرقم يتطلب تحققًا آمنًا');
+  expect(source).toContain('الدولة المقترحة');
+  expect(source).toContain('وفق الرقم أو اختيار التسجيل · غير موثّقة');
   expect(source).not.toMatch(/name="(?:email|phone)"/);
   expect(source).toContain('aria-live="polite"');
   expect(source).toContain('role="alert"');
