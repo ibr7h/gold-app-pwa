@@ -54,6 +54,7 @@ interface AuthContextType {
   verifyRegistration: (code: string) => Promise<boolean>;
   resendRegisterCode: () => Promise<boolean>;
   cancelRegistration: () => void;
+  updateProfile: (changes:{fullName:string;city:string})=>Promise<{fullName:string|null;city:string|null;phone:string|null;email:string}>;
   updateName: (newName: string) => Promise<boolean>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
@@ -78,7 +79,13 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const me=await api('/auth/me');current(attempt);
   if(!me?.userId||!me?.email)throw new ApiError('Invalid user');
   if(me.role!=='user'){await clearSession();throw new ApiError('User app role mismatch',403);}
-  const verified={id:me.userId,email:me.email,role:'user'} as User;
+  let fullName:string|null=null;
+  try{
+    const profile=await api<{id:string|number;fullName:string|null}>('/auth/profile');
+    current(attempt);
+    if(String(profile.id)===String(me.userId))fullName=profile.fullName;
+  }catch(e){current(attempt); /* Name lookup failure must not break a valid login. */}
+  const verified={id:me.userId,email:me.email,role:'user',name:fullName?.trim()||undefined} as User;
   await saveVerifiedUser({id:verified.id!,email:verified.email,role:'user'});current(attempt);
   return verified;
  };
@@ -216,11 +223,29 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   return()=>document.removeEventListener('visibilitychange',onVisibility);
  },[]);
  const logout=()=>{begin();setLockedAccount(null);setUser(null);enrollment.current=null;setQuickPinEnabled(false);setBiometricEnrolled(false);setBiometricEnabled(false);setLoading(false);void clearSession();};
+ const updateProfile=async(changes:{fullName:string;city:string})=>{
+  const updated=await api<{id:string|number;fullName:string|null;city:string|null;phone:string|null;email:string}>('/auth/profile',{
+    method:'PATCH',body:JSON.stringify(changes)
+  });
+  setUser(previous=>previous&&String(previous.id)===String(updated.id)
+    ?{...previous,name:updated.fullName?.trim()||undefined}:previous);
+  return updated;
+ };
+ const updateName=async(newName:string)=>{
+  try{
+   const updated=await api<{id:string|number;fullName:string|null}>('/auth/profile',{
+    method:'PATCH',body:JSON.stringify({fullName:newName.trim()})
+   });
+   setUser(previous=>previous&&String(previous.id)===String(updated.id)
+    ?{...previous,name:updated.fullName?.trim()||undefined}:previous);
+   return true;
+  }catch(e){setError(errorMessage(e));return false;}
+ };
  const unsupported=async()=>{setError('هذه الميزة غير متاحة من الخادم حاليًا.');return false;};
  const value:AuthContextType={user,lockedAccount,quickPinEnabled,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,clearError:()=>setError(null),
  biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
  resetStep:'email',resetEmail:'',resetCode:'',sendResetCode:unsupported,verifyResetCode:unsupported,resetPassword:unsupported,resendResetCode:unsupported,cancelReset:()=>{},
- registerStep:'form',registerEmail:'',registerCode:'',startRegistration,verifyRegistration:unsupported,resendRegisterCode:unsupported,cancelRegistration:()=>{},updateName:unsupported,changePassword:unsupported};
+ registerStep:'form',registerEmail:'',registerCode:'',startRegistration,verifyRegistration:unsupported,resendRegisterCode:unsupported,cancelRegistration:()=>{},updateProfile,updateName,changePassword:unsupported};
  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 export function useAuth(){const ctx=useContext(AuthContext);if(!ctx)throw new Error('AuthProvider required');return ctx;}

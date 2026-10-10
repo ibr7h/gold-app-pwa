@@ -47,7 +47,7 @@ export default function NearbyMarkets(){
     const saved=await api<UserLocation>('/auth/location/position',jsonRequest('PATCH',fresh));
     if(canceled)return;
     if(saved.locationEnabled!==true)throw Error('تعذر حفظ الموقع في حسابك.');
-    setPoint(fresh);setNotice('تم تحديث موقعك.');
+    setPoint(fresh);setNotice('');
    }catch(e){if(!canceled){setFailure(e instanceof Error?e.message:errorMessage(e));setPoint(null);}}
   })();
   return()=>{canceled=true;};
@@ -70,7 +70,7 @@ export default function NearbyMarkets(){
     </select>
    </div>
    <p className="dh-location-radius-hint">النطاق استرشادي؛ يتغير تقريب الخريطة وقد تظهر محلات أبعد.</p>
-   {failure?<p className="notice warning" role="alert">{failure}</p>:<p role="status">{notice}</p>}
+   {failure?<p className="notice warning" role="alert">{failure}</p>:{notice&&<p role="status">{notice}</p>}}
    {point&&<div className="dh-location-links" style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:12}}>
     <a target="_blank" rel="noopener noreferrer" href={googleUrl}>خرائط Google</a>
     {apple&&<a target="_blank" rel="noopener noreferrer" href={appleUrl}>خرائط Apple</a>}

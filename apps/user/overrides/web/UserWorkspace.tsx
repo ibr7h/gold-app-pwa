@@ -7,6 +7,7 @@ import PriceHistoryChart from './PriceHistoryChart';
 import {Money,formatTwo,CurrencyMark} from './price-display';
 import NotificationSettings from './NotificationSettings';
 import NearbyMarkets from './NearbyMarkets';
+import UserPersonalDetails from './UserPersonalDetails';
 import {revokePushBeforeLogout} from './push-client';
 import {api,jsonRequest,errorMessage} from './api';
 import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePerformance,purchasePayload,alertPayload,localDate} from './model';
@@ -188,7 +189,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
  const homePortfolio=homePortfolioSummary(purchases,allMarketRows,loaded);
  const homeMovement=homeMarketMovement(homeHistory,homeMarket,clock);
- const accountName=user?.name?.trim()||email;
+ const accountName=user?.name?.trim()||'أضف اسمك';
  const mobilePage=mobilePages.some(p=>p.id===page)?page:'more';
  const content=()=>{
   if(page==='home')return <>
@@ -301,7 +302,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='map')return <NearbyMarkets/>;
 
-  if(page==='account')return <><section className="approved-card profile-approved"><span className="avatar large">{email[0].toUpperCase()}</span><h2 dir="ltr">{email}</h2><span className="pill gold">{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</span><small className="app-version-account" dir="ltr" style={{display:"block",marginTop:10,color:"#C5A021",fontSize:12}}>{APP_DISPLAY_VERSION}</small><small className="dh-profile-copyright" style={{display:"block",marginTop:8}}>© 2026 Ibrahim Alneami — All Rights Reserved</small></section><section className="approved-card settings-list"><button onClick={()=>navigate('portfolio')}><span><Icon name="wallet"/>محفظتي الذهبية</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>سجل المشتريات</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span><Icon name="refresh"/>التحقق من تحديث التطبيق</span><Icon name="chevron"/></button><button className="danger-row" onClick={signOut}><span><Icon name="logout"/>تسجيل الخروج</span><Icon name="chevron"/></button></section><section className="approved-card dh-quick-settings">
+  if(page==='account')return <><section className="approved-card profile-approved"><span className="avatar large">{accountName[0]}</span><h2 dir="auto">{accountName}</h2><span className="pill gold">{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</span><small className="app-version-account" dir="ltr" style={{display:"block",marginTop:10,color:"#C5A021",fontSize:12}}>{APP_DISPLAY_VERSION}</small><small className="dh-profile-copyright" style={{display:"block",marginTop:8}}>© 2026 Ibrahim Alneami — All Rights Reserved</small></section><UserPersonalDetails/><section className="approved-card settings-list"><button onClick={()=>navigate('portfolio')}><span><Icon name="wallet"/>محفظتي الذهبية</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>سجل المشتريات</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span><Icon name="refresh"/>التحقق من تحديث التطبيق</span><Icon name="chevron"/></button><button className="danger-row" onClick={signOut}><span><Icon name="logout"/>تسجيل الخروج</span><Icon name="chevron"/></button></section><section className="approved-card dh-quick-settings">
  <div className="approved-card-title">الدخول السريع والأمان</div>
  <p className="fine">أضف رمزًا من ٦ أرقام لفتح ذهبي من شاشة قفل داخلية. تُحفظ الجلسة مشفرة وتجزئة الرمز محليًا؛ لا تُخزن الأرقام أو بيانات بصمتك. بدون دخول سريع، يلزم استخدام كلمة المرور بعد إعادة فتح التطبيق.</p>
  <div className="dh-quick-setting-row">
