@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {tafqeetSar} from '../tafqeet-sar';
+import {tafqeetSar,tafqeetCurrency} from '../tafqeet-sar';
 
 describe('Gold App total as Saudi Riyal words from taf.html',()=>{
  it('handles one and two Riyals with matching singular and dual forms',()=>{
@@ -31,5 +31,29 @@ describe('Gold App total as Saudi Riyal words from taf.html',()=>{
   expect(tafqeetSar(Infinity)).toBeNull();
   expect(tafqeetSar(-1)).toBeNull();
   expect(tafqeetSar(1e15)).toBeNull();
+ });
+});
+
+describe('shared preferred currency tafqeet from the supplied taf.html',()=>{
+ it('uses US dollars and cents, not SAR or halalas, when USD is selected',()=>{
+  expect(tafqeetCurrency(1,'USD')).toBe('فقط دولار أمريكي لا غير');
+  expect(tafqeetCurrency(2,'USD')).toBe('فقط دولاران أمريكيان لا غير');
+  expect(tafqeetCurrency(3,'USD')).toBe('فقط ثلاثة دولارات أمريكية لا غير');
+  expect(tafqeetCurrency(12,'USD')).toBe('فقط اثنا عشر دولاراً أمريكياً لا غير');
+  expect(tafqeetCurrency(125.75,'USD')).toBe('فقط مائة وخمسة وعشرون دولاراً أمريكياً وخمسة وسبعون سنتاً لا غير');
+  expect(tafqeetCurrency(0.02,'USD')).toBe('فقط سنتان لا غير');
+  expect(tafqeetCurrency(0.50,'USD')).toBe('فقط خمسون سنتاً لا غير');
+  expect(tafqeetCurrency(0,'USD')).toBe('فقط صفر دولار أمريكي لا غير');
+ });
+ it('retains the Saudi Riyal and feminine Halala declensions on SAR',()=>{
+  expect(tafqeetCurrency(125.75,'SAR')).toBe(tafqeetSar(125.75));
+  expect(tafqeetCurrency(125.75,'SAR')).toContain('وخمس وسبعون هللةً');
+  expect(tafqeetCurrency(125.75,'USD')).not.toMatch(/ريال|هللة/);
+ });
+ it('rejects unsupported currencies and invalid totals without mislabelling them',()=>{
+  expect(tafqeetCurrency(100,'EUR' as 'USD')).toBeNull();
+  expect(tafqeetCurrency(null,'USD')).toBeNull();
+  expect(tafqeetCurrency(-12,'USD')).toBeNull();
+  expect(tafqeetCurrency(Number.NaN,'USD')).toBeNull();
  });
 });
