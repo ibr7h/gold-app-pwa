@@ -217,7 +217,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <div className="portfolio-mini-body"><div><strong>{money(homePortfolio.value,'SAR')}</strong><span>إجمالي الوزن: {homePortfolio.weight===null?'غير متاح':number(homePortfolio.weight)+' جرام'}</span></div>{homePortfolio.difference!==null&&homePortfolio.percent!==null&&<div className={'portfolio-delta '+(homePortfolio.difference>=0?'positive':'negative')} title="الفرق عن تكلفة الشراء"><b><span>{homePortfolio.difference>=0?'+':'−'}</span>{money(Math.abs(homePortfolio.difference),'SAR')}</b><small dir="ltr">{homePortfolio.percent>=0?'+':'−'}{number(Math.abs(homePortfolio.percent))}%</small></div>}</div>
     {homePortfolio.hasOtherCurrencies&&<p className="home-currency-note">المعروض مشتريات الريال السعودي؛ بقية العملات في التفاصيل.</p>}
    </section>
-   <section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact marketClosed={marketClosed}/></section>
+   <section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>
   </>;
 
   if(page==='prices')return <>
@@ -225,7 +225,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}><option>SAR</option><option>USD</option></select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=marketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
-   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} marketClosed={marketClosed}/>}</section>
+   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>}</section>
    {priceNote}
   </>;
 
