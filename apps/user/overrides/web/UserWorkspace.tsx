@@ -17,7 +17,8 @@ import {installIphoneViewportObserver} from './iphone-viewport';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {calculatorQuote} from './calculator-quote';
-import {tafqeetSar} from './tafqeet-sar';
+import {tafqeetCurrency} from './tafqeet-sar';
+import {PRICE_CURRENCIES,readPriceCurrency,savePriceCurrency,isPriceCurrency,type PriceCurrency} from './price-currency-preference';
 import {homeMarketMovement,homePortfolioSummary} from './home-data';
 /** Build-time type bridge for the extracted native app's older AuthContext.
  * The Web bundle uses the specialized contexts/AuthContext.web provider.
@@ -90,13 +91,22 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
- const [priceCurrency,setPriceCurrency]=useState('SAR');
+ const accountId=String(user?.id??email);
+ const [priceCurrency,setPriceCurrency]=useState<PriceCurrency>(()=>readPriceCurrency(accountId));
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]);
  const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
  const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';purchase?:Purchase;alert?:PriceAlert}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
+ const selectPriceCurrency=(currency:PriceCurrency)=>{
+  if(currency===priceCurrency)return;
+  // Making charge is a manually entered monetary amount, not exchange-converted.
+  // Never reinterpret a fee entered in SAR as the same number of USD (or vice versa).
+  setCalcFee('0');
+  setPriceCurrency(currency);
+ };
+ useEffect(()=>savePriceCurrency(accountId,priceCurrency),[accountId,priceCurrency]);
  const [clock,setClock]=useState(Date.now());const pageScrollRef=useRef<HTMLElement>(null);const shellRef=useRef<HTMLDivElement>(null);const active=useRef(true),loadSequence=useRef(0),marketLoadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
  const loadData=useCallback(async()=>{
   const seq=++loadSequence.current;setLoading(true);setError('');
@@ -112,12 +122,11 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   const seq=++marketLoadSequence.current;
   if(active.current)setMarketLoading(true);
   try{
-   const currencies=['SAR','USD'];
-   const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
+   const latestRequests=PRICE_CURRENCIES.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
    const selectedHistory=api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=200');
    const [historyRows,homeHistoryRows,...latest]=await Promise.all([
     selectedHistory,
-    priceCurrency==='SAR'&&chartKarat===24?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency=SAR&karat=24&limit=200'),
+    chartKarat===24?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat=24&limit=200'),
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
@@ -176,7 +185,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  };
  const sortedHistory=[...history].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
  const currentMarket=marketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
- const homeMarket=allMarketRows.find(r=>r.currency==='SAR'&&r.karat===24) as PriceHistoryRow|undefined;
+ const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24) as PriceHistoryRow|undefined;
  const session=goldSpotSession(clock);
  const marketClosed=session==='closed';
  const freshness=priceFreshness(homeMarket,clock);
@@ -187,12 +196,12 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const priceNote=<p className="fine">جميع الأسعار في هذه النسخة تأتي من Backend ذهبي نفسه؛ وتشترك البطاقات والمحفظة والتنبيهات والرسم البياني في المصدر ذاته. لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.</p>;
  const marketTime=(row:PriceHistoryRow|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp):'لا يوجد تحديث موثوق';
  const priceBlock=<section className="market-price-card">
-  <div className="row"><div><p className="mock-supporting">سعر الذهب الآن</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(!stale?'good':'warn')}>{marketLabel}</span></div>
+  <div className="row"><div><p className="mock-supporting">سعر الذهب الآن</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(!stale?'good':'warn')}>{marketLabel}</span></div>
   <p className="market-update">{latestQuoteLabel(homeMarket?.timestamp,session)}</p>
  </section>;
  const nav=<><div className="nav-brand"><span className="brand-mark small">ذ</span><div><strong>ذهبي</strong><small>حساب المستخدم</small></div></div><nav aria-label="القائمة الرئيسية">{primaryPages.map(p=><button key={p.id} className={'nav-item '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav><div className="nav-account"><span className="avatar">{email[0].toUpperCase()}</span><span className="email" dir="ltr">{email}</span><button className="icon-button" title="تسجيل الخروج" aria-label="تسجيل الخروج" onClick={signOut}><Icon name="logout"/></button></div></>;
- const calcMarket=allMarketRows.find(r=>r.currency==='SAR'&&r.karat===calcKarat);
- const calcUnit=calcMarket?Number(calcMarket.buyPrice):null;
+ const calcMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===calcKarat);
+ const calcUnit=calcMarket&&Number.isFinite(Number(calcMarket.buyPrice))&&Number(calcMarket.buyPrice)>0?Number(calcMarket.buyPrice):null;
  const calcWeightN=Math.max(0,Number(calcWeight)||0),calcFeeN=Math.max(0,Number(calcFee)||0);
  const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuote(calcUnit,calcWeightN,calcFeeN,calcVat);
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
@@ -206,7 +215,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <div className="live-card-top"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{marketLabel}</span><strong>{marketClosed?'آخر سعر مسجل - عيار 24':'سعر الذهب الآن - عيار 24'}</strong></div>
     <div className="live-price-main"><div className="home-quote"><div className="price-tag-large">{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}<small>/جرام</small></div>
      <p className={'home-market-change '+(homeMovement===null?'neutral':homeMovement.difference>=0?'positive':'negative')} title="مقارنة بأول تحديث متاح اليوم بتوقيت السعودية">
-      {homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),'SAR')} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:(marketClosed?'لا تداول حاليًا':'لا توجد مقارنة كافية اليوم')}
+      {homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),priceCurrency)} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:(marketClosed?'لا تداول حاليًا':'لا توجد مقارنة كافية اليوم')}
      </p></div><div className="buy-sell-mini"><span>سعر الشراء: <b>{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}</b></span><span>سعر البيع: <b>{money(homeMarket?Number(homeMarket.sellPrice):null,'SAR')}</b></span></div></div>
     <div className="live-card-footer"><span>السعر العالمي الاسترشادي</span><span title={marketTime(homeMarket)}>{latestQuoteLabel(homeMarket?.timestamp,session)}</span>{!marketClosed&&<button className="home-price-refresh" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}>{marketLoading?'جارٍ التحقق…':'تحديث الأسعار'}</button>}</div>
    </section>
@@ -218,12 +227,12 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <div className="portfolio-mini-body"><div><strong>{money(homePortfolio.value,'SAR')}</strong><span>إجمالي الوزن: {homePortfolio.weight===null?'غير متاح':number(homePortfolio.weight)+' جرام'}</span></div>{homePortfolio.difference!==null&&homePortfolio.percent!==null&&<div className={'portfolio-delta '+(homePortfolio.difference>=0?'positive':'negative')} title="الفرق عن تكلفة الشراء"><b><span>{homePortfolio.difference>=0?'+':'−'}</span>{money(Math.abs(homePortfolio.difference),'SAR')}</b><small dir="ltr">{homePortfolio.percent>=0?'+':'−'}{number(Math.abs(homePortfolio.percent))}%</small></div>}</div>
     {homePortfolio.hasOtherCurrencies&&<p className="home-currency-note">المعروض مشتريات الريال السعودي؛ بقية العملات في التفاصيل.</p>}
    </section>
-   <section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>
+   <section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency={priceCurrency} karat={24} compact/></section>
   </>;
 
   if(page==='prices')return <>
    <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{marketLabel}</span><p>سعر الأونصة المشتق من عيار 24</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((marketRows.find(r=>r.karat===24)?Number(marketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>{latestQuoteLabel(marketRows.find(r=>r.karat===24)?.timestamp,session)}</small></section>
-   <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}><option>SAR</option><option>USD</option></select></label></div>
+   <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>{if(isPriceCurrency(e.target.value))selectPriceCurrency(e.target.value);}}>{PRICE_CURRENCIES.map(currency=><option key={currency} value={currency}>{currency}</option>)}</select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=marketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
    <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>}</section>
@@ -233,12 +242,12 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   if(page==='calculator')return <>
    <section className="approved-card calculator-form">
     <label>1. اختر عيار الذهب<div className="karat-switch">{[24,22,21,18].map(k=><button type="button" key={k} className={calcKarat===k?'active':''} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div></label>
-    <div className="calc-unit-price" aria-live="polite"><span>سعر الجرام الأساسي · عيار {calcKarat}</span><strong>{money(calcUnit,'SAR')}</strong></div>
+    <div className="calc-unit-price" aria-live="polite"><span>سعر الجرام الأساسي · عيار {calcKarat}</span><strong>{money(calcUnit,priceCurrency)}</strong></div>
     <label>2. الوزن بالجرام<input type="number" inputMode="decimal" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(e.target.value)}/><div className="weight-presets">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(String(w))}>{w===31.1?'أونصة 31.1g':w+' جرام'}</button>)}</div></label>
-    <label>3. أجرة المصنعية لكل جرام (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
+    <label>3. أجرة المصنعية لكل جرام ({priceCurrency}) (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
     <div className="calc-toggle"><div><strong>احتساب ضريبة 15% على قيمة الذهب والمصنعية</strong><small>الضريبة = (قيمة الذهب + إجمالي المصنعية) × 15%.</small></div><input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/></div>
    </section>
-   <section className="approved-card"><div className="approved-card-title">تفاصيل السعر المقدر</div><dl className="calc-breakdown"><div><dt>قيمة الذهب الخام</dt><dd>{money(calcRaw,'SAR')}</dd></div><div><dt>إجمالي المصنعية</dt><dd>{money(calcFeeTotal,'SAR')}</dd></div><div><dt>الضريبة التقديرية</dt><dd>{money(calcTax,'SAR')}</dd></div><div className="final"><dt>الإجمالي النهائي</dt><dd>{money(calcTotal,'SAR')}</dd></div></dl><div className="calc-total-tafqeet" aria-label="الإجمالي كتابةً" aria-live="polite"><span>الإجمالي كتابةً</span><p>{tafqeetSar(calcTotal)??'المبلغ غير متاح'}</p></div></section>
+   <section className="approved-card"><div className="approved-card-title">تفاصيل السعر المقدر</div><dl className="calc-breakdown"><div><dt>قيمة الذهب الخام</dt><dd>{money(calcRaw,priceCurrency)}</dd></div><div><dt>إجمالي المصنعية</dt><dd>{money(calcFeeTotal,priceCurrency)}</dd></div><div><dt>الضريبة التقديرية</dt><dd>{money(calcTax,priceCurrency)}</dd></div><div className="final"><dt>الإجمالي النهائي</dt><dd>{money(calcTotal,priceCurrency)}</dd></div></dl><div className="calc-total-tafqeet" aria-label="الإجمالي كتابةً" aria-live="polite"><span>الإجمالي كتابةً</span><p>{tafqeetCurrency(calcTotal,priceCurrency)??'المبلغ غير متاح'}</p></div></section>
   </>;
 
   if(page==='portfolio')return <>
@@ -355,7 +364,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   return <><section className="approved-card profile-shortcut"><span className="avatar">{email[0].toUpperCase()}</span><div><strong dir="ltr">{email}</strong><span>حساب مستخدم</span></div><button className="text-button" onClick={()=>navigate('account')}>الملف الشخصي</button></section>
    <section className="approved-card settings-list"><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>المشتريات والفواتير</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>navigate('map')}><span><Icon name="map"/>التجار القريبون</span><Icon name="chevron"/></button><button onClick={()=>navigate('help')}><span><Icon name="help"/>المساعدة</span><Icon name="chevron"/></button></section>
-   <section className="approved-card"><div className="approved-card-title">التفضيلات</div><div className="settings-choice"><span>اللغة</span><b className="pill gold">العربية</b><span className="disabled-choice">English · قريبًا</span><span className="disabled-choice">Français · قريبًا</span></div><div className="settings-choice"><span>عملات الأسعار المتاحة</span><b className="pill gold">SAR</b><b className="pill">USD</b></div></section>
+   <section className="approved-card"><div className="approved-card-title">التفضيلات</div><div className="settings-choice"><span>اللغة</span><b className="pill gold">العربية</b><span className="disabled-choice">English · قريبًا</span><span className="disabled-choice">Français · قريبًا</span></div><div className="settings-choice"><span>عملة الأسعار والحاسبة</span><div className="currency-preference" role="group" aria-label="العملة المفضلة لأسعار الذهب والحاسبة">{PRICE_CURRENCIES.map(currency=><button key={currency} type="button" className={'currency-preference-option '+(currency===priceCurrency?'active':'')} aria-pressed={currency===priceCurrency} onClick={()=>selectPriceCurrency(currency)}><b dir="ltr">{currency}</b><small>{currency==='SAR'?'ريال سعودي':'دولار أمريكي'}</small></button>)}</div></div><p className="fine currency-preference-note">تُستخدم العملة المختارة في الأسعار والحاسبة والتفقيط، وتُحفظ لهذا الحساب. عند تبديل العملة تُصفّر المصنعية المدخلة لتجنّب استخدام مبلغ بعملة مختلفة.</p></section>
    <button className="danger-button approved-logout" onClick={signOut}><Icon name="logout"/>تسجيل الخروج</button>
   </>;
  };
