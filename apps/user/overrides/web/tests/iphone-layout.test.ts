@@ -196,3 +196,21 @@ describe('Screenshot-inspired quick lock screen and explicit biometric options',
   expect(css).toContain('#001F3F');
  });
 });
+
+
+describe('Approved global gold market-closed UI',()=>{
+ it('shows the agreed status, static price and indicative label',()=>{
+  const s=source('../UserWorkspace.tsx');
+  expect(s).toContain('const marketClosed=!isGlobalGoldMarketOpen(clock)');
+  expect(s).toContain("const marketLabel=marketClosed?'السوق العالمي مغلق'");
+  expect(s).toContain("marketClosed?'آخر سعر مسجل - عيار 24':'سعر الذهب الآن - عيار 24'");
+  expect(s).toContain('<span>السعر العالمي الاسترشادي</span>');
+  expect(s).not.toContain("المصدر: {homeMarket?.source");
+  expect(s).toContain("marketClosed?'لا تداول حاليًا'");
+ });
+ it('does not render either price chart when closed',()=>{
+  const s=source('../UserWorkspace.tsx');
+  expect(s).toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
+  expect(s).toContain('{!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
+ });
+});

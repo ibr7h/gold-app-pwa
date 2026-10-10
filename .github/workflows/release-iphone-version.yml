@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   version:
-    if: "${{ !startsWith(github.event.head_commit.message, 'chore(user-iphone): release ') && !startsWith(github.event.head_commit.message, 'feat(user-iphone): wallet-card source') && !startsWith(github.event.head_commit.message, 'build(user-iphone): wallet-card') }}"
+    if: "${{ !startsWith(github.event.head_commit.message, 'chore(user-iphone): release ') && !startsWith(github.event.head_commit.message, 'feat(user-iphone): wallet-card source') && !startsWith(github.event.head_commit.message, 'fix(user-iphone): restore closed market') && !startsWith(github.event.head_commit.message, 'build(user-iphone): wallet-card') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
