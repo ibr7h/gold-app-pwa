@@ -116,7 +116,7 @@
       const response = await fetch(BASE + 'version.json?t=' + Date.now(), {cache:'no-store'});
       if (!response.ok) throw new Error('version_unavailable');
       const data = await response.json();
-      if (!data || typeof data.version !== 'string' || !/^full-[a-f0-9]{8,40}$/.test(data.version)) throw new Error('version_invalid');
+      if (!data || typeof data.version !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\d+\.\d+\.\d+-\d{8})$/.test(data.version)) throw new Error('version_invalid');
       if (data.version !== CURRENT) {
         showPrompt(data.version);
         if (registration) await registration.update().catch(() => {});
