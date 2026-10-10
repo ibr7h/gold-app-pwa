@@ -11,7 +11,7 @@
   "background_color": "#001F3F",
   "theme_color": "#001F3F",
   "icons": [
-    {"src":"/gold-app-pwa/full/app_icon_user-7a176648.jpg","sizes":"1024x1024","type":"image/jpeg","purpose":"any"},
-    {"src":"/gold-app-pwa/full/pwa-icon-7a176648.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {"src":"/gold-app-pwa/full/app_icon_user-d015a464.jpg","sizes":"1024x1024","type":"image/jpeg","purpose":"any"},
+    {"src":"/gold-app-pwa/full/pwa-icon-d015a464.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
   ]
 }
