@@ -7,7 +7,7 @@ import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
 
-type AuthIconName='fingerprint'|'mail'|'lock'|'eye'|'eyeOff'|'login'|'guest'|'userPlus'|'back';
+type AuthIconName='fingerprint'|'mail'|'phone'|'lock'|'eye'|'eyeOff'|'login'|'guest'|'userPlus'|'back';
 function MockupFingerprintIcon(){
  const d='M48 256C48 141.1 141.1 48 256 48c63.1 0 119.6 28.1 157.8 72.5c8.6 10.1 23.8 11.2 33.8 2.6s11.2-23.8 2.6-33.8C403.3 34.6 333.7 0 256 0C114.6 0 0 114.6 0 256l0 40c0 13.3 10.7 24 24 24s24-10.7 24-24l0-40zm458.5-52.9c-2.7-13-15.5-21.3-28.4-18.5s-21.3 15.5-18.5 28.4c2.9 13.9 4.5 28.3 4.5 43.1l0 40c0 13.3 10.7 24 24 24s24-10.7 24-24l0-40c0-18.1-1.9-35.8-5.5-52.9zM256 80c-19 0-37.4 3-54.5 8.6c-15.2 5-18.7 23.7-8.3 35.9c7.1 8.3 18.8 10.8 29.4 7.9c10.6-2.9 21.8-4.4 33.4-4.4c70.7 0 128 57.3 128 128l0 24.9c0 25.2-1.5 50.3-4.4 75.3c-1.7 14.6 9.4 27.8 24.2 27.8c11.8 0 21.9-8.6 23.3-20.3c3.3-27.4 5-55 5-82.7l0-24.9c0-97.2-78.8-176-176-176zM150.7 148.7c-9.1-10.6-25.3-11.4-33.9-.4C93.7 178 80 215.4 80 256l0 24.9c0 24.2-2.6 48.4-7.8 71.9C68.8 368.4 80.1 384 96.1 384c10.5 0 19.9-7 22.2-17.3c6.4-28.1 9.7-56.8 9.7-85.8l0-24.9c0-27.2 8.5-52.4 22.9-73.1c7.2-10.4 8-24.6-.2-34.2zM256 160c-53 0-96 43-96 96l0 24.9c0 35.9-4.6 71.5-13.8 106.1c-3.8 14.3 6.7 29 21.5 29c9.5 0 17.9-6.2 20.4-15.4c10.5-39 15.9-79.2 15.9-119.7l0-24.9c0-28.7 23.3-52 52-52s52 23.3 52 52l0 24.9c0 36.3-3.5 72.4-10.4 107.9c-2.7 13.9 7.7 27.2 21.8 27.2c10.2 0 19-7 21-17c7.7-38.8 11.6-78.3 11.6-118.1l0-24.9c0-53-43-96-96-96zm24 96c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 24.9c0 59.9-11 119.3-32.5 175.2l-5.9 15.3c-4.8 12.4 1.4 26.3 13.8 31s26.3-1.4 31-13.8l5.9-15.3C267.9 411.9 280 346.7 280 280.9l0-24.9z';
  return <svg className="mockup-fingerprint-icon" width="40" height="40" fill="#001F3F" viewBox="0 0 512 512" aria-hidden="true"><path d={d}/></svg>;
@@ -17,6 +17,7 @@ function AuthIcon({name,size=20}:{name:AuthIconName;size?:number}){
  const paths:Record<AuthIconName,string[]>={
   fingerprint:['M12 11a3 3 0 0 1 3 3c0 3-1 6-2 8','M9 14a3 3 0 0 1 6 0','M7 14a5 5 0 0 1 10 0c0 2-.4 4-1.2 6','M5 14a7 7 0 0 1 14 0c0 2.8-.5 5.2-1.6 7.5','M8 8.5a6 6 0 0 1 8 0','M6 10a8 8 0 0 1 12 0'],
   mail:['M4 6h16v12H4Z','m4 7 8 6 8-6'],
+  phone:['M6.6 3h2l1.7 4.1-2 1.7a15 15 0 0 0 6.8 6.8l1.7-2L21 15.4v2a3 3 0 0 1-3.3 3A18 18 0 0 1 3.6 6.3 3 3 0 0 1 6.6 3Z'],
   lock:['M7 11h10v9H7Z','M9 11V8a3 3 0 0 1 6 0v3'],
   eye:['M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z','M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z'],
   eyeOff:['m3 3 18 18','M10.6 10.6A2 2 0 0 0 13.4 13.4','M9.8 5.2A10.6 10.6 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-2.1 3.1','M6.2 6.2C3.8 8 2.5 12 2.5 12s3.5 7 9.5 7a9.8 9.8 0 0 0 3.1-.5'],
@@ -57,12 +58,14 @@ function GuestPrices({onBack}:{onBack:()=>void}){
 export default function AuthForm({register=false}:{register?:boolean}){
  const {user,isLoading,error,login,startRegistration,clearError,biometricAvailable,biometricEnrolled,biometricEnabled,loginWithBiometric}=useAuth();
  const showBiometricLogin=canShowBiometricLogin({biometricAvailable,biometricEnrolled,biometricEnabled});
- const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
+ const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[phone,setPhone]=useState(''),[visible,setVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
  useEffect(()=>{if(user)router.replace('/');},[user]);
  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(isLoading)return;clearError();setLocalError('');
   if(register&&password!==confirm){setLocalError('كلمتا المرور غير متطابقتين.');return;}
+  const cleanedPhone=phone.trim().replace(/[\\s()-]/g,'');
+  if(register&&!/^(?:05\\d{8}|\\+?9665\\d{8}|\\+[1-9]\\d{7,14})$/.test(cleanedPhone)){setLocalError('أدخل رقم جوال صحيحًا، مثل 0501234567 أو +966501234567.');return;}
   if(new TextEncoder().encode(password).length>72){setLocalError('كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.');return;}
-  try{if(register)await startRegistration(name,email,password);else await login(email,password);}catch{}
+  try{if(register)await startRegistration(name,email,password,cleanedPhone);else await login(email,password);}catch{}
  };
  const biometric=async()=>{clearError();setLocalError('');if(!showBiometricLogin){return;}const ok=await loginWithBiometric();if(!ok)setLocalError('تعذر تسجيل الدخول بالبصمة الحيوية.');};
  // Browser and iOS own the passkey sheet. Never request it before an explicit tap.
@@ -76,8 +79,10 @@ export default function AuthForm({register=false}:{register?:boolean}){
    <p className="app-version-stamp" dir="ltr" style={{color:"#D4AF37",textAlign:"center",fontSize:12,margin:"6px auto 0"}}>{APP_DISPLAY_VERSION}</p>
    <section className="mockup-auth-card">
     <form onSubmit={submit} aria-busy={isLoading}>
-     <label className="form-group"><span className="form-label">الاسم الكامل</span><div className="mockup-input-wrap"><input className="form-input" value={name} autoComplete="name" maxLength={80} placeholder="الاسم الكامل" onChange={e=>setName(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="userPlus"/></span></div></label>
+     <label className="form-group"><span className="form-label">الاسم الكامل</span><div className="mockup-input-wrap"><input className="form-input" value={name} autoComplete="name" minLength={2} maxLength={80} required placeholder="الاسم الكامل" onChange={e=>setName(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="userPlus"/></span></div></label>
      <label className="form-group"><span className="form-label">البريد الإلكتروني</span><div className="mockup-input-wrap"><input className="form-input" type="email" dir="ltr" autoComplete="email" value={email} required placeholder="user@gold.app" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
+     <label className="form-group"><span className="form-label">رقم الجوال</span><div className="mockup-input-wrap"><input className="form-input" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" value={phone} required minLength={10} maxLength={16} placeholder="05XXXXXXXX" onChange={e=>setPhone(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="phone"/></span></div></label>
+     <p className="dh-register-mobile-hint">يُحفظ رقم الجوال ضمن بيانات الحساب دون إرسال رمز تحقق في هذه المرحلة.</p>
      <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={password} placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
      <label className="form-group"><span className="form-label">تأكيد كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={confirm} placeholder="أعد كتابة كلمة المرور" onChange={e=>setConfirm(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="lock"/></span></div></label>
      {(localError||error)&&<p className="error-banner" role="alert">{localError||error}</p>}
