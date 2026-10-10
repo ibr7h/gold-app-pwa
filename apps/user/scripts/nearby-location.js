@@ -5,6 +5,7 @@
  'use strict';
  var style=document.createElement('style');
  style.textContent=[
+ 'html:not(.dh-nearby-page-active) .dh-nearby-location[data-dh-injected="true"]{display:none!important}',
  '.dh-nearby-location{margin-top:14px;padding:18px;border-radius:18px;background:#fbfaf5;',
  'border:1px solid #e5d7a3;color:#001F3F;direction:rtl;text-align:right}',
  '.dh-nearby-location h3{margin:0 0 8px;font-size:17px}',
@@ -20,11 +21,18 @@
  '.dh-nearby-location [hidden]{display:none!important}'
  ].join('');
  document.head.appendChild(style);
+ function activeNearbyPage(){ return location.hash.slice(1).split(/[?\/]/,1)[0]==='map'; }
+ function cleanupInjected(){ document.querySelectorAll('.dh-nearby-location[data-dh-injected="true"]').forEach(function(node){node.remove();}); }
  function attach(){
+  document.documentElement.classList.toggle('dh-nearby-page-active',activeNearbyPage());
+  if(!activeNearbyPage()){cleanupInjected();return;}
   var map=document.querySelector('#root .map-placeholder');
-  if(!map||map.querySelector('.dh-nearby-location'))return;
+  if(!map){cleanupInjected();return;}
+  document.querySelectorAll('.dh-nearby-location[data-dh-injected="true"]').forEach(function(node){if(!map.contains(node))node.remove();});
+  if(map.querySelector('.dh-nearby-location'))return;
   var box=document.createElement('section');
   box.className='dh-nearby-location';
+  box.setAttribute('data-dh-injected','true');
   box.setAttribute('aria-label','البحث عن أسواق الذهب حسب موقعي');
   box.innerHTML='<h3>أسواق الذهب القريبة من موقعك</h3>'+
    '<p>نطلب إذن الموقع عند الضغط فقط. لن نخزّن إحداثياتك في قاعدة بيانات ذهبي. '+
@@ -45,6 +53,7 @@
    button.disabled=true;button.textContent='جارٍ تحديد الموقع…';
    links.hidden=true;disclosure.hidden=true;
    navigator.geolocation.getCurrentPosition(function(pos){
+    if(!activeNearbyPage()||!box.isConnected)return;
     button.disabled=false;button.textContent='تحديث موقعي';
     var lat=pos.coords.latitude,lon=pos.coords.longitude;
     if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){
@@ -58,6 +67,7 @@
     box.querySelector('.dh-nearby-apple').href='https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب')+'&ll='+encodeURIComponent(lat.toFixed(5)+','+lon.toFixed(5));
     links.hidden=false;disclosure.hidden=false;
    },function(e){
+    if(!activeNearbyPage()||!box.isConnected)return;
     button.disabled=false;button.textContent='إعادة محاولة تحديد الموقع';
     var msg=e.code===1?'تم رفض إذن الموقع. فعّله من إعدادات المتصفح أو الجهاز ثم أعد المحاولة.':
       e.code===2?'الموقع غير متاح حاليًا. تحقق من إعدادات GPS والاتصال.':
@@ -76,6 +86,8 @@
    requestAnimationFrame(function(){queued=false;attach();});
   });
   observer.observe(host,{childList:true,subtree:true});
+  window.addEventListener('hashchange',function(){attach();requestAnimationFrame(attach);});
+  window.addEventListener('popstate',attach);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});
  else ready();
