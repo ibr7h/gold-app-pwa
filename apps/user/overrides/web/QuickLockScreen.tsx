@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
 import type {User} from '../contexts/AuthContext.web';
 import {PIN_LENGTH,type PinResult} from './quick-pin';
 import {APP_DISPLAY_VERSION} from './app-version';
@@ -29,38 +29,48 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
 }){
  const [digits,setDigits]=useState(''),[localError,setLocalError]=useState(''),[busy,setBusy]=useState(false);
  const pending=useRef(false);
+ // A synchronous ref prevents lost taps when WebKit batches rapid keypad clicks.
+ const digitsRef=useRef('');
+ const writeDigits=useCallback((value:string)=>{digitsRef.current=value;setDigits(value);},[]);
  const biometric=()=>{
   if(pending.current||busy||loading)return;
-  pending.current=true;setBusy(true);setDigits('');setLocalError('');
+  pending.current=true;setBusy(true);writeDigits('');setLocalError('');
   void onBiometric().catch(()=>setLocalError('تعذر التحقق بالبصمة. استخدم الرمز أو كلمة المرور.'))
    .finally(()=>{pending.current=false;setBusy(false);});
  };
  const nickname=account.name?.trim()||account.email.split('@')[0]||'المستخدم';
- const commit=(value:string)=>{
+ const commit=useCallback((value:string)=>{
   if(busy||loading||pending.current||!quickPinEnabled)return;
-  if(value.length<PIN_LENGTH){setDigits(value);return;}
+  if(value.length<PIN_LENGTH){writeDigits(value);return;}
   if(value.length!==PIN_LENGTH)return;
-  pending.current=true;setBusy(true);setDigits(value);setLocalError('');
+  pending.current=true;setBusy(true);writeDigits(value);setLocalError('');
   void onPin(value).then(r=>{
    if(!r.ok){
     setLocalError(r.waitSeconds>0?'محاولات كثيرة؛ أُوقف إدخال الرمز مؤقتًا لمدة ١٥ دقيقة. استخدم كلمة المرور.':
      r.remaining>0?'رمز غير صحيح. المحاولات المتبقية: '+r.remaining:'تعذر فتح الجلسة؛ جرّب كلمة المرور.');
-    setDigits('');
+    writeDigits('');
    }
-  }).catch(()=>{setLocalError('تعذر التحقق من الرمز. حاول مرة أخرى.');setDigits('');})
+  }).catch(()=>{setLocalError('تعذر التحقق من الرمز. حاول مرة أخرى.');writeDigits('');})
    .finally(()=>{pending.current=false;setBusy(false);});
- };
- const add=(key:string)=>{if(!busy&&digits.length<PIN_LENGTH)commit(digits+key);};
- const erase=()=>{if(!busy)setDigits(x=>x.slice(0,-1));};
+ },[busy,loading,quickPinEnabled,onPin,writeDigits]);
+ const add=useCallback((key:string)=>{
+  if(!busy&&!loading&&!pending.current&&quickPinEnabled&&digitsRef.current.length<PIN_LENGTH)
+   commit(digitsRef.current+key);
+ },[busy,loading,quickPinEnabled,commit]);
+ const erase=useCallback(()=>{
+  if(!busy&&!pending.current)writeDigits(digitsRef.current.slice(0,-1));
+ },[busy,writeDigits]);
  useEffect(()=>{
   const handler=(e:KeyboardEvent)=>{
-   if(e.altKey||e.ctrlKey||e.metaKey||e.target instanceof HTMLInputElement||loading)return;
+   if(e.altKey||e.ctrlKey||e.metaKey||loading||
+    e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||
+    (e.target instanceof HTMLElement&&e.target.isContentEditable))return;
    if(/^\d$/.test(e.key)){e.preventDefault();add(e.key);}
    if(e.key==='Backspace'){e.preventDefault();erase();}
   };
   window.addEventListener('keydown',handler);
   return()=>window.removeEventListener('keydown',handler);
- });
+ },[add,erase,loading]);
  return <main className="dh-quick-lock" dir="rtl" lang="ar" aria-busy={busy||loading}>
   <div className="dh-quick-lock-inner">
    <div className="dh-pin-brand"><img src="/gold-app-pwa/full/app_icon_user.jpg" alt="ذهبي"/><span>ذهبي</span></div>
@@ -70,12 +80,12 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
     <small>{quickPinEnabled?'أدخل رمز الدخول السريع لفتح ذهبي':'اضغط على زر البصمة أو استخدم كلمة المرور'}</small>
    </div>
    {quickPinEnabled&&<PinDots length={digits.length}/>}
-   <div className="dh-pin-feedback" role="alert">{localError||remoteError||' '}</div>
+   <div className="dh-pin-feedback" role="alert">{localError||remoteError||(busy?'جارٍ التحقق من الرمز…':' ')}</div>
    <button className="dh-pin-forgot" type="button" onClick={onForgot}>نسيت رمز الدخول السريع؟ الدخول بكلمة المرور</button>
    {quickPinEnabled?<Keypad disabled={busy||loading} onDigit={add} onDelete={erase}
     biometric={biometricEnabled} onBiometric={biometric}/>
     :<div className="dh-pin-bio-only">{!biometricEnabled&&<p role="status">بصمة الجهاز غير متاحة حاليًا؛ استخدم كلمة المرور.</p>}</div>}
-   {biometricEnabled&&<div className={'dh-pin-bio-only'+(quickPinEnabled?' dh-pin-bio-compact':'')}><button type="button" onClick={biometric} disabled={busy||loading}><FaceMark/> فتح ببصمة الجهاز</button></div>}
+   {biometricEnabled&&!quickPinEnabled&&<div className="dh-pin-bio-only"><button type="button" onClick={biometric} disabled={busy||loading}><FaceMark/> فتح ببصمة الجهاز</button></div>}
    <small className="dh-pin-security-note">يعمل رمز الدخول على هذا الجهاز فقط. يتطلب فتح البيانات جلسة صالحة في خادم ذهبي.</small>
    <small className="dh-pin-release" dir="ltr">{APP_DISPLAY_VERSION}</small>
   </div>
@@ -88,20 +98,22 @@ export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentP
  const [currentPin,setCurrentPin]=useState('');
  const [first,setFirst]=useState(''),[digits,setDigits]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const pending=useRef(false);
+ const digitsRef=useRef('');
+ const writeDigits=(value:string)=>{digitsRef.current=value;setDigits(value);};
  const commit=(value:string)=>{
   if(busy||pending.current)return;
-  setDigits(value);
+  writeDigits(value);
   if(value.length!==PIN_LENGTH)return;
   if(stage==='current'&&mode!=='disable'){
-   setCurrentPin(value);setDigits('');setStage('enter');setError('');return;
+   setCurrentPin(value);writeDigits('');setStage('enter');setError('');return;
   }
   if(stage==='enter'){
-   setFirst(value);setDigits('');setStage('confirm');setError('');return;
+   setFirst(value);writeDigits('');setStage('confirm');setError('');return;
   }
-  if(mode!=='disable'&&value!==first){setError('الرمزان غير متطابقين؛ أدخل رمزًا جديدًا.');setFirst('');setDigits('');setStage('enter');return;}
+  if(mode!=='disable'&&value!==first){setError('الرمزان غير متطابقين؛ أدخل رمزًا جديدًا.');setFirst('');writeDigits('');setStage('enter');return;}
   pending.current=true;setBusy(true);
   void onSave(mode==='disable'?'':value,mode==='disable'?value:currentPin||undefined).then(onClose).catch(e=>{
-   setError(e instanceof Error?e.message:'تعذر حفظ الرمز.');setDigits('');setFirst('');setCurrentPin('');setStage(initialStage);
+   setError(e instanceof Error?e.message:'تعذر حفظ الرمز.');writeDigits('');setFirst('');setCurrentPin('');setStage(initialStage);
   }).finally(()=>{pending.current=false;setBusy(false);});
  };
  return <div className="dh-pin-setup-backdrop" role="presentation">
@@ -111,8 +123,8 @@ export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentP
    <p>{stage==='current'?'أدخل رمز الدخول الحالي لتأكيد هويتك.':stage==='enter'?'اختر رمزًا من ٦ أرقام لا تستخدمه في خدمات أخرى.':'أعد إدخال الرمز نفسه لتأكيده.'}</p>
    <PinDots length={digits.length}/>
    <p className="dh-pin-feedback" role="alert">{error||' '}</p>
-   <Keypad disabled={busy} onDigit={d=>{if(digits.length<PIN_LENGTH)commit(digits+d);}}
-    onDelete={()=>setDigits(x=>x.slice(0,-1))}/>
+   <Keypad disabled={busy} onDigit={d=>{if(digitsRef.current.length<PIN_LENGTH)commit(digitsRef.current+d);}}
+    onDelete={()=>{if(!busy&&!pending.current)writeDigits(digitsRef.current.slice(0,-1));}}/>
    <button type="button" className="dh-pin-setup-cancel" onClick={onClose} disabled={busy}>إلغاء</button>
   </section>
  </div>;

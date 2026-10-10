@@ -2,10 +2,10 @@ import {describe,it,expect} from 'vitest';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,trendPercent} from '../price-trend';
 
 const instant=(minute:number,price:number,id='price-'+minute)=>({
- id,createdAt:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),timestamp:'2026-01-01T00:00:00.000Z',buyPrice:String(price)
+ id,createdAt:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),timestamp:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),buyPrice:String(price)
 });
 describe('User real-time gold chart geometry',()=>{
- it('sorts snapshots by saved time rather than array index or stale source timestamps',()=>{
+ it('sorts observations by source time rather than API list order',()=>{
   const result=priceTrendPoints([instant(40,390),instant(0,385),instant(10,387)]);
   expect(result.map(x=>x.price)).toEqual([385,387,390]);
   expect(result[1].time-result[0].time).toBe(10*60*1000);
@@ -16,9 +16,21 @@ describe('User real-time gold chart geometry',()=>{
   const result=priceTrendPoints([same,{...same,id:'newer',buyPrice:'381'},instant(10,385),
    {...same,id:'bad',buyPrice:'NaN'},
    {...same,id:'zero',buyPrice:'0'},
-   {...same,id:'no-time',createdAt:'invalid',buyPrice:'400'}]);
+   {...same,id:'no-time',createdAt:'invalid',timestamp:'invalid',buyPrice:'400'}]);
   expect(result.map(x=>x.price)).toEqual([381,385]);
   expect(result[0].id).toBe('newer');
+ });
+ it('prefers the source observation time and collapses flat checks when market closes',()=>{
+  const rows=[
+    {id:'first',timestamp:'2026-10-09T20:55:00Z',createdAt:'2026-10-09T20:55:10Z',buyPrice:'500'},
+    {id:'same',timestamp:'2026-10-09T20:55:00Z',createdAt:'2026-10-09T20:56:10Z',buyPrice:'500'},
+    {id:'late-check',timestamp:'2026-10-09T21:30:00Z',createdAt:'2026-10-09T21:30:10Z',buyPrice:'501.004'},
+    {id:'real-change',timestamp:'2026-10-09T20:56:00Z',createdAt:'2026-10-09T20:56:08Z',buyPrice:'501'},
+    {id:'closed-check',timestamp:'2026-10-10T11:30:00Z',createdAt:'2026-10-10T11:30:12Z',buyPrice:'501'},
+  ];
+  const result=priceTrendPoints(rows);
+  expect(result.map(x=>x.id)).toEqual(['same','real-change']);
+  expect(result[1].time).toBe(Date.parse('2026-10-09T20:56:00Z'));
  });
  it('selects nearest observed snapshot with unequal time gaps',()=>{
   const points=priceTrendPoints([instant(0,385),instant(10,386),instant(40,392)]);

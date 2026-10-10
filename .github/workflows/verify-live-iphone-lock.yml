@@ -1,0 +1,77 @@
+name: Verify live iPhone page lock
+on:
+  push:
+    branches: ["feat/user-iphone-stable-viewport-20261009"]
+    paths: [".github/workflows/verify-live-iphone-lock.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  iphone-live:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check served meta, CSS, JS and version
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://dhahabi-user-iphone-preview.onrender.com/gold-app-pwa/full"
+          curl -fsSL --max-time 30 -o /tmp/iphone-page "$base/?page-lock=36221fef"
+          grep -Fq 'maximum-scale=1,user-scalable=no' /tmp/iphone-page
+          grep -Fq 'iphone-preview-lock.js' /tmp/iphone-page
+          grep -Fq 'iphone-preview-lock.css' /tmp/iphone-page
+          for asset in iphone-preview-lock.js iphone-preview-lock.css; do
+            curl -fsSL --max-time 30 -o /tmp/$asset "$base/$asset"
+            test -s /tmp/$asset
+          done
+          curl -fsSL --max-time 30 -o /tmp/live-version "$base/version.json"
+          grep -Fq 'full-36221fef' /tmp/live-version
+          echo 'PASS: live Render is serving document-lock build and assets'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install WebKit
+        run: |
+          pip install playwright==1.57.0
+          python -m playwright install --with-deps webkit
+      - name: Test real iPhone-UA rendering at deployed site
+        shell: bash
+        run: |
+          cat >/tmp/check.py <<'PY'
+          from playwright.sync_api import sync_playwright
+          url='https://dhahabi-user-iphone-preview.onrender.com/gold-app-pwa/full/?page-lock=36221fef'
+          ua='Mozilla/5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1'
+          with sync_playwright() as p:
+              browser=p.webkit.launch(headless=True)
+              for width,height in ((390,844),(844,390)):
+                  context=browser.new_context(viewport={'width':width,'height':height},user_agent=ua,is_mobile=True,has_touch=True,device_scale_factor=3)
+                  page=context.new_page()
+                  errors=[]
+                  page.on('pageerror',lambda e: errors.append(str(e)))
+                  response=page.goto(url,wait_until='domcontentloaded',timeout=30000)
+                  page.wait_for_timeout(4200)
+                  state=page.evaluate("""() => ({
+                   locked:document.documentElement.classList.contains('dh-iphone-page-lock'),
+                   bodyPosition:getComputedStyle(document.body).position,
+                   docHeight:document.scrollingElement.scrollHeight,
+                   viewHeight:document.scrollingElement.clientHeight,
+                   viewScale:window.visualViewport.scale,
+                   bodyText:document.body.innerText.slice(0,150)
+                  })""")
+                  assert response.status==200,state
+                  assert state['locked'] and state['bodyPosition']=='fixed',state
+                  assert state['docHeight']<=state['viewHeight']+2,state
+                  assert 'الدخول' in state['bodyText'] or 'ذهبي' in state['bodyText'],state
+                  assert not errors,errors[:6]
+                  page.evaluate('window.scrollTo(0,250)')
+                  assert page.evaluate('window.scrollY')==0
+                  gesture=page.evaluate("""() => {
+                    let e=new Event('gesturestart',{cancelable:true,bubbles:true});
+                    return document.dispatchEvent(e);
+                  }""")
+                  assert gesture is False,'pinch gesture not canceled'
+                  print(f"PASS Render Safari WebKit {width}x{height}: document locked, app renders, gesture blocked",flush=True)
+                  context.close()
+              browser.close()
+          PY
+          python /tmp/check.py

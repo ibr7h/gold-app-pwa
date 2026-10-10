@@ -585,7 +585,15 @@
 .gold-web .inline-select{display:flex;flex-direction:row;align-items:center;gap:7px;margin:0;font-size:11px;color:#64748B}.gold-web .inline-select select{width:auto;min-width:78px;min-height:35px;padding:5px 8px;font-size:12px;background:#FFFFFF;color:#1E293B;border-color:#E2E8F0}
 .gold-web .approved-price-table{display:grid}.gold-web .price-row{display:grid;grid-template-columns:.8fr 1fr 1fr;align-items:center;gap:8px;padding:12px 6px;border-top:1px solid #E2E8F0;text-align:center;font-size:12px}.gold-web .price-row.head{border-top:0;color:#64748B;font-size:11px;font-weight:700}.gold-web .price-row strong{color:#C5A021}.gold-web .karat-badge{display:inline-flex;background:rgba(197,160,33,.13);color:#8B6B00;padding:4px 8px;border-radius:6px;font-size:11px}
 .gold-web .three-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.gold-web .three-stats>div{background:#F1F5F9;border:1px solid #E2E8F0;border-radius:8px;padding:9px;text-align:center}.gold-web .three-stats span{display:block;font-size:9px;color:#64748B}.gold-web .three-stats b{display:block;font-size:10px;color:#1E293B;margin-top:2px}
-.gold-web .calc-total-card{text-align:center}.gold-web .calc-total-card>span{display:block;font-size:12px;color:#64748B}.gold-web .calc-total-card>strong{display:block;font-size:32px;color:#C5A021;margin:2px 0}.gold-web .calc-total-card>small{color:#64748B;font-size:10px}
+/* The estimate appears once in its price breakdown; no duplicate top summary card. */
+.gold-web .calc-unit-price{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 14px;padding:12px 14px;margin:0 0 4px;background:rgba(197,160,33,.08);border:1px solid rgba(197,160,33,.27);border-radius:10px}
+.gold-web .calc-unit-price>span{font-size:12px;font-weight:600;color:#475569}
+.gold-web .calc-unit-price>strong{color:#001F3F;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gold-web .calc-total-tafqeet{border-top:1px dashed rgba(197,160,33,.42);padding:13px 0 2px;margin-top:8px}
+.gold-web .calc-total-tafqeet>span{display:block;margin-bottom:7px;font-size:11px;font-weight:700;color:#64748B}
+.gold-web .calc-total-tafqeet>p{font-size:14px;line-height:1.95;color:#001F3F;font-weight:650;white-space:normal;overflow-wrap:anywhere;user-select:text}
+@media(max-width:480px){.gold-web .calc-unit-price{align-items:flex-start}.gold-web .calc-unit-price>strong{font-size:16px}.gold-web .calc-total-tafqeet>p{font-size:13px;line-height:1.9}}
+
 .gold-web .calculator-form label{color:#1E293B}.gold-web .karat-switch{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.gold-web .karat-switch button{min-height:42px;border-radius:8px;border:1px solid #E2E8F0;background:#FFFFFF;color:#1E293B;font-weight:700}.gold-web .karat-switch button.active{background:#C5A021;color:#001F3F;border-color:#C5A021}
 .gold-web .weight-presets{display:flex;gap:6px;overflow-x:auto;padding:7px 0 2px}.gold-web .weight-presets button{white-space:nowrap;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;padding:5px 9px;color:#475569;font-size:10px}
 .gold-web .calc-toggle{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0 0;border-top:1px solid #E2E8F0}.gold-web .calc-toggle>div{display:grid}.gold-web .calc-toggle strong{font-size:13px}.gold-web .calc-toggle small{font-size:10px;color:#64748B}.gold-web .calc-toggle input{width:20px;min-height:20px;accent-color:#C5A021}
@@ -599,6 +607,17 @@
 .gold-web .profile-shortcut{display:flex;align-items:center;gap:12px}.gold-web .profile-shortcut>div{display:grid;min-width:0;flex:1}.gold-web .profile-shortcut>div strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.gold-web .profile-shortcut>div span{font-size:10px;color:#64748B}
 .gold-web .settings-list{padding:0!important}.gold-web .settings-list button{width:100%;min-height:52px;padding:12px 16px;background:#FFFFFF;color:#1E293B;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center}.gold-web .settings-list button:last-child{border-bottom:0}.gold-web .settings-list button>span{display:flex;align-items:center;gap:10px}.gold-web .settings-list button>span svg{color:#C5A021}.gold-web .settings-list .danger-row,.gold-web .settings-list .danger-row>span svg{color:#EF4444}
 .gold-web .settings-choice{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 0;border-top:1px solid #E2E8F0}.gold-web .settings-choice:first-of-type{border-top:0}.gold-web .settings-choice>span:first-child{font-weight:700;margin-inline-end:auto}.gold-web .disabled-choice{font-size:10px;color:#94A3B8}
+/* One shared price currency preference: accessible two-choice control. */
+.gold-web .currency-preference{display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:100%}
+.gold-web .currency-preference-option{min-width:99px;min-height:44px;border:1px solid #D8DEE7;border-radius:10px;background:#FFFFFF;color:#001F3F;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 10px;cursor:pointer}
+.gold-web .currency-preference-option b{font-size:13px;letter-spacing:.03em}
+.gold-web .currency-preference-option small{font-size:10px;color:#64748B}
+.gold-web .currency-preference-option.active{border-color:#C5A021;background:rgba(197,160,33,.13);box-shadow:inset 0 0 0 1px #C5A021}
+.gold-web .currency-preference-option.active small{color:#001F3F}
+.gold-web .currency-preference-option:focus-visible{outline:3px solid rgba(197,160,33,.5);outline-offset:2px}
+.gold-web .currency-preference-note{font-size:11px;color:#64748B;line-height:1.8;margin:6px 0 0}
+@media(max-width:440px){.gold-web .currency-preference{width:100%}.gold-web .currency-preference-option{flex:1 1 45%;min-width:0}}
+
 .gold-web .approved-logout{width:100%;margin-bottom:12px}
 .gold-web .pill{background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0}.gold-web .pill.gold{background:#C5A021;color:#001F3F;border-color:#C5A021}.gold-web .pill.good{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.25);color:#15803D}.gold-web .pill.warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.25);color:#B45309}
 .gold-web input,.gold-web select{background:#FFFFFF!important;color:#1E293B!important;border:1.5px solid #E2E8F0!important}.gold-web input:focus-visible,.gold-web select:focus-visible{border-color:#C5A021!important;box-shadow:0 0 0 3px rgba(197,160,33,.18)!important}.gold-web label{color:#1E293B}
@@ -1729,3 +1748,117 @@
  .gold-web .dh-price-trend.compact .home-chart-title{font-size:12px}
  .gold-web.reference-home .portfolio-mini-body>div:first-child>strong{font-size:20px}
 }
+
+/* User account/profile UX; scoped to User web only. */
+.gold-web .dh-profile{display:grid;gap:14px;min-width:0}
+.gold-web .dh-profile-hero,.gold-web.reference-home .approved-card.dh-profile-hero{background:#FFFFFF!important;border:1px solid rgba(197,160,33,.45)!important;box-shadow:0 3px 12px rgba(0,31,63,.08)!important;color:#001F3F!important;padding:20px!important;min-height:0!important}
+.gold-web .dh-profile-hero-main{display:flex;align-items:center;gap:16px;min-width:0}
+.gold-web .dh-profile-avatar{width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;background:#D4AF37;color:#001F3F;border-radius:18px;font-size:24px;font-weight:850}
+.gold-web .dh-profile-identity{min-width:0;display:grid;gap:4px;text-align:start}
+.gold-web .dh-profile-identity h2{font-size:clamp(17px,3.6vw,22px);color:#001F3F!important;line-height:1.45;overflow-wrap:anywhere;margin:0}
+.gold-web .dh-profile-email{font-size:13px;color:#001F3F!important;font-weight:600;line-height:1.6;overflow-wrap:anywhere;text-align:start;unicode-bidi:plaintext;opacity:1}
+.gold-web .dh-profile-hero-footer{margin-top:14px;padding-top:10px;border-top:1px solid rgba(0,31,63,.14);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:#001F3F}
+.gold-web .dh-profile-account-type{display:inline-flex;align-items:center;min-height:28px;border:1px solid #C5A021;border-radius:999px;padding:4px 10px;background:#FFFFFF;color:#001F3F!important;font-size:11px;font-weight:800}
+.gold-web .dh-profile-section-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:15px}
+.gold-web .dh-profile-section-head h3{font-size:16px;color:#001F3F;font-weight:800;margin:0}
+.gold-web .dh-profile-section-head p{font-size:12px;color:#64748B;margin:4px 0 0;line-height:1.7}
+.gold-web .dh-profile-edit{min-height:44px;border:1px solid #C5A021;border-radius:10px;padding:8px 14px;background:#FFFFFF;color:#001F3F;font-size:12px;font-weight:800}
+.gold-web .dh-profile-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gold-web .dh-profile-info{min-width:0;display:grid;align-content:start;gap:6px;border:1px solid #E2E8F0;border-radius:11px;padding:12px;background:#FFFFFF}
+.gold-web .dh-profile-info span{color:#64748B;font-size:11px}
+.gold-web .dh-profile-info strong{color:#001F3F;font-size:13px;overflow-wrap:anywhere;line-height:1.6;text-align:start}
+.gold-web .dh-profile-info small{font-size:10px;color:#64748B;line-height:1.6}
+.gold-web .dh-profile-loading{background:#F1F5F9;border-radius:10px;padding:18px;color:#475569;font-size:12px}
+.gold-web .dh-profile-feedback{margin:10px 0 0;border-radius:10px;padding:12px;font-size:12px;line-height:1.7}
+.gold-web .dh-profile-feedback.warning{background:#FFFFFF;color:#001F3F;border:1px solid #C5A021}
+.gold-web .dh-profile-feedback.error{background:#FFF1F0;color:#A32323;border:1px solid #F4C4C1}
+.gold-web .dh-profile-feedback.success{background:#ECF9F1;color:#175D3A;border:1px solid #C1E6D0}
+.gold-web .dh-profile-feedback button{display:block;margin-top:9px;min-height:44px;padding:7px 14px;background:#001F3F;color:#fff;border:0;border-radius:9px}
+.gold-web .dh-profile-edit-form{display:grid;gap:14px}
+.gold-web .dh-profile-edit-form label{display:grid;gap:7px;font-size:12px;font-weight:800;color:#001F3F}
+.gold-web .dh-profile-edit-form input{min-height:47px;width:100%;padding:10px 12px;border:1px solid #CBD5E1;border-radius:10px;background:white;color:#001F3F;font-size:16px!important}
+.gold-web .dh-profile-optional,.gold-web .dh-profile-help{font-size:11px;color:#64748B;font-weight:400;line-height:1.75}
+.gold-web .dh-profile-edit-actions{display:flex;flex-wrap:wrap;gap:10px}
+.gold-web .dh-profile-edit-actions button{min-height:44px;border-radius:10px;padding:10px 18px;font-weight:700}
+.gold-web .dh-profile-edit-actions button:disabled{opacity:.65}
+.gold-web .dh-profile-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.gold-web .dh-profile-shortcuts button{display:flex;gap:9px;align-items:center;min-height:60px;border:1px solid #E2E8F0;border-radius:11px;background:#FFFFFF;color:#001F3F;text-align:start;font-weight:700;font-size:12px;padding:10px 12px}
+.gold-web .dh-profile-shortcuts button>span:nth-child(2){min-width:0;flex:1}
+.gold-web .dh-profile-shortcuts button>svg:last-child{width:15px;opacity:.6}
+.gold-web .dh-profile-shortcut-icon{display:grid;place-items:center;flex:0 0 24px;width:24px;height:28px;border:0;border-radius:0;background:transparent!important;box-shadow:none!important;color:#C5A021!important}
+.gold-web .dh-profile-security{padding:0!important;overflow:hidden}
+.gold-web .dh-profile-security-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:19px;cursor:pointer;list-style:none}
+.gold-web .dh-profile-security-summary::-webkit-details-marker{display:none}
+.gold-web .dh-profile-security-summary>span:first-child{display:grid;gap:4px}
+.gold-web .dh-profile-security-summary strong{color:#001F3F;font-size:15px}
+.gold-web .dh-profile-security-summary small{color:#64748B;font-size:11px}
+.gold-web .dh-profile-security-action{display:flex;gap:6px;align-items:center;color:#001F3F;font-weight:800;font-size:12px}
+.gold-web details[open]>.dh-profile-security-summary .dh-profile-security-action svg{transform:rotate(90deg)}
+.gold-web .dh-profile-security-body{border-top:1px solid #E2E8F0;padding:0 18px 18px}
+.gold-web .dh-profile-security-title{font-size:13px;color:#001F3F;margin:14px 0 8px}
+.gold-web .dh-profile-security-body>.fine{font-size:11px;line-height:1.7}
+.gold-web .dh-profile-signout-button{width:100%;display:flex;justify-content:center;align-items:center;gap:9px;min-height:49px;border:1px solid #C5A021;border-radius:12px;background:#FFFFFF;color:#001F3F;font-size:13px;font-weight:800}
+.gold-web .dh-profile-signout-button svg{width:18px}
+.gold-web .dh-profile-version{color:#64748B;font-size:11px;text-align:center;margin:0 0 12px}
+.gold-web .dh-profile-edit:focus-visible,.gold-web .dh-profile-shortcuts button:focus-visible,.gold-web .dh-profile-security-summary:focus-visible,.gold-web .dh-profile-signout-button:focus-visible,.gold-web .dh-profile-edit-form input:focus-visible{outline:3px solid #C5A021;outline-offset:2px}
+@media(max-width:540px){.gold-web .dh-profile-hero,.gold-web.reference-home .approved-card.dh-profile-hero{padding:17px!important}.gold-web .dh-profile-avatar{width:55px;height:55px;flex-basis:55px;border-radius:16px;font-size:20px}.gold-web .dh-profile-hero-main{gap:11px}.gold-web .dh-profile-info-grid,.gold-web .dh-profile-shortcuts{grid-template-columns:minmax(0,1fr)}.gold-web .dh-profile-shortcuts button{min-height:53px}.gold-web .dh-profile-edit{width:100%}.gold-web .dh-profile-edit-actions button{flex:1}}
+
+
+/* No OTP verification in the temporary password registration flow. */
+.gold-web .dh-register-mobile-hint{font-size:12px;line-height:1.8;color:#001F3F;margin:2px 0 12px;max-width:100%;overflow-wrap:anywhere}
+
+/* iPhone Safari registration: 16px focus text, consistent password visibility tap targets. */
+.gold-auth .mockup-input-wrap .form-input[type="password"],
+.gold-auth .mockup-input-wrap .form-input[type="text"],
+.gold-auth .mockup-input-wrap .form-input[type="tel"]{
+  font-size:16px!important;
+  direction:ltr;
+}
+.gold-auth .mockup-input-wrap .mockup-eye-btn{
+  min-width:44px!important;
+  width:44px!important;
+  min-height:44px!important;
+  height:44px!important;
+  left:4px!important;
+  right:auto!important;
+  color:#001F3F!important;
+  background:transparent!important;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.gold-auth .mockup-input-wrap .mockup-eye-btn:focus-visible{
+  outline:2px solid #C5A021!important;
+  outline-offset:2px;
+}
+.gold-auth .mockup-input-wrap .form-input[dir="ltr"]{
+  text-align:left!important;
+  padding-inline-start:50px!important;
+  padding-inline-end:46px!important;
+}
+
+
+/* International phone registration: navy #001F3F / gold #C5A021 / white only. */
+.gold-auth .dh-intl-phone{position:relative;width:100%;min-width:0}
+.gold-auth .dh-intl-phone-row{display:flex;align-items:stretch;min-height:52px;border:1.5px solid #D7DEE8;border-radius:12px;background:#FFFFFF;overflow:hidden;direction:rtl}
+.gold-auth .dh-intl-phone-row:focus-within{border-color:#C5A021;box-shadow:0 0 0 3px rgba(197,160,33,.17)}
+.gold-auth .dh-intl-country-trigger{display:flex;align-items:center;justify-content:center;gap:5px;min-width:105px;max-width:126px;padding:7px 9px;background:#FFFFFF;border:0;border-left:1px solid #D7DEE8;border-radius:0;color:#001F3F;cursor:pointer;flex-shrink:0}
+.gold-auth .dh-intl-country-flag{font-size:20px;line-height:1;white-space:nowrap}
+.gold-auth .dh-intl-country-code{font-size:13px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gold-auth .dh-intl-chevron{font-size:17px;font-weight:700;line-height:1;color:#C5A021}
+.gold-auth .dh-intl-phone-row .dh-intl-number{flex:1;min-width:0;width:100%;background:#FFFFFF!important;color:#001F3F!important;border:0!important;box-shadow:none!important;outline:0!important;padding:11px 12px!important;font-size:16px!important;text-align:left!important;letter-spacing:.1px;font-variant-numeric:tabular-nums;border-radius:0!important}
+.gold-auth .dh-intl-phone-row .dh-intl-number:focus{box-shadow:none!important;border:0!important}
+.gold-auth .dh-intl-number::placeholder{color:#677589!important;opacity:1}
+.gold-auth .dh-intl-country-panel{position:relative;z-index:12;display:flex;flex-direction:column;width:100%;background:#FFFFFF;border:1px solid #C5A021;border-radius:12px;margin:8px 0 0;padding:8px;box-shadow:0 8px 22px rgba(0,31,63,.12)}
+.gold-auth .dh-intl-country-search{display:block;width:100%;min-height:46px;padding:10px 12px!important;background:white!important;color:#001F3F!important;border:1px solid #D7DEE8!important;border-radius:9px!important;font-size:16px!important}
+.gold-auth .dh-intl-country-options{max-height:min(260px,36dvh);overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:grid;gap:2px;margin-top:7px}
+.gold-auth .dh-intl-country-option{min-height:45px;display:grid;grid-template-columns:25px 1fr auto;align-items:center;gap:9px;padding:8px 10px;border:0;border-radius:8px;background:#FFFFFF;color:#001F3F;text-align:right;font-size:13px;cursor:pointer;width:100%}
+.gold-auth .dh-intl-country-option.dh-intl-active,.gold-auth .dh-intl-country-option[aria-selected="true"]{background:rgba(197,160,33,.12)}
+.gold-auth .dh-intl-option-dial{color:#001F3F;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.gold-auth .dh-intl-no-results{color:#001F3F;padding:12px;font-size:12px}
+.gold-auth .dh-intl-phone-feedback{color:#001F3F!important;font-size:11px;line-height:1.7;margin:7px 0 0;min-height:19px}
+.gold-auth .dh-intl-phone-feedback.valid{font-weight:700;color:#001F3F!important}
+.gold-auth .dh-intl-phone-feedback.invalid{color:#A82323!important;font-weight:700}
+.gold-auth .dh-intl-phone-feedback.pending{opacity:.85}
+.gold-auth .dh-intl-phone-mask{margin:3px 0 0;font-size:11px;color:#66778A;text-align:left;letter-spacing:.06em}
+.gold-auth .dh-intl-country-trigger:focus-visible,.gold-auth .dh-intl-country-option:focus-visible,.gold-auth .dh-intl-country-search:focus-visible{outline:2px solid #C5A021!important;outline-offset:2px}
+@media(max-width:390px){.gold-auth .dh-intl-country-trigger{min-width:94px;padding:6px 5px}.gold-auth .dh-intl-country-code{font-size:12px}.gold-auth .dh-intl-phone-row .dh-intl-number{padding:10px 7px!important}}

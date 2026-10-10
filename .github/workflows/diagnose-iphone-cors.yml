@@ -1,0 +1,45 @@
+name: Verify Preview and Production CORS
+on:
+  push:
+    branches: ["feat/user-iphone-stable-viewport-20261009"]
+    paths: [".github/workflows/diagnose-iphone-cors.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cors:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - name: Ensure preview and GitHub Pages remain allowed, unrelated origins blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          api=https://gold-app-api-u8dl.onrender.com/auth/login
+          probe() {
+            local origin="$1"
+            code=$(curl -sS --max-time 20 -X OPTIONS -o /tmp/cors-body -D /tmp/cors-headers \
+              -H "Origin: $origin" -H "Access-Control-Request-Method: POST" \
+              -H "Access-Control-Request-Headers: content-type,authorization" \
+              -w '%{http_code}' "$api" || true)
+            header=$(sed -n 's/^[Aa]ccess-[Cc]ontrol-[Aa]llow-[Oo]rigin: *\(.*\)\r*$/\1/p' /tmp/cors-headers | tr -d '\r')
+            printf 'Origin=%s status=%s allow-origin=%s\n' "$origin" "$code" "$header"
+          }
+          preview=https://dhahabi-user-iphone-preview.onrender.com
+          ready=false
+          for attempt in $(seq 1 32); do
+            probe "$preview"
+            if { [ "$code" = "204" ] || [ "$code" = "200" ]; } && [ "$header" = "$preview" ]; then
+              ready=true
+              break
+            fi
+            sleep 10
+          done
+          test "$ready" = true
+          probe https://ibr7h.github.io
+          { [ "$code" = "204" ] || [ "$code" = "200" ]; } && [ "$header" = 'https://ibr7h.github.io' ]
+          probe https://dhahabi-user-iphone-preview.onrender.com.evil.example
+          [ "$header" != 'https://dhahabi-user-iphone-preview.onrender.com.evil.example' ]
+          probe https://unrelated.onrender.com
+          [ "$header" != 'https://unrelated.onrender.com' ]
+          echo 'PASS: preview allowed, production retained, untrusted origins rejected'

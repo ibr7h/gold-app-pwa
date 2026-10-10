@@ -6,15 +6,21 @@ import PurchaseFormFields from './PurchaseFormFields';
 import PriceHistoryChart from './PriceHistoryChart';
 import {Money,formatTwo,CurrencyMark} from './price-display';
 import NotificationSettings from './NotificationSettings';
+import ProfilePanel from './ProfilePanel';
 import {revokePushBeforeLogout} from './push-client';
 import {api,jsonRequest,errorMessage} from './api';
 import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePerformance,purchasePayload,alertPayload,localDate} from './model';
 import {priceFreshness} from './price-status';
+import {goldSpotSession,latestQuoteLabel,marketStatusText} from './gold-market-session';
 import './user.css';
+import './iphone.css';
+import {installIphoneViewportObserver} from './iphone-viewport';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {calculatorQuote} from './calculator-quote';
-import {homeMarketMovement,homePortfolioSummary,homeUpdateAge} from './home-data';
+import {tafqeetCurrency} from './tafqeet-sar';
+import {PRICE_CURRENCIES,readPriceCurrency,savePriceCurrency,isPriceCurrency,type PriceCurrency} from './price-currency-preference';
+import {homeMarketMovement,homePortfolioSummary} from './home-data';
 /** Build-time type bridge for the extracted native app's older AuthContext.
  * The Web bundle uses the specialized contexts/AuthContext.web provider.
  */
@@ -82,18 +88,28 @@ export default function UserWorkspace(){
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
  const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
+ const [profileDisplayName,setProfileDisplayName]=useState('');
  const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|null>(null);
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
- const [priceCurrency,setPriceCurrency]=useState('SAR');
+ const accountId=String(user?.id??email);
+ const [priceCurrency,setPriceCurrency]=useState<PriceCurrency>(()=>readPriceCurrency(accountId));
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]);
  const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
  const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';purchase?:Purchase;alert?:PriceAlert}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
- const [clock,setClock]=useState(Date.now());const active=useRef(true),loadSequence=useRef(0),marketLoadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
+ const selectPriceCurrency=(currency:PriceCurrency)=>{
+  if(currency===priceCurrency)return;
+  // Making charge is a manually entered monetary amount, not exchange-converted.
+  // Never reinterpret a fee entered in SAR as the same number of USD (or vice versa).
+  setCalcFee('0');
+  setPriceCurrency(currency);
+ };
+ useEffect(()=>savePriceCurrency(accountId,priceCurrency),[accountId,priceCurrency]);
+ const [clock,setClock]=useState(Date.now());const pageScrollRef=useRef<HTMLElement>(null);const shellRef=useRef<HTMLDivElement>(null);const active=useRef(true),loadSequence=useRef(0),marketLoadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
  const loadData=useCallback(async()=>{
   const seq=++loadSequence.current;setLoading(true);setError('');
   try{
@@ -108,12 +124,11 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   const seq=++marketLoadSequence.current;
   if(active.current)setMarketLoading(true);
   try{
-   const currencies=['SAR','USD'];
-   const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
+   const latestRequests=PRICE_CURRENCIES.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
    const selectedHistory=api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=200');
    const [historyRows,homeHistoryRows,...latest]=await Promise.all([
     selectedHistory,
-    priceCurrency==='SAR'&&chartKarat===24?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency=SAR&karat=24&limit=200'),
+    chartKarat===24?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat=24&limit=200'),
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
@@ -136,12 +151,16 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  },[priceCurrency,chartKarat]);
  useEffect(()=>{active.current=true;void loadData();void loadMarket();
   const clockTimer=setInterval(()=>setClock(Date.now()),60000);
-  const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000);
-  const focus=()=>{if(document.visibilityState==='visible'){setClock(Date.now());void loadData();void loadMarket();}};
+  const marketTimer=setInterval(()=>{if(document.visibilityState==='visible'&&goldSpotSession(Date.now())==='open')void loadMarket();},5*60000);
+  const focus=()=>{if(document.visibilityState==='visible'){setClock(Date.now());void loadData();if(goldSpotSession(Date.now())==='open')void loadMarket();}};
   document.addEventListener('visibilitychange',focus);
   return()=>{active.current=false;loadSequence.current++;marketLoadSequence.current++;clearInterval(clockTimer);clearInterval(marketTimer);document.removeEventListener('visibilitychange',focus);};},[loadData,loadMarket]);
  useEffect(()=>{const read=()=>{const id=location.hash.slice(1);if(pages.some(p=>p.id===id))setPage(id as Page);};read();window.addEventListener('hashchange',read);return()=>window.removeEventListener('hashchange',read);},[]);
  const navigate=(p:Page)=>{setPage(p);setMenu(false);location.hash=p;requestAnimationFrame(()=>headingRef.current?.focus());};
+ // Keep iPhone keyboard changes from shifting the bottom navigation or forms.
+ useEffect(()=>shellRef.current?installIphoneViewportObserver(shellRef.current):undefined,[]);
+ // Keep iPhone navigation independent of the prior page's scroll position.
+ useEffect(()=>{pageScrollRef.current?.scrollTo({top:0,behavior:'auto'});},[page]);
  const signOut=()=>{void (async()=>{try{await revokePushBeforeLogout();}finally{logout();}})();};
  useEffect(()=>{if(!message)return;const timer=setTimeout(()=>setMessage(''),6000);return()=>clearTimeout(timer);},[message]);
  useEffect(()=>{if(!dialog&&!confirm&&!menu)return;const previous=document.activeElement as HTMLElement,el=modalRef.current;
@@ -168,37 +187,39 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  };
  const sortedHistory=[...history].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
  const currentMarket=marketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
- const homeMarket=allMarketRows.find(r=>r.currency==='SAR'&&r.karat===24) as PriceHistoryRow|undefined;
+ const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24) as PriceHistoryRow|undefined;
+ const session=goldSpotSession(clock);
+ const marketClosed=session==='closed';
  const freshness=priceFreshness(homeMarket,clock);
- const stale=freshness!=='fresh'||!!marketError;
- const marketLabel=freshness==='fresh'&&!marketError?'مباشر':freshness==='missing'?'غير متاح':'آخر سعر محفوظ';
+ const stale=marketClosed||freshness!=='fresh'||!!marketError;
+ const marketLabel=marketStatusText(session,freshness,!!marketError);
  const summary=totals(purchases,allMarketRows),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
  const visibleHistory=historyQuery===priceCurrency+':'+chartKarat?history:[];
  const priceNote=<p className="fine">جميع الأسعار في هذه النسخة تأتي من Backend ذهبي نفسه؛ وتشترك البطاقات والمحفظة والتنبيهات والرسم البياني في المصدر ذاته. لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.</p>;
  const marketTime=(row:PriceHistoryRow|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp):'لا يوجد تحديث موثوق';
  const priceBlock=<section className="market-price-card">
-  <div className="row"><div><p className="mock-supporting">سعر الذهب الآن</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(!stale?'good':'warn')}>{marketLabel}</span></div>
-  <p className="market-update">آخر تحديث: {marketTime(homeMarket)}</p>
+  <div className="row"><div><p className="mock-supporting">سعر الذهب الآن</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(!stale?'good':'warn')}>{marketLabel}</span></div>
+  <p className="market-update">{latestQuoteLabel(homeMarket?.timestamp,session)}</p>
  </section>;
  const nav=<><div className="nav-brand"><span className="brand-mark small">ذ</span><div><strong>ذهبي</strong><small>حساب المستخدم</small></div></div><nav aria-label="القائمة الرئيسية">{primaryPages.map(p=><button key={p.id} className={'nav-item '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav><div className="nav-account"><span className="avatar">{email[0].toUpperCase()}</span><span className="email" dir="ltr">{email}</span><button className="icon-button" title="تسجيل الخروج" aria-label="تسجيل الخروج" onClick={signOut}><Icon name="logout"/></button></div></>;
- const calcMarket=allMarketRows.find(r=>r.currency==='SAR'&&r.karat===calcKarat);
- const calcUnit=calcMarket?Number(calcMarket.buyPrice):null;
+ const calcMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===calcKarat);
+ const calcUnit=calcMarket&&Number.isFinite(Number(calcMarket.buyPrice))&&Number(calcMarket.buyPrice)>0?Number(calcMarket.buyPrice):null;
  const calcWeightN=Math.max(0,Number(calcWeight)||0),calcFeeN=Math.max(0,Number(calcFee)||0);
  const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuote(calcUnit,calcWeightN,calcFeeN,calcVat);
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
  const homePortfolio=homePortfolioSummary(purchases,allMarketRows,loaded);
- const homeMovement=homeMarketMovement(homeHistory,homeMarket,clock);
- const accountName=user?.name?.trim()||email;
+ const homeMovement=marketClosed?null:homeMarketMovement(homeHistory,homeMarket,clock);
+ const accountName=profileDisplayName||user?.name?.trim()||email;
  const mobilePage=mobilePages.some(p=>p.id===page)?page:'more';
  const content=()=>{
   if(page==='home')return <>
-   <section className="approved-card live-price-card" aria-label="سعر الذهب الآن عيار 24">
-    <div className="live-card-top"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{marketLabel}</span><strong>سعر الذهب الآن - عيار 24</strong></div>
-    <div className="live-price-main"><div className="home-quote"><div className="price-tag-large">{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}<small>/جرام</small></div>
+   <section className="approved-card live-price-card" aria-label={marketClosed?'آخر سعر مسجل عيار 24':'سعر الذهب الآن عيار 24'}>
+    <div className="live-card-top"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{marketLabel}</span><strong>{marketClosed?'آخر سعر مسجل - عيار 24':'سعر الذهب الآن - عيار 24'}</strong></div>
+    <div className="live-price-main"><div className="home-quote"><div className="price-tag-large">{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}<small>/جرام</small></div>
      <p className={'home-market-change '+(homeMovement===null?'neutral':homeMovement.difference>=0?'positive':'negative')} title="مقارنة بأول تحديث متاح اليوم بتوقيت السعودية">
-      {homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),'SAR')} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:'لا توجد مقارنة كافية اليوم'}
-     </p></div><div className="buy-sell-mini"><span>سعر الشراء: <b>{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}</b></span><span>سعر البيع: <b>{money(homeMarket?Number(homeMarket.sellPrice):null,'SAR')}</b></span></div></div>
-    <div className="live-card-footer"><span>المصدر: {homeMarket?.source||'غير متاح'}</span><button className="home-price-refresh" title={marketTime(homeMarket)} aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}>{marketLoading?'جارٍ التحديث…':homeUpdateAge(homeMarket?.timestamp,clock)}</button></div>
+      {homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),priceCurrency)} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:(marketClosed?'لا تداول حاليًا':'لا توجد مقارنة كافية اليوم')}
+     </p></div><div className="buy-sell-mini"><span>سعر الشراء: <b>{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</b></span><span>سعر البيع: <b>{money(homeMarket?Number(homeMarket.sellPrice):null,priceCurrency)}</b></span></div></div>
+    <div className="live-card-footer"><span>السعر العالمي الاسترشادي</span><span title={marketTime(homeMarket)}>{latestQuoteLabel(homeMarket?.timestamp,session)}</span>{!marketClosed&&<button className="home-price-refresh" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}>{marketLoading?'جارٍ التحقق…':'تحديث الأسعار'}</button>}</div>
    </section>
    <div className="approved-section-title"><h3>الخدمات السريعة</h3></div>
    <section className="approved-services-grid">{[
@@ -208,12 +229,12 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <div className="portfolio-mini-body"><div><strong>{money(homePortfolio.value,'SAR')}</strong><span>إجمالي الوزن: {homePortfolio.weight===null?'غير متاح':number(homePortfolio.weight)+' جرام'}</span></div>{homePortfolio.difference!==null&&homePortfolio.percent!==null&&<div className={'portfolio-delta '+(homePortfolio.difference>=0?'positive':'negative')} title="الفرق عن تكلفة الشراء"><b><span>{homePortfolio.difference>=0?'+':'−'}</span>{money(Math.abs(homePortfolio.difference),'SAR')}</b><small dir="ltr">{homePortfolio.percent>=0?'+':'−'}{number(Math.abs(homePortfolio.percent))}%</small></div>}</div>
     {homePortfolio.hasOtherCurrencies&&<p className="home-currency-note">المعروض مشتريات الريال السعودي؛ بقية العملات في التفاصيل.</p>}
    </section>
-   <section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>
+   <section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency={priceCurrency} karat={24} compact/></section>
   </>;
 
   if(page==='prices')return <>
-   <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?'سعر محدّث من الخادم':marketLabel}</span><p>سعر الأونصة المشتق من عيار 24</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((marketRows.find(r=>r.karat===24)?Number(marketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>آخر فحص: {marketTime(marketRows.find(r=>r.karat===24))}</small></section>
-   <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value)}><option>SAR</option><option>USD</option></select></label></div>
+   <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{marketLabel}</span><p>سعر الأونصة المشتق من عيار 24</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((marketRows.find(r=>r.karat===24)?Number(marketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>{latestQuoteLabel(marketRows.find(r=>r.karat===24)?.timestamp,session)}</small></section>
+   <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>{if(isPriceCurrency(e.target.value))selectPriceCurrency(e.target.value);}}>{PRICE_CURRENCIES.map(currency=><option key={currency} value={currency}>{currency}</option>)}</select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=marketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
    <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>}</section>
@@ -221,14 +242,14 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   </>;
 
   if(page==='calculator')return <>
-   <section className="approved-card calc-total-card"><span>السعر الإجمالي التقريبي</span><strong>{money(calcTotal,'SAR')}</strong><small>سعر الجرام الأساسي: {money(calcUnit,'SAR')} · عيار {calcKarat}</small></section>
    <section className="approved-card calculator-form">
     <label>1. اختر عيار الذهب<div className="karat-switch">{[24,22,21,18].map(k=><button type="button" key={k} className={calcKarat===k?'active':''} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div></label>
+    <div className="calc-unit-price" aria-live="polite"><span>سعر الجرام الأساسي · عيار {calcKarat}</span><strong>{money(calcUnit,priceCurrency)}</strong></div>
     <label>2. الوزن بالجرام<input type="number" inputMode="decimal" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(e.target.value)}/><div className="weight-presets">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(String(w))}>{w===31.1?'أونصة 31.1g':w+' جرام'}</button>)}</div></label>
-    <label>3. أجرة المصنعية لكل جرام (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
+    <label>3. أجرة المصنعية لكل جرام ({priceCurrency}) (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
     <div className="calc-toggle"><div><strong>احتساب ضريبة 15% على قيمة الذهب والمصنعية</strong><small>الضريبة = (قيمة الذهب + إجمالي المصنعية) × 15%.</small></div><input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/></div>
    </section>
-   <section className="approved-card"><div className="approved-card-title">تفاصيل السعر المقدر</div><dl className="calc-breakdown"><div><dt>قيمة الذهب الخام</dt><dd>{money(calcRaw,'SAR')}</dd></div><div><dt>إجمالي المصنعية</dt><dd>{money(calcFeeTotal,'SAR')}</dd></div><div><dt>الضريبة التقديرية</dt><dd>{money(calcTax,'SAR')}</dd></div><div className="final"><dt>الإجمالي النهائي</dt><dd>{money(calcTotal,'SAR')}</dd></div></dl></section>
+   <section className="approved-card"><div className="approved-card-title">تفاصيل السعر المقدر</div><dl className="calc-breakdown"><div><dt>قيمة الذهب الخام</dt><dd>{money(calcRaw,priceCurrency)}</dd></div><div><dt>إجمالي المصنعية</dt><dd>{money(calcFeeTotal,priceCurrency)}</dd></div><div><dt>الضريبة التقديرية</dt><dd>{money(calcTax,priceCurrency)}</dd></div><div className="final"><dt>الإجمالي النهائي</dt><dd>{money(calcTotal,priceCurrency)}</dd></div></dl><div className="calc-total-tafqeet" aria-label="الإجمالي كتابةً" aria-live="polite"><span>الإجمالي كتابةً</span><p>{tafqeetCurrency(calcTotal,priceCurrency)??'المبلغ غير متاح'}</p></div></section>
   </>;
 
   if(page==='portfolio')return <>
@@ -301,8 +322,24 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='map')return <><section className="approved-card map-placeholder"><div className="map-surface"><span/><span/><span/><div><Icon name="map"/><strong>التجار القريبون</strong><small>بانتظار ربط بيانات المواقع الحقيقية</small></div></div><div className="approved-card-title"><span>نطاق البحث</span><b className="pill gold">قريبًا</b></div><p className="approved-muted">لن نعرض أسماء متاجر أو مواقع وهمية. ستُفعّل هذه الشاشة عند اكتمال Merchant Location في الـBackend.</p></section></>;
 
-  if(page==='account')return <><section className="approved-card profile-approved"><span className="avatar large">{email[0].toUpperCase()}</span><h2 dir="ltr">{email}</h2><span className="pill gold">{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</span><small className="app-version-account" dir="ltr" style={{display:"block",marginTop:10,color:"#C5A021",fontSize:12}}>{APP_DISPLAY_VERSION}</small></section><section className="approved-card settings-list"><button onClick={()=>navigate('portfolio')}><span><Icon name="wallet"/>محفظتي الذهبية</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>سجل المشتريات</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span><Icon name="refresh"/>التحقق من تحديث التطبيق</span><Icon name="chevron"/></button><button className="danger-row" onClick={signOut}><span><Icon name="logout"/>تسجيل الخروج</span><Icon name="chevron"/></button></section><section className="approved-card dh-quick-settings">
- <div className="approved-card-title">الدخول السريع والأمان</div>
+  if(page==='account')return <>
+ <ProfilePanel email={email} role={role} initialName={profileDisplayName||user?.name} onDisplayName={setProfileDisplayName}/>
+ <section className="approved-card dh-profile-links" aria-labelledby="dh-profile-shortcuts">
+  <div className="dh-profile-section-head"><div><h3 id="dh-profile-shortcuts">حسابي والخدمات</h3><p>الوصول إلى أهم أقسام حسابك بسهولة.</p></div></div>
+  <div className="dh-profile-shortcuts">
+   <button type="button" onClick={()=>navigate('portfolio')}><span className="dh-profile-shortcut-icon"><Icon name="wallet"/></span><span>محفظتي</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>navigate('purchases')}><span className="dh-profile-shortcut-icon"><Icon name="receipt"/></span><span>مشترياتي</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>navigate('alerts')}><span className="dh-profile-shortcut-icon"><Icon name="bell"/></span><span>تنبيهات الأسعار</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-profile-shortcut-icon"><Icon name="bell"/></span><span>إشعارات الجهاز</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>navigate('more')}><span className="dh-profile-shortcut-icon"><Icon name="chart"/></span><span>تفضيلات العملة</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span className="dh-profile-shortcut-icon"><Icon name="refresh"/></span><span>تحديث التطبيق</span><Icon name="chevron"/></button>
+  </div>
+ </section>
+ <details className="approved-card dh-quick-settings dh-profile-security">
+  <summary className="dh-profile-security-summary"><span><strong>الأمان والدخول السريع</strong><small>رمز الدخول وبصمة الجهاز</small></span><span className="dh-profile-security-action">إدارة <Icon name="chevron"/></span></summary>
+  <div className="dh-profile-security-body">
+
+ <h3 className="dh-profile-security-title">خيارات فتح التطبيق</h3>
  <p className="fine">أضف رمزًا من ٦ أرقام لفتح ذهبي من شاشة قفل داخلية. تُحفظ الجلسة مشفرة وتجزئة الرمز محليًا؛ لا تُخزن الأرقام أو بيانات بصمتك. بدون دخول سريع، يلزم استخدام كلمة المرور بعد إعادة فتح التطبيق.</p>
  <div className="dh-quick-setting-row">
   <span><strong>رمز الدخول السريع</strong><small>شاشة قفل ولوحة أرقام على هذا الجهاز</small></span>
@@ -339,20 +376,24 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  </div>
  <p className="fine">يظهر قفل ذهبي عند فتحه بجلسة محفوظة، أو عند العودة بعد دقيقة من الخلفية. بصمة Face ID/Touch ID في المتصفح قد تعرض نافذة تحقق خاصة بالنظام ولا يمكن تغيير شكلها؛ لذلك لا تُفتح تلقائيًا.</p>
  <p className="fine">إذا نسيت الرمز، استخدم كلمة مرور حسابك لاستعادة الوصول ثم أعد تفعيل الدخول السريع. تسجيل الدخول بكلمة المرور يعيد إعداد عوامل الدخول المحلية. الجلسات المنتهية تحتاج تسجيل دخول كامل.</p>
- </section></>;
+ </div>
+ </details>
+ <div className="dh-profile-signout"><button type="button" className="dh-profile-signout-button" onClick={signOut}><Icon name="logout"/> تسجيل الخروج</button></div>
+ <p className="dh-profile-version">ذهبي · الإصدار <span dir="ltr">{APP_DISPLAY_VERSION}</span></p>
+ </>;
 
   if(page==='help')return <section className="approved-card help-panel"><div className="approved-card-title">المساعدة</div>{[['كيف أبدأ؟','أنشئ محفظة ثم أضف مشترياتك الفعلية.'],['كيف تُحسب قيمة المحفظة؟','تعتمد على أسعار Backend ذهبي الحالية، مع إبقاء العملات منفصلة.'],['كيف أقرأ الرسم؟','كل نقطة سعر تمثل تحديثًا محفوظًا فعليًا في قاعدة البيانات.'],['لماذا التجار غير ظاهرين؟','لأن بيانات Merchant Location لم تُنفذ في الـBackend بعد؛ لا نعرض بيانات وهمية.']].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>;
 
   return <><section className="approved-card profile-shortcut"><span className="avatar">{email[0].toUpperCase()}</span><div><strong dir="ltr">{email}</strong><span>حساب مستخدم</span></div><button className="text-button" onClick={()=>navigate('account')}>الملف الشخصي</button></section>
    <section className="approved-card settings-list"><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>المشتريات والفواتير</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>navigate('map')}><span><Icon name="map"/>التجار القريبون</span><Icon name="chevron"/></button><button onClick={()=>navigate('help')}><span><Icon name="help"/>المساعدة</span><Icon name="chevron"/></button></section>
-   <section className="approved-card"><div className="approved-card-title">التفضيلات</div><div className="settings-choice"><span>اللغة</span><b className="pill gold">العربية</b><span className="disabled-choice">English · قريبًا</span><span className="disabled-choice">Français · قريبًا</span></div><div className="settings-choice"><span>عملات الأسعار المتاحة</span><b className="pill gold">SAR</b><b className="pill">USD</b></div></section>
+   <section className="approved-card"><div className="approved-card-title">التفضيلات</div><div className="settings-choice"><span>اللغة</span><b className="pill gold">العربية</b><span className="disabled-choice">English · قريبًا</span><span className="disabled-choice">Français · قريبًا</span></div><div className="settings-choice"><span>عملة الأسعار والحاسبة</span><div className="currency-preference" role="group" aria-label="العملة المفضلة لأسعار الذهب والحاسبة">{PRICE_CURRENCIES.map(currency=><button key={currency} type="button" className={'currency-preference-option '+(currency===priceCurrency?'active':'')} aria-pressed={currency===priceCurrency} onClick={()=>selectPriceCurrency(currency)}><b dir="ltr">{currency}</b><small>{currency==='SAR'?'ريال سعودي':'دولار أمريكي'}</small></button>)}</div></div><p className="fine currency-preference-note">تُستخدم العملة المختارة في الأسعار والحاسبة والتفقيط، وتُحفظ لهذا الحساب. عند تبديل العملة تُصفّر المصنعية المدخلة لتجنّب استخدام مبلغ بعملة مختلفة.</p></section>
    <button className="danger-button approved-logout" onClick={signOut}><Icon name="logout"/>تسجيل الخروج</button>
   </>;
  };
- return <div className={'gold-web workspace '+(page==='home'?'reference-home':'')} dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main">{page==='home'?<header className="topbar home-topbar">
+ return <div ref={shellRef} className={'gold-web workspace '+(page==='home'?'reference-home':'')} dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main">{page==='home'?<header className="topbar home-topbar">
   <div className="home-identity"><span className="home-brand-emblem" aria-label="ذهبي"><Icon name="gem"/></span><div><p>مرحبًا بعودتك</p><h1 tabIndex={-1} ref={headingRef} title={accountName}><span dir="auto">{accountName}</span><span aria-hidden="true">👋</span></h1></div></div>
   <div className="home-head-actions"><button className="icon-button" aria-label="فتح التنبيهات" onClick={()=>navigate('alerts')}><Icon name="bell"/>{alerts.some(a=>a.status==='active')&&<i className="notification-dot"/>}</button><button className="icon-button home-menu-button" aria-label="فتح قائمة التنقل" onClick={()=>setMenu(true)}><Icon name="menu"/></button></div>
- </header>:<header className="topbar"><button className="icon-button menu-trigger" aria-label="العودة للرئيسية" onClick={()=>navigate('home')}><Icon name="chevron"/></button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{page==='prices'&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketLoading?'جارٍ التحديث…':'تحديث الأسعار'}</span></button>}</header>}<main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{error} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{marketError}</p>}{message&&<p className="notice success" role="status">{message}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}<footer>© 2026 Ibrahim Alneami — All Rights Reserved · الإصدار {APP_DISPLAY_VERSION}</footer></main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===mobilePage?'selected':'')} aria-current={p.id===mobilePage?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
+ </header>:<header className="topbar"><button className="icon-button menu-trigger" aria-label="العودة للرئيسية" onClick={()=>navigate('home')}><Icon name="chevron"/></button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{page==='prices'&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading||marketClosed} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketClosed?'السوق مغلق':marketLoading?'جارٍ التحقق…':'تحديث الأسعار'}</span></button>}</header>}<main ref={pageScrollRef} className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{error} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{marketError}</p>}{message&&<p className="notice success" role="status">{message}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}<footer>© 2026 Ibrahim Alneami — All Rights Reserved · الإصدار {APP_DISPLAY_VERSION}</footer></main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===mobilePage?'selected':'')} aria-current={p.id===mobilePage?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
  {menu&&<div className="mobile-nav-backdrop" onClick={()=>setMenu(false)}><div className="mobile-nav" ref={modalRef} role="dialog" aria-modal="true" aria-label="قائمة التنقل" onClick={e=>e.stopPropagation()}><button className="icon-button close-menu" aria-label="إغلاق القائمة" onClick={()=>setMenu(false)}><Icon name="close"/></button>{nav}</div></div>}
  {pinSetup&&<QuickPinSetup mode={pinSetup} onClose={()=>setPinSetup(null)}
   onSave={async(pin,currentPin)=>{

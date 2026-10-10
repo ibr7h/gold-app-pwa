@@ -1,0 +1,37 @@
+name: Check iPhone WebKit layout
+on:
+  pull_request:
+    paths:
+      - 'apps/user/overrides/web/iphone.css'
+      - 'apps/user/overrides/web/iphone-viewport.ts'
+      - 'apps/user/overrides/web/QuickLockScreen.tsx'
+      - 'apps/user/overrides/web/UserWorkspace.tsx'
+      - 'apps/user/scripts/browser-iphone-layout.py'
+      - 'apps/user/scripts/browser-iphone-page-lock.py'
+      - 'apps/user/scripts/iphone-preview-lock.css'
+      - 'apps/user/scripts/iphone-preview-lock.js'
+      - '.github/workflows/check-iphone-webkit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  iphone-webkit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout User source
+        uses: actions/checkout@v4
+      - name: Python for Playwright
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install WebKit test browser
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps webkit
+      - name: Check iPhone portrait landscape keyboard and desktop isolation
+        run: python apps/user/scripts/browser-iphone-layout.py
+      - name: Check document zoom lock while preserving inner scrolling
+        run: python apps/user/scripts/browser-iphone-page-lock.py

@@ -1,14 +1,16 @@
-name: Check responsive user web
+name: Publish verified User iPhone preview to Render
 on:
   push:
-    branches: ["fix/user-responsive-20261006", "ui/user-photo-icon-biometric"]
-  pull_request:
+    branches: ["feat/user-iphone-stable-viewport-20261009"]
     paths:
       - "apps/user/**"
-      - ".github/workflows/check-user-web.yml"
+      - ".github/workflows/deploy-iphone-render-preview.yml"
   workflow_dispatch:
+concurrency:
+  group: gold-user-iphone-preview-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
-  contents: read
+  contents: write
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -640,3 +642,117 @@ jobs:
         with:
           name: user-web-validated-build
           path: /tmp/gold-app/dist-pwa
+
+      - name: Commit verified standalone User preview (never GitHub Pages)
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/dhahabi-preview/gold-app-pwa/full
+          cp -R "$SRC/dist-pwa/." /tmp/dhahabi-preview/gold-app-pwa/full/
+          # Preview-only artwork, applied AFTER normal User tests and export.
+          # The original production icon and its checksum remain unchanged.
+          python3 -m pip install --quiet --disable-pip-version-check Pillow pillow-avif-plugin
+          python3 - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          from PIL import Image, ImageOps
+          import pillow_avif
+
+          asset=Path(os.environ['GITHUB_WORKSPACE'])/'apps/user/assets/iphone-preview-icon.avif'
+          base=Path('/tmp/dhahabi-preview/gold-app-pwa/full')
+          # Fail closed if this asset is accidentally replaced.
+          expected_bytes=4646
+          if asset.stat().st_size != expected_bytes:
+              raise RuntimeError('Preview icon asset size changed')
+          source=Image.open(asset).convert('RGB')
+          if source.size != (384,384):
+              raise RuntimeError(f'Unexpected artwork dimensions: {source.size}')
+          source=ImageOps.fit(source,(1024,1024),method=Image.Resampling.LANCZOS)
+          source.save(base/'app_icon_user.jpg',format='JPEG',quality=95,subsampling=0,optimize=True)
+          source.resize((512,512),Image.Resampling.LANCZOS).save(base/'pwa-icon.png',format='PNG',optimize=True)
+          source.resize((180,180),Image.Resampling.LANCZOS).save(base/'apple-touch-icon.png',format='PNG',optimize=True)
+          source.save(base/'favicon.ico',format='ICO',sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
+          version=os.environ['GITHUB_SHA'][:8]
+          # iOS aggressively caches home-screen images: use unique filenames.
+          for name in ('app_icon_user.jpg','pwa-icon.png','apple-touch-icon.png'):
+              src=base/name
+              dst=base/f"{src.stem}-{version}{src.suffix}"
+              dst.write_bytes(src.read_bytes())
+          for name in ('manifest.webmanifest','manifest.json'):
+              p=base/name
+              # manifest.json is created just below; update both when present.
+              if p.exists():
+                  t=p.read_text()
+                  t=t.replace('/gold-app-pwa/full/app_icon_user.jpg',
+                              f'/gold-app-pwa/full/app_icon_user-{version}.jpg')
+                  t=t.replace('/gold-app-pwa/full/pwa-icon.png',
+                              f'/gold-app-pwa/full/pwa-icon-{version}.png')
+                  p.write_text(t)
+          for p in base.rglob('*.html'):
+              html=p.read_text()
+              html=html.replace('/gold-app-pwa/full/app_icon_user.jpg',
+                                f'/gold-app-pwa/full/app_icon_user-{version}.jpg')
+              html=html.replace('/gold-app-pwa/full/pwa-icon.png',
+                                f'/gold-app-pwa/full/pwa-icon-{version}.png')
+              p.write_text(html)
+          print('Preview icon refreshed: JPEG, PNG, apple-touch-icon and favicon', flush=True)
+          PY
+          # Preview-only native-like iPhone document lock; no production changes.
+          cp "$GITHUB_WORKSPACE/apps/user/scripts/iphone-preview-lock.css" \
+             /tmp/dhahabi-preview/gold-app-pwa/full/iphone-preview-lock.css
+          cp "$GITHUB_WORKSPACE/apps/user/scripts/iphone-preview-lock.js" \
+             /tmp/dhahabi-preview/gold-app-pwa/full/iphone-preview-lock.js
+          node --check /tmp/dhahabi-preview/gold-app-pwa/full/iphone-preview-lock.js
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          base=Path('/tmp/dhahabi-preview/gold-app-pwa/full')
+          version=os.environ['GITHUB_SHA'][:8]
+          links=(f'\n<link rel="stylesheet" href="/gold-app-pwa/full/iphone-preview-lock.css?v={version}">'
+                 f'\n<script src="/gold-app-pwa/full/iphone-preview-lock.js?v={version}" defer></script>\n')
+          for p in base.rglob('*.html'):
+              html=p.read_text()
+              html,count=re.subn(
+                  r'<meta\s+name="viewport"\s+content="[^"]*"\s*/?>',
+                  '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>',
+                  html,count=1)
+              if count!=1:
+                  raise RuntimeError(f'Viewport metadata missing: {p}')
+              html=html.replace('</head>',links+'</head>',1)
+              p.write_text(html)
+          PY
+          # Render serves unknown .webmanifest extensions as octet-stream on Safari.
+          # A JSON alias has the correct Content-Type and prevents unwanted downloads.
+          python3 - <<'PY'
+          from pathlib import Path
+          base=Path('/tmp/dhahabi-preview/gold-app-pwa/full')
+          (base/'manifest.json').write_bytes((base/'manifest.webmanifest').read_bytes())
+          for page in base.rglob('*.html'):
+              markup=page.read_text()
+              markup=markup.replace('/gold-app-pwa/full/manifest.webmanifest',
+                                    '/gold-app-pwa/full/manifest.json')
+              page.write_text(markup)
+          PY
+          printf '%s\n' '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=/gold-app-pwa/full/"></head><body><p>جاري الانتقال إلى نسخة الآيفون التجريبية...</p><a href="/gold-app-pwa/full/">فتح التطبيق</a></body></html>' > /tmp/dhahabi-preview/index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Never let an older, slower build overwrite the latest verified preview.
+          git fetch origin feat/user-iphone-stable-viewport-20261009
+          if [ "$(git rev-parse origin/feat/user-iphone-stable-viewport-20261009)" != "$GITHUB_SHA" ]; then
+            echo "Superseded by a newer User commit; skip publishing this outdated preview."
+            exit 0
+          fi
+          git fetch origin preview/iphone-render
+          git checkout -B preview/iphone-render origin/preview/iphone-render
+          rm -rf _render_preview
+          mkdir -p _render_preview
+          cp -R /tmp/dhahabi-preview/. _render_preview/
+          git add _render_preview
+          if git diff --cached --quiet; then
+            echo 'Identical verified preview already committed.'
+          else
+            git commit -m "preview(user): validated iPhone build ${GITHUB_SHA:0:8} [skip ci]"
+            git push origin HEAD:preview/iphone-render
+          fi
