@@ -70,7 +70,7 @@ jobs:
               raise RuntimeError(f'Expected one newly exported entry bundle, found {entries}')
           bundle=entries[0]
           compiled=bundle.read_text()
-          for marker in ('portfolio-card-actions','portfolio-change-value','تعديل اسم المحفظة'):
+          for marker in ('portfolio-card-actions','portfolio-change-value','portfolio-edit'):
               if marker not in compiled:
                   raise RuntimeError(f'New wallet code missing in compiled Expo bundle: {marker}')
           shutil.copytree(src/'_expo',dest/'_expo',dirs_exist_ok=True)
