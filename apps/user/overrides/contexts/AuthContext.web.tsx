@@ -27,7 +27,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
   biometricType: BiometricType;
@@ -133,7 +133,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   }catch(e){if(attempt===version.current)setError(errorMessage(e));throw e;}
   finally{if(attempt===version.current)setLoading(false);}
  };
- const login=(email:string,password:string)=>passwordSession('/auth/login',{email:email.trim(),password});
+ const login=(identifier:string,password:string)=>passwordSession('/auth/login',{identifier:identifier.trim(),password});
  const startRegistration=async(name:string,email:string,password:string)=>{
   try{await passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim()||undefined});return true;}catch{return false;}
  };
