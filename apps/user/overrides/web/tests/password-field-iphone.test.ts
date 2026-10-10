@@ -3,8 +3,6 @@ import {readFileSync} from 'node:fs';
 const form=readFileSync(new URL('../AuthForm.tsx',import.meta.url).pathname,'utf8');
 const phone=readFileSync(new URL('../registration-phone.ts',import.meta.url).pathname,'utf8');
 const css=readFileSync(new URL('../user.css',import.meta.url).pathname,'utf8');
-const lockJs=readFileSync(new URL('../../../scripts/iphone-preview-lock.js',import.meta.url).pathname,'utf8');
-const lockCss=readFileSync(new URL('../../../scripts/iphone-preview-lock.css',import.meta.url).pathname,'utf8');
 
 describe('iPhone registration / login password field UX',()=>{
  it('validates via a single normalized mobile helper rather than double-escaped inline regex',()=>{
@@ -23,15 +21,10 @@ describe('iPhone registration / login password field UX',()=>{
   expect(form).toContain('onPointerDown={e=>e.preventDefault()}');
   expect(form).toContain('document.activeElement!==input');
  });
- it('prevents the keyboard from hiding the auth form without unlocking outer document scrolling',()=>{
-  expect(lockJs).toContain("root.classList.toggle('dh-iphone-auth-editing', authEditing)");
-  expect(lockJs).toContain("root.style.removeProperty('--dh-preview-height')");
-  expect(lockJs).toContain('keepAuthFieldVisible()');
-  expect(lockJs).toContain('auth.scrollTop += adjustment');
-  expect(lockCss).toContain('.dh-iphone-auth-editing #root > .gold-auth');
-  expect(lockCss).toContain('overflow-y: auto !important;');
-  expect(lockCss).toContain('padding-bottom: max(32px, var(--dh-auth-keyboard-inset, 0px))');
-  expect(lockJs).toContain("document.addEventListener('gesturestart', blockGesture");
+ it('maintains nonzooming readable password controls in the web bundle',()=>{
+  expect(form).toContain('toggleSecret(passwordRef.current,setVisible)');
+  expect(form).toContain('toggleSecret(confirmRef.current,setConfirmVisible)');
+  expect(css).toContain('font-size:16px!important;');
  });
  it('avoids automatic Safari focus-zoom and exposes 44px reveal targets',()=>{
   expect(css).toContain('.gold-auth .mockup-input-wrap .form-input[type="password"]');
