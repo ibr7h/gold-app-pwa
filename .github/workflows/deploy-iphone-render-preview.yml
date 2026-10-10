@@ -6,6 +6,9 @@ on:
       - "apps/user/**"
       - ".github/workflows/deploy-iphone-render-preview.yml"
   workflow_dispatch:
+concurrency:
+  group: gold-user-iphone-preview-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
@@ -732,6 +735,12 @@ jobs:
           printf '%s\n' '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=/gold-app-pwa/full/"></head><body><p>جاري الانتقال إلى نسخة الآيفون التجريبية...</p><a href="/gold-app-pwa/full/">فتح التطبيق</a></body></html>' > /tmp/dhahabi-preview/index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Never let an older, slower build overwrite the latest verified preview.
+          git fetch origin feat/user-iphone-stable-viewport-20261009
+          if [ "$(git rev-parse origin/feat/user-iphone-stable-viewport-20261009)" != "$GITHUB_SHA" ]; then
+            echo "Superseded by a newer User commit; skip publishing this outdated preview."
+            exit 0
+          fi
           git fetch origin preview/iphone-render
           git checkout -B preview/iphone-render origin/preview/iphone-render
           rm -rf _render_preview
