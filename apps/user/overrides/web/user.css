@@ -1802,3 +1802,7 @@
 .gold-web .dh-profile-version{color:#64748B;font-size:11px;text-align:center;margin:0 0 12px}
 .gold-web .dh-profile-edit:focus-visible,.gold-web .dh-profile-shortcuts button:focus-visible,.gold-web .dh-profile-security-summary:focus-visible,.gold-web .dh-profile-signout-button:focus-visible,.gold-web .dh-profile-edit-form input:focus-visible{outline:3px solid #C5A021;outline-offset:2px}
 @media(max-width:540px){.gold-web .dh-profile-hero,.gold-web.reference-home .approved-card.dh-profile-hero{padding:17px!important}.gold-web .dh-profile-avatar{width:55px;height:55px;flex-basis:55px;border-radius:16px;font-size:20px}.gold-web .dh-profile-hero-main{gap:11px}.gold-web .dh-profile-info-grid,.gold-web .dh-profile-shortcuts{grid-template-columns:minmax(0,1fr)}.gold-web .dh-profile-shortcuts button{min-height:53px}.gold-web .dh-profile-edit{width:100%}.gold-web .dh-profile-edit-actions button{flex:1}}
+
+
+/* No OTP verification in the temporary password registration flow. */
+.gold-web .dh-register-mobile-hint{font-size:12px;line-height:1.8;color:#001F3F;margin:2px 0 12px;max-width:100%;overflow-wrap:anywhere}
