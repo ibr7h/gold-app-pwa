@@ -8,10 +8,12 @@ from pathlib import Path
 import time
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright, expect
+from local_registration import register_local
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--site', default='http://127.0.0.1:8082/gold-app-pwa/full/')
-parser.add_argument('--api', default='http://127.0.0.1:3000')
+parser.add_argument('--api', default='http://127.0.0.1:3001')
+parser.add_argument('--mailbox', default='/workspace/.onboarding/registration-mailbox.json')
 parser.add_argument('--screenshots', default='/workspace/artifacts')
 args = parser.parse_args()
 for url in (args.site, args.api):
@@ -24,9 +26,8 @@ with sync_playwright() as p:
     context = browser.new_context(viewport={'width': 432, 'height': 1098}, service_workers='block')
     email = f'home_{time.time_ns()}@example.test'
     password = 'Disposable-Home-48!'
-    registered = context.request.post(args.api + '/auth/register', data={'email': email, 'password': password})
-    assert registered.status == 201
-    auth = {'Authorization': 'Bearer ' + registered.json()['accessToken']}
+    tokens = register_local(context.request, args.api, email, password, args.mailbox)
+    auth = {'Authorization': 'Bearer ' + tokens['accessToken']}
 
     def local_write(path, payload):
         try:

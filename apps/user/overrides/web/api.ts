@@ -61,7 +61,7 @@ export async function saveSession(tokens:any){
 export function resumeSession(tokens:SessionTokens){session={...tokens};blocked=false;epoch++;}
 export function errorMessage(e:unknown){
  if(!(e instanceof ApiError))return 'تعذر إكمال العملية. حاول مرة أخرى.';
- const messages:Record<string,string>={'Invalid credentials':'البريد الإلكتروني أو كلمة المرور غير صحيحة.','Email already exists':'هذا البريد مسجل بالفعل. استخدم تسجيل الدخول.','Cannot delete a portfolio that has purchases':'احذف سجلات المشتريات المرتبطة أولًا، ثم احذف المحفظة.','User app role mismatch':'هذا التطبيق مخصص لحساب المستخدم فقط.'};
+ const messages:Record<string,string>={'Invalid credentials':'البريد الإلكتروني أو كلمة المرور غير صحيحة.','Email already exists':'هذا البريد مسجل بالفعل. استخدم تسجيل الدخول.','Email or mobile number already exists':'البريد الإلكتروني أو رقم الجوال مسجل بالفعل. استخدم تسجيل الدخول.','A valid mobile number is required':'أدخل رقم جوال صحيحًا.','Password exceeds 72 bytes':'كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.','Email verification is unavailable':'التحقق بالبريد غير متاح حاليًا. حاول لاحقًا.','Verification email could not be sent':'تعذر إرسال رمز التحقق. حاول لاحقًا.','Invalid or expired verification code':'رمز التحقق غير صحيح أو انتهت صلاحيته.','Registration has expired; start again':'انتهت جلسة التسجيل. أعد إدخال بياناتك لطلب رمز جديد.','Too many verification requests; try again later':'محاولات كثيرة. انتظر قبل طلب رمز جديد.','Wait before requesting another verification email':'انتظر دقيقة قبل طلب رمز تحقق آخر.','Cannot delete a portfolio that has purchases':'احذف سجلات المشتريات المرتبطة أولًا، ثم احذف المحفظة.','User app role mismatch':'هذا التطبيق مخصص لحساب المستخدم فقط.'};
  return messages[e.message]||(e.status===401?'انتهت الجلسة. سجّل الدخول مجددًا.':e.status===403?'ليست لديك صلاحية لهذه العملية.':e.status>=500?'الخادم غير متاح حاليًا. حاول لاحقًا.':e.message);
 }
 async function raw(path:string,options:RequestInit={},token?:string){
@@ -70,11 +70,18 @@ async function raw(path:string,options:RequestInit={},token?:string){
   const headers=new Headers(options.headers);if(options.body)headers.set('Content-Type','application/json');if(token)headers.set('Authorization','Bearer '+token);
   const response=await fetch(API_BASE+path,{...options,headers,signal:controller.signal,cache:'no-store'});
   const body=await response.text();let data:any=null;try{data=body?JSON.parse(body):null;}catch{if(response.ok)throw new ApiError('استجابة الخادم غير صالحة.');}
-  if(!response.ok)throw new ApiError(Array.isArray(data?.message)?data.message.join('، '):data?.message||'تعذر تنفيذ الطلب.',response.status);
+  if(!response.ok){const details=data?.error?.details;
+   const message=Array.isArray(data?.message)?data.message.join('، '):data?.message||
+    (Array.isArray(details)?details.join('، '):data?.error?.message)||'تعذر تنفيذ الطلب.';
+   throw new ApiError(message,response.status);
+  }
   return data;
  }catch(e){if(e instanceof ApiError)throw e;throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.');}finally{clearTimeout(timer);}
 }
-export async function authenticate(path:'/auth/login'|'/auth/register',data:object){
+export async function registrationRequest(path:'/auth/register'|'/auth/register/resend'|'/auth/registration/config',data?:object){
+ return raw(path,data?{method:'POST',body:JSON.stringify(data)}:{});
+}
+export async function authenticate(path:'/auth/login'|'/auth/register/verify',data:object){
  const started=epoch,tokens=await raw(path,{method:'POST',body:JSON.stringify(data)});
  await cleanupFlight;
  if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);

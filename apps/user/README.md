@@ -3,7 +3,7 @@
 Independent end-user PWA for Dhahabi.
 
 - Role accepted: `USER` only.
-- Registration: allowed through the public user registration endpoint.
+- Registration: required mobile number and server-verified email code; see [registration setup and tests](REGISTRATION.md).
 - Production path: `/gold-app-pwa/full/` (legacy-compatible user URL).
 - Session namespace: `dhahabi_user_*`.
 - Identity colors: `#001F3F`, `#C5A021`, `#D4AF37`.
