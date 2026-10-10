@@ -33,7 +33,7 @@ describe('Gold App calculator user-only layout',()=>{
  it('preserves original VAT and workmanship arithmetic while spelling the *displayed* total',()=>{
   const quote=calculatorQuote(300,10,20,true);
   expect(quote.total).toBe(3680);
-  expect(tafqeetSar(quote.total)).toContain('ريال سعودي');
+  expect(tafqeetSar(quote.total)).toContain('ريالاً سعودياً');
   const precise=calculatorQuote(505.5182,10,7.35,true);
   expect(precise.total).toBeCloseTo(5897.9843,8);
   expect(tafqeetSar(precise.total)).toContain('وثمان وتسعون هللةً');
