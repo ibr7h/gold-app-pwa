@@ -162,3 +162,6 @@ html .gold-web .dh-profile-copyright{display:block;margin-top:8px;font-size:12px
 .gold-web.workspace .workspace-content > section.map-placeholder:has(.dh-nearby-location[data-dh-injected="true"]) > p.approved-muted {
   display: none !important;
 }
+
+/* Hide old manual location controls behind the automatic nearby-locations module. */
+.gold-web.workspace .workspace-content > section.map-placeholder:has(> .dh-nearby-location[data-dh-injected="true"]) > .dh-nearby-location:not([data-dh-injected="true"]){display:none!important}

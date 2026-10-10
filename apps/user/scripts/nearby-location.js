@@ -1,5 +1,4 @@
-/* Dhahabi nearby markets, opt-in last location on the authenticated User API.
-   One current position only, no history. Loaded only in the installed User preview. */
+/* A fresh location per entry, stored in the user's authenticated account. */
 (function(){
  'use strict';
  const css=document.createElement('style');
@@ -80,92 +79,70 @@
   const x=box.querySelector('.dh-location-status');
   x.textContent=text;x.dataset.error=error?'true':'false';
  }
+
  function build(map){
   const box=document.createElement('section');
-  box.className='dh-nearby-location';box.setAttribute('aria-label','الموقع وأسواق الذهب القريبة');
-  box.innerHTML='<div class="dh-location-row"><strong id="dh-location-label">تفعيل الموقع</strong>'+
-   '<label class="dh-location-switch"><input class="dh-location-toggle" type="checkbox" role="switch" aria-labelledby="dh-location-label" disabled>'+
-   '<span class="dh-switch-track"></span></label></div>'+
-   '<p class="dh-location-note">يُحدَّث موقعك عند فتح «التجار القريبون» إذا كانت الخدمة مفعّلة.</p>'+
-   '<p class="dh-location-status" role="status" aria-live="polite">جارٍ التحقق من إعدادات الموقع…</p>'+
-   '<button class="dh-location-refresh" type="button" disabled>تحديث الموقع</button>'+
-   '<div class="dh-location-map-links" hidden>'+
-   '<a class="dh-location-google" target="_blank" rel="noopener noreferrer">خرائط Google</a>'+
-   '<a class="dh-location-apple" target="_blank" rel="noopener noreferrer">خرائط Apple</a></div>';
-  map.querySelectorAll('.dh-nearby-location[data-dh-injected=true]').forEach(n=>n.remove());
-  box.setAttribute('data-dh-injected','true');
+  box.className='dh-nearby-location';box.setAttribute('data-dh-injected','true');
+  box.setAttribute('aria-label','الموقع ومحلات الذهب القريبة');
+  box.innerHTML='<p class="dh-location-status" role="status" aria-live="polite">جارٍ تحديد موقعك…</p>'+
+    '<div class="dh-location-map-links" hidden>'+
+    '<a class="dh-location-google" target="_blank" rel="noopener noreferrer">خرائط Google</a>'+
+    '<a class="dh-location-apple" target="_blank" rel="noopener noreferrer">خرائط Apple</a></div>';
+  map.querySelectorAll('.dh-nearby-location[data-dh-injected="true"]').forEach(n=>n.remove());
   map.appendChild(box);
-  const toggle=box.querySelector('.dh-location-toggle');
-  const button=box.querySelector('.dh-location-refresh');
   const links=box.querySelector('.dh-location-map-links');
-  let enabled=false,busy=true;
+  const google=box.querySelector('.dh-location-google');
+  const apple=box.querySelector('.dh-location-apple');
+  const isApple=/(iPhone|iPad|iPod|Macintosh|Mac OS X)/i.test(navigator.userAgent||'')||
+    /^Mac/i.test(navigator.platform||'');
+  apple.hidden=!isApple;
   const alive=()=>current===box&&box.isConnected&&activeMap()===map;
-  const controls=()=>{toggle.disabled=busy;button.disabled=busy||!enabled;toggle.checked=enabled;};
   const linkTo=(lat,lon)=>{
-   if(!valid(lat,lon)){links.hidden=true;return;}
-   const pair=lat.toFixed(5)+','+lon.toFixed(5);
-   box.querySelector('.dh-location-google').href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('محلات ذهب بالقرب من '+pair);
-   box.querySelector('.dh-location-apple').href='https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب')+'&ll='+encodeURIComponent(pair);
-   links.hidden=false;
+    if(!valid(lat,lon)){links.hidden=true;return;}
+    const pair=lat.toFixed(5)+','+lon.toFixed(5);
+    google.href='https://www.google.com/maps/search/?api=1&query='+
+      encodeURIComponent('محلات ذهب بالقرب من '+pair);
+    apple.href='https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب')+
+      '&ll='+encodeURIComponent(pair);
+    links.hidden=false;
   };
   const locate=async()=>{
-   if(!navigator.geolocation)throw Error('خدمة تحديد الموقع غير مدعومة على هذا الجهاز.');
-   if(navigator.permissions&&navigator.permissions.query){
-    try{const p=await navigator.permissions.query({name:'geolocation'});if(p.state==='denied')
-     throw Error('إذن الموقع معطّل. فعّله من إعدادات الجهاز ليتحدّث موقعك.');}
-    catch(e){if(e instanceof Error&&e.message.startsWith('إذن الموقع'))throw e;}
-   }
-   return await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(
-    p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracyMeters:p.coords.accuracy}),
-    e=>reject(Error(e.code===1?'لم يتم السماح بالوصول إلى الموقع. فعّل الإذن من إعدادات الجهاز.':
-      e.code===2?'تعذر تحديد الموقع حاليًا. تحقق من خدمات الموقع.':
-      e.code===3?'انتهت مهلة تحديد الموقع. حاول مرة أخرى.':'تعذر تحديد الموقع.')),
-    {enableHighAccuracy:true,maximumAge:0,timeout:20000}));
-  };
-  const refresh=async(pos)=>{
-   busy=true;controls();status(box,'جارٍ تحديث موقعك…',false);
-   try{
-    const point=pos||await locate();
-    if(!valid(point.latitude,point.longitude))throw Error('إحداثيات الموقع غير صالحة.');
-    if(!alive())return;
-    const data=await api('/auth/location/position',point);
-    if(!alive())return;
-    enabled=data.locationEnabled===true;
-    linkTo(point.latitude,point.longitude);
-    status(box,'تم تحديث الموقع وحفظه في حسابك'+
-      (Number.isFinite(point.accuracyMeters)?' (دقة تقريبية '+Math.round(point.accuracyMeters)+' متر).':'.'),false);
-   }catch(e){if(alive()){status(box,e.message||'تعذر تحديث الموقع.',true);}}
-   finally{if(alive()){busy=false;controls();}}
-  };
-  toggle.addEventListener('change',async()=>{
-   const next=toggle.checked;
-   toggle.checked=enabled;
-   if(busy)return;
-   busy=true;controls();status(box,next?'جارٍ تفعيل الموقع…':'جارٍ إيقاف الموقع…',false);
-   try{
-    if(next){
-     const p=await locate();if(!alive())return;
-     await api('/auth/location/preference',{enabled:true});if(!alive())return;
-     enabled=true;busy=false;controls();await refresh(p);
-    }else{
-     await api('/auth/location/preference',{enabled:false});if(!alive())return;
-     enabled=false;links.hidden=true;status(box,'الموقع متوقف. حُذفت الإحداثيات المحفوظة.',false);
+    if(!navigator.geolocation)throw Error('خدمة الموقع غير متاحة على هذا الجهاز.');
+    if(navigator.permissions&&navigator.permissions.query){
+      try{
+        const p=await navigator.permissions.query({name:'geolocation'});
+        if(p.state==='denied')throw Error('إذن الموقع معطّل؛ فعّله من إعدادات الجهاز.');
+      }catch(e){if(e instanceof Error&&e.message.startsWith('إذن الموقع'))throw e;}
     }
-   }catch(e){if(alive()){status(box,e.message||'تعذر تعديل إعداد الموقع.',true);}}
-   finally{if(alive()){busy=false;controls();}}
-  });
-  button.addEventListener('click',()=>{if(!busy&&enabled)void refresh();});
+    return new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(
+      p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracyMeters:p.coords.accuracy}),
+      e=>reject(Error(e.code===1?'لم يُسمح بتحديد الموقع. فعّل الإذن من إعدادات الجهاز.':
+        e.code===2?'تعذر تحديد موقعك. تحقق من خدمة الموقع.':
+        e.code===3?'انتهت مهلة تحديد الموقع. ادخل الشاشة مرة أخرى.':'تعذر تحديد الموقع.')),
+      {enableHighAccuracy:true,maximumAge:0,timeout:20000}
+    ));
+  };
+  // A fresh position on each screen entry. No continuous background tracking.
   (async()=>{
-   try{
-    const data=await api('/auth/profile');if(!alive())return;
-    enabled=data.locationEnabled===true;
-    if(!enabled){status(box,'الموقع غير مفعل.',false);return;}
-    if(data.latitude!=null&&data.longitude!=null&&valid(Number(data.latitude),Number(data.longitude)))linkTo(Number(data.latitude),Number(data.longitude));
-    await refresh();
-   }catch(e){if(alive())status(box,e.message||'تعذر التحقق من إعدادات الموقع.',true);}
-   finally{if(alive()){busy=false;controls();}}
+    try{
+      const point=await locate();
+      if(!valid(point.latitude,point.longitude))throw Error('إحداثيات الموقع غير صالحة.');
+      if(!alive())return;
+      const profile=await api('/auth/profile');
+      if(!alive())return;
+      if(profile.locationEnabled!==true){
+        await api('/auth/location/preference',{enabled:true});
+        if(!alive())return;
+      }
+      const stored=await api('/auth/location/position',point);
+      if(!alive())return;
+      if(stored.locationEnabled!==true)throw Error('تعذر حفظ موقعك.');
+      linkTo(point.latitude,point.longitude);
+      status(box,'تم تحديث موقعك.',false);
+    }catch(e){
+      if(alive()){links.hidden=true;status(box,e instanceof Error?e.message:'تعذر تحديد الموقع أو حفظه.',true);}
+    }
   })();
-  controls();
   return box;
  }
  function sync(){
