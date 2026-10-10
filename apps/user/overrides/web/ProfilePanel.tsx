@@ -87,7 +87,6 @@ export default function ProfilePanel({email,role,initialName,onDisplayName}:Prop
    <div className="dh-profile-hero-main">
     <div className="dh-profile-avatar" aria-hidden="true">{profileInitials(profile?.fullName||initialName||email)}</div>
     <div className="dh-profile-identity">
-     <span className="dh-profile-eyebrow">الملف الشخصي</span>
      <h2 id="dh-profile-heading">{name}</h2>
      <span className="dh-profile-email" dir="ltr">{email}</span>
     </div>
