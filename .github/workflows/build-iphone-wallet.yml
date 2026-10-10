@@ -4,6 +4,7 @@ on:
     branches: ["preview/iphone-render"]
     paths:
       - "apps/user/overrides/web/UserWorkspace.tsx"
+      - "apps/user/overrides/web/NearbyMarkets.tsx"
       - "apps/user/overrides/web/user.css"
       - ".github/workflows/build-iphone-wallet.yml"
   workflow_dispatch:

@@ -70,7 +70,7 @@ export default function NearbyMarkets(){
     </select>
    </div>
    <p className="dh-location-radius-hint">النطاق استرشادي؛ يتغير تقريب الخريطة وقد تظهر محلات أبعد.</p>
-   {failure?<p className="notice warning" role="alert">{failure}</p>:{notice&&<p role="status">{notice}</p>}}
+   {failure?<p className="notice warning" role="alert">{failure}</p>:(notice?<p role="status">{notice}</p>:null)}
    {point&&<div className="dh-location-links" style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:12}}>
     <a target="_blank" rel="noopener noreferrer" href={googleUrl}>خرائط Google</a>
     {apple&&<a target="_blank" rel="noopener noreferrer" href={appleUrl}>خرائط Apple</a>}
