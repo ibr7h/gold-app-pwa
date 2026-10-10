@@ -1,7 +1,8 @@
 import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {describe,it,expect} from 'vitest';
 
-const source=(relative:string)=>readFileSync(new URL(relative,import.meta.url).pathname,'utf8');
+const source=(relative:string)=>readFileSync(fileURLToPath(new URL(relative,import.meta.url)),'utf8');
 
 describe('User app identity',()=>{
   it('keeps the canonical JPEG for app and boot, and the approved mockup fingerprint for biometric entry',()=>{

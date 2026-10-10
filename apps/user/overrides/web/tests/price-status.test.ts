@@ -1,4 +1,5 @@
 import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {describe,it,expect} from 'vitest';
 import {priceFreshness,PRICE_STALE_AFTER_MS,isGlobalGoldMarketOpen} from '../price-status';
 
@@ -21,7 +22,7 @@ describe('User price update freshness',()=>{
 });
 
 describe('User-only backend price refresh integration',()=>{
- const source=readFileSync(new URL('../UserWorkspace.tsx',import.meta.url).pathname,'utf8');
+ const source=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url)),'utf8');
  it('polls the backend only every five minutes while the app is visible',()=>{
   expect(source).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000)");
   expect(source).toContain("api<PriceHistoryRow|null>('/prices/latest?currency='");
