@@ -12,7 +12,4 @@ Independent end-user PWA for Dhahabi.
 
 This app must not include Trader or Admin login choices, routes, dashboards, or session keys.
 
-The canonical JPG is the unmodified 1024 × 1024 original from `UI.zip`
-(`assets/icons/app_icon_user.jpg`). SHA-256:
-`cb0706f6389380cfd931942f2ccd013734e766dac5f2afc365089137e5e28b83`.
-The 512 × 512 PWA PNG is generated from this original at build time.
+For the iPhone preview, assets are generated from the approved new storefront icon. Source: /gold-app-pwa/full/iphone-apple-touch-67084b40.png. Use the icon synchronization workflow before deploying the preview.

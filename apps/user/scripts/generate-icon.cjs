@@ -10,8 +10,8 @@ async function main() {
   const iconPath = path.resolve(__dirname, '../assets/app_icon_user.jpg');
   const original = fs.readFileSync(iconPath);
   assert.equal(createHash('sha256').update(original).digest('hex'),
-    'cb0706f6389380cfd931942f2ccd013734e766dac5f2afc365089137e5e28b83',
-    'The User icon must be the unmodified original from UI.zip');
+    'c7d2eeae5603c2dc3b2258176037003777d5017543a747bbbec3357d742da110',
+    'The User icon must match the approved iPhone-preview market icon');
 
   const requireFromProject = createRequire(path.join(projectRoot, 'package.json'));
   const { generateImageAsync } = requireFromProject('@expo/image-utils');

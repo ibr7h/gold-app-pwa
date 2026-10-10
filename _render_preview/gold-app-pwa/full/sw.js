@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = '67084b40';
+const VERSION = '73ddc204';
 const PREFIX = 'dhahabi-full-';
 const CACHE = PREFIX + VERSION;
 const BASE = '/gold-app-pwa/full/';
@@ -9,7 +9,9 @@ const CORE = [
   BASE + 'manifest.webmanifest',
   BASE + 'iphone-apple-touch-67084b40.png',
   BASE + 'pwa-icon.png',
-  BASE + 'app_icon_user.jpg'
+  BASE + 'app_icon_user.jpg',
+  BASE + 'apple-touch-icon.png',
+  BASE + 'favicon.ico'
 ];
 
 self.addEventListener('install', event => {

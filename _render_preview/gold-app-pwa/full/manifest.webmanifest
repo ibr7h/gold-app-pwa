@@ -17,16 +17,16 @@
       "purpose": "any"
     },
     {
-      "src": "/gold-app-pwa/full/app_icon_user-af89c21a.jpg",
-      "sizes": "1024x1024",
-      "type": "image/jpeg",
-      "purpose": "any"
-    },
-    {
-      "src": "/gold-app-pwa/full/pwa-icon-af89c21a.png",
+      "src": "/gold-app-pwa/full/pwa-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/gold-app-pwa/full/app_icon_user.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ]
 }
