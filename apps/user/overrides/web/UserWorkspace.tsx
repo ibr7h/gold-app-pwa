@@ -6,6 +6,7 @@ import PurchaseFormFields from './PurchaseFormFields';
 import PriceHistoryChart from './PriceHistoryChart';
 import {Money,formatTwo,CurrencyMark} from './price-display';
 import NotificationSettings from './NotificationSettings';
+import ProfilePanel from './ProfilePanel';
 import {revokePushBeforeLogout} from './push-client';
 import {api,jsonRequest,errorMessage} from './api';
 import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePerformance,purchasePayload,alertPayload,localDate} from './model';
@@ -87,6 +88,7 @@ export default function UserWorkspace(){
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
  const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
+ const [profileDisplayName,setProfileDisplayName]=useState('');
  const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|null>(null);
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
@@ -207,7 +209,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
  const homePortfolio=homePortfolioSummary(purchases,allMarketRows,loaded);
  const homeMovement=marketClosed?null:homeMarketMovement(homeHistory,homeMarket,clock);
- const accountName=user?.name?.trim()||email;
+ const accountName=profileDisplayName||user?.name?.trim()||email;
  const mobilePage=mobilePages.some(p=>p.id===page)?page:'more';
  const content=()=>{
   if(page==='home')return <>
@@ -320,8 +322,24 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='map')return <><section className="approved-card map-placeholder"><div className="map-surface"><span/><span/><span/><div><Icon name="map"/><strong>التجار القريبون</strong><small>بانتظار ربط بيانات المواقع الحقيقية</small></div></div><div className="approved-card-title"><span>نطاق البحث</span><b className="pill gold">قريبًا</b></div><p className="approved-muted">لن نعرض أسماء متاجر أو مواقع وهمية. ستُفعّل هذه الشاشة عند اكتمال Merchant Location في الـBackend.</p></section></>;
 
-  if(page==='account')return <><section className="approved-card profile-approved"><span className="avatar large">{email[0].toUpperCase()}</span><h2 dir="ltr">{email}</h2><span className="pill gold">{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</span><small className="app-version-account" dir="ltr" style={{display:"block",marginTop:10,color:"#C5A021",fontSize:12}}>{APP_DISPLAY_VERSION}</small></section><section className="approved-card settings-list"><button onClick={()=>navigate('portfolio')}><span><Icon name="wallet"/>محفظتي الذهبية</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>سجل المشتريات</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span><Icon name="refresh"/>التحقق من تحديث التطبيق</span><Icon name="chevron"/></button><button className="danger-row" onClick={signOut}><span><Icon name="logout"/>تسجيل الخروج</span><Icon name="chevron"/></button></section><section className="approved-card dh-quick-settings">
- <div className="approved-card-title">الدخول السريع والأمان</div>
+  if(page==='account')return <>
+ <ProfilePanel email={email} role={role} initialName={profileDisplayName||user?.name} onDisplayName={setProfileDisplayName}/>
+ <section className="approved-card dh-profile-links" aria-labelledby="dh-profile-shortcuts">
+  <div className="dh-profile-section-head"><div><h3 id="dh-profile-shortcuts">حسابي والخدمات</h3><p>الوصول إلى أهم أقسام حسابك بسهولة.</p></div></div>
+  <div className="dh-profile-shortcuts">
+   <button type="button" onClick={()=>navigate('portfolio')}><span className="dh-profile-shortcut-icon"><Icon name="wallet"/></span><span>محفظتي</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>navigate('purchases')}><span className="dh-profile-shortcut-icon"><Icon name="receipt"/></span><span>مشترياتي</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>navigate('alerts')}><span className="dh-profile-shortcut-icon"><Icon name="bell"/></span><span>تنبيهات الأسعار</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-profile-shortcut-icon"><Icon name="bell"/></span><span>إشعارات الجهاز</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>navigate('more')}><span className="dh-profile-shortcut-icon"><Icon name="chart"/></span><span>تفضيلات العملة</span><Icon name="chevron"/></button>
+   <button type="button" onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span className="dh-profile-shortcut-icon"><Icon name="refresh"/></span><span>تحديث التطبيق</span><Icon name="chevron"/></button>
+  </div>
+ </section>
+ <details className="approved-card dh-quick-settings dh-profile-security">
+  <summary className="dh-profile-security-summary"><span><strong>الأمان والدخول السريع</strong><small>رمز الدخول وبصمة الجهاز</small></span><span className="dh-profile-security-action">إدارة <Icon name="chevron"/></span></summary>
+  <div className="dh-profile-security-body">
+
+ <h3 className="dh-profile-security-title">خيارات فتح التطبيق</h3>
  <p className="fine">أضف رمزًا من ٦ أرقام لفتح ذهبي من شاشة قفل داخلية. تُحفظ الجلسة مشفرة وتجزئة الرمز محليًا؛ لا تُخزن الأرقام أو بيانات بصمتك. بدون دخول سريع، يلزم استخدام كلمة المرور بعد إعادة فتح التطبيق.</p>
  <div className="dh-quick-setting-row">
   <span><strong>رمز الدخول السريع</strong><small>شاشة قفل ولوحة أرقام على هذا الجهاز</small></span>
@@ -358,7 +376,11 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  </div>
  <p className="fine">يظهر قفل ذهبي عند فتحه بجلسة محفوظة، أو عند العودة بعد دقيقة من الخلفية. بصمة Face ID/Touch ID في المتصفح قد تعرض نافذة تحقق خاصة بالنظام ولا يمكن تغيير شكلها؛ لذلك لا تُفتح تلقائيًا.</p>
  <p className="fine">إذا نسيت الرمز، استخدم كلمة مرور حسابك لاستعادة الوصول ثم أعد تفعيل الدخول السريع. تسجيل الدخول بكلمة المرور يعيد إعداد عوامل الدخول المحلية. الجلسات المنتهية تحتاج تسجيل دخول كامل.</p>
- </section></>;
+ </div>
+ </details>
+ <div className="dh-profile-signout"><button type="button" className="dh-profile-signout-button" onClick={signOut}><Icon name="logout"/> تسجيل الخروج</button></div>
+ <p className="dh-profile-version">ذهبي · الإصدار <span dir="ltr">{APP_DISPLAY_VERSION}</span></p>
+ </>;
 
   if(page==='help')return <section className="approved-card help-panel"><div className="approved-card-title">المساعدة</div>{[['كيف أبدأ؟','أنشئ محفظة ثم أضف مشترياتك الفعلية.'],['كيف تُحسب قيمة المحفظة؟','تعتمد على أسعار Backend ذهبي الحالية، مع إبقاء العملات منفصلة.'],['كيف أقرأ الرسم؟','كل نقطة سعر تمثل تحديثًا محفوظًا فعليًا في قاعدة البيانات.'],['لماذا التجار غير ظاهرين؟','لأن بيانات Merchant Location لم تُنفذ في الـBackend بعد؛ لا نعرض بيانات وهمية.']].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>;
 
