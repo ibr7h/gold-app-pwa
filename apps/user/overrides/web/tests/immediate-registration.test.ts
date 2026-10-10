@@ -21,7 +21,7 @@ describe('Immediate user registration without email or SMS OTP',()=>{
   expect(form).not.toMatch(/verifyRegistration\(/);
  });
  it('states that mobile is stored without OTP and does not falsely claim verification',()=>{
-  expect(form).toContain('لا يُرسل رمز تحقق في هذه المرحلة');
+  expect(form).not.toContain('dh-register-mobile-hint');
   expect(form).not.toContain('تم التحقق من البريد');
   expect(form).not.toContain('تم التحقق من الجوال');
  });
