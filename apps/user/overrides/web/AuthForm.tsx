@@ -76,7 +76,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
    const cleanedPhone=register?normalizeRegistrationPhone(phone):null;
    if(register&&!cleanedPhone){setLocalError('أدخل رقم جوال صحيحًا، مثل 0545563269 أو +966545563269.');return;}
   if(new TextEncoder().encode(password).length>72){setLocalError('كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.');return;}
-  try{if(register)await startRegistration(name,email,password,cleanedPhone);else await login(email,password);}catch{}
+  try{if(register)await startRegistration(name,email,password,cleanedPhone!);else await login(email,password);}catch{}
  };
  const biometric=async()=>{clearError();setLocalError('');if(!showBiometricLogin){return;}const ok=await loginWithBiometric();if(!ok)setLocalError('تعذر تسجيل الدخول بالبصمة الحيوية.');};
  // Browser and iOS own the passkey sheet. Never request it before an explicit tap.
