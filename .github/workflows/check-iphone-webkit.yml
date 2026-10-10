@@ -7,6 +7,9 @@ on:
       - 'apps/user/overrides/web/QuickLockScreen.tsx'
       - 'apps/user/overrides/web/UserWorkspace.tsx'
       - 'apps/user/scripts/browser-iphone-layout.py'
+      - 'apps/user/scripts/browser-iphone-page-lock.py'
+      - 'apps/user/scripts/iphone-preview-lock.css'
+      - 'apps/user/scripts/iphone-preview-lock.js'
       - '.github/workflows/check-iphone-webkit.yml'
   workflow_dispatch:
 
@@ -30,3 +33,5 @@ jobs:
           python -m playwright install --with-deps webkit
       - name: Check iPhone portrait landscape keyboard and desktop isolation
         run: python apps/user/scripts/browser-iphone-layout.py
+      - name: Check document zoom lock while preserving inner scrolling
+        run: python apps/user/scripts/browser-iphone-page-lock.py
