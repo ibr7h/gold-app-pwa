@@ -2,6 +2,8 @@
   'use strict';
   const BASE = '/gold-app-pwa/full/';
   const CURRENT = 'full-b6ca428f';
+  const RELEASE_MATCH = /^full-(\d+\.\d+\.\d+)-(\d{8})$/.exec(CURRENT);
+  const DISPLAY_VERSION = RELEASE_MATCH ? 'v' + RELEASE_MATCH[1] : '';
   const CHECK_EVERY_MS = 15 * 60 * 1000;
   const PROMPT_ID = 'dhahabi-user-update';
   let registration = null;
@@ -36,7 +38,8 @@
     banner.setAttribute('aria-label', 'تحديث تطبيق ذهبي');
     banner.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top, 0px) + 12px);left:50%;transform:translateX(-50%);z-index:2147483600;box-sizing:border-box;width:min(390px,calc(100vw - 28px));padding:14px;border-radius:18px;border:1px solid #C5A021;background:#F8F9FA;color:#001F3F;box-shadow:0 12px 36px #0004;direction:rtl;text-align:right;font-family:system-ui,sans-serif';
     const title = document.createElement('strong');
-    title.textContent = 'يتوفر تحديث جديد لذهبي';
+    const newer = /^full-(\d+\.\d+\.\d+)-\d{8}$/.exec(version);
+    title.textContent = newer ? 'يتوفر تحديث ذهبي v' + newer[1] : 'يتوفر تحديث جديد لذهبي';
     title.style.cssText = 'display:block;font-size:15px;line-height:1.6';
     const info = document.createElement('p');
     info.textContent = 'يمكن تثبيت الإصدار الجديد مع الاحتفاظ بحسابك وبياناتك.';
@@ -120,7 +123,7 @@
       if (data.version !== CURRENT) {
         showPrompt(data.version);
         if (registration) await registration.update().catch(() => {});
-      } else if (manual) notice('تطبيق ذهبي محدّث إلى آخر إصدار.');
+      } else if (manual) notice('تطبيق ذهبي محدّث إلى آخر إصدار' + (DISPLAY_VERSION ? ' (' + DISPLAY_VERSION + ')' : '') + '.');
     } catch {
       if (manual) notice('تعذر التحقق من التحديثات. حاول مرة أخرى.');
     } finally {
@@ -152,6 +155,22 @@
     await checkForUpdate();
   }
 
+  // Generated Expo bundle can retain the prior source version. Display only the
+  // deployed release identity from CURRENT, and leave account/session state alone.
+  function syncAccountVersion() {
+    if (!DISPLAY_VERSION) return;
+    document.querySelectorAll('.gold-web.workspace .app-version-account').forEach(el => {
+      if (el.textContent?.trim() !== DISPLAY_VERSION) el.textContent = DISPLAY_VERSION;
+    });
+  }
+  function watchAccountVersion() {
+    syncAccountVersion();
+    const root = document.getElementById('root');
+    if (root) new MutationObserver(syncAccountVersion).observe(root, {childList:true,subtree:true});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchAccountVersion, {once:true});
+  else watchAccountVersion();
+  
   addEventListener('load', () => { void start(); });
   addEventListener('focus', () => { if (visible()) void checkForUpdate(); });
   addEventListener('online', () => { if (visible()) void checkForUpdate(); });

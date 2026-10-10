@@ -22,9 +22,16 @@ assert(src.includes("purchaseQuote("), 'Original quote calculation missing');
 const man=JSON.parse(read('_render_preview/gold-app-pwa/full/manifest.json'));
 assert(man.icons.length>0);
 const version=JSON.parse(read('_render_preview/gold-app-pwa/full/version.json'));
-assert.equal(version.version,'full-b6ca428f');
-assert(read('_render_preview/gold-app-pwa/full/pwa-update.js').includes("const CURRENT = 'full-b6ca428f'"));
-assert(read('_render_preview/gold-app-pwa/full/sw.js').includes("const VERSION = 'b6ca428f'"));
+const suffix=version.version.replace(/^full-/,'');
+assert(/^([a-f0-9]{8}|\d+\.\d+\.\d+-\d{8})$/.test(suffix),'Unexpected release identifier');
+assert(read('_render_preview/gold-app-pwa/full/pwa-update.js').includes("const CURRENT = '"+version.version+"'"));
+assert(read('_render_preview/gold-app-pwa/full/sw.js').includes("const VERSION = '"+suffix+"'"));
+if(version.displayVersion){
+ const semver=suffix.split('-')[0];
+ assert.equal(version.displayVersion,'v'+semver);
+ assert(read('apps/user/overrides/web/app-version.ts').includes("APP_VERSION = '"+semver+"'"));
+ assert(read('_render_preview/gold-app-pwa/full/pwa-update.js').includes('watchAccountVersion()'));
+}
 let count=0;
 function scan(dir){
  for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
@@ -33,12 +40,13 @@ function scan(dir){
   const html=fs.readFileSync(path.join(dir,entry.name),'utf8');
   if(!html.includes('iphone-preview-lock.css'))continue;
   count++;
-  assert(html.includes('iphone-preview-lock.css?v=b6ca428f'),entry.name+': stale CSS');
-  assert(html.includes('iphone-preview-lock.js?v=b6ca428f'),entry.name+': stale JS');
+  assert(html.includes('iphone-preview-lock.css?v='+suffix),entry.name+': stale CSS');
+  assert(html.includes('iphone-preview-lock.js?v='+suffix),entry.name+': stale JS');
  }
 }
 scan(preview);
 assert(count>=20,'Too few preview pages verified: '+count);
+assert(read('_render_preview/gold-app-pwa/full/index.html').includes('pwa-update.js?v='+suffix),'Update script has an outdated cache query');
 console.log('PASS: '+count+' iPhone preview pages, purchase semantics, DOM patch syntax, fixed 16px controls, PWA version.');
 
 

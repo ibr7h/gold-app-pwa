@@ -8,6 +8,8 @@ on:
       - "apps/user/overrides/web/UserWorkspace.tsx"
       - "apps/user/overrides/web/user.css"
       - "apps/user/scripts/test-iphone-purchase.cjs"
+      - "apps/user/overrides/web/app-version.ts"
+      - "scripts/check-iphone-release.cjs"
       - ".github/workflows/check-iphone-purchase.yml"
   workflow_dispatch:
 permissions:

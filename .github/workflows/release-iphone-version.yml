@@ -1,0 +1,45 @@
+name: Version iPhone User releases
+on:
+  push:
+    branches: ["preview/iphone-render"]
+    paths:
+      - "_render_preview/gold-app-pwa/full/**"
+      - "apps/user/overrides/web/**"
+      - "apps/user/assets/**"
+      - "scripts/release-iphone-version.cjs"
+      - "scripts/check-iphone-release.cjs"
+      - ".github/workflows/release-iphone-version.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: release-iphone-user-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  version:
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(user-iphone): release ') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Advance version and invalidate PWA cache
+        run: node scripts/release-iphone-version.cjs
+      - name: Check release and User layouts
+        run: |
+          node scripts/check-iphone-release.cjs
+          node apps/user/scripts/test-iphone-purchase.cjs
+      - name: Commit verified release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/user/overrides/web/app-version.ts _render_preview/gold-app-pwa/full
+          if git diff --cached --quiet; then
+            echo "No release changes"
+            exit 1
+          fi
+          git commit -m "chore(user-iphone): release versioned preview"
+          git push origin HEAD:preview/iphone-render
