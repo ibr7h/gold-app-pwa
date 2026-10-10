@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    if: ${{ !startsWith(github.event.head_commit.message, 'build(user-iphone): wallet-card') }}
+    if: "${{ !startsWith(github.event.head_commit.message, 'build(user-iphone): wallet-card') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
