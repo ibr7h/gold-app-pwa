@@ -104,3 +104,51 @@
   }
   schedule();
 })();
+
+/* Registration hotfix for the isolated iPhone preview build. */
+(function(){
+ 'use strict';
+ var notice='يُحفظ الرقم الدولي بصيغة E.164';
+ var shown=false;
+ function repair(){
+  var auth=document.querySelector('#root > .gold-auth');
+  if(!auth)return;
+  var walker=document.createTreeWalker(auth,NodeFilter.SHOW_TEXT);
+  var node;
+  while((node=walker.nextNode())){
+   if(node.nodeValue&&node.nodeValue.includes(notice)){
+    var host=node.parentElement;
+    if(host&&host.childElementCount===0)host.style.display='none';
+    else node.nodeValue='';
+   }
+   if(node.nodeValue&&/v1\\.9\\.0\\s*·\\s*[a-f0-9]{8}/i.test(node.nodeValue))node.nodeValue=node.nodeValue.replace(/v1\\.9\\.0\\s*·\\s*[a-f0-9]{8}/gi,'v1.9.8');
+  }
+ }
+ var queued=false;
+ var observer=new MutationObserver(function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;repair();});});
+ observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+ document.addEventListener('pointerdown',function(e){
+  var button=e.target.closest&&e.target.closest('.mockup-eye-btn');
+  if(button)e.preventDefault(); // keep keyboard open and prevent label focusing other controls
+ },true);
+ document.addEventListener('click',function(e){
+  var button=e.target.closest&&e.target.closest('.mockup-eye-btn');
+  if(!button)return;
+  e.preventDefault();e.stopPropagation();
+  var input=button.closest('.mockup-input-wrap')?.querySelector('input');
+  if(!input)return;
+  input.type=input.type==='password'?'text':'password';
+  button.setAttribute('aria-pressed',String(input.type==='text'));
+  button.setAttribute('aria-label',input.type==='text'?'إخفاء كلمة المرور':'إظهار كلمة المرور');
+ },true);
+ document.addEventListener('focusin',function(e){
+  if(!e.target.matches?.('.gold-auth input'))return;
+  [100,300,550].forEach(function(ms){setTimeout(function(){
+   var input=e.target,auth=input.closest('.gold-auth');if(!auth||document.activeElement!==input)return;
+   var vv=window.visualViewport,rect=input.getBoundingClientRect();
+   var bottom=(vv?vv.offsetTop+vv.height:innerHeight)-24;
+   if(rect.bottom>bottom)auth.scrollTop+=rect.bottom-bottom;
+  },ms);});
+ },true);
+ repair();
+})();
