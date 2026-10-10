@@ -16,7 +16,7 @@ describe('User real-time gold chart geometry',()=>{
   const result=priceTrendPoints([same,{...same,id:'newer',buyPrice:'381'},instant(10,385),
    {...same,id:'bad',buyPrice:'NaN'},
    {...same,id:'zero',buyPrice:'0'},
-   {...same,id:'no-time',createdAt:'invalid',buyPrice:'400'}]);
+   {...same,id:'no-time',createdAt:'invalid',timestamp:'invalid',buyPrice:'400'}]);
   expect(result.map(x=>x.price)).toEqual([381,385]);
   expect(result[0].id).toBe('newer');
  });
