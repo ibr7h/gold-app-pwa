@@ -7,21 +7,21 @@ describe('Immediate user registration without email or SMS OTP',()=>{
  it('collects full name, email and mobile and requires password confirmation',()=>{
   expect(form).toContain('الاسم الكامل');
   expect(form).toContain('رقم الجوال');
-  expect(form).toContain('type="tel"');
-  expect(form).toContain('autoComplete="tel"');
-  expect(form).toContain('value={phone} required');
+  expect(form).toContain('<InternationalPhoneField');
+  expect(form).toContain('country={phoneCountry}');
+  expect(form).toContain('readInternationalPhone(phone,phoneCountry)');
   expect(form).toContain('register&&password!==confirm');
-  expect(form).toContain("startRegistration(name,email,password,cleanedPhone!)");
+  expect(form).toContain("startRegistration(name,email,password,cleanedPhone!,phoneCountry)");
  });
  it('issues user session directly through existing protected registration API',()=>{
-  expect(auth).toContain("passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim(),phone:phone.trim()})");
+  expect(auth).toContain("passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim(),phone:phone.trim(),countryCode})");
   expect(auth).toContain("const me=await loadMe(attempt)");
   expect(auth).toContain('setUser(me)');
   expect(auth).toContain("registerStep:'form'");
   expect(form).not.toMatch(/verifyRegistration\(/);
  });
  it('states that mobile is stored without OTP and does not falsely claim verification',()=>{
-  expect(form).toContain('يُحفظ رقم الجوال ضمن بيانات الحساب دون إرسال رمز تحقق');
+  expect(form).toContain('لا يُرسل رمز تحقق في هذه المرحلة');
   expect(form).not.toContain('تم التحقق من البريد');
   expect(form).not.toContain('تم التحقق من الجوال');
  });
