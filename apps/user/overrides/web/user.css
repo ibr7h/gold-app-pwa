@@ -1829,3 +1829,58 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web.workspace .dh-personal-actions button{min-height:48px}
  .gold-web.workspace :is(.dh-push-actions,.dh-location-links){display:flex;flex-wrap:wrap;gap:9px}
 }
+
+
+/* Readable wallet entries: separate values from actions, never mix RTL and money. */
+.gold-web .approved-portfolio-list .portfolio-entry{
+ display:block!important;padding:0!important;background:#fff!important;
+ border:1px solid #DEE5EE!important;border-radius:16px!important;overflow:hidden!important;
+ box-shadow:0 4px 12px rgba(0,31,63,.045);
+}
+.gold-web .portfolio-entry-header{display:block!important;min-width:0!important;padding:0!important}
+.gold-web .portfolio-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:13px 12px 12px}
+.gold-web .portfolio-heading{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.gold-web .portfolio-icon{display:flex;align-items:center;justify-content:center;flex:none;width:44px;height:44px;border-radius:13px;background:#FFF7E0;color:#97721A;border:1px solid #F1DFAD}
+.gold-web .portfolio-icon svg{width:22px;height:22px}
+.gold-web .portfolio-heading-text{display:grid;gap:3px;min-width:0;flex:1}
+.gold-web .portfolio-name{font-size:16px!important;font-weight:800!important;line-height:1.45!important;color:#001F3F!important;overflow-wrap:anywhere}
+.gold-web .portfolio-subtitle{font-size:12px!important;line-height:1.5!important;color:#62748B!important}
+.gold-web .portfolio-card-actions{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.gold-web .portfolio-card-actions .portfolio-action{display:grid;place-items:center;flex:none;width:44px;height:44px;min-height:44px;padding:0;border-radius:11px;background:transparent;border:1px solid transparent;color:#495D72}
+.gold-web .portfolio-card-actions .portfolio-action:hover{background:#F4F7FA;border-color:#DDE5ED}
+.gold-web .portfolio-card-actions .portfolio-action:focus-visible{outline:3px solid #C5A021;outline-offset:1px}
+.gold-web .portfolio-card-actions .portfolio-action:disabled{opacity:.4}
+.gold-web .portfolio-card-actions .portfolio-edit{color:#866618}
+.gold-web .portfolio-card-actions .portfolio-delete{color:#AD3340!important;margin:0!important}
+.gold-web .portfolio-card-actions .portfolio-toggle{color:#183A59}
+.gold-web .portfolio-card-actions .portfolio-action svg{width:20px;height:20px}
+.gold-web .portfolio-card-actions .portfolio-chevron{display:flex;align-items:center;justify-content:center;transition:transform .18s ease}
+.gold-web .portfolio-currency-list{padding:0 13px 14px;display:grid;gap:10px;min-width:0}
+.gold-web .portfolio-currency-card{display:grid;gap:8px;padding:12px 13px;min-width:0;border-radius:12px;background:#F8FAFC;border:1px solid #E3E9F0}
+.gold-web .portfolio-money-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);align-items:center;column-gap:10px;min-width:0}
+.gold-web .portfolio-metric-label{font-size:12px;line-height:1.5;color:#54677A;font-weight:600;min-width:0}
+.gold-web .portfolio-metric-label b{display:inline-block;color:#718096;font-size:11px;margin-inline-start:3px}
+.gold-web .portfolio-market-value{display:flex;align-items:center;justify-content:flex-start;min-width:0;max-width:100%;font-size:16px;line-height:1.5;color:#001F3F;text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gold-web .portfolio-change-row{border-top:1px solid #DFE5EC;padding-top:9px}
+.gold-web .portfolio-change-value{display:flex;align-items:center;justify-content:flex-start;min-width:0;font-size:14px;white-space:nowrap;font-weight:800;line-height:1.5;font-variant-numeric:tabular-nums}
+.gold-web .portfolio-market-value .dh-money,.gold-web .portfolio-change-value .dh-money{font-size:inherit!important;white-space:nowrap!important;direction:ltr!important;display:inline-flex;align-items:baseline;gap:2px;max-width:100%}
+.gold-web .portfolio-market-value .dh-money-currency,.gold-web .portfolio-change-value .dh-money-currency{flex:none}
+.gold-web .portfolio-empty-hint{margin:0;color:#64748B;font-size:13px;line-height:1.7;padding:2px 4px 4px}
+.gold-web .portfolio-purchases{padding:14px!important}
+@media(max-width:420px){
+ .gold-web .portfolio-card-top{gap:7px;padding:12px 9px}
+ .gold-web .portfolio-heading{gap:8px}
+ .gold-web .portfolio-icon{width:39px;height:39px}
+ .gold-web .portfolio-name{font-size:15px!important}
+ .gold-web .portfolio-card-actions{gap:0}
+ .gold-web .portfolio-card-actions .portfolio-action{width:40px;height:44px}
+ .gold-web .portfolio-currency-list{padding:0 10px 11px}
+ .gold-web .portfolio-currency-card{padding:11px}
+ .gold-web .portfolio-money-row{grid-template-columns:minmax(0,1fr) minmax(0,1.22fr);gap:7px}
+ .gold-web .portfolio-market-value{font-size:14px}
+ .gold-web .portfolio-change-value{font-size:13px}
+}
+@media(max-width:360px){
+ .gold-web .portfolio-money-row{grid-template-columns:1fr;row-gap:2px}
+ .gold-web .portfolio-market-value,.gold-web .portfolio-change-value{font-size:15px}
+}

@@ -48,7 +48,7 @@ const mobilePages=pages.filter(p=>['home','prices','calculator','portfolio','mor
 function Icon({name}:{name:string}){
  if(name==='gem')return <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="m3 8 4-5h10l4 5-9 12Z"/><path fill="none" stroke="#D4AF37" strokeWidth="1.1" d="M3 8h18M7 3l5 5 5-5"/></svg>;
  if(name==='store')return <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M5 3h14l3 6H2ZM3 11h5v10H3Zm7 0h4v10h-4Zm6 0h5v10h-5Z"/></svg>;
- const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4',calculator:'M5 3h14v18H5Z M8 7h8 M8 11h2 M12 11h2 M16 11h1 M8 15h2 M12 15h2 M16 15h1 M8 18h2 M12 18h5',chevron:'m9 18 6-6-6-6',settings:'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7 M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 3.67-.08-.02a1.7 1.7 0 0 0-1.8-.35l-.1.04a1.7 1.7 0 0 0-1.1 1.55V22h-4.24v-.17a1.7 1.7 0 0 0-1.1-1.55l-.1-.04a1.7 1.7 0 0 0-1.8.35l-.08.02-2.12-3.67.06-.06A1.7 1.7 0 0 0 5.56 15l-.02-.1A1.7 1.7 0 0 0 4 13.8H3.8V9.56H4a1.7 1.7 0 0 0 1.54-1.1l.02-.1a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-3.67.08.02a1.7 1.7 0 0 0 1.8.35l.1-.04a1.7 1.7 0 0 0 1.1-1.55V1.4h4.24v.17a1.7 1.7 0 0 0 1.1 1.55l.1.04a1.7 1.7 0 0 0 1.8-.35l.08-.02 2.12 3.67-.06.06a1.7 1.7 0 0 0-.34 1.88l.02.1A1.7 1.7 0 0 0 21 9.56h.2v4.24H21a1.7 1.7 0 0 0-1.54 1.1Z',map:'M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z M9 3v15 M15 6v15'};
+ const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4',calculator:'M5 3h14v18H5Z M8 7h8 M8 11h2 M12 11h2 M16 11h1 M8 15h2 M12 15h2 M16 15h1 M8 18h2 M12 18h5',chevron:'m9 18 6-6-6-6',edit:'M12 20h9 m-3-15 2 2L9 18l-5 1 1-5L16 4l2 2Z',trash:'M4 7h16 M9 7V4h6v3 M6 7l1 14h10l1-14 M10 11v6 M14 11v6',settings:'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7 M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 3.67-.08-.02a1.7 1.7 0 0 0-1.8-.35l-.1.04a1.7 1.7 0 0 0-1.1 1.55V22h-4.24v-.17a1.7 1.7 0 0 0-1.1-1.55l-.1-.04a1.7 1.7 0 0 0-1.8.35l-.08.02-2.12-3.67.06-.06A1.7 1.7 0 0 0 5.56 15l-.02-.1A1.7 1.7 0 0 0 4 13.8H3.8V9.56H4a1.7 1.7 0 0 0 1.54-1.1l.02-.1a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-3.67.08.02a1.7 1.7 0 0 0 1.8.35l.1-.04a1.7 1.7 0 0 0 1.1-1.55V1.4h4.24v.17a1.7 1.7 0 0 0 1.1 1.55l.1.04a1.7 1.7 0 0 0 1.8-.35l.08-.02 2.12 3.67-.06.06a1.7 1.7 0 0 0-.34 1.88l.02.1A1.7 1.7 0 0 0 21 9.56h.2v4.24H21a1.7 1.7 0 0 0-1.54 1.1Z',map:'M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z M9 3v15 M15 6v15'};
  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]||paths.home}/></svg>;
 }
 const number=(n:number)=>formatTwo(n);
@@ -93,7 +93,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
- const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';purchase?:Purchase;alert?:PriceAlert}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
+ const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';portfolio?:Portfolio;purchase?:Purchase;alert?:PriceAlert}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
  const [clock,setClock]=useState(Date.now());const active=useRef(true),loadSequence=useRef(0),marketLoadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
  const loadData=useCallback(async()=>{
   const seq=++loadSequence.current;setLoading(true);setError('');
@@ -156,10 +156,11 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   finally{writeLock.current=false;if(active.current)setBusy(false);}
  };
  const openDialog=(type:'portfolio'|'purchase'|'alert',purchase?:Purchase)=>{setFormError('');setDialog({type,purchase});};
- const openAlertDialog=(alert?:PriceAlert)=>{setFormError('');setDialog({type:'alert',alert});};
+ const openPortfolioDialog=(portfolio?:Portfolio)=>{setFormError('');setDialog({type:'portfolio',portfolio});};
+  const openAlertDialog=(alert?:PriceAlert)=>{setFormError('');setDialog({type:'alert',alert});};
  const submit=async(e:React.FormEvent<HTMLFormElement>)=>{e.preventDefault();const data=new FormData(e.currentTarget);if(!dialog)return;
   try{
-   if(dialog.type==='portfolio'){const name=String(data.get('name')||'').trim();if(!name)throw new Error('أدخل اسم المحفظة.');await mutate('/portfolio','POST',{name});}
+   if(dialog.type==='portfolio'){const name=String(data.get('name')||'').trim();if(!name)throw new Error('أدخل اسم المحفظة.');await mutate(dialog.portfolio?'/portfolio/'+dialog.portfolio.id:'/portfolio',dialog.portfolio?'PATCH':'POST',{name});}
    if(dialog.type==='purchase'){const payload=purchasePayload(data);await mutate(dialog.purchase?'/portfolio/purchase/'+dialog.purchase.id:'/portfolio/purchase',dialog.purchase?'PATCH':'POST',payload);}
    if(dialog.type==='alert'){
     const payload=alertPayload(data);
@@ -243,26 +244,44 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
      const expanded=expandedPortfolioId===portfolio.id;
      const detailsId='portfolio-purchases-'+index;
      return <article className={'portfolio-entry '+(expanded?'is-expanded':'')} key={portfolio.id}>
-      <div className="portfolio-entry-header">
-       <button type="button" className="portfolio-expand-trigger" aria-expanded={expanded} aria-controls={detailsId}
-        onClick={()=>setExpandedPortfolioId(expanded?null:portfolio.id)}>
-        <span className="approved-service-icon"><Icon name="wallet"/></span>
-        <span className="portfolio-list-copy">
-         <strong className="portfolio-name">{portfolio.name}</strong>
-         <span className="portfolio-subtitle">{rows.length} سجلات شراء</span>
-         {summary.map(item=><span className="portfolio-currency-value" key={item.currency}>
-          {item.currency}: {money(item.value,item.currency)}
-          {item.value!==null&&<small className={item.value-item.cost>=0?'delta-positive':'delta-negative'}>
-           {' · الفرق: '}{item.value-item.cost>0?'+':''}{money(item.value-item.cost,item.currency)}
-          </small>}
-         </span>)}
-        </span>
-        <span className={'portfolio-chevron '+(expanded?'rotated':'')} aria-hidden="true"><Icon name="chevron"/></span>
-       </button>
-       <button type="button" className="text-button portfolio-delete" disabled={busy||rows.length>0}
-        onClick={()=>{setFormError('');setConfirm({path:'/portfolio/'+portfolio.id,label:portfolio.name});}}>حذف</button>
-      </div>
-      {expanded&&<div className="portfolio-purchases" id={detailsId} aria-label={'محتويات محفظة '+portfolio.name}>
+       <div className="portfolio-entry-header">
+        <div className="portfolio-card-top">
+         <div className="portfolio-heading">
+          <span className="portfolio-icon" aria-hidden="true"><Icon name="wallet"/></span>
+          <span className="portfolio-heading-text"><strong className="portfolio-name">{portfolio.name}</strong>
+           <span className="portfolio-subtitle">{rows.length===0?'محفظة فارغة':rows.length===1?'عملية شراء واحدة':rows.length+' عمليات شراء'}</span>
+          </span>
+         </div>
+         <div className="portfolio-card-actions">
+          <button type="button" className="portfolio-action portfolio-edit" title="تعديل الاسم"
+           aria-label={'تعديل اسم محفظة '+portfolio.name} disabled={busy} onClick={()=>openPortfolioDialog(portfolio)}><Icon name="edit"/></button>
+          {rows.length===0&&<button type="button" className="portfolio-action portfolio-delete" title="حذف المحفظة الفارغة"
+           aria-label={'حذف المحفظة الفارغة '+portfolio.name} disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/'+portfolio.id,label:portfolio.name});}}><Icon name="trash"/></button>}
+          <button type="button" className="portfolio-action portfolio-toggle" aria-expanded={expanded} aria-controls={detailsId}
+           aria-label={(expanded?'طي':'عرض')+' محتويات محفظة '+portfolio.name} onClick={()=>setExpandedPortfolioId(expanded?null:portfolio.id)}>
+           <span className={'portfolio-chevron '+(expanded?'rotated':'')}><Icon name="chevron"/></span></button>
+         </div>
+        </div>
+        <div className="portfolio-currency-list">
+         {summary.length===0?<p className="portfolio-empty-hint">لم تُسجّل مشتريات بعد. أضف عملية شراء لعرض القيمة.</p>:
+          summary.map(item=>{
+           const change=item.value===null?null:item.value-item.cost;
+           return <div className="portfolio-currency-card" key={item.currency}>
+            <div className="portfolio-money-row">
+             <span className="portfolio-metric-label">القيمة الحالية <b dir="ltr">{item.currency}</b></span>
+             <strong className="portfolio-market-value" dir="ltr">{money(item.value,item.currency)}</strong>
+            </div>
+            <div className="portfolio-money-row portfolio-change-row">
+             <span className="portfolio-metric-label">الفرق عن الشراء</span>
+             <strong className={'portfolio-change-value '+(change===null?'delta-unavailable':change>=0?'delta-positive':'delta-negative')} dir="ltr">
+              {change===null?'غير متاح':<>{change>0?'+':change<0?'−':''}{money(Math.abs(change),item.currency)}</>}
+             </strong>
+            </div>
+           </div>;
+          })}
+        </div>
+       </div>
+       {expanded&&<div className="portfolio-purchases" id={detailsId} aria-label={'محتويات محفظة '+portfolio.name}>
        <p className="portfolio-purchases-caption">القيمة تقديرية بحسب آخر سعر متاح للعيار والعملة. الفرق مبني على كامل تكلفة الفاتورة المسجلة ويقارنها بالقيمة السوقية الخام؛ لا يشمل رسوم أو فروقات إعادة البيع.</p>
        {!rows.length?<p className="portfolio-empty">لا توجد مشتريات في هذه المحفظة حتى الآن.</p>:
        <div className="portfolio-purchases-list">{rows.map(purchase=>{
@@ -360,9 +379,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    if(pinSetup==='disable'){await disableQuickPin(currentPin||'');setBiometricNotice('أُوقف رمز الدخول السريع على هذا الجهاز.');}
    else{await enableQuickPin(pin,currentPin);setBiometricNotice('تم حفظ رمز الدخول السريع لهذا الجهاز.');}
   }}/>}
- {(dialog||confirm)&&<div className="dialog-backdrop"><div className={'dialog '+(confirm?'confirm-dialog':'')} ref={modalRef} role={confirm?'alertdialog':'dialog'} aria-modal="true" aria-labelledby="dialog-title" aria-describedby={confirm?'confirm-warning-description':undefined}><div className="section-heading"><h2 id="dialog-title">{confirm?'تأكيد الحذف':dialog?.type==='portfolio'?'محفظة جديدة':dialog?.type==='alert'?(dialog.alert?'تعديل التنبيه':'تنبيه جديد'):dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء'}</h2><button className="icon-button" aria-label="إغلاق" disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
+ {(dialog||confirm)&&<div className="dialog-backdrop"><div className={'dialog '+(confirm?'confirm-dialog':'')} ref={modalRef} role={confirm?'alertdialog':'dialog'} aria-modal="true" aria-labelledby="dialog-title" aria-describedby={confirm?'confirm-warning-description':undefined}><div className="section-heading"><h2 id="dialog-title">{confirm?'تأكيد الحذف':dialog?.type==='portfolio'?(dialog.portfolio?'تعديل اسم المحفظة':'محفظة جديدة'):dialog?.type==='alert'?(dialog.alert?'تعديل التنبيه':'تنبيه جديد'):dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء'}</h2><button className="icon-button" aria-label="إغلاق" disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
  {confirm?<><div className="confirm-warning" id="confirm-warning-description"><strong>هل تريد حذف {confirm.label}؟</strong><p>هذا الإجراء نهائي، ولا يمكن التراجع عن الحذف من التطبيق.</p></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>setConfirm(null)}>إلغاء</button><button className="danger-button" disabled={busy} onClick={()=>void mutate(confirm.path,'DELETE')}>{busy?'جارٍ الحذف…':'حذف'}</button></div></>:<form onSubmit={submit}>
- {dialog?.type==='portfolio'&&<label>اسم المحفظة<input name="name" required maxLength={80} placeholder="مثال: ادخار الأسرة"/></label>}
+ {dialog?.type==='portfolio'&&<label>اسم المحفظة<input key={dialog.portfolio?.id||'new'} name="name" required maxLength={100} defaultValue={dialog.portfolio?.name||''} placeholder="مثال: ادخار الأسرة" autoComplete="off"/></label>}
  {dialog?.type==='purchase'&&<PurchaseFormFields key={dialog.purchase?.id||'new'} purchase={dialog.purchase} portfolios={portfolios}/>}
  {dialog?.type==='alert'&&<><div className="form-grid"><label>العيار<KaratSelect value={dialog.alert?.karat||24}/></label><label>العملة<CurrencySelect value={dialog.alert?.currency||'SAR'}/></label></div><label>السعر المستهدف<input name="targetPrice" type="number" inputMode="decimal" min="0.0001" max="99999999" step="0.0001" required defaultValue={dialog.alert?.targetPrice||''}/></label><label>الشرط<select name="direction" defaultValue={dialog.alert?.direction||'above'}><option value="above">يرتفع إلى الهدف أو أكثر</option><option value="below">ينخفض إلى الهدف أو أقل</option></select></label>{dialog.alert&&<p className="fine alert-edit-guidance" role="note">{dialog.alert.status==='active'?'سيُطبّق الشرط الجديد عند الفحص القادم. إذا كان السعر يحقق الشرط الآن، فقد يصلك إشعار.':dialog.alert.status==='paused'?'سيبقى التنبيه متوقفًا بعد حفظ التعديل حتى تفعّله بنفسك.':'هذا التنبيه تحقق شرطه سابقًا، وسيظل كذلك بعد التعديل حتى تضغط «إعادة تفعيل».'}</p>}</>}
  {formError&&<p className="notice error" role="alert">{formError}</p>}<div className="actions"><button className="primary" disabled={busy}>{busy?'جارٍ الحفظ…':'حفظ'}</button><button type="button" className="secondary" disabled={busy} onClick={()=>setDialog(null)}>إلغاء</button></div></form>}{confirm&&formError&&<p className="notice error" role="alert">{formError}</p>}

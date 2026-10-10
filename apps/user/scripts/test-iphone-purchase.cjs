@@ -71,3 +71,17 @@ assert(workspace.includes('يرتفع إلى الهدف أو أكثر'),'Alert i
 assert(workspace.includes('ينخفض إلى الهدف أو أقل'),'Alert decrease threshold meaning changed');
 assert(!css.includes('html.dh-iphone-page-lock .gold-auth .gold-purchase-form'),'Purchase scope corrupted');
 console.log('PASS: user wallet, alerts, calculator, profile, push, nearby and navigation mobile regression checks.');
+
+
+/* Wallet card regression: feature must remain backed by authenticated API. */
+assert(workspace.includes("dialog.portfolio?'PATCH':'POST'"),'Rename must PATCH an existing wallet');
+assert(workspace.includes("dialog.portfolio?'/portfolio/'+dialog.portfolio.id"),'Rename must use wallet ID');
+assert(workspace.includes("rows.length===0&&<button"),'Delete action must only render for empty wallet');
+assert(workspace.includes('portfolio-edit'), 'Edit icon action missing');
+assert(workspace.includes('portfolio-toggle'), 'Accessible expand action missing');
+assert(workspace.includes('portfolio-market-value'), 'Value row missing');
+assert(workspace.includes('portfolio-change-value'), 'Gain/loss row missing');
+const walletCSS=read('apps/user/overrides/web/user.css');
+assert(walletCSS.includes('.portfolio-card-actions .portfolio-action'),'Wallet buttons lack a touch target');
+assert(walletCSS.includes('grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)'),'Wallet number isolation missing');
+console.log('PASS: wallet rename, empty-only deletion, accessible actions, monetary layout.');
