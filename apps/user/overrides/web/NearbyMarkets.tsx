@@ -28,8 +28,9 @@ async function getLocation():Promise<Position>{
 
 export default function NearbyMarkets(){
  const [point,setPoint]=useState<Position|null>(null);
- const [notice,setNotice]=useState('جارٍ تحديد موقعك…');
+ const [notice,setNotice]=useState('جارٍ تحديد التجار القريبون…');
  const [failure,setFailure]=useState('');
+ const [radius,setRadius]=useState<5|10|25|50>(25);
  useEffect(()=>{
   let canceled=false;
   (async()=>{
@@ -56,10 +57,16 @@ export default function NearbyMarkets(){
  return <section className="approved-card map-placeholder" aria-label="محلات الذهب القريبة">
   <div className="approved-card-title"><span>أسواق الذهب القريبة</span><b className="pill gold">حسب موقعك</b></div>
   <div className="dh-nearby-location">
+   <div className="dh-location-radius"><label htmlFor="dh-search-radius">نطاق البحث التقريبي</label>
+    <select className="dh-search-radius" id="dh-search-radius" value={radius} onChange={e=>setRadius(Number(e.target.value) as 5|10|25|50)}>
+     <option value={5}>5 كم</option><option value={10}>10 كم</option><option value={25}>25 كم</option><option value={50}>50 كم</option>
+    </select>
+   </div>
+   <p className="dh-location-radius-hint">النطاق استرشادي؛ قد تظهر محلات أبعد في الخرائط.</p>
    {failure?<p className="notice warning" role="alert">{failure}</p>:<p role="status">{notice}</p>}
    {point&&<div className="dh-location-links" style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:12}}>
-    <a target="_blank" rel="noopener noreferrer" href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('محلات ذهب بالقرب من '+pair)}>خرائط Google</a>
-    {apple&&<a target="_blank" rel="noopener noreferrer" href={'https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب')+'&ll='+encodeURIComponent(pair)}>خرائط Apple</a>}
+    <a target="_blank" rel="noopener noreferrer" href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('محلات ذهب في نطاق '+radius+' كم بالقرب من '+pair)}>خرائط Google</a>
+    {apple&&<a target="_blank" rel="noopener noreferrer" href={'https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب في نطاق '+radius+' كم')+'&ll='+encodeURIComponent(pair)}>خرائط Apple</a>}
    </div>}
   </div>
  </section>;

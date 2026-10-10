@@ -165,3 +165,9 @@ html .gold-web .dh-profile-copyright{display:block;margin-top:8px;font-size:12px
 
 /* Hide old manual location controls behind the automatic nearby-locations module. */
 .gold-web.workspace .workspace-content > section.map-placeholder:has(> .dh-nearby-location[data-dh-injected="true"]) > .dh-nearby-location:not([data-dh-injected="true"]){display:none!important}
+
+/* Nearby map selection: compact controls without manual location toggles. */
+.dh-nearby-location .dh-location-radius{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 4px}
+.dh-nearby-location .dh-location-radius label{font-size:13px;font-weight:700;color:#001F3F}
+.dh-nearby-location .dh-search-radius{min-height:42px;min-width:110px;border:1px solid #c9ad5b;background:#fff;color:#001F3F;padding:6px 10px;border-radius:10px;font-size:14px;font-weight:700;direction:rtl}
+.dh-nearby-location .dh-location-radius-hint{font-size:11px;line-height:1.65;margin:4px 0 12px;color:#667085}

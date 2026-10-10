@@ -84,7 +84,12 @@
   const box=document.createElement('section');
   box.className='dh-nearby-location';box.setAttribute('data-dh-injected','true');
   box.setAttribute('aria-label','الموقع ومحلات الذهب القريبة');
-  box.innerHTML='<p class="dh-location-status" role="status" aria-live="polite">جارٍ تحديد موقعك…</p>'+
+  box.innerHTML='<p class="dh-location-status" role="status" aria-live="polite">جارٍ تحديد التجار القريبون…</p>'+
+    '<div class="dh-location-radius"><label for="dh-search-radius">نطاق البحث التقريبي</label>'+
+    '<select class="dh-search-radius" id="dh-search-radius" aria-label="نطاق البحث بالكيلومتر">'+
+    '<option value="5">5 كم</option><option value="10">10 كم</option>'+
+    '<option value="25" selected>25 كم</option><option value="50">50 كم</option></select></div>'+
+    '<p class="dh-location-radius-hint">النطاق استرشادي؛ قد تظهر محلات أبعد في الخرائط.</p>'+
     '<div class="dh-location-map-links" hidden>'+
     '<a class="dh-location-google" target="_blank" rel="noopener noreferrer">خرائط Google</a>'+
     '<a class="dh-location-apple" target="_blank" rel="noopener noreferrer">خرائط Apple</a></div>';
@@ -93,6 +98,8 @@
   const links=box.querySelector('.dh-location-map-links');
   const google=box.querySelector('.dh-location-google');
   const apple=box.querySelector('.dh-location-apple');
+  const radius=box.querySelector('.dh-search-radius');
+  let lastCoordinates=null;
   const isApple=/(iPhone|iPad|iPod|Macintosh|Mac OS X)/i.test(navigator.userAgent||'')||
     /^Mac/i.test(navigator.platform||'');
   apple.hidden=!isApple;
@@ -100,12 +107,18 @@
   const linkTo=(lat,lon)=>{
     if(!valid(lat,lon)){links.hidden=true;return;}
     const pair=lat.toFixed(5)+','+lon.toFixed(5);
+    const km=Number(radius.value)||25;
+    lastCoordinates={lat,lon};
+    const search='محلات ذهب في نطاق '+km+' كم بالقرب من '+pair;
     google.href='https://www.google.com/maps/search/?api=1&query='+
-      encodeURIComponent('محلات ذهب بالقرب من '+pair);
-    apple.href='https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب')+
+      encodeURIComponent(search);
+    apple.href='https://maps.apple.com/?q='+encodeURIComponent('محلات ذهب في نطاق '+km+' كم')+
       '&ll='+encodeURIComponent(pair);
     links.hidden=false;
   };
+  radius.addEventListener('change',()=>{
+    if(lastCoordinates)linkTo(lastCoordinates.lat,lastCoordinates.lon);
+  });
   const locate=async()=>{
     if(!navigator.geolocation)throw Error('خدمة الموقع غير متاحة على هذا الجهاز.');
     if(navigator.permissions&&navigator.permissions.query){
