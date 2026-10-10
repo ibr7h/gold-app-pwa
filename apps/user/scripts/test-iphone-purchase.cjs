@@ -11,7 +11,7 @@ assert(script.includes('Purchase form: compact Arabic field captions'),'iPhone p
 assert(script.includes('MutationObserver(schedule)'),'Purchase modal observer absent');
 assert(script.includes("info.open=false"),'New purchase invoice should be collapsed');
 const css=read('_render_preview/gold-app-pwa/full/iphone-preview-lock.css');
-assert(css.includes('Purchase sheet UX v1.9.21'),'Purchase CSS absent');
+assert(css.includes('purchase sheet UX v1.9.21'),'Purchase CSS absent');
 assert(css.includes('font-size:16px!important'),'iOS focus-zoom prevention absent');
 assert(css.includes('.dialog:has(.gold-purchase-form)'), 'Purchase modal not targeted');
 assert(css.includes('min-height:48px!important'), 'Touch targets too small');
