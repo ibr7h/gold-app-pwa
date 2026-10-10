@@ -17,15 +17,41 @@
     var e = document.activeElement;
     return !!e && e.matches('input,textarea,select,[contenteditable="true"],[role="textbox"]');
   }
+  function keepAuthFieldVisible() {
+    var input = document.activeElement;
+    var auth = document.querySelector('#root > .gold-auth');
+    if (!auth || !input || !input.matches('input,textarea,select')) return;
+    // Scroll the actual inner auth panel, not the fixed Safari document. This
+    // remains reliable when the QuickType/password toolbar changes its height.
+    var rect = input.closest('.form-group')?.getBoundingClientRect() || input.getBoundingClientRect();
+    var top = vv ? Math.max(0, vv.offsetTop) : 0;
+    var bottom = top + (vv ? vv.height : window.innerHeight);
+    var adjustment = 0;
+    if (rect.bottom > bottom - 24) adjustment = rect.bottom - bottom + 24;
+    else if (rect.top < top + 15) adjustment = rect.top - top - 15;
+    if (Math.abs(adjustment) > 3) auth.scrollTop += adjustment;
+  }
   function updateKeyboard() {
     frame = 0;
     if (!vv) return;
-    var diff = window.innerHeight - vv.height - Math.max(vv.offsetTop, 0);
-    if (editableFocused() && vv.scale <= 1.05 && diff > Math.max(130, window.innerHeight * .18)) {
-      // Only while the keyboard is open: allow editing without shifting document.
-      root.style.setProperty('--dh-preview-height', Math.max(1, vv.height) + 'px');
-    } else {
+    var authEditing = editableFocused() && !!document.querySelector('#root > .gold-auth');
+    root.classList.toggle('dh-iphone-auth-editing', authEditing);
+    var diff = Math.max(0, window.innerHeight - vv.height - Math.max(vv.offsetTop, 0));
+    if (authEditing) {
+      // Safari needs a full fixed canvas for its password manager and keyboard.
+      // Shrinking the fixed body to visualViewport.height used to hide the input
+      // behind the accessory bar and could paint a large blank region.
       root.style.removeProperty('--dh-preview-height');
+      root.style.setProperty('--dh-auth-keyboard-inset', Math.round(diff) + 'px');
+      keepAuthFieldVisible();
+    } else {
+      root.style.removeProperty('--dh-auth-keyboard-inset');
+      if (editableFocused() && vv.scale <= 1.05 && diff > Math.max(130, window.innerHeight * .18)) {
+        // Workspace forms keep their existing fixed-viewport behavior.
+        root.style.setProperty('--dh-preview-height', Math.max(1, vv.height) + 'px');
+      } else {
+        root.style.removeProperty('--dh-preview-height');
+      }
     }
   }
   function schedule() {
@@ -64,7 +90,13 @@
   document.addEventListener('touchend', blockDoubleTap, {passive: false});
   window.addEventListener('scroll', function () { if (window.scrollY) window.scrollTo(0, 0); }, {passive: true});
   window.addEventListener('resize', schedule, {passive: true});
-  document.addEventListener('focusin', schedule, true);
+  document.addEventListener('focusin', function () {
+    schedule();
+    // Keyboard changes height asynchronously on iOS; align after the animation
+    // as well as on visualViewport resize events.
+    window.setTimeout(schedule, 150);
+    window.setTimeout(schedule, 380);
+  }, true);
   document.addEventListener('focusout', schedule, true);
   if (vv) {
     vv.addEventListener('resize', schedule, {passive: true});
