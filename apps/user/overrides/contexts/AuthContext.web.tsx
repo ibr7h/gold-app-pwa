@@ -27,7 +27,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
   biometricType: BiometricType;
@@ -50,7 +50,7 @@ interface AuthContextType {
   registerStep: RegisterStep;
   registerEmail: string;
   registerCode: string;
-  startRegistration: (name: string, email: string, password: string) => Promise<boolean>;
+  startRegistration: (name: string, email: string, password: string, phone?: string) => Promise<boolean>;
   verifyRegistration: (code: string) => Promise<boolean>;
   resendRegisterCode: () => Promise<boolean>;
   cancelRegistration: () => void;
@@ -133,9 +133,9 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   }catch(e){if(attempt===version.current)setError(errorMessage(e));throw e;}
   finally{if(attempt===version.current)setLoading(false);}
  };
- const login=(email:string,password:string)=>passwordSession('/auth/login',{email:email.trim(),password});
- const startRegistration=async(name:string,email:string,password:string)=>{
-  try{await passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim()||undefined});return true;}catch{return false;}
+ const login=(identifier:string,password:string)=>passwordSession('/auth/login',{identifier:identifier.trim(),password});
+ const startRegistration=async(name:string,email:string,password:string,phone?:string)=>{
+  try{await passwordSession('/auth/register',{email:email.trim(),password,fullName:name.trim()||undefined,...(phone?{phone}:{} )});return true;}catch{return false;}
  };
  const enableBiometric=async()=>{
   if(!user?.id||user.role!=='user')throw new Error('سجّل الدخول أولًا قبل تفعيل بصمة الجهاز.');
