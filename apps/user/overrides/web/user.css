@@ -1806,3 +1806,32 @@
 
 /* No OTP verification in the temporary password registration flow. */
 .gold-web .dh-register-mobile-hint{font-size:12px;line-height:1.8;color:#001F3F;margin:2px 0 12px;max-width:100%;overflow-wrap:anywhere}
+
+/* iPhone Safari registration: 16px focus text, consistent password visibility tap targets. */
+.gold-auth .mockup-input-wrap .form-input[type="password"],
+.gold-auth .mockup-input-wrap .form-input[type="text"],
+.gold-auth .mockup-input-wrap .form-input[type="tel"]{
+  font-size:16px!important;
+  direction:ltr;
+}
+.gold-auth .mockup-input-wrap .mockup-eye-btn{
+  min-width:44px!important;
+  width:44px!important;
+  min-height:44px!important;
+  height:44px!important;
+  left:4px!important;
+  right:auto!important;
+  color:#001F3F!important;
+  background:transparent!important;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.gold-auth .mockup-input-wrap .mockup-eye-btn:focus-visible{
+  outline:2px solid #C5A021!important;
+  outline-offset:2px;
+}
+.gold-auth .mockup-input-wrap .form-input[dir="ltr"]{
+  text-align:left!important;
+  padding-inline-start:50px!important;
+  padding-inline-end:46px!important;
+}
