@@ -4,22 +4,31 @@ export interface TrendSourceRow{
 }
 export interface TrendPoint{time:number;price:number;id:string}
 
-/** Plot against actual saved timestamps. Do not create/interpolate missing market prices. */
+/** Use the supplier's actual quote timestamp; createdAt is only a last-resort legacy fallback.
+ * Consecutive unchanged two-decimal prices are not market events: no flat artificial segment
+ * when the source is checked repeatedly after closing. Keep the FIRST genuine observation.
+ */
 export function priceTrendPoints(rows:TrendSourceRow[]):TrendPoint[]{
  const valid=rows.map((row,index)=>{
-  const time=Date.parse(row.createdAt||row.timestamp||'');
+  const time=Date.parse(row.timestamp||row.createdAt||'');
+  const saved=Date.parse(row.createdAt||row.timestamp||'');
   const price=Number(row.buyPrice);
-  return {time,price,id:row.id||String(index)};
+  return {time,saved,price,id:row.id||String(index)};
  }).filter(p=>Number.isFinite(p.time)&&Number.isFinite(p.price)&&p.price>0)
- .sort((a,b)=>a.time-b.time);
- // Multiple saved updates at exactly the same instant share one x-coordinate.
- // Use the last saved observation, rather than fabricating a time interval.
- const deduped:TrendPoint[]=[];
- for(const point of valid){
-  if(deduped.length&&deduped[deduped.length-1].time===point.time)deduped[deduped.length-1]=point;
-  else deduped.push(point);
+ .sort((a,b)=>a.time-b.time||a.saved-b.saved);
+ const points:TrendPoint[]=[];
+ for(const row of valid){
+  const point={time:row.time,price:row.price,id:row.id};
+  const previous=points[points.length-1];
+  if(previous?.time===point.time){
+   // Quote from same instant, keep the most recently saved revision.
+   points[points.length-1]=point;
+  }else if(previous&&Math.round(previous.price*100)===Math.round(point.price*100)){
+   // No visible market movement; preserve actual first timestamp.
+   continue;
+  }else points.push(point);
  }
- return deduped;
+ return points;
 }
 export function priceTrendRange(points:TrendPoint[],range:TrendRange):TrendPoint[]{
  if(!points.length||range==='available')return points;
