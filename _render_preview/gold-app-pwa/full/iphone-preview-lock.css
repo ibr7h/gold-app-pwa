@@ -77,3 +77,26 @@ html.dh-iphone-page-lock select,
 html.dh-iphone-page-lock textarea {
   font-size: max(16px, 1em);
 }
+
+/* Safari password autofill/keyboard: keep full fixed viewport, only scroll form. */
+html.dh-iphone-page-lock.dh-iphone-auth-editing body {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+}
+html.dh-iphone-page-lock.dh-iphone-auth-editing #root > .gold-auth {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+html.dh-iphone-page-lock.dh-iphone-auth-editing .mockup-login-container {
+  padding-bottom: max(32px, var(--dh-auth-keyboard-inset, 0px)) !important;
+  scroll-margin-block: 24px;
+}
+html.dh-iphone-page-lock .gold-auth .mockup-input-wrap .form-input {
+  font-size: 16px !important;
+  min-height: 48px;
+}
+html.dh-iphone-page-lock .gold-auth .mockup-eye-btn {
+  touch-action: manipulation;
+}
