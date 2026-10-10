@@ -123,6 +123,7 @@ export default function ProfilePanel({email,role,initialName,onDisplayName}:Prop
    </form>:<div className="dh-profile-info-grid">
      <div className="dh-profile-info"><span>الاسم الكامل</span><strong>{readable(profile.fullName)}</strong></div>
      <div className="dh-profile-info"><span>المدينة</span><strong>{readable(profile.city)}</strong></div>
+     {profile.countryCode&&<div className="dh-profile-info"><span>الدولة المقترحة</span><strong>{new Intl.DisplayNames(['ar'],{type:'region'}).of(profile.countryCode)||profile.countryCode}</strong><small>وفق الرقم أو اختيار التسجيل · غير موثّقة</small></div>}
      <div className="dh-profile-info"><span>البريد الإلكتروني</span><strong dir="ltr">{profile.email}</strong><small>تغيير البريد يتطلب تحققًا آمنًا</small></div>
      <div className="dh-profile-info"><span>رقم الجوال</span><strong dir="ltr">{readable(profile.phone)}</strong><small>تغيير الرقم يتطلب تحققًا آمنًا</small></div>
     </div>)}
