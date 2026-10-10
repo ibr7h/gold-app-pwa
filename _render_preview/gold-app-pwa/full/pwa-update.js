@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const BASE = '/gold-app-pwa/full/';
-  const CURRENT = 'full-9474bb7d';
+  const CURRENT = 'full-31a5d684';
   const CHECK_EVERY_MS = 15 * 60 * 1000;
   const PROMPT_ID = 'dhahabi-user-update';
   let registration = null;
