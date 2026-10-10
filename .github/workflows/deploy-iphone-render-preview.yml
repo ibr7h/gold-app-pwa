@@ -515,6 +515,9 @@ jobs:
         shell: bash
         run: |
           cd "$SRC"
+          # The upstream Expo app is shipped as a ZIP. Add pinned phone metadata
+          # to its temporary package/lockfile before the immutable install.
+          pnpm add libphonenumber-js@1.13.14 --save-exact --lockfile-only --ignore-scripts
           pnpm install --frozen-lockfile
           pnpm check
           pnpm exec vitest run web/tests
