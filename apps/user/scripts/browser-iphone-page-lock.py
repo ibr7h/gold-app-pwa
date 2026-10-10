@@ -69,6 +69,49 @@ with sync_playwright() as p:
                 print(f'PASS iPhone WebKit {w}x{h} {kind}: no outer scroll or gesture zoom; inner scroll works',flush=True)
                 page.close()
             context.close()
+        # Regression: iPhone QuickType/password keyboard must not leave a blank
+        # page or hide a focused field below the visible virtual keyboard.
+        register='''<main class="gold-web gold-auth approved-auth auth-mockup">
+          <section class="mockup-login-container" style="min-height:1300px">
+           <div style="height:680px">إنشاء حساب جديد</div>
+           <section class="mockup-auth-card">
+            <form><label class="form-group"><span>كلمة المرور</span>
+            <div class="mockup-input-wrap"><input aria-label="كلمة المرور" class="form-input"
+                  type="password" autocomplete="new-password" value="abcdef12345">
+            </div></label></form>
+           </section><div style="height:390px"></div>
+          </section></main>'''
+        form_ctx=browser.new_context(viewport={'width':390,'height':844},
+            device_scale_factor=3,has_touch=True,is_mobile=True,user_agent=IPHONE_UA)
+        form_page=form_ctx.new_page()
+        form_page.set_content(page_html(register))
+        form_page.add_script_tag(content=JS)
+        form_page.locator('input[type=password]').focus()
+        form_page.evaluate("""() => {
+          document.querySelector('#root > .gold-auth').scrollTop=0;
+          // Linux WebKit has no actual software keyboard. Emulate its visual
+          // viewport reduction and fire the same resize event as iOS Safari.
+          Object.defineProperty(window.visualViewport,'height',{configurable:true,value:430});
+          window.visualViewport.dispatchEvent(new Event('resize'));
+        }""")
+        form_page.wait_for_timeout(400)
+        keyboard=form_page.evaluate("""() => ({
+         editing:document.documentElement.classList.contains('dh-iphone-auth-editing'),
+         scroll:document.querySelector('#root > .gold-auth').scrollTop,
+         bottom:document.querySelector('input').getBoundingClientRect().bottom,
+         bodyHeight:document.body.getBoundingClientRect().height,
+         scale:visualViewport.scale,
+         documentScroll:window.scrollY
+        })""")
+        assert keyboard['editing'],keyboard
+        assert keyboard['scroll']>100,keyboard
+        assert keyboard['bottom']<=430-20+3,keyboard
+        assert keyboard['documentScroll']==0,keyboard
+        assert keyboard['bodyHeight']>=800,keyboard
+        assert keyboard['scale']==1,keyboard
+        print('PASS iPhone WebKit password: field stays inside resized visual viewport; body locked',flush=True)
+        form_page.close()
+        form_ctx.close()
         d=browser.new_context(viewport={'width':1280,'height':800})
         pg=d.new_page()
         pg.set_content(page_html(AUTH))
