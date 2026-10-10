@@ -1,14 +1,7 @@
 name: Version iPhone User releases
+# Preview builds advance the release after compiling and testing.
+# This maintenance workflow is manual-only to prevent branch push races.
 on:
-  push:
-    branches: ["preview/iphone-render"]
-    paths:
-      - "_render_preview/gold-app-pwa/full/**"
-      - "apps/user/overrides/web/**"
-      - "apps/user/assets/**"
-      - "scripts/release-iphone-version.cjs"
-      - "scripts/check-iphone-release.cjs"
-      - ".github/workflows/release-iphone-version.yml"
   workflow_dispatch:
 permissions:
   contents: write
