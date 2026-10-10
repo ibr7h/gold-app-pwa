@@ -52,8 +52,11 @@ export function readInternationalPhone(raw:string,country:CountryCode):Internati
   :country==='SA'&&/^9665\d/.test(cleaned)?'+'+cleaned:cleaned;
  const international=normalized.startsWith('+');
  const formatter=new AsYouType(international?undefined:country);
- const display=formatter.input(normalized);
+ let display=formatter.input(normalized);
  const parsed=normalized?parsePhoneNumberFromString(normalized,international?undefined:country):undefined;
+ // An international number pasted into a field with a separate +code selector
+ // should become the readable national form, not show the calling code twice.
+ if(international&&parsed?.isValid())display=parsed.formatNational();
  // An international prefix identifies a calling-code zone first; for shared
  // codes (+1, +7) the selected country is preserved until it is identifiable.
  const detected=(parsed?.country||formatter.getCountry());
