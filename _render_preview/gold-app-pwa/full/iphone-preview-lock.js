@@ -19,7 +19,7 @@
   }
   function keepAuthFieldVisible() {
     var input = document.activeElement;
-    var auth = document.querySelector('#root > .gold-auth');
+    var auth = document.querySelector('#root .gold-auth');
     if (!auth || !input || !input.matches('input,textarea,select')) return;
     // Scroll the actual inner auth panel, not the fixed Safari document. This
     // remains reliable when the QuickType/password toolbar changes its height.
@@ -34,7 +34,7 @@
   function updateKeyboard() {
     frame = 0;
     if (!vv) return;
-    var authEditing = editableFocused() && !!document.querySelector('#root > .gold-auth');
+    var authEditing = editableFocused() && !!document.querySelector('#root .gold-auth');
     root.classList.toggle('dh-iphone-auth-editing', authEditing);
     var diff = Math.max(0, window.innerHeight - vv.height - Math.max(vv.offsetTop, 0));
     if (authEditing) {
@@ -111,7 +111,7 @@
  var notice='يُحفظ الرقم الدولي بصيغة E.164';
  var releaseVersion='v1.9.8';
  function repair(){
-  var auth=document.querySelector('#root > .gold-auth');
+  var auth=document.querySelector('#root .gold-auth');
   if(!auth)return;
   auth.querySelectorAll('.app-version-stamp').forEach(function(el){if(el.textContent!==releaseVersion)el.textContent=releaseVersion;});
   var walker=document.createTreeWalker(auth,NodeFilter.SHOW_TEXT);
@@ -128,20 +128,6 @@
  var queued=false;
  var observer=new MutationObserver(function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;repair();});});
  observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true});
- document.addEventListener('pointerdown',function(e){
-  var button=e.target.closest&&e.target.closest('.mockup-eye-btn');
-  if(button)e.preventDefault(); // keep keyboard open and prevent label focusing other controls
- },true);
- document.addEventListener('click',function(e){
-  var button=e.target.closest&&e.target.closest('.mockup-eye-btn');
-  if(!button)return;
-  e.preventDefault();e.stopPropagation();
-  var input=button.closest('.mockup-input-wrap')?.querySelector('input');
-  if(!input)return;
-  input.type=input.type==='password'?'text':'password';
-  button.setAttribute('aria-pressed',String(input.type==='text'));
-  button.setAttribute('aria-label',input.type==='text'?'إخفاء كلمة المرور':'إظهار كلمة المرور');
- },true);
  document.addEventListener('focusin',function(e){
   if(!e.target.matches?.('.gold-auth input'))return;
   [100,300,550].forEach(function(ms){setTimeout(function(){
