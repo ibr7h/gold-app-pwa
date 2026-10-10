@@ -213,10 +213,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   if(page==='home')return <>
    <section className="approved-card live-price-card" aria-label={marketClosed?'آخر سعر مسجل عيار 24':'سعر الذهب الآن عيار 24'}>
     <div className="live-card-top"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{marketLabel}</span><strong>{marketClosed?'آخر سعر مسجل - عيار 24':'سعر الذهب الآن - عيار 24'}</strong></div>
-    <div className="live-price-main"><div className="home-quote"><div className="price-tag-large">{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}<small>/جرام</small></div>
+    <div className="live-price-main"><div className="home-quote"><div className="price-tag-large">{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}<small>/جرام</small></div>
      <p className={'home-market-change '+(homeMovement===null?'neutral':homeMovement.difference>=0?'positive':'negative')} title="مقارنة بأول تحديث متاح اليوم بتوقيت السعودية">
       {homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),priceCurrency)} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:(marketClosed?'لا تداول حاليًا':'لا توجد مقارنة كافية اليوم')}
-     </p></div><div className="buy-sell-mini"><span>سعر الشراء: <b>{money(homeMarket?Number(homeMarket.buyPrice):null,'SAR')}</b></span><span>سعر البيع: <b>{money(homeMarket?Number(homeMarket.sellPrice):null,'SAR')}</b></span></div></div>
+     </p></div><div className="buy-sell-mini"><span>سعر الشراء: <b>{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</b></span><span>سعر البيع: <b>{money(homeMarket?Number(homeMarket.sellPrice):null,priceCurrency)}</b></span></div></div>
     <div className="live-card-footer"><span>السعر العالمي الاسترشادي</span><span title={marketTime(homeMarket)}>{latestQuoteLabel(homeMarket?.timestamp,session)}</span>{!marketClosed&&<button className="home-price-refresh" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}>{marketLoading?'جارٍ التحقق…':'تحديث الأسعار'}</button>}</div>
    </section>
    <div className="approved-section-title"><h3>الخدمات السريعة</h3></div>
