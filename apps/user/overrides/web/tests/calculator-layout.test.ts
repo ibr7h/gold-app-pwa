@@ -4,6 +4,7 @@ import {calculatorQuote} from '../calculator-quote';
 import {tafqeetSar} from '../tafqeet-sar';
 
 const ui=readFileSync(new URL('../UserWorkspace.tsx',import.meta.url).pathname,'utf8');
+const styles=readFileSync(new URL('../user.css',import.meta.url).pathname,'utf8');
 
 describe('Gold App calculator user-only layout',()=>{
  it('removes the redundant calculator total banner while retaining a single final total',()=>{
@@ -20,6 +21,11 @@ describe('Gold App calculator user-only layout',()=>{
   expect(gram).toBeLessThan(weight);
   expect(ui).toContain('سعر الجرام الأساسي · عيار {calcKarat}');
   expect(ui).toContain("{money(calcUnit,'SAR')}");
+ });
+ it('keeps the calculator wording legible in the navy and gold visual identity',()=>{
+  expect(styles).toContain('.gold-web .calc-unit-price');
+  expect(styles).toContain('.gold-web .calc-total-tafqeet');
+  expect(styles).not.toContain('.gold-web .calc-total-card');
  });
  it('renders tafqeet directly below the final breakdown and not in a separate top card',()=>{
   const total=ui.indexOf('<dt>الإجمالي النهائي</dt>');
