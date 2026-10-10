@@ -9,7 +9,7 @@ export function homeMarketMovement(history:MarketPrice[],latest:MarketPrice|unde
  const points=priceTrendPoints([...history.filter(row=>row.currency==='SAR'&&row.karat===24),latest])
   .filter(point=>point.time<=now&&saudiDay(point.time)===saudiDay(now));
  const last=points[points.length-1];
- const latestTime=Date.parse(latest.createdAt||latest.timestamp);
+ const latestTime=Date.parse(latest.timestamp||latest.createdAt);
  if(points.length<2||last.time!==latestTime)return null;
  const difference=Number(latest.buyPrice)-points[0].price;
  if(!Number.isFinite(difference))return null;
