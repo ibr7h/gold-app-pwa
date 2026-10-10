@@ -2,7 +2,7 @@ import React,{useEffect,useId,useMemo,useRef,useState} from 'react';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
 import {Money,formatTwo,formattedMoney} from './price-display';
 
-interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean;marketClosed?:boolean}
+interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean}
 const currencyNumber=formatTwo;
 const timeLabel=(ms:number,range:TrendRange)=>{
  const date=new Date(ms);
@@ -16,7 +16,7 @@ const scopeLabels:{id:TrendRange;label:string}[]=[
 ];
 const compactScopes:{id:TrendRange;label:string}[]=[{id:'day',label:'يوم'},{id:'week',label:'أسبوع'},{id:'month',label:'شهر'}];
 
-export default function PriceHistoryChart({rows,currency,karat,compact=false,marketClosed=false}:Props){
+export default function PriceHistoryChart({rows,currency,karat,compact=false}:Props){
  const [range,setRange]=useState<TrendRange>(compact?'day':'available');
  const [width,setWidth]=useState(640);
  const [selectedIndex,setSelectedIndex]=useState<number|null>(null);
@@ -64,7 +64,6 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,mar
 
  return <div className={'dh-price-trend '+(compact?'compact':'')} dir="rtl">
   {compact&&<h3 className="home-chart-title">حركة السوق (عيار {karat})</h3>}
-  {marketClosed&&<p className="dh-trend-market-status" role="status">السوق العالمي مغلق · يعرض الرسم آخر تغيرات سعرية مسجلة، دون تحديثات وهمية.</p>}
   {!compact&&<div className="dh-trend-header">
    <div className="dh-trend-reading">
     <span className="dh-trend-overline">سعر الجرام · عيار {karat}</span>
@@ -86,7 +85,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,mar
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
     <strong>{all.length<2?'لا توجد تغيرات سعرية كافية لرسم الاتجاه.':'لا توجد نقطتان مختلفتان مسجلتان ضمن الفترة المختارة.'}</strong>
-    <span>{marketClosed?'لن نضيف نقاطًا جديدة حتى يستأنف سوق الذهب العالمي تداولاته ويصل سعر مختلف.':compact?'بانتظار تغير سعري فعلي من الخادم.':'نعرض نقاط الأسعار التي تغيرت بالفعل. يمكنك اختيار «المتاح» لعرض السجلات السابقة.'}</span>
+    <span>{compact?'بانتظار تغير سعري فعلي من الخادم.':'نعرض نقاط الأسعار التي تغيرت بالفعل. يمكنك اختيار «المتاح» لعرض السجلات السابقة.'}</span>
    </div>
   :
    <>
