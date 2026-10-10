@@ -9,18 +9,7 @@ const lockCss=readFileSync(new URL('../../../scripts/iphone-preview-lock.css',im
 describe('iPhone registration / login password field UX',()=>{
  it('validates via a single normalized mobile helper rather than double-escaped inline regex',()=>{
   expect(form).toContain("normalizeRegistrationPhone(phone)");
-  expect(phone).toContain(String.raw`^05\d{8}import {describe,expect,it} from 'vitest';
-import {readFileSync} from 'node:fs';
-const form=readFileSync(new URL('../AuthForm.tsx',import.meta.url).pathname,'utf8');
-const phone=readFileSync(new URL('../registration-phone.ts',import.meta.url).pathname,'utf8');
-const css=readFileSync(new URL('../user.css',import.meta.url).pathname,'utf8');
-const lockJs=readFileSync(new URL('../../../scripts/iphone-preview-lock.js',import.meta.url).pathname,'utf8');
-const lockCss=readFileSync(new URL('../../../scripts/iphone-preview-lock.css',import.meta.url).pathname,'utf8');
-
-describe('iPhone registration / login password field UX',()=>{
- it('validates via a single normalized mobile helper rather than double-escaped inline regex',()=>{
-  expect(form).toContain("normalizeRegistrationPhone(phone)");
-  );
+  expect(phone).toContain(String.raw`^05\d{8}$`);
   expect(form).not.toContain('if(register&&!/^(?:05');
  });
  it('keeps separate stable password and confirmation field refs',()=>{
