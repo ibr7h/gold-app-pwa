@@ -356,3 +356,159 @@ html .gold-web .dh-profile-copyright{display:block;margin-top:8px;font-size:12px
   margin:0!important;border-radius:0!important;max-height:90px!important;overflow:auto!important;
  }
 }
+
+
+/* iPhone User unified form and navigation polish — viewport-safe, accessible controls. */
+@media(max-width:800px){
+ html.dh-iphone-page-lock .gold-web.workspace :is(input:not([type="radio"]):not([type="checkbox"]),select,textarea){
+   font-size:16px!important;line-height:1.35!important;-webkit-text-size-adjust:100%!important;
+   min-height:46px;max-width:100%;min-width:0;box-sizing:border-box;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .workspace-content{
+   overflow-x:hidden!important;scroll-padding-bottom:28px!important;min-width:0!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .workspace-content :is(.approved-card,.panel,.form-grid,.calculator-form,.dh-push-settings,.dh-personal-form){
+   min-width:0!important;max-width:100%;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace :is(.dh-personal-form,.calculator-form) input:not([type="checkbox"]){
+   min-height:48px!important;padding:10px 12px!important;border-radius:12px!important;
+   background:#fff!important;color:#001F3F!important;border:1px solid #CBD5E1!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace :is(.dh-personal-form,.calculator-form) input:focus{
+   border-color:#C5A021!important;outline:2px solid #C5A021!important;outline-offset:1px;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .approved-card-title{
+   gap:9px!important;min-width:0!important;flex-wrap:wrap!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .approved-card-title>span{
+   min-width:0!important;overflow-wrap:anywhere;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace :is(.approved-card-title,.portfolio-summary-card) :is(button,.text-button,.compact-primary){
+   min-height:44px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+   gap:7px!important;padding:8px 12px!important;white-space:normal!important;line-height:1.35!important;
+   border-radius:11px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .approved-services-grid{
+   grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .approved-service-item{
+   min-width:0!important;min-height:85px!important;gap:6px!important;padding:10px 3px!important;
+   line-height:1.4!important;overflow-wrap:anywhere!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .calculator-form .weight-presets{
+   display:flex!important;flex-wrap:wrap!important;gap:7px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .calculator-form .weight-presets button{
+   min-height:42px!important;flex:1 1 auto!important;min-width:58px!important;
+   border-radius:10px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .calculator-form .karat-switch{
+   grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .calculator-form .karat-switch button{
+   min-height:46px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .calculator-form label{
+   margin-bottom:14px!important;line-height:1.5!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .calc-toggle{
+   display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+   min-height:52px!important;gap:12px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .calc-toggle input[type=checkbox]{
+   min-width:22px!important;width:22px!important;height:22px!important;min-height:22px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .calc-breakdown>div{
+   display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dh-personal-actions{
+   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dh-personal-actions button{
+   min-height:48px!important;font-size:15px!important;min-width:0!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace :is(.dh-push-actions,.dh-location-links,.record-details .actions){
+   display:flex!important;flex-wrap:wrap!important;gap:9px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace :is(.dh-push-actions,.dh-location-links,.record-details .actions) button,
+ html.dh-iphone-page-lock .gold-web.workspace .dh-location-links a{
+   min-height:44px!important;display:inline-flex!important;align-items:center!important;
+   justify-content:center!important;max-width:100%;min-width:0!important;
+   border-radius:10px!important;white-space:normal!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace :is(.inline-select,.dh-location-radius) select{
+   font-size:16px!important;min-height:46px!important;max-width:100%;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .settings-list button{
+   min-height:52px!important;padding-inline:14px!important;gap:9px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .settings-list button>span{
+   min-width:0!important;gap:9px!important;overflow-wrap:anywhere;
+ }
+ /* All non-purchase form dialogs reuse the approved purchase-sheet rhythm. */
+ html.dh-iphone-page-lock .gold-web.workspace .dialog-backdrop:has(>.dialog>form):not(:has(.gold-purchase-form)){
+   display:block!important;position:fixed!important;
+   inset:var(--dh-form-top,0px) 0 auto 0!important;
+   width:100%!important;height:var(--dh-form-height,100dvh)!important;
+   max-height:100dvh!important;overflow:hidden!important;padding:0!important;z-index:200!important;
+   overscroll-behavior:contain!important;box-sizing:border-box!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form)){
+   display:flex!important;flex-direction:column!important;margin:0!important;
+   padding:0!important;height:100%!important;max-height:100%!important;
+   width:100%!important;max-width:none!important;border-radius:0!important;
+   overflow:hidden!important;background:#F8FAFC!important;color:#001F3F!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>.section-heading{
+   flex:0 0 auto!important;margin:0!important;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 11px!important;
+   background:#fff!important;border-bottom:1px solid #E2E8F0!important;flex-wrap:nowrap!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>.section-heading h2{
+   color:#001F3F!important;font-size:19px!important;line-height:1.4!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>form{
+   display:flex!important;flex-direction:column!important;flex:1 1 0%!important;
+   min-height:0!important;overflow:auto!important;padding:16px!important;
+   gap:12px!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>form>label{
+   display:flex!important;flex-direction:column!important;min-width:0!important;
+   gap:8px!important;margin:0!important;color:#001F3F!important;font-size:14px!important;font-weight:700!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>form>.form-grid{
+   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   gap:10px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>form>.form-grid label{
+   display:flex!important;flex-direction:column!important;gap:6px!important;
+   margin:0!important;font-size:13px!important;font-weight:700!important;color:#001F3F!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>form :is(input,select){
+   min-height:48px!important;padding:9px 11px!important;border-radius:12px!important;
+   color:#132238!important;background:#fff!important;border:1px solid #CBD5E1!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>form :is(input,select):focus{
+   outline:2px solid #C5A021!important;outline-offset:1px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>form>.actions{
+   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   flex:0 0 auto!important;position:sticky!important;bottom:-16px!important;
+   margin:auto -16px -16px!important;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))!important;
+   background:#fff!important;border-top:1px solid #E2E8F0!important;z-index:2!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog:has(>form):not(:has(.gold-purchase-form))>form>.actions button{
+   min-width:0!important;min-height:48px!important;border-radius:12px!important;font-size:15px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog.confirm-dialog{
+   width:min(100%,430px)!important;max-height:calc(100dvh - 32px)!important;
+   overflow:auto!important;border-radius:18px!important;padding:20px!important;
+ }
+ html.dh-iphone-page-lock .gold-web.workspace .dialog.confirm-dialog .actions button{
+   min-height:46px!important;min-width:110px!important;
+ }
+}
+@media(max-width:370px){
+ html.dh-iphone-page-lock .gold-web.workspace .approved-services-grid{
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}

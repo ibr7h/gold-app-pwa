@@ -1811,3 +1811,21 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web .gold-purchase-mode{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
  .gold-web .gold-purchase-mode label{min-height:46px}
 }
+
+
+/* Source-level iPhone form consistency for future User builds. */
+@media(max-width:800px){
+ .gold-web.workspace :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  font-size:16px!important;min-height:46px;min-width:0;max-width:100%;
+ }
+ .gold-web.workspace .calculator-form input:not([type=checkbox]),
+ .gold-web.workspace .dh-personal-form input{
+  min-height:48px!important;font-size:16px!important;
+ }
+ .gold-web.workspace .calculator-form .weight-presets{display:flex;flex-wrap:wrap;gap:8px}
+ .gold-web.workspace .calculator-form .weight-presets button{min-height:42px;flex:1 1 auto}
+ .gold-web.workspace .approved-card-title{flex-wrap:wrap;gap:10px}
+ .gold-web.workspace .approved-card-title button{min-height:44px}
+ .gold-web.workspace .dh-personal-actions button{min-height:48px}
+ .gold-web.workspace :is(.dh-push-actions,.dh-location-links){display:flex;flex-wrap:wrap;gap:9px}
+}

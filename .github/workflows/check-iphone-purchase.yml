@@ -1,10 +1,11 @@
-name: Check iPhone purchase UI
+name: Check iPhone user layouts
 on:
   push:
     branches: ["preview/iphone-render"]
     paths:
       - "_render_preview/gold-app-pwa/full/**"
       - "apps/user/overrides/web/PurchaseFormFields.tsx"
+      - "apps/user/overrides/web/UserWorkspace.tsx"
       - "apps/user/overrides/web/user.css"
       - "apps/user/scripts/test-iphone-purchase.cjs"
       - ".github/workflows/check-iphone-purchase.yml"

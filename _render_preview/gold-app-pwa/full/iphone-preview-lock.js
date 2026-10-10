@@ -46,7 +46,7 @@
       keepAuthFieldVisible();
     } else {
       root.style.removeProperty('--dh-auth-keyboard-inset');
-      if (editableFocused() && vv.scale <= 1.05 && diff > Math.max(130, window.innerHeight * .18)) {
+      if (editableFocused() && !document.querySelector('.gold-web.workspace .dialog-backdrop:has(.dialog > form)') && vv.scale <= 1.05 && diff > Math.max(130, window.innerHeight * .18)) {
         // Workspace forms keep their existing fixed-viewport behavior.
         root.style.setProperty('--dh-preview-height', Math.max(1, vv.height) + 'px');
       } else {
@@ -436,5 +436,100 @@
    if(er.top<sr.top+12)scroller.scrollTop-=sr.top-er.top+22;
    schedule();
   },320);
+ },true);
+})();
+
+
+/* Unified iPhone form handling: non-purchase sheets, calculator and account inputs.
+   Does not alter persisted state, request payloads or navigation. */
+(function(){
+ 'use strict';
+ if(!/iPhone|iPod/i.test(navigator.userAgent||''))return;
+ const vv=window.visualViewport;
+ const nameText={
+  targetPrice:'السعر المستهدف',direction:'اتجاه التنبيه',karat:'العيار',currency:'العملة',
+  name:'اسم المحفظة'
+ };
+ const namesInDialog={targetPrice:true,direction:true,karat:true,currency:true,name:true};
+ const iconPath={
+  gem:'M6 3h12l4 6-10 12L2 9l4-6ZM2 9h20M12 9v12',
+  wallet:'M3 7h18v14H3V7ZM3 7V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v2M16 14h5',
+  price:'M12 3v18M17 7c-2-3-10-3-10 1s10 3 10 7-8 4-10 1',
+  target:'M12 2v4M12 18v4M2 12h4M18 12h4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
+  arrow:'M5 17 17 5M8 5h9v9'
+ };
+ const cssSheetId='dh-unified-form-icons';
+ function installIconCSS(){
+  if(document.getElementById(cssSheetId))return;
+  const style=document.createElement('style');style.id=cssSheetId;
+  let rules='';
+  for(const [name,shape] of Object.entries(iconPath)){
+   const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="black" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="'+shape+'"/></svg>';
+   const url='url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
+   rules+='.dh-iphone-page-lock .gold-web.workspace label[data-dh-form-icon="'+name+'"]::before{content:"";display:inline-block;vertical-align:middle;width:18px;height:18px;margin-inline-end:7px;background:#967420;-webkit-mask:'+url+' center/contain no-repeat;mask:'+url+' center/contain no-repeat;}';
+  }
+  rules+='@media(min-width:801px){.gold-web.workspace label[data-dh-form-icon]::before{display:none!important}}';
+  style.textContent=rules;document.head.appendChild(style);
+ }
+ const saved=new WeakSet();
+ function apply(){
+  const root=document.querySelector('#root .gold-web.workspace');
+  if(!root)return;
+  const dialog=root.querySelector('.dialog:has(>form):not(:has(.gold-purchase-form))');
+  if(dialog){
+   for(const label of dialog.querySelectorAll('label')){
+    const field=label.querySelector('input[name],select[name]');
+    if(!field||!namesInDialog[field.name])continue;
+    const name=field.name;
+    const icon=name==='karat'?'gem':name==='name'?'wallet':name==='currency'?'price':name==='direction'?'arrow':'target';
+    if(label.dataset.dhFormIcon!==icon)label.dataset.dhFormIcon=icon;
+    if(!saved.has(label)){
+     saved.add(label);
+     const node=Array.from(label.childNodes).find(n=>n.nodeType===3&&n.nodeValue.trim());
+     if(node&&nameText[name])node.nodeValue=nameText[name];
+    }
+   }
+   const direction=dialog.querySelector('select[name="direction"]');
+   if(direction&&!saved.has(direction)){
+    saved.add(direction);
+    for(const option of direction.options){
+     if(option.value==='above')option.text='ارتفاع إلى السعر المستهدف أو أكثر';
+     if(option.value==='below')option.text='انخفاض إلى السعر المستهدف أو أقل';
+    }
+   }
+  }
+  if(vv){
+   const backdrop=dialog?.closest('.dialog-backdrop');
+   if(backdrop){
+    const height=Math.max(180,Math.floor(vv.height))+'px';
+    const top=Math.max(0,Math.round(vv.offsetTop))+'px';
+    if(backdrop.style.getPropertyValue('--dh-form-height')!==height)backdrop.style.setProperty('--dh-form-height',height);
+    if(backdrop.style.getPropertyValue('--dh-form-top')!==top)backdrop.style.setProperty('--dh-form-top',top);
+   }
+  }
+ }
+ function keepFieldVisible(input){
+  if(!input||!input.matches('input,select,textarea'))return;
+  const target=input.closest('.dialog:has(>form)')?input.closest('form')
+    :input.closest('.workspace-content');
+  if(!target||!target.contains(input))return;
+  const field=input.getBoundingClientRect(), area=target.getBoundingClientRect();
+  const top=Math.max(area.top,(vv?vv.offsetTop:0)+10);
+  const bottom=Math.min(area.bottom,(vv?vv.offsetTop+vv.height:innerHeight)-12);
+  if(field.bottom>bottom-14)target.scrollTop+=field.bottom-bottom+24;
+  else if(field.top<top+14)target.scrollTop-=top-field.top+24;
+ }
+ let frame=0;
+ function schedule(){if(!frame)frame=requestAnimationFrame(()=>{frame=0;apply();});}
+ function start(){
+  installIconCSS();
+  new MutationObserver(schedule).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
+  schedule();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+ if(vv){vv.addEventListener('resize',schedule,{passive:true});vv.addEventListener('scroll',schedule,{passive:true});}
+ document.addEventListener('focusin',function(e){
+  if(!e.target?.closest?.('.gold-web.workspace'))return;
+  setTimeout(()=>{apply();keepFieldVisible(e.target);},320);
  },true);
 })();
