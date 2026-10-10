@@ -100,3 +100,19 @@ html.dh-iphone-page-lock .gold-auth .mockup-input-wrap .form-input {
 html.dh-iphone-page-lock .gold-auth .mockup-eye-btn {
   touch-action: manipulation;
 }
+
+/* Preview auth: visibility control always sits inside the left edge in RTL. */
+html.dh-iphone-page-lock .gold-auth .mockup-input-wrap{position:relative!important}
+html.dh-iphone-page-lock .gold-auth .mockup-eye-btn{
+ position:absolute!important;
+ left:4px!important;right:auto!important;
+ top:50%!important;bottom:auto!important;
+ transform:translateY(-50%)!important;
+ width:44px!important;height:44px!important;min-width:44px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:0!important;z-index:12!important;
+ background:transparent!important;border:0!important;
+ touch-action:manipulation!important;
+}
+html.dh-iphone-page-lock .gold-auth .mockup-eye-btn svg{pointer-events:none}
+html.dh-iphone-page-lock .gold-auth .mockup-input-wrap:has(.mockup-eye-btn)>.form-input{padding-left:52px!important}
