@@ -1,4 +1,4 @@
-/** Visible User PWA release, generated from the deployed GitHub commit at build time. */
-export const APP_VERSION = '1.9.8';
+/** Visible User PWA release, incremented for each iPhone preview release. */
+export const APP_VERSION = '1.9.9';
 export const APP_BUILD = '__USER_BUILD_SHA__';
 export const APP_DISPLAY_VERSION = `v${APP_VERSION}`;

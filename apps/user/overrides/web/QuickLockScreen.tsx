@@ -1,7 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';
 import type {User} from '../contexts/AuthContext.web';
 import {PIN_LENGTH,type PinResult} from './quick-pin';
-import {APP_DISPLAY_VERSION} from './app-version';
 
 /** Native-like local lock screen. The browser's platform verification UI is invoked only on tap. */
 function FaceMark(){
@@ -77,8 +76,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
     :<div className="dh-pin-bio-only">{!biometricEnabled&&<p role="status">بصمة الجهاز غير متاحة حاليًا؛ استخدم كلمة المرور.</p>}</div>}
    {biometricEnabled&&<div className={'dh-pin-bio-only'+(quickPinEnabled?' dh-pin-bio-compact':'')}><button type="button" onClick={biometric} disabled={busy||loading}><FaceMark/> فتح ببصمة الجهاز</button></div>}
    <small className="dh-pin-security-note">يعمل رمز الدخول على هذا الجهاز فقط. يتطلب فتح البيانات جلسة صالحة في خادم ذهبي.</small>
-   <small className="dh-pin-release" dir="ltr">{APP_DISPLAY_VERSION}</small>
-  </div>
+     </div>
  </main>;
 }
 /** Setup and confirmation happen in-app; raw codes are never written to local storage. */

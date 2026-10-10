@@ -149,3 +149,7 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 @media(max-width:360px){
   html .gold-auth .dh-intl-phone-row{grid-template-columns:100px minmax(0,1fr)!important}
 }
+
+/* Only Profile displays release metadata; hide stale cached variants. */
+html .gold-auth .app-version-stamp,html .gold-web.boot .app-version-stamp,html .dh-quick-lock .dh-pin-release,html .gold-web .workspace-content>footer{display:none!important}
+html .gold-web .dh-profile-copyright{display:block;margin-top:8px;font-size:12px;text-align:center;line-height:1.7;color:#748092}

@@ -109,11 +109,10 @@
 (function(){
  'use strict';
  var notice='يُحفظ الرقم الدولي بصيغة E.164';
- var releaseVersion='v1.9.8';
  function repair(){
   var auth=document.querySelector('#root .gold-auth');
   if(!auth)return;
-  auth.querySelectorAll('.app-version-stamp').forEach(function(el){if(el.textContent!==releaseVersion)el.textContent=releaseVersion;});
+  auth.querySelectorAll('.app-version-stamp').forEach(function(el){el.remove();});
   var walker=document.createTreeWalker(auth,NodeFilter.SHOW_TEXT);
   var node;
   while((node=walker.nextNode())){
@@ -122,7 +121,6 @@
     if(host&&host.childElementCount===0)host.style.display='none';
     else node.nodeValue='';
    }
-   if(node.nodeValue&&node.parentElement?.closest('.app-version-stamp'))node.nodeValue=releaseVersion;
   }
  }
  var queued=false;

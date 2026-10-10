@@ -1762,3 +1762,7 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 @media(max-width:360px){
   html .gold-auth .dh-intl-phone-row{grid-template-columns:100px minmax(0,1fr)!important}
 }
+
+/* Release number and rights only inside Profile. */
+.gold-web .app-version-stamp,.gold-web .dh-pin-release,.gold-web .workspace-content>footer{display:none!important}
+.gold-web .dh-profile-copyright{display:block;margin-top:8px;color:#748092;font-size:12px;text-align:center;line-height:1.7}
