@@ -48,6 +48,22 @@ describe('User profile UX integration',()=>{
   expect(workspace).toContain('dh-profile-signout-button');
   expect(workspace).toContain('onClick={signOut}');
  });
+ it('keeps approved navy and gold profile design with readable email and account type',()=>{
+  expect(source).not.toContain('className="dh-profile-eyebrow"');
+  expect(source).toContain('className="dh-profile-email" dir="ltr"');
+  expect(source).toContain('className="dh-profile-account-type">حساب مستخدم');
+  expect(css).toContain('.gold-web.reference-home .approved-card.dh-profile-hero{background:#FFFFFF!important;');
+  expect(css).toContain('.gold-web .dh-profile-email{font-size:13px;color:#001F3F!important;');
+  expect(css).toContain('.gold-web .dh-profile-account-type{display:inline-flex;');
+  expect(css).toContain('border:1px solid #C5A021;border-radius:999px;');
+  expect(css).not.toContain('.gold-web .dh-profile-eyebrow{');
+ });
+ it('removes backgrounds from shortcut icons while retaining the gold strokes',()=>{
+  expect(workspace).toContain('className="dh-profile-shortcut-icon"');
+  expect(css).toContain('.gold-web .dh-profile-shortcut-icon{display:grid;');
+  expect(css).toContain('background:transparent!important;box-shadow:none!important;color:#C5A021!important');
+  expect(css).not.toContain('background:#FFF5D5');
+ });
  it('uses touch-friendly focus-visible controls and small screen responsive layout',()=>{
   expect(css).toContain('.gold-web .dh-profile-edit-form input');
   expect(css).toContain('font-size:16px!important');
