@@ -73,11 +73,16 @@ jobs:
           for marker in ('portfolio-card-actions','portfolio-change-value','portfolio-edit'):
               if marker not in compiled:
                   raise RuntimeError(f'New wallet code missing in compiled Expo bundle: {marker}')
+          css_files=list((src/'_expo/static/css').glob('user-*.css'))
+          if len(css_files)!=1:
+              raise RuntimeError(f'Expected one User stylesheet, got {css_files}')
+          user_css=css_files[0].name
           shutil.copytree(src/'_expo',dest/'_expo',dirs_exist_ok=True)
           updated=0
           for page in dest.rglob('*.html'):
               html=page.read_text()
-              next_html,n=re.subn(r'(?<=/web/)entry-[0-9a-f]+\.js',bundle.name,html)
+              next_html,n=re.subn(r'(?<=/web/)entry-(?:[0-9a-f]+|dhahabi-v[0-9.]+)\.js',bundle.name,html)
+              next_html=re.sub(r'user-[a-f0-9]+\.css',user_css,next_html)
               if n:
                   page.write_text(next_html)
                   updated+=1
