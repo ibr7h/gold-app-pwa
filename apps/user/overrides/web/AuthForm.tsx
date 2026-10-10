@@ -1,7 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {Money} from './price-display';
 import {router} from 'expo-router';
-import {useAuth} from '../contexts/AuthContext';
+import {useAuth} from '../contexts/AuthContext.web';
 import {API_BASE} from './api';
 import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
