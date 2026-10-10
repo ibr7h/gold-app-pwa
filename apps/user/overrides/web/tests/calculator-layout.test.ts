@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {calculatorQuote} from '../calculator-quote';
 import {tafqeetSar} from '../tafqeet-sar';
 
-const ui=readFileSync(new URL('../UserWorkspace.tsx',import.meta.url),'utf8');
+const ui=readFileSync(new URL('../UserWorkspace.tsx',import.meta.url).pathname,'utf8');
 
 describe('Gold App calculator user-only layout',()=>{
  it('removes the redundant calculator total banner while retaining a single final total',()=>{
