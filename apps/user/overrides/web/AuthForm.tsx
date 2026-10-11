@@ -5,6 +5,7 @@ import {useAuth} from '../contexts/AuthContext';
 import {API_BASE} from './api';
 import './user.css';
 import {canShowBiometricLogin} from './biometric-visibility';
+import {useLanguage} from './i18n';
 
 type AuthIconName='fingerprint'|'mail'|'lock'|'eye'|'eyeOff'|'login'|'guest'|'userPlus'|'back';
 function MockupFingerprintIcon(){
@@ -29,13 +30,14 @@ function AuthIcon({name,size=20}:{name:AuthIconName;size?:number}){
 
 interface GuestPrice{karat:number;buyPrice:string;currency:string}
 function GuestPrices({onBack}:{onBack:()=>void}){
+ const {language,direction}=useLanguage();
  const [rows,setRows]=useState<GuestPrice[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
  useEffect(()=>{let active=true;(async()=>{try{
   const data=await Promise.all([24,22,21,18].map(async karat=>{const r=await fetch(API_BASE+'/prices/latest?currency=SAR&karat='+karat,{cache:'no-store'});if(!r.ok)throw new Error();return r.json();}));
   if(active)setRows(data);
  }catch{if(active)setError('تعذر تحميل الأسعار الآن.');}finally{if(active)setLoading(false);}})();return()=>{active=false;};},[]);
  const money=(v:string)=><Money amount={Number(v)} currency="SAR"/>;
- return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
+ return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container guest-price-view">
    <button className="guest-back" type="button" onClick={onBack}><AuthIcon name="back"/>العودة لتسجيل الدخول</button>
    <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
@@ -53,6 +55,7 @@ function GuestPrices({onBack}:{onBack:()=>void}){
 }
 
 export default function AuthForm({register=false}:{register?:boolean}){
+ const {language,direction}=useLanguage();
  const {user,isLoading,error,login,startRegistration,clearError,biometricAvailable,biometricEnrolled,biometricEnabled,loginWithBiometric}=useAuth();
  const showBiometricLogin=canShowBiometricLogin({biometricAvailable,biometricEnrolled,biometricEnabled});
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
@@ -66,7 +69,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
  // Browser and iOS own the passkey sheet. Never request it before an explicit tap.
  // WebAuthn authenticates the previously enrolled device; this does not enroll passkeys automatically.
  if(guest&&!register)return <GuestPrices onBack={()=>setGuest(false)}/>;
- if(register)return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
+ if(register)return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
    <div className="emblem-circle"><span className="emblem-text">ذ</span></div>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
@@ -84,7 +87,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
    </section>
   </section>
  </main>;
- return <main className="gold-web gold-auth approved-auth auth-mockup" dir="rtl" lang="ar">
+ return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
    <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
