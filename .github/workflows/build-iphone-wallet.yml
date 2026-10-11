@@ -17,7 +17,7 @@ on:
       - "apps/user/overrides/web/tests/v1920-restore.test.ts"
       - "apps/user/overrides/web/tests/fixtures/v1.9.20-calculator.txt"
       - "apps/user/overrides/web/user.css"
-      - ".github/workflows/build-iphone-wallet.yml"
+  # Workflow-only maintenance does not automatically rebuild or bump the User release.
   workflow_dispatch:
 permissions:
   contents: write
@@ -27,15 +27,15 @@ concurrency:
 jobs:
   build:
     if: "${{ !startsWith(github.event.head_commit.message, 'build(user-iphone): wallet-card') }}"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: true
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 9.12.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
       - name: Extract original source
