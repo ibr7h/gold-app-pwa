@@ -239,4 +239,51 @@ describe('Approved global gold market-closed UI',()=>{
  });
 });
 
-
+describe('iPhone more and profile UX redesign',()=>{
+ it('groups More services and settings and presents the verified account name before the email',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  expect(workspace).toContain('className="dh-ux-more"');
+  expect(workspace).toContain('className="dh-ux-account-link"');
+  expect(workspace).toContain('className="dh-ux-account-text"');
+  expect(workspace).toContain('<strong dir="auto">{accountName}</strong>');
+  expect(workspace).toContain('عرض الملف الشخصي وتعديل بياناتي');
+  expect(workspace).toContain('id="dh-more-services-title"');
+  expect(workspace).toContain('id="dh-more-settings-title"');
+  expect(workspace).toContain('id="dh-preferences-title"');
+ });
+ it('exposes a real device-persistent price currency preference without pretending language options work',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  expect(workspace).toContain("window.localStorage.getItem('dhahabi:user:price-currency')");
+  expect(workspace).toContain("window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency)");
+  expect(workspace).toContain('aria-pressed={priceCurrency===\'SAR\'}');
+  expect(workspace).toContain('aria-pressed={priceCurrency===\'USD\'}');
+  expect(workspace).toContain('لا يمكن تغيير اللغة الآن');
+  expect(workspace).not.toContain('English · قريبًا</button>');
+ });
+ it('separates profile identity, details, local security and services while retaining update and sign out actions',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const details=source('../UserPersonalDetails.tsx');
+  expect(workspace).toContain('className="dh-ux-profile"');
+  expect(workspace).toContain('className="approved-card dh-ux-profile-hero"');
+  expect(workspace).toContain('<UserPersonalDetails/>');
+  expect(workspace).toContain('className="dh-security-help"');
+  expect(workspace).toContain('aria-checked={quickPinEnabled}');
+  expect(workspace).toContain('aria-checked={biometricActive}');
+  expect(workspace).toContain("new Event('dhahabi:user-check-update')");
+  expect(workspace).toContain('className="dh-ux-logout" onClick={signOut}');
+  expect(workspace).toContain('className="app-version-account"');
+  expect(details).toContain('aria-label="تعديل الاسم الكامل"');
+  expect(details).toContain('aria-label="تعديل المدينة"');
+  expect(details).toContain('onSubmit={save}');
+  expect(details).toContain('await updateProfile({fullName:trimmed,city:city.trim()})');
+ });
+ it('keeps readable sections and touch targets on narrow iPhones',()=>{
+  const css=source('../user.css');
+  expect(css).toContain('iPhone more, preferences and account UX — 2026-10-11');
+  expect(css).toContain('.gold-web.workspace .dh-ux-profile-hero');
+  expect(css).toContain('.gold-web.workspace .dh-personal-rows > div');
+  expect(css).toContain('.gold-web.workspace .dh-currency-options button');
+  expect(css).toContain('min-height:44px');
+  expect(css).toContain('@media(max-width:400px)');
+ });
+});
