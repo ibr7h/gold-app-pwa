@@ -88,7 +88,11 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
- const [priceCurrency,setPriceCurrency]=useState('SAR');
+ const [priceCurrency,setPriceCurrency]=useState<'SAR'|'USD'>(()=>{
+  try{return typeof window!=='undefined'&&window.localStorage.getItem('dhahabi:user:price-currency')==='USD'?'USD':'SAR';}
+  catch{return 'SAR';}
+ });
+ useEffect(()=>{try{window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency);}catch{/* Storage may be blocked on iOS private browsing. */}},[priceCurrency]);
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]);
  const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
@@ -431,8 +435,11 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <p className="dh-preference-note">الإنجليزية والفرنسية ستتوفران لاحقًا؛ لا يمكن تغيير اللغة الآن.</p>
     <div className="dh-preference-row">
      <span className="dh-ux-row-icon"><Icon name="chart"/></span>
-     <span className="dh-preference-text"><strong>عملات الأسعار المتاحة</strong><small>تُحدد عملة العرض من شاشة الأسعار</small></span>
-     <span className="dh-currency-options" aria-label="الريال السعودي والدولار الأمريكي"><span>SAR</span><span>USD</span></span>
+     <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong><small>تُستخدم في الأسعار والرسم البياني وتحفظ على هذا الجهاز</small></span>
+     <span className="dh-currency-options" role="group" aria-label="اختيار عملة عرض الأسعار">
+      <button type="button" aria-pressed={priceCurrency==='SAR'} className={priceCurrency==='SAR'?'selected':''} onClick={()=>setPriceCurrency('SAR')}>SAR</button>
+      <button type="button" aria-pressed={priceCurrency==='USD'} className={priceCurrency==='USD'?'selected':''} onClick={()=>setPriceCurrency('USD')}>USD</button>
+     </span>
     </div>
    </section>
    <button type="button" className="dh-ux-logout" onClick={signOut}><Icon name="logout"/>تسجيل الخروج</button>
