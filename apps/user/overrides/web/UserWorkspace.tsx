@@ -227,6 +227,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   if(page==='calculator')return <>
    <section className="approved-card calculator-form">
     <label>1. اختر عيار الذهب<div className="karat-switch">{[24,22,21,18].map(k=><button type="button" key={k} className={calcKarat===k?'active':''} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div></label>
+    <div className="calc-unit-price" role="status" aria-live="polite">
+     <span className="calc-unit-label">سعر الجرام الأساسي حسب العيار المحدد<small>عيار {calcKarat} · السعر العالمي الاسترشادي، دون مصنعية أو ضريبة{marketClosed?' · آخر سعر مسجل':''}</small></span>
+     <strong dir="ltr">{money(calcUnit,'SAR')}</strong>
+    </div>
     <label>الوزن (جرام)<input type="number" inputMode="decimal" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(e.target.value)}/><div className="weight-presets">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(String(w))}>{w===31.1?'أونصة 31.1g':w+' جرام'}</button>)}</div></label>
     <label>المصنعية / جرام (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
     <div className="calc-toggle"><div><strong>ضريبة 15% (اختيارية)</strong><small>الضريبة = (قيمة الذهب + إجمالي المصنعية) × 15%.</small></div><input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/></div>

@@ -20,7 +20,14 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
    if(a<0||b<0)throw Error('Calculator inputs missing');
    return s.slice(a,b+10);
   };
-  expect(fields(actual)).toBe(fields(baseline));
+  const withoutAddedUnitPrice=actual.replace(/\n    <div className="calc-unit-price" role="status" aria-live="polite">[\s\S]*?<\/div>/,'');
+  expect(fields(withoutAddedUnitPrice)).toBe(fields(baseline));
+  expect(actual).toContain('سعر الجرام الأساسي حسب العيار المحدد');
+  expect(actual).toContain("money(calcUnit,'SAR')");
+  expect(actual).toContain('عيار {calcKarat}');
+  expect(actual).toContain("marketClosed?' · آخر سعر مسجل':''");
+  expect(current).toContain("const calcMarket=allMarketRows.find(r=>r.currency==='SAR'&&r.karat===calcKarat)");
+  expect(current).toContain('const calcUnit=calcMarket?Number(calcMarket.buyPrice):null;');
   expect(actual).not.toContain('calc-total-card');
   expect(actual).not.toContain('السعر الإجمالي التقريبي');
   expect(actual).toContain('className="approved-card calc-estimate-card"');

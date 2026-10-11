@@ -2014,3 +2014,27 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web.workspace .dh-nearby-location{padding:12px}
  .gold-web.workspace .dh-nearby-location .dh-location-links a{flex-basis:100%}
 }
+
+
+/* iPhone calculator: selected-karat unit price, separate from estimate and tafqeet. */
+.gold-web.workspace .calculator-form .calc-unit-price{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ min-width:0;margin:2px 0 20px;padding:14px 15px;
+ border:1px solid #DFE4EC;border-right:3px solid #C5A021;
+ border-radius:12px;background:#F7F9FC;color:#132238;
+}
+.gold-web.workspace .calculator-form .calc-unit-label{
+ display:flex;flex-direction:column;gap:3px;min-width:0;
+ font-weight:750;font-size:14px;line-height:1.5;
+}
+.gold-web.workspace .calculator-form .calc-unit-label small{
+ color:#64748B;font-weight:500;font-size:11px;line-height:1.65;
+}
+.gold-web.workspace .calculator-form .calc-unit-price>strong{
+ flex:0 0 auto;font-size:clamp(17px,4.3vw,22px);font-weight:800;
+ color:#8A6B16;white-space:nowrap;
+}
+@media(max-width:480px){
+ .gold-web.workspace .calculator-form .calc-unit-price{align-items:stretch;flex-direction:column;gap:7px}
+ .gold-web.workspace .calculator-form .calc-unit-price>strong{align-self:flex-start}
+}
