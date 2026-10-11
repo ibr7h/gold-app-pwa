@@ -131,3 +131,45 @@ describe('Extended iPhone Arabic-remnant regressions',()=>{
   expect(src).toContain("'aria-valuetext'");
  });
 });
+
+describe('Localized iPhone actions and portfolio summary regressions',()=>{
+ const workspace=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url).href),'utf8');
+ const css=readFileSync(fileURLToPath(new URL('../user.css',import.meta.url).href),'utf8');
+ it('has correct English and French labels for all three overlooked actions',()=>{
+  const labels=[
+   ['تسجيل شراء','Record purchase','Enregistrer un achat'],
+   ['تنبيه جديد','New alert','Nouvelle alerte'],
+   ['التحقق من تحديث التطبيق','Check for app updates','Rechercher des mises à jour'],
+   ['محفظتي الذهبية','My gold portfolio',"Mon portefeuille d'or"],
+   ['التفاصيل ←','Details','Détails'],
+   ['إجمالي الوزن:','Total weight:','Poids total :'],
+   ['جرام','gram','gramme']
+  ] as const;
+  for(const [ar,en,fr] of labels){
+   expect(translateUiText(ar,'en')).toBe(en);
+   expect(translateUiText(ar,'fr')).toBe(fr);
+   expect(translateUiText(ar,'ar')).toBe(ar);
+  }
+ });
+ it('supports both whole and decimal gram weights in the chosen locale',()=>{
+  expect(translateUiText('154.00 جرام','en')).toBe('154.00 grams');
+  expect(translateUiText('154.00 جرام','fr')).toBe('154.00 grammes');
+  expect(translateUiText('154.00 جرام','ar')).toBe('154.00 جرام');
+ });
+ it('renders critical labels directly from selected locale instead of post-render DOM mutation',()=>{
+  expect(workspace).toContain("const tr=(source:string)=>translateUiText(source,language)");
+  for(const label of ['تسجيل شراء','تنبيه جديد','التحقق من تحديث التطبيق','محفظتي الذهبية','التفاصيل ←','إجمالي الوزن:','جرام']){
+   expect(workspace).toContain("tr('"+label+"')");
+  }
+  expect(workspace).toContain("number(homePortfolio.weight)");
+  expect(workspace).toContain("homePortfolio.percent");
+  expect(workspace).toContain("money(Math.abs(homePortfolio.difference),priceCurrency)");
+  expect(workspace).toContain("window.dispatchEvent(new Event('dhahabi:user-check-update'))");
+ });
+ it('keeps the portfolio amounts, decimal portions, and currency symbol together on small screens',()=>{
+  expect(css).toContain('/* Keep large localized portfolio amounts intact on narrow iPhone screens. */');
+  expect(css).toContain('flex-wrap:wrap!important;justify-content:space-between;row-gap:8px;');
+  expect(css).toContain('.portfolio-mini-body .dh-money-fraction');
+  expect(css).toContain('white-space:nowrap!important;');
+ });
+});
