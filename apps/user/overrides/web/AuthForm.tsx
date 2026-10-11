@@ -6,6 +6,7 @@ import {API_BASE} from './api';
 import './user.css';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {useLanguage} from './i18n';
+import {localizeFeedback} from './i18n-feedback';
 
 type AuthIconName='fingerprint'|'mail'|'lock'|'eye'|'eyeOff'|'login'|'guest'|'userPlus'|'back';
 function MockupFingerprintIcon(){
@@ -46,7 +47,7 @@ function GuestPrices({onBack}:{onBack:()=>void}){
       <section className="mockup-auth-card guest-card">
     <h2>أسعار الجرام الحالية</h2>
     {loading&&<p className="guest-status">جارٍ تحميل الأسعار…</p>}
-    {error&&<p className="error-banner">{error}</p>}
+    {error&&<p className="error-banner">{localizeFeedback(error,language)}</p>}
     {!loading&&!error&&<div className="guest-price-grid">{rows.map(row=><article key={row.karat}><span>عيار {row.karat}</span><strong>{money(row.buyPrice)}</strong></article>)}</div>}
     <button className="gold-btn mockup-primary-btn" type="button" onClick={onBack}><AuthIcon name="login"/>تسجيل الدخول للاستفادة من كامل الخدمات</button>
    </section>
@@ -80,7 +81,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
      <label className="form-group"><span className="form-label">البريد الإلكتروني</span><div className="mockup-input-wrap"><input className="form-input" type="email" dir="ltr" autoComplete="email" value={email} required placeholder="user@gold.app" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
      <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={password} placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
      <label className="form-group"><span className="form-label">تأكيد كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={confirm} placeholder="أعد كتابة كلمة المرور" onChange={e=>setConfirm(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="lock"/></span></div></label>
-     {(localError||error)&&<p className="error-banner" role="alert">{localError||error}</p>}
+     {(localError||error)&&<p className="error-banner" role="alert">{localizeFeedback(localError||error,language)}</p>}
      <button className="gold-btn mockup-primary-btn" disabled={isLoading}><AuthIcon name="userPlus"/><span>{isLoading?'جارٍ إنشاء الحساب…':'إنشاء الحساب'}</span></button>
      <div className="mockup-register-link">لديك حساب؟ <button type="button" onClick={()=>{clearError();router.replace('/login');}}>تسجيل الدخول</button></div>
     </form>
@@ -99,7 +100,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
      <small>Face ID أو بصمة الإصبع المسجلة</small>
     </button>}
     <div className="mockup-divider"><span>{showBiometricLogin?'أو بالبريد الإلكتروني أو رقم الجوال':'الدخول بالبريد الإلكتروني أو رقم الجوال'}</span></div>
-    {(localError||error)&&<p className="error-banner" role="alert">{localError||error}</p>}
+    {(localError||error)&&<p className="error-banner" role="alert">{localizeFeedback(localError||error,language)}</p>}
     <form onSubmit={submit} aria-busy={isLoading}>
      <label className="form-group"><span className="form-label">البريد الإلكتروني أو رقم الجوال</span><div className="mockup-input-wrap"><input className="form-input" type="text" dir="ltr" autoComplete="username" value={email} required placeholder="البريد الإلكتروني أو 05xxxxxxxx" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
      <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="current-password" value={password} required placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>

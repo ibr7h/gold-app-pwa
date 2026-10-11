@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {describe,it,expect} from 'vitest';
 import {LANGUAGE_META,LANGUAGE_OPTIONS,LANGUAGE_KEY,translateUiText,translateExact,translationCount} from '../i18n-messages';
 import {amountToLocalizedWords} from '../amount-words-localized';
+import {localizeFeedback} from '../i18n-feedback';
 
 describe('Dhahabi offline three-language localization',()=>{
  it('supports reversible language selection and correct display direction',()=>{
@@ -187,7 +188,7 @@ describe('Complete invoice details and optional purchase form localization',()=>
   'نوع القطع/التشطيب','العيوب إن وجدت','سلامة الحجر من الخدش أو الكسر',
   'لإكمال توثيق الفاتورة يُستحسن إضافة:',
   'هذه البيانات اختيارية لتسجيل مشترياتك السابقة.',
-  'هذه بيانات مرجعية أدخلتها أنت؛ لا تعني توثيق الفاتورة رسميًا. احتفظ بصورة الفاتورة الأصلية.'
+  'هذه بيانات مرجعية فقط؛ ولا تعني التحقق الرسمي من الفاتورة. احتفظ بالفاتورة الأصلية.'
  ];
  it('translates invoice details, Optional and all invoice fields in English and French',()=>{
   expect(translateUiText('بيانات الفاتورة','en')).toBe('Invoice details');
@@ -241,5 +242,71 @@ describe('Concise gold-price disclaimer in all languages',()=>{
   expect(source).not.toContain('جميع الأسعار في هذه النسخة تأتي من Backend');
   expect(catalog).not.toContain('All prices come from Dhahabi');
   expect(catalog).not.toContain('Tous les prix proviennent du serveur Dhahabi');
+ });
+});
+
+describe('Real purchase invoice aliases and localized backend errors',()=>{
+ it('translates the actual short invoice captions and their legacy alternatives',()=>{
+  const fields=[
+   ['العنوان','Address','Adresse'],['المشتري','Buyer','Acheteur'],
+   ['حالة القطعة','Item condition',"État de l'article"],
+   ['جودة الحجر','Stone quality','Qualité de la pierre'],
+   ['القطع والتشطيب','Cut and finish','Taille et finition'],
+   ['عيوب الحجر','Stone defects','Défauts de la pierre'],
+   ['سلامة الحجر','Stone integrity','État de la pierre'],
+   ['وصف المشغول','Jewelry description','Description du bijou']
+  ] as const;
+  for(const [ar,en,fr] of fields){
+   expect(translateUiText(ar,'en')).toBe(en);
+   expect(translateUiText(ar,'fr')).toBe(fr);
+   expect(translateUiText(ar,'ar')).toBe(ar);
+  }
+ });
+ it('localizes real server failures, session expiry, validations, and generic request errors',()=>{
+  const errors=[
+   'تعذر تنفيذ الطلب.','تعذر إكمال العملية. حاول مرة أخرى.',
+   'تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.',
+   'الخادم غير متاح حاليًا. حاول لاحقًا.',
+   'انتهت الجلسة. سجّل الدخول مجددًا.',
+   'ليست لديك صلاحية لهذه العملية.',
+   'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+   'إحداثيات الموقع غير صالحة.'
+  ];
+  for(const error of errors)for(const lang of ['en','fr'] as const)
+   expect(localizeFeedback(error,lang),error).not.toMatch(/[\u0600-\u06FF]/);
+  expect(localizeFeedback('تعذر تنفيذ الطلب.','en')).toBe('Unable to complete the request.');
+  expect(localizeFeedback('تعذر تنفيذ الطلب.','fr')).toBe('Impossible de traiter la demande.');
+  expect(localizeFeedback('تعذر تنفيذ الطلب.','ar')).toBe('تعذر تنفيذ الطلب.');
+ });
+ it('handles unknown Arabic server text safely without leaking untranslated messages into English or French',()=>{
+  const message='خطأ جديد غير معروف في الخادم';
+  expect(localizeFeedback(message,'en')).toBe('Unable to complete the request. Please try again.');
+  expect(localizeFeedback(message,'fr')).toBe('Impossible de traiter la demande. Veuillez réessayer.');
+  expect(localizeFeedback(message,'ar')).toBe(message);
+  expect(localizeFeedback('Invalid credentials','en')).toBe('Incorrect email or password.');
+  expect(localizeFeedback('Invalid credentials','fr')).toBe('Adresse e-mail ou mot de passe incorrect.');
+  expect(localizeFeedback(null,'en')).toBe('');
+ });
+ it('covers all primary customer-facing errors and warnings on iPhone screens',()=>{
+  for(const [file,needle] of [
+   ['../UserWorkspace.tsx','localizeFeedback(formError,language)'],
+   ['../AuthForm.tsx','localizeFeedback(localError||error,language)'],
+   ['../UserPersonalDetails.tsx','localizeFeedback(error,language)'],
+   ['../NotificationSettings.tsx','localizeFeedback(error,language)'],
+   ['../NearbyMarkets.tsx','localizeFeedback(failure,language)'],
+   ['../QuickLockScreen.tsx','localizeFeedback(localError||remoteError,language)']
+  ] as const){
+   const source=readFileSync(fileURLToPath(new URL(file,import.meta.url).href),'utf8');
+   expect(source,file).toContain(needle);
+  }
+ });
+ it('keeps the entire invoice explanation readable, not a clipped dangling These fragment',()=>{
+  const form=readFileSync(fileURLToPath(new URL('../PurchaseFormFields.tsx',import.meta.url).href),'utf8');
+  const css=readFileSync(fileURLToPath(new URL('../user.css',import.meta.url).href),'utf8');
+  const ar='هذه بيانات مرجعية فقط؛ ولا تعني التحقق الرسمي من الفاتورة. احتفظ بالفاتورة الأصلية.';
+  expect(form).toContain("tr('"+ar+"')");
+  for(const lang of ['en','fr'] as const)expect(translateUiText(ar,lang)).not.toMatch(/[\u0600-\u06FF]/);
+  expect(css).toContain('/* Long English and French invoice guidance must wrap completely on iPhone. */');
+  expect(css).toContain('overflow-wrap:break-word;word-break:normal;line-height:1.7');
  });
 });

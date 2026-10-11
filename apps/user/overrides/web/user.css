@@ -2393,3 +2393,14 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  direction:ltr;
 }
 .gold-web .dialog[dir="ltr"] .section-heading h2{text-align:left;}
+
+/* Long English and French invoice guidance must wrap completely on iPhone. */
+.gold-web .gold-purchase-form .gold-purchase-completeness,
+.gold-web .gold-purchase-form .fine,
+.gold-web .gold-purchase-details p{
+ min-width:0;max-width:100%;white-space:normal!important;
+ overflow-wrap:break-word;word-break:normal;line-height:1.7;
+}
+.gold-web .gold-purchase-form .gold-purchase-details summary{
+ white-space:normal;overflow-wrap:break-word;
+}
