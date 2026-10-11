@@ -2373,3 +2373,23 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .gold-web.reference-home .portfolio-mini-body .portfolio-delta b{
  white-space:nowrap;
 }
+
+/* Localized purchase/invoice modal: keep RTL Arabic and real LTR EN/FR layouts. */
+.gold-web .dialog[dir="ltr"] .gold-purchase-form,
+.gold-web .dialog[dir="ltr"] .gold-purchase-form label,
+.gold-web .dialog[dir="ltr"] .gold-purchase-form .gold-purchase-fieldset,
+.gold-web .dialog[dir="ltr"] .gold-purchase-form .gold-purchase-details,
+.gold-web .dialog[dir="ltr"] .gold-purchase-form .gold-stones-more{
+ direction:ltr;text-align:left;
+}
+.gold-web .dialog[dir="ltr"] .gold-purchase-form input,
+.gold-web .dialog[dir="ltr"] .gold-purchase-form textarea,
+.gold-web .dialog[dir="ltr"] .gold-purchase-form select{
+ text-align:start;
+}
+.gold-web .dialog[dir="ltr"] .gold-purchase-form input[type="number"],
+.gold-web .dialog[dir="ltr"] .gold-purchase-form input[type="tel"],
+.gold-web .dialog[dir="ltr"] .gold-purchase-form input[type="date"]{
+ direction:ltr;
+}
+.gold-web .dialog[dir="ltr"] .section-heading h2{text-align:left;}
