@@ -187,7 +187,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   const fxRate=sarPerUsd(allMarketRows);
   const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate);return <Money amount={display.amount} currency={display.currency}/>;};
  const priceNote=<p className="fine">جميع الأسعار في هذه النسخة تأتي من Backend ذهبي نفسه؛ وتشترك البطاقات والمحفظة والتنبيهات والرسم البياني في المصدر ذاته. لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.</p>;
- const marketTime=(row:PriceHistoryRow|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp):'لا يوجد تحديث موثوق';
+ const marketTime=(row:Pick<MarketPrice,'timestamp'>|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp):'لا يوجد تحديث موثوق';
  const priceBlock=<section className="market-price-card">
   <div className="row"><div><p className="mock-supporting">{marketClosed?'آخر سعر مسجل':'سعر الذهب الآن'}</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(!stale?'good':'warn')}>{marketLabel}</span></div>
   <p className="market-update">آخر تحديث: {marketTime(homeMarket)}</p>
