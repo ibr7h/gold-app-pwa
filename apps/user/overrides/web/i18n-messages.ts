@@ -1448,9 +1448,9 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "Les conversions sont indicatives et dérivées des cours de l'or ; factures et conditions d'alerte inchangées."
  ],
  [
-  "جميع الأسعار في هذه النسخة تأتي من Backend ذهبي نفسه؛ وتشترك البطاقات والمحفظة والتنبيهات والرسم البياني في المصدر ذاته. لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.",
-  "All prices come from Dhahabi's backend. Cards, portfolio, alerts and charts share the same source. They exclude workmanship, taxes and dealer margins.",
-  "Tous les prix proviennent du serveur Dhahabi. Cartes, portefeuille, alertes et graphiques partagent la même source. Frais de fabrication, taxes et marges exclus."
+  "لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.",
+  "Prices exclude workmanship charges, taxes, and dealer margins.",
+  "Les prix n’incluent pas les frais de fabrication, les taxes ni la marge du commerçant."
  ],
  [
   "بعض مشترياتك بعملات لا تتوفر لها بيانات تحويل موثوقة؛ راجع التفاصيل حسب عملة التسجيل.",
