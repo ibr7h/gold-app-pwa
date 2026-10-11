@@ -664,6 +664,17 @@ jobs:
           cp -R "$GITHUB_WORKSPACE/apps/trader/public/." _site/trader/
           cp -R "$GITHUB_WORKSPACE/apps/admin/public/." _site/admin/
 
+      # The iPhone preview is compiled and versioned on a different branch.
+      # Publish its files under /iphone/ without touching the stable /full/ route.
+      - name: Copy versioned iPhone preview from isolated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "refs/heads/preview/iphone-render"
+          mkdir -p _site/iphone
+          git archive FETCH_HEAD:_render_preview/gold-app-pwa/full | tar -x -C _site/iphone
+          python3 scripts/rebase-iphone-pages.py _site/iphone
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
