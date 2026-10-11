@@ -10,6 +10,8 @@ on:
       - "apps/user/overrides/web/tests/arabic-amount-words.test.ts"
       - "apps/user/overrides/web/tests/price-status.test.ts"
       - "apps/user/overrides/web/tests/iphone-layout.test.ts"
+      - "apps/user/overrides/web/tests/v1920-restore.test.ts"
+      - "apps/user/overrides/web/tests/fixtures/v1.9.20-calculator.txt"
       - "apps/user/overrides/web/user.css"
       - ".github/workflows/build-iphone-wallet.yml"
   workflow_dispatch:
@@ -61,7 +63,7 @@ jobs:
         run: |
           cd "$SRC"
           pnpm install --frozen-lockfile
-          pnpm exec vitest run web/tests/price-status.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts
+          pnpm exec vitest run web/tests/price-status.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
       - name: Preserve preview PWA assets and replace compiled bundle
         run: |
@@ -76,7 +78,7 @@ jobs:
               raise RuntimeError(f'Expected one newly exported entry bundle, found {entries}')
           bundle=entries[0]
           compiled=bundle.read_text()
-          for marker in ('portfolio-card-actions','portfolio-change-value','portfolio-edit','home-chart-card','calc-gram-reference','calc-tafqeet'):
+          for marker in ('portfolio-card-actions','portfolio-change-value','portfolio-edit','home-chart-card','calc-total-card','weight-presets'):
               if marker not in compiled:
                   raise RuntimeError(f'New wallet code missing in compiled Expo bundle: {marker}')
           css_files=list((src/'_expo/static/css').glob('user-*.css'))
