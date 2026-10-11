@@ -184,6 +184,9 @@
   // The mounted map section is the source of truth; URL hashes and titles
   // can lag behind React navigation and must not block the control.
   const map=app.querySelector('.workspace-main > main.workspace-content > section.map-placeholder');
+  // React already manages geolocation here. Never inject a second location UI,
+  // issue a second permission request, or save another competing position.
+  if(map?.querySelector('.dh-nearby-location:not([data-dh-injected])'))return null;
   if(!map||!map.getClientRects().length||getComputedStyle(map).display==='none')return null;
   return map;
  }

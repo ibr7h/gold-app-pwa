@@ -44,6 +44,9 @@
   // The mounted map section is the source of truth; URL hashes and titles
   // can lag behind React navigation and must not block the control.
   const map=app.querySelector('.workspace-main > main.workspace-content > section.map-placeholder');
+  // React already manages geolocation here. Never inject a second location UI,
+  // issue a second permission request, or save another competing position.
+  if(map?.querySelector('.dh-nearby-location:not([data-dh-injected])'))return null;
   if(!map||!map.getClientRects().length||getComputedStyle(map).display==='none')return null;
   return map;
  }
@@ -156,7 +159,7 @@
       if(!alive())return;
       if(stored.locationEnabled!==true)throw Error('تعذر حفظ موقعك.');
       linkTo(point.latitude,point.longitude);
-      status(box,'تم تحديث موقعك.',false);
+      status(box,'',false);
     }catch(e){
       if(alive()){links.hidden=true;status(box,e instanceof Error?e.message:'تعذر تحديد الموقع أو حفظه.',true);}
     }

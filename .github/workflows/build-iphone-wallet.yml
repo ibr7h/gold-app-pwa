@@ -5,6 +5,8 @@ on:
     paths:
       - "apps/user/overrides/web/UserWorkspace.tsx"
       - "apps/user/overrides/web/NearbyMarkets.tsx"
+      - "apps/user/overrides/web/nearby-geolocation.ts"
+      - "apps/user/overrides/web/tests/nearby-geolocation.test.ts"
       - "apps/user/overrides/web/price-status.ts"
       - "apps/user/overrides/web/price-trend.ts"
       - "apps/user/overrides/web/tests/price-trend.test.ts"
@@ -65,7 +67,7 @@ jobs:
         run: |
           cd "$SRC"
           pnpm install --frozen-lockfile
-          pnpm exec vitest run web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts
+          pnpm exec vitest run web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
       - name: Preserve preview PWA assets and replace compiled bundle
         run: |
