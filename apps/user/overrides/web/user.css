@@ -2230,3 +2230,16 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web.workspace .dh-personal-rows dd{text-align:right;}
  .gold-web.workspace .dh-personal-rows dd[dir="ltr"]{text-align:left;}
 }
+
+/* Active device currency selection: accessible buttons. */
+.gold-web.workspace .dh-currency-options button{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-width:53px;min-height:44px;padding:8px 10px;
+ background:#F7F9FC;color:#46556c;border:1px solid #DCE2EA;
+ border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;
+}
+.gold-web.workspace .dh-currency-options button.selected,
+.gold-web.workspace .dh-currency-options button[aria-pressed="true"]{
+ color:#001F3F;background:#F5EDD1;border:1px solid #C5A021;
+}
+.gold-web.workspace .dh-currency-options button:focus-visible{outline:3px solid #C5A021;outline-offset:3px;}
