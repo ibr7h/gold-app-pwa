@@ -19,6 +19,7 @@ import {calculatorQuote} from './calculator-quote';
 import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
 import {displayAmount,displayPortfolioSummary,sarPerUsd} from './display-currency';
+import {LanguageProvider,useLanguage,activeLocale} from './i18n';
 /** Build-time type bridge for the extracted native app's older AuthContext.
  * The Web bundle uses the specialized contexts/AuthContext.web provider.
  */
@@ -68,7 +69,7 @@ function Icon({name}:{name:string}){
 }
 const number=(n:number)=>formatTwo(n);
 const money=(n:number|null,c:string)=><Money amount={n} currency={c}/>;
-const dateTime=(s:string)=>new Date(s).toLocaleString('ar-SA',{dateStyle:'medium',timeStyle:'short'});
+const dateTime=(s:string)=>new Date(s).toLocaleString(activeLocale(),{dateStyle:'medium',timeStyle:'short'});
 function Empty({children}:{children:React.ReactNode}){return <div className="empty"><Icon name="wallet"/><p>{children}</p></div>;}
 function CurrencySelect({value='SAR'}:{value?:string}){return <select name="currency" defaultValue={value}>{(CURRENCIES.includes(value)?CURRENCIES:[value,...CURRENCIES]).map(c=><option key={c}>{c}</option>)}</select>;}
 function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{(KARATS.includes(value)?KARATS:[value,...KARATS]).map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
@@ -85,7 +86,8 @@ function BootScreen(){
   </div>
  </div>;
 }
-export default function UserWorkspace(){
+export default function UserWorkspace(){return <LanguageProvider><LocalizedUserWorkspace/></LanguageProvider>;}
+function LocalizedUserWorkspace(){
  const {user,lockedAccount,isLoading,error,logout,quickPinEnabled,biometricEnabled,unlockWithPin,loginWithBiometric}=useUserLockAuth();
  if(isLoading&&!user&&!lockedAccount)return <BootScreen/>;
  if(lockedAccount)return <QuickLockScreen key={String(lockedAccount.id)}
@@ -96,6 +98,7 @@ export default function UserWorkspace(){
  return <Workspace key={String(user.id)} email={user.email} role={user.role} logout={logout}/>;
 }
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
+  const {language,setLanguage,direction}=useLanguage();
  const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
  const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|null>(null);
@@ -449,9 +452,12 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <div className="dh-preference-row">
      <span className="dh-ux-row-icon"><Icon name="globe"/></span>
      <span className="dh-preference-text"><strong>لغة التطبيق</strong><small>لغة الواجهة الحالية</small></span>
-     <span className="dh-preference-value">العربية</span>
+     <div className="dh-language-options" role="group" aria-label="لغة التطبيق">
+      <button type="button" lang="ar" aria-pressed={language==='ar'} className={language==='ar'?'selected':''} onClick={()=>setLanguage('ar')}>العربية</button>
+      <button type="button" lang="en" aria-pressed={language==='en'} className={language==='en'?'selected':''} onClick={()=>setLanguage('en')}>English</button>
+      <button type="button" lang="fr" aria-pressed={language==='fr'} className={language==='fr'?'selected':''} onClick={()=>setLanguage('fr')}>Français</button>
+     </div>
     </div>
-    <p className="dh-preference-note">الإنجليزية والفرنسية ستتوفران لاحقًا؛ لا يمكن تغيير اللغة الآن.</p>
     <div className="dh-preference-row">
      <span className="dh-ux-row-icon"><Icon name="coins"/></span>
      <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong><small>تُطبّق على الرئيسية والحاسبة والمحفظة والأسعار والمشتريات والتنبيهات، وتحفظ على هذا الجهاز</small><small>تحويل المبالغ المسجلة استرشادي من أسعار الذهب، دون تغيير الفواتير وشروط التنبيه.</small></span>
@@ -464,7 +470,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    <button type="button" className="dh-ux-logout" onClick={signOut}><Icon name="logout"/>تسجيل الخروج</button>
   </div>;
  };
- return <div className={'gold-web workspace '+(page==='home'?'reference-home':'')} dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main">{page==='home'?<header className="topbar home-topbar">
+ return <div className={'gold-web workspace '+(page==='home'?'reference-home':'')} dir={direction} lang={language}><aside className="desktop-nav">{nav}</aside><div className="workspace-main">{page==='home'?<header className="topbar home-topbar">
   <div className="home-identity"><span className="home-brand-emblem" aria-label="ذهبي"><Icon name="gem"/></span><div><p>مرحبًا بعودتك</p><h1 tabIndex={-1} ref={headingRef} title={accountName}><button type="button" className="home-name-link" onClick={()=>navigate('account')} aria-label="فتح الملف الشخصي"><span dir="auto">{accountName}</span><span aria-hidden="true">👋</span></button></h1></div></div>
   <div className="home-head-actions"><button className="icon-button" aria-label="فتح التنبيهات" onClick={()=>navigate('alerts')}><Icon name="bell"/>{alerts.some(a=>a.status==='active')&&<i className="notification-dot"/>}</button><button className="icon-button home-menu-button" aria-label="فتح قائمة التنقل" onClick={()=>setMenu(true)}><Icon name="menu"/></button></div>
  </header>:<header className="topbar"><button className="icon-button menu-trigger" aria-label="العودة للرئيسية" onClick={()=>navigate('home')}><Icon name="chevron"/></button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{page==='prices'&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketLoading?'جارٍ التحديث…':'تحديث الأسعار'}</span></button>}</header>}<main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{error} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{marketError}</p>}{message&&<p className="notice success" role="status">{message}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}</main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===mobilePage?'selected':'')} aria-current={p.id===mobilePage?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
