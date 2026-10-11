@@ -87,7 +87,11 @@ function BootScreen(){
   </div>
  </div>;
 }
-export default function UserWorkspace(){return <LanguageProvider><LocalizedUserWorkspace/></LanguageProvider>;}
+export default function UserWorkspace(){
+ const {user,lockedAccount}=useUserLockAuth();
+ const mode=user||lockedAccount?'app':'device';
+ return <LanguageProvider key={mode} mode={mode}><LocalizedUserWorkspace/></LanguageProvider>;
+}
 function LocalizedUserWorkspace(){
  const {user,lockedAccount,isLoading,error,logout,quickPinEnabled,biometricEnabled,unlockWithPin,loginWithBiometric}=useUserLockAuth();
  if(isLoading&&!user&&!lockedAccount)return <BootScreen/>;
