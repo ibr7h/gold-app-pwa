@@ -161,7 +161,7 @@ export default function PurchaseFormFields({portfolios,purchase,preferredCurrenc
     <label>{tr('سلامة الحجر من الخدش أو الكسر')}<input name="stoneSafety" maxLength={300} defaultValue={text(details.stoneSafety)}/></label>
    </details>
    {missing.length>0&&<p className="gold-purchase-completeness">{tr('لإكمال توثيق الفاتورة يُستحسن إضافة:')} {missing.map(v=>tr(String(v))).join(language==='ar'?'، ':', ')}. {tr('هذه البيانات اختيارية لتسجيل مشترياتك السابقة.')}</p>}
-   <p className="fine">{tr('هذه بيانات مرجعية أدخلتها أنت؛ لا تعني توثيق الفاتورة رسميًا. احتفظ بصورة الفاتورة الأصلية.')}</p>
+   <p className="fine">{tr('هذه بيانات مرجعية فقط؛ ولا تعني التحقق الرسمي من الفاتورة. احتفظ بالفاتورة الأصلية.')}</p>
   </details>
  </div>;
 }
