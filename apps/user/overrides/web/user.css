@@ -2344,3 +2344,32 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .gold-auth[dir="ltr"] .mockup-forgot{
  text-align:left;
 }
+
+/* Keep large localized portfolio amounts intact on narrow iPhone screens. */
+.gold-web.reference-home .portfolio-mini-body{
+ flex-wrap:wrap!important;justify-content:space-between;row-gap:8px;
+}
+.gold-web.reference-home .portfolio-mini-body>div:first-child{
+ flex:1 1 170px;min-width:0;
+}
+.gold-web.reference-home .portfolio-mini-body>div:first-child>strong{
+ display:inline-flex;align-items:baseline;
+ font-size:clamp(18px,5.1vw,23px)!important;max-width:100%;
+ white-space:nowrap;overflow:visible;
+}
+.gold-web.reference-home .portfolio-mini-body .dh-money{
+ display:inline-flex!important;white-space:nowrap!important;
+ flex-wrap:nowrap!important;align-items:baseline;
+ width:max-content;max-width:100%;font-variant-numeric:tabular-nums;
+}
+.gold-web.reference-home .portfolio-mini-body .dh-money-whole,
+.gold-web.reference-home .portfolio-mini-body .dh-money-fraction,
+.gold-web.reference-home .portfolio-mini-body .dh-money-currency{
+ display:inline-block;white-space:nowrap;flex:0 0 auto;
+}
+.gold-web.reference-home .portfolio-mini-body .portfolio-delta{
+ max-width:100%;margin-inline-start:auto;
+}
+.gold-web.reference-home .portfolio-mini-body .portfolio-delta b{
+ white-space:nowrap;
+}
