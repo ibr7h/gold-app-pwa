@@ -33,7 +33,7 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
   expect(actual).toContain('className="approved-card calc-estimate-card"');
   expect(actual).toContain('className="calc-words-block"');
   expect(actual).toContain('className="calc-words-label">الإجمالي كتابة');
-  expect(actual).toContain('calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))');
+  expect(actual).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
   for(const field of ["calcRaw,priceCurrency","calcFeeTotal,priceCurrency","calcTax,priceCurrency","calcTotal,priceCurrency"])expect(actual).toContain(field);
   expect(current).toContain("import {amountToDisplayCurrencyWords} from './arabic-amount-words'");
  });
