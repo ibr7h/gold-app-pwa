@@ -2,8 +2,8 @@
   "app": "Dhahabi User iPhone PWA",
   "route": "/gold-app-pwa/iphone/",
   "sourceBranch": "preview/iphone-render",
-  "sourceCommit": "74c7f6f23ceb372f7f519e94ac25ee45ea4ac829",
-  "displayVersion": "v1.9.41",
-  "releaseVersion": "full-1.9.41-20261011",
+  "sourceCommit": "2018521fe96da51eb771795c3bf42dbcbebe55de",
+  "displayVersion": "v1.9.42",
+  "releaseVersion": "full-1.9.42-20261011",
   "note": "GitHub Pages deployment copies only isolated preview assets. Existing /full/ remains independently built."
 }
