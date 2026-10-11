@@ -1,5 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {api,jsonRequest,errorMessage} from './api';
+import {localizeFeedback} from './i18n-feedback';
+import {useLanguage} from './i18n';
 import {getFreshNearbyPosition,isValidNearbyPosition,NearbyPosition} from './nearby-geolocation';
 
 interface UserLocation {
@@ -11,6 +13,7 @@ interface UserLocation {
 }
 
 export default function NearbyMarkets(){
+ const {language}=useLanguage();
  const [point,setPoint]=useState<NearbyPosition|null>(null);
  const [loading,setLoading]=useState(true);
  const [failure,setFailure]=useState('');
@@ -68,7 +71,7 @@ export default function NearbyMarkets(){
    <p className="dh-location-radius-hint">النطاق استرشادي؛ يتغير تقريب الخريطة وقد تظهر محلات أبعد.</p>
    {loading&&<p className="dh-nearby-progress" role="status" aria-live="polite">جارٍ تحديد موقعك والبحث عن محلات الذهب القريبة…</p>}
    {!loading&&failure&&<div className="dh-nearby-permission-error" role="alert">
-    <p className="notice warning">{failure}</p>
+    <p className="notice warning">{localizeFeedback(failure,language)}</p>
     <button type="button" className="dh-nearby-retry" onClick={()=>setAttempt(value=>value+1)}>إعادة المحاولة</button>
     <p className="dh-nearby-help">على الآيفون: فعّل «خدمات الموقع» واسمح لـ Safari أو لتطبيق ذهبي بالوصول إلى موقعك من إعدادات الجهاز.</p>
    </div>}
