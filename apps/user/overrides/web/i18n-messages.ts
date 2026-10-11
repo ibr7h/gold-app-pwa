@@ -1,3 +1,4 @@
+import {uncoveredUiMessages,secondaryUiMessages} from './i18n-coverage';
 /** Human-reviewed terminology for Dhahabi User interface. No network translation. */
 export type Language='ar'|'en'|'fr';
 export const LANGUAGE_KEY='dhahabi:user:language';
@@ -1692,7 +1693,7 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
  ]
 ];
 const lookup=new Map<string,readonly [string,string]>(
- [...entries,...extendedEntries].map(([ar,en,fr])=>[ar,[en,fr] as const])
+ [...entries,...extendedEntries,...uncoveredUiMessages,...secondaryUiMessages].map(([ar,en,fr])=>[ar,[en,fr] as const])
 );
 export const translationCount=()=>lookup.size;
 export function translateExact(text:string,lang:Language):string|null{
@@ -1717,6 +1718,19 @@ export function translateUiText(input:string,lang:Language):string{
   [/^آخر تحديث:\s*(.+)$/,a=>(lang==='en'?'Last updated: ':'Dernière mise à jour : ')+a[1]],
   [/^آخر فحص:\s*(.+)$/,a=>(lang==='en'?'Last checked: ':'Dernière vérification : ')+a[1]]
  ];
+ const composite:Array<[RegExp,(match:RegExpMatchArray)=>string]>=[
+  [/^تم إدخال (\d+) من (\d+) أرقام$/,a=>lang==='en'?`Entered ${a[1]} of ${a[2]} digits`:`${a[1]} chiffres saisis sur ${a[2]}`],
+  [/^رمز غير صحيح\. المحاولات المتبقية:\s*(\d+)$/,a=>lang==='en'?`Incorrect PIN. ${a[1]} attempts remaining.`:`Code incorrect. ${a[1]} tentatives restantes.`],
+  [/^إعادة الاختبار بعد (\d+) ثانية$/,a=>lang==='en'?`Retry test in ${a[1]} seconds`:`Retester dans ${a[1]} secondes`],
+  [/^استعراض أسعار الذهب عيار (\d+) زمنيًا$/,a=>lang==='en'?`Browse ${a[1]}K gold price history`:`Consulter l'historique de l'or ${a[1]} carats`],
+  [/^حركة السوق \(عيار (\d+)\)$/,a=>lang==='en'?`Market trend (karat ${a[1]})`:`Évolution du marché (${a[1]} carats)`],
+  [/^سعر الجرام · عيار (\d+)$/,a=>lang==='en'?`Price per gram · ${a[1]}K`:`Prix au gramme · ${a[1]} carats`],
+  [/^تحديث منذ (\d+) (دقيقة|ساعة)$/,a=>lang==='en'?`Updated ${a[1]} ${a[2]==='ساعة'?'hours':'minutes'} ago`:`Mis à jour il y a ${a[1]} ${a[2]==='ساعة'?'heures':'minutes'}`],
+  [/^(\d+) كم$/,a=>`${a[1]} km`],
+  [/^آخر تحديث: (.+)$/,a=>(lang==='en'?'Last updated: ':'Dernière mise à jour : ')+a[1]],
+  [/^آخر فحص: (.+)$/,a=>(lang==='en'?'Last checked: ':'Dernière vérification : ')+a[1]]
+ ];
+ for(const [re,fn] of composite){const match=core.match(re);if(match)return m[1]+fn(match)+m[3];}
  for(const [re,fn] of dynamic){const match=core.match(re);if(match)return m[1]+fn(match)+m[3];}
  return input;
 }

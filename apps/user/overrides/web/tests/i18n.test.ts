@@ -1,3 +1,5 @@
+import {fileURLToPath} from 'node:url';
+import {readFileSync} from 'node:fs';
 import {describe,it,expect} from 'vitest';
 import {LANGUAGE_META,LANGUAGE_OPTIONS,LANGUAGE_KEY,translateUiText,translateExact,translationCount} from '../i18n-messages';
 import {amountToLocalizedWords} from '../amount-words-localized';
@@ -47,5 +49,45 @@ describe('Dhahabi offline three-language localization',()=>{
   expect(amountToLocalizedWords(null,'USD','en')).toBe('');
   expect(amountToLocalizedWords(-1,'SAR','fr')).toBe('');
   expect(amountToLocalizedWords(Number.NaN,'USD','en')).toBe('');
+ });
+});
+
+describe('Regression: no Arabic interface fragments in English or French',()=>{
+ const labels=[
+  'محفظة','مستخدم','محلات الذهب القريبة','أهلًا بك','لوحة أرقام الدخول السريع',
+  'المقارنة','حركة السوق (عيار','24 ساعة','7 أيام','30 يومًا','الفترة الزمنية للرسم',
+  'لا توجد تحديثات سعرية كافية لرسم الاتجاه.','بانتظار تحديثات فعلية إضافية من الخادم.',
+  'أدخل رمز الدخول السريع لفتح ذهبي','تعذر التحقق بالبصمة. استخدم الرمز أو كلمة المرور.',
+  'تحتاج التثبيت على الشاشة الرئيسية','خدمة الإرسال غير مهيأة بعد',
+  'اشتراك المتصفح غير مسجل لدى ذهبي','العودة لتسجيل الدخول','تعذر تحميل الأسعار الآن.',
+  'الاسم التجاري','النطاق استرشادي؛ يتغير تقريب الخريطة وقد تظهر محلات أبعد.',
+  'الوزن الصافي (جم)','سعر الجرام المسجل (شامل)','جارٍ الفحص…',
+  'إشعارات ذهبي تعتمد على خدمة Push الخاصة بالمتصفح وتعمل عند إغلاق الصفحة عندما يسمح النظام بذلك. يلزم الاتصال بالإنترنت لتلقي الرسالة.'
+ ];
+ for(const language of ['en','fr'] as const){
+  it(`has translated financial, chart, login, location, notification and PIN content in ${language}`,()=>{
+   for(const source of labels){
+    const output=translateUiText(source,language);
+    expect(output,source).not.toMatch(/[\u0600-\u06FF]/);
+    expect(output,source).not.toBe(source);
+   }
+  });
+  it(`translates complete dynamically assembled aria and push messages in ${language}`,()=>{
+   for(const source of [
+    'تم إدخال 2 من 6 أرقام','رمز غير صحيح. المحاولات المتبقية: 3',
+    'إعادة الاختبار بعد 45 ثانية','استعراض أسعار الذهب عيار 24 زمنيًا',
+    'حركة السوق (عيار 24)','سعر الجرام · عيار 21',
+    'تحديث منذ 10 دقيقة','25 كم'
+   ]){
+    expect(translateUiText(source,language),source).not.toMatch(/[\u0600-\u06FF]/);
+   }
+  });
+ }
+ it('walks PIN lock, PIN setup and main app scopes including accessible value labels',()=>{
+  const src=readFileSync(fileURLToPath(new URL('../i18n.tsx',import.meta.url).href),'utf8');
+  expect(src).toContain("document.querySelectorAll('.gold-web, .dh-quick-lock, .dh-pin-setup')");
+  expect(src).toContain("'aria-valuetext'");
+  expect(src).toContain("root.querySelectorAll('[dir],[data-language-root=\"true\"]')");
+  expect(src).toContain("language==='ar'?(original||'rtl'):direction");
  });
 });
