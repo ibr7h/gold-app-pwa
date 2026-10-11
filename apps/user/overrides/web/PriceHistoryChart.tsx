@@ -1,3 +1,4 @@
+import {activeLocale} from './i18n';
 import React,{useEffect,useId,useMemo,useRef,useState} from 'react';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
 import {Money,formatTwo,formattedMoney} from './price-display';
@@ -7,10 +8,10 @@ const currencyNumber=formatTwo;
 const timeLabel=(ms:number,range:TrendRange)=>{
  const date=new Date(ms);
  return range==='day'?
-  date.toLocaleTimeString('ar-SA',{hour:'numeric',minute:'2-digit',timeZone:'Asia/Riyadh'}):
-  date.toLocaleDateString('ar-SA',{day:'numeric',month:'short',timeZone:'Asia/Riyadh'});
+  date.toLocaleTimeString(activeLocale(),{hour:'numeric',minute:'2-digit',timeZone:'Asia/Riyadh'}):
+  date.toLocaleDateString(activeLocale(),{day:'numeric',month:'short',timeZone:'Asia/Riyadh'});
 };
-const completeDate=(ms:number)=>new Date(ms).toLocaleString('ar-SA',{dateStyle:'medium',timeStyle:'short'});
+const completeDate=(ms:number)=>new Date(ms).toLocaleString(activeLocale(),{dateStyle:'medium',timeStyle:'short'});
 const scopeLabels:{id:TrendRange;label:string}[]=[
  {id:'day',label:'24 ساعة'},{id:'week',label:'7 أيام'},{id:'month',label:'30 يومًا'},{id:'available',label:'المتاح'}
 ];

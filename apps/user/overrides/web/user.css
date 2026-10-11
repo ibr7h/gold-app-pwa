@@ -2260,3 +2260,51 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .gold-web.workspace .dh-ux-more .dh-preference-row{
  min-height:72px;
 }
+
+/* User PWA language picker: visible and operable on narrow iPhones. */
+.gold-web.workspace .dh-preference-row:has(.dh-language-options){flex-wrap:wrap;}
+.gold-web.workspace .dh-language-options{
+ display:flex;flex:1 1 100%;gap:7px;flex-wrap:wrap;
+ margin-inline-start:54px;direction:ltr;
+}
+.gold-web.workspace .dh-language-options button{
+ min-height:44px;min-width:82px;flex:1 0 auto;
+ border-radius:10px;border:1px solid #DCE2EA;
+ background:#F7F9FC;color:#001F3F;
+ font:700 12px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;
+ padding:8px 12px;cursor:pointer;
+}
+.gold-web.workspace .dh-language-options button[aria-pressed="true"]{
+ background:#F5EDD1;border-color:#C5A021;color:#001F3F;
+ box-shadow:inset 0 0 0 1px rgba(197,160,33,.2);
+}
+.gold-web.workspace .dh-language-options button:focus-visible{
+ outline:3px solid #C5A021;outline-offset:2px;
+}
+@media(max-width:400px){
+ .gold-web.workspace .dh-language-options{margin-inline-start:0;}
+ .gold-web.workspace .dh-language-options button{min-width:79px;}
+}
+/* LTR is real layout direction, not just a translated label. */
+.gold-web[dir="ltr"] .dh-ux-link-list >button,
+.gold-web[dir="ltr"] .dh-ux-account-text,
+.gold-web[dir="ltr"] .dh-ux-account-text small,
+.gold-web[dir="ltr"] .dh-ux-row-copy,
+.gold-web[dir="ltr"] .dh-preference-text,
+.gold-web[dir="ltr"] .dh-personal-rows,
+.gold-web[dir="ltr"] .dh-personal-rows dd,
+.gold-web[dir="ltr"] .dh-personal-rows dt,
+.gold-web[dir="ltr"] .topbar,
+.gold-web[dir="ltr"] .home-identity,
+.gold-web[dir="ltr"] .workspace-content{
+ text-align:left;
+}
+.gold-web[dir="ltr"] .dh-ux-account-link >svg:last-child,
+.gold-web[dir="ltr"] .dh-ux-link-list >button >svg:last-child{
+ transform:none;
+}
+.gold-web[dir="ltr"] .dh-ux-avatar{direction:ltr;}
+.gold-web[dir="ltr"] .dh-preference-note{margin-inline-start:54px;margin-inline-end:0;}
+.gold-web[dir="ltr"] .home-name-link{direction:ltr;}
+.gold-web[dir="ltr"] input[dir="ltr"],
+.gold-web[dir="ltr"] .dh-money{direction:ltr;}

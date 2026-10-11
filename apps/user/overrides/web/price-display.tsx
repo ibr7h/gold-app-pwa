@@ -1,7 +1,8 @@
 import React from 'react';
+import {activeLocale,useLanguage} from './i18n';
 
 /** User presentation only: never round values before sending them to the server. */
-const decimalFormatter=new Intl.NumberFormat('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2});
+const decimalFormatter=()=>new Intl.NumberFormat(activeLocale(),{minimumFractionDigits:2,maximumFractionDigits:2});
 const symbols:Record<string,string>={
  SAR:'\u20C1',USD:'$',EUR:'€',GBP:'£',AED:'د.إ',KWD:'د.ك',
  EGP:'ج.م',INR:'₹',TRY:'₺',JPY:'¥'
@@ -10,7 +11,7 @@ export function currencySymbol(currency:string):string{
  return symbols[currency]||currency;
 }
 export function formatTwo(value:number):string{
- return Number.isFinite(value)?decimalFormatter.format(value):'غير متاح';
+ return Number.isFinite(value)?decimalFormatter().format(value):'غير متاح';
 }
 export function formattedMoney(value:number|null|undefined,currency:string):string{
  if(value==null||!Number.isFinite(value))return 'غير متاح';
@@ -36,7 +37,8 @@ export function CurrencyMark({currency}:{currency:string}){
 /** The decimal part gets a subtle, harmonious accent; native currency glyphs stay visible. */
 export function Money({amount,currency}:{amount:number|null|undefined;currency:string}){
  if(amount==null||!Number.isFinite(amount))return <>غير متاح</>;
- const parts=decimalFormatter.formatToParts(amount);
+ useLanguage(); // Rerender displayed currency and decimal style when the chosen language changes.
+ const parts=decimalFormatter().formatToParts(amount);
  const integer=parts.filter(p=>p.type!=='decimal'&&p.type!=='fraction').map(p=>p.value).join('');
  const decimal=parts.find(p=>p.type==='decimal')?.value||'٫';
  const fraction=parts.find(p=>p.type==='fraction')?.value||'٠٠';

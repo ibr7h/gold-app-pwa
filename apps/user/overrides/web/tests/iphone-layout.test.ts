@@ -225,7 +225,7 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).toContain('className="approved-card calc-estimate-card"');
   expect(s).toContain('className="calc-words-block"');
   expect(s).toContain('className="calc-words-label">الإجمالي كتابة');
-  expect(s).toContain('calcTotal!==null?amountToDisplayCurrencyWords(calcTotal,priceCurrency)');
+  expect(s).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
   const a=s.indexOf('className="approved-card calc-estimate-card"');
   let pos=a;
   for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة التقديرية','الإجمالي النهائي','الإجمالي كتابة']){
@@ -257,7 +257,8 @@ describe('iPhone more and profile UX redesign',()=>{
   expect(workspace).toContain("window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency)");
   expect(workspace).toContain('aria-pressed={priceCurrency===\'SAR\'}');
   expect(workspace).toContain('aria-pressed={priceCurrency===\'USD\'}');
-  expect(workspace).toContain('لا يمكن تغيير اللغة الآن');
+  expect(workspace).toContain("onClick={()=>setLanguage('en')}");
+  expect(workspace).toContain("onClick={()=>setLanguage('fr')}");
   expect(workspace).not.toContain('English · قريبًا</button>');
  });
  it('separates profile identity, details, local security and services while retaining update and sign out actions',()=>{
@@ -304,7 +305,7 @@ describe('iPhone more and profile UX redesign',()=>{
   expect(more).toContain("onClick={()=>setPriceCurrency('USD')}");
   expect(more).toContain("onClick={()=>setPriceCurrency('SAR')}");
   expect(more).not.toContain('<Icon name="settings"/></span>\n     <span className="dh-preference-text"><strong>لغة التطبيق');
-  expect(more).toContain('لا يمكن تغيير اللغة الآن');
+  expect(more).toContain("onClick={()=>setLanguage('fr')}");
  });
  it('uses 44px neutral navy icon boxes and 22px outline strokes instead of excessive gold',()=>{
   const css=source('../user.css');
@@ -335,5 +336,31 @@ describe('Global display-currency integration regression',()=>{
   expect(workspace).toContain('showMoney(Number(p.totalPrice),p.currency)');
   expect(workspace).toContain('const payload=purchasePayload(data)');
   expect(workspace).toContain('const payload=alertPayload(data)');
+ });
+});
+
+describe('iPhone bilingual and French support',()=>{
+ it('exposes three functioning locale selections and persists chosen UI language',()=>{
+  const ws=source('../UserWorkspace.tsx');
+  const intl=source('../i18n.tsx');
+  expect(ws).toContain('const {language,setLanguage,direction}=useLanguage();');
+  expect(ws).toContain("onClick={()=>setLanguage('ar')}");
+  expect(ws).toContain("onClick={()=>setLanguage('en')}");
+  expect(ws).toContain("onClick={()=>setLanguage('fr')}");
+  expect(ws).toContain("dir={direction} lang={language}");
+  expect(ws).toContain('<LanguageProvider><LocalizedUserWorkspace/></LanguageProvider>');
+  expect(intl).toContain("window.localStorage.setItem(LANGUAGE_KEY,next)");
+  expect(intl).toContain("html.setAttribute('dir',LANGUAGE_META[language].dir)");
+  expect(intl).toContain('MutationObserver(refresh)');
+ });
+ it('keeps the layout, currency and the Arabic baseline intact',()=>{
+  const css=source('../user.css');
+  const ws=source('../UserWorkspace.tsx');
+  expect(css).toContain('.dh-language-options button[aria-pressed="true"]');
+  expect(css).toContain('.gold-web[dir="ltr"] .dh-ux-link-list >button');
+  expect(ws).toContain("language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency)");
+  expect(ws).toContain("amountToLocalizedWords(calcTotal,priceCurrency,language)");
+  expect(ws).toContain("onClick={()=>setPriceCurrency('USD')}");
+  expect(ws).not.toContain('الإنجليزية والفرنسية ستتوفران لاحقًا');
  });
 });
