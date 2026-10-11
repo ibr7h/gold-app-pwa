@@ -1,5 +1,5 @@
 import {readFileSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,URL} from 'node:url';
 import {describe,it,expect} from 'vitest';
 
 const source=(relative:string)=>readFileSync(fileURLToPath(new URL(relative,import.meta.url)),'utf8');
