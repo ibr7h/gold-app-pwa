@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {deviceLanguageForLocales} from '../auth-device-language';
 import {translateUiText} from '../i18n-messages';
 
-const file=(relative:string)=>readFileSync(fileURLToPath(new URL(relative,import.meta.url)),'utf8');
+const file=(relative:string)=>readFileSync(fileURLToPath(new URL(relative,import.meta.url).href),'utf8');
 
 describe('iPhone sign-in and registration follow device language',()=>{
  it('supports device Arabic, English and French including regional codes',()=>{
