@@ -50,8 +50,8 @@ export function displayPortfolioSummary(purchases:Purchase[],prices:MarketPrice[
   }
   cost+=costResult.amount||0;value+=valueResult.amount||0;
  }
- const finalValue=!loaded||hasMissingValuation?null:value;
- const finalCost=loaded?cost:null;
+ const finalValue=!loaded||hasMissingValuation||hasUnconverted?null:value;
+ const finalCost=!loaded||hasUnconverted?null:cost;
  const difference=finalValue===null||finalCost===null?null:finalValue-finalCost;
  return {value:finalValue,cost:finalCost,weight:loaded?weight:null,difference,
   percent:difference===null||finalCost===null||finalCost<=0?null:difference/finalCost*100,
