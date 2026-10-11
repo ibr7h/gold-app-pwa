@@ -1711,7 +1711,7 @@ export function translateUiText(input:string,lang:Language):string{
  // Dynamic fragments: keep original numbers/currencies, never translate user-entered data.
  const dynamic:Array<[RegExp,(match:RegExpMatchArray)=>string]>=[
   [/^عيار\s*(\d+)(.*)$/,a=>(lang==='en'?'Karat ':'Carats ')+a[1]+(a[2]||'')],
-  [/^([0-9٠-٩][0-9٠-٩.,٬٫ ]*)\s*جرام$/,a=>a[1]+(lang==='en'?' grams':' grammes')],
+  [/^([0-9٠-٩][0-9٠-٩.,٬٫]*)\s*جرام$/,a=>a[1]+(lang==='en'?' grams':' grammes')],
   [/^(\d+)\s*عمليات شراء$/,a=>a[1]+(lang==='en'?' purchases':' achats')],
   [/^الوزن\s*[:：]\s*(.+)$/,a=>(lang==='en'?'Weight: ':'Poids : ')+a[1]],
   [/^إجمالي الوزن:\s*(.+)$/,a=>(lang==='en'?'Total weight: ':'Poids total : ')+a[1]],
