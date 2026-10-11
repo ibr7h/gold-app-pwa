@@ -76,3 +76,14 @@ export function amountToSaudiRiyalWords(amount:number|null|undefined):string{
  if(halalas)parts.push(unitName(halalas,'halalas'));
  return 'فقط '+parts.join(' و')+' لا غير';
 }
+
+
+/** Spell out the chosen DISPLAY currency; never label USD amounts as Saudi riyals. */
+export function amountToDisplayCurrencyWords(amount:number|null|undefined,currency:'SAR'|'USD'):string{
+ if(currency==='SAR')return amountToSaudiRiyalWords(amount);
+ if(amount===null||amount===undefined||!Number.isFinite(amount)||amount<0)return '';
+ const centsTotal=Math.round((amount+Number.EPSILON)*100);
+ if(!Number.isSafeInteger(centsTotal)||centsTotal>99999999999999)return '';
+ const dollars=Math.floor(centsTotal/100),cents=centsTotal%100;
+ return 'فقط '+numberToArabicWords(dollars)+' دولار أمريكي'+(cents?' و'+numberToArabicWords(cents)+' سنت أمريكي':'')+' لا غير';
+}
