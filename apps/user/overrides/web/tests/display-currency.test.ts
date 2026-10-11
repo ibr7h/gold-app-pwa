@@ -56,9 +56,9 @@ describe('App-wide selected display currency',()=>{
   expect(amountToDisplayCurrencyWords(123.25,'SAR')).toContain('ريال');
  });
  it('calculates the home market movement from USD quotes without mixing SAR history',()=>{
-  const latest={...quotes[1],timestamp:'2026-10-11T12:00:00.000Z',createdAt:'2026-10-11T12:00:00.000Z',buyPrice:'105'};
-  const usdHistory=[{...quotes[1],timestamp:'2026-10-11T09:00:00.000Z',createdAt:'2026-10-11T09:00:00.000Z'},quotes[0]];
-  const movement=homeMarketMovement(usdHistory,latest,Date.parse('2026-10-11T12:30:00.000Z'),'USD');
+  const latest={...quotes[1],timestamp:'2026-10-12T12:00:00.000Z',createdAt:'2026-10-12T12:00:00.000Z',buyPrice:'105'};
+  const usdHistory=[{...quotes[1],timestamp:'2026-10-12T09:00:00.000Z',createdAt:'2026-10-11T09:00:00.000Z'},quotes[0]];
+  const movement=homeMarketMovement(usdHistory,latest,Date.parse('2026-10-12T12:30:00.000Z'),'USD');
   expect(movement?.difference).toBe(5);
   expect(movement?.percent).toBe(5);
  });
