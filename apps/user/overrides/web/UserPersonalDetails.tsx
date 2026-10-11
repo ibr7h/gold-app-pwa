@@ -7,7 +7,7 @@ interface PersonalProfile {
  city:string|null;countryCode:string|null;
 }
 export default function UserPersonalDetails(){
- const {updateProfile}=useAuth();
+ const {updateProfile}=useAuth() as ReturnType<typeof useAuth> & {updateProfile:(changes:{fullName:string;city:string})=>Promise<{fullName:string|null;city:string|null}>};
  const [profile,setProfile]=useState<PersonalProfile|null>(null);
  const [loading,setLoading]=useState(true),[editing,setEditing]=useState(false);
  const [name,setName]=useState(''),[city,setCity]=useState('');
