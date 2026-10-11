@@ -1,4 +1,61 @@
 /** Additional reviewed English/French strings for previously uncovered iPhone surfaces. */
+export const secondaryUiMessages:ReadonlyArray<readonly [string,string,string]>=[
+ [
+  "محفظة",
+  "Portfolio",
+  "Portefeuille"
+ ],
+ [
+  "مستخدم",
+  "User",
+  "Utilisateur"
+ ],
+ [
+  "السجل المتاح أقل من 24 ساعة.",
+  "Available history covers less than 24 hours.",
+  "L'historique disponible couvre moins de 24 heures."
+ ],
+ [
+  "Face ID أو بصمة الإصبع المسجلة",
+  "Face ID or your enrolled fingerprint",
+  "Face ID ou votre empreinte enregistrée"
+ ],
+ [
+  "خيار",
+  "Option",
+  "Option"
+ ],
+ [
+  "الجهاز",
+  "Device",
+  "Appareil"
+ ],
+ [
+  "الوزن (جرام",
+  "Weight (grams",
+  "Poids (grammes"
+ ],
+ [
+  "ضريبة 15% (اختيارية",
+  "15% VAT (optional",
+  "TVA 15 % (facultative"
+ ],
+ [
+  "سعر الجرام المسجل (شامل",
+  "Recorded unit price (inclusive",
+  "Prix unitaire enregistré (tout compris"
+ ],
+ [
+  "Android والكمبيوتر",
+  "Android and desktop",
+  "Android et ordinateur"
+ ],
+ [
+  "على iPhone",
+  "On iPhone",
+  "Sur iPhone"
+ ]
+];
 export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=[
  [
   "التجار",
