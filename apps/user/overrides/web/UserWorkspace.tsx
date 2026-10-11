@@ -338,9 +338,16 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='map')return <NearbyMarkets/>;
 
-  if(page==='account')return <><section className="approved-card profile-approved"><span className="avatar large">{accountName[0]}</span><h2 dir="auto">{accountName}</h2><span className="pill gold">{role==='admin'?'ADMIN':role==='trader'?'TRADER':'USER'}</span><small className="app-version-account" dir="ltr" style={{display:"block",marginTop:10,color:"#C5A021",fontSize:12}}>{APP_DISPLAY_VERSION}</small><small className="dh-profile-copyright" style={{display:"block",marginTop:8}}>© 2026 Ibrahim Alneami — All Rights Reserved</small></section><UserPersonalDetails/><section className="approved-card settings-list"><button onClick={()=>navigate('portfolio')}><span><Icon name="wallet"/>محفظتي الذهبية</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>سجل المشتريات</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span><Icon name="refresh"/>التحقق من تحديث التطبيق</span><Icon name="chevron"/></button><button className="danger-row" onClick={signOut}><span><Icon name="logout"/>تسجيل الخروج</span><Icon name="chevron"/></button></section><section className="approved-card dh-quick-settings">
- <div className="approved-card-title">الدخول السريع والأمان</div>
- <p className="fine">أضف رمزًا من ٦ أرقام لفتح ذهبي من شاشة قفل داخلية. تُحفظ الجلسة مشفرة وتجزئة الرمز محليًا؛ لا تُخزن الأرقام أو بيانات بصمتك. بدون دخول سريع، يلزم استخدام كلمة المرور بعد إعادة فتح التطبيق.</p>
+  if(page==='account')return <div className="dh-ux-profile">
+   <section className="approved-card dh-ux-profile-hero" aria-label="ملخص حسابك">
+    <span className="avatar large dh-ux-avatar" aria-hidden="true">{accountName.trim().charAt(0).toUpperCase()||'ذ'}</span>
+    <div className="dh-ux-identity"><span className="dh-ux-kicker">حساب ذهبي</span><h2 dir="auto">{accountName}</h2><p dir="ltr">{email}</p></div>
+    <span className="dh-ux-role">{role==='admin'?'مسؤول':role==='trader'?'تاجر':'مستخدم'}</span>
+   </section>
+   <UserPersonalDetails/>
+   <section className="approved-card dh-quick-settings">
+ <h3 className="dh-section-label">الأمان والدخول</h3>
+ <p className="dh-security-intro">اختر طريقة فتح ذهبي الآمنة على هذا الجهاز.</p>
  <div className="dh-quick-setting-row">
   <span><strong>رمز الدخول السريع</strong><small>شاشة قفل ولوحة أرقام على هذا الجهاز</small></span>
   <button type="button" role="switch" aria-label="تفعيل رمز الدخول السريع" aria-checked={quickPinEnabled}
@@ -374,17 +381,62 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    if(!await lockWithBiometric())setBiometricNotice('تعذر قفل التطبيق. تحقق من جلسة الدخول.');
   })()}>قفل ذهبي الآن</button>}
  </div>
- <p className="fine">يظهر قفل ذهبي عند فتحه بجلسة محفوظة، أو عند العودة بعد دقيقة من الخلفية. بصمة Face ID/Touch ID في المتصفح قد تعرض نافذة تحقق خاصة بالنظام ولا يمكن تغيير شكلها؛ لذلك لا تُفتح تلقائيًا.</p>
- <p className="fine">إذا نسيت الرمز، استخدم كلمة مرور حسابك لاستعادة الوصول ثم أعد تفعيل الدخول السريع. تسجيل الدخول بكلمة المرور يعيد إعداد عوامل الدخول المحلية. الجلسات المنتهية تحتاج تسجيل دخول كامل.</p>
- </section></>;
+ <details className="dh-security-help"><summary>كيف يعمل الدخول السريع؟</summary><p>يمكنك فتح ذهبي برمز من ٦ أرقام. تُحفظ الجلسة مشفّرة وتجزئة الرمز محليًا؛ ولا تُخزّن بيانات بصمتك. يظهر القفل عند إعادة فتح التطبيق بجلسة محفوظة أو بعد العودة من الخلفية بدقيقة. وقد يطلب النظام تحقق Face ID أو Touch ID بحسب دعم المتصفح.</p></details>
+ <details className="dh-security-help"><summary>نسيت رمز الدخول؟</summary><p>سجّل الدخول بكلمة مرور حسابك لاستعادة الوصول، ثم أعد إعداد الدخول السريع. إذا انتهت الجلسة يلزم تسجيل الدخول الكامل.</p></details>
+ </section>
+   <section className="dh-ux-group dh-ux-profile-tools" aria-labelledby="dh-profile-tools-title">
+    <h3 id="dh-profile-tools-title" className="dh-ux-group-title">الحساب والخدمات</h3>
+    <div className="approved-card dh-ux-link-list">
+     <button type="button" onClick={()=>navigate('portfolio')}><span className="dh-ux-row-icon"><Icon name="wallet"/></span><span className="dh-ux-row-copy"><strong>محفظتي الذهبية</strong><small>الذهب الذي تتابعه</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('purchases')}><span className="dh-ux-row-icon"><Icon name="receipt"/></span><span className="dh-ux-row-copy"><strong>سجل المشتريات</strong><small>عمليات الشراء المسجلة</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('alerts')}><span className="dh-ux-row-icon"><Icon name="bell"/></span><span className="dh-ux-row-copy"><strong>تنبيهات الأسعار</strong><small>الأهداف والتنبيهات المحفوظة</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-ux-row-icon"><Icon name="settings"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات</strong><small>الأذونات والاشتراكات</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span className="dh-ux-row-icon"><Icon name="refresh"/></span><span className="dh-ux-row-copy"><strong>التحقق من تحديث التطبيق</strong><small>البحث عن إصدار أحدث</small></span><Icon name="chevron"/></button>
+    </div>
+   </section>
+   <button type="button" className="dh-ux-logout" onClick={signOut}><Icon name="logout"/>تسجيل الخروج</button>
+   <footer className="dh-ux-profile-footer"><span className="app-version-account" dir="ltr">{APP_DISPLAY_VERSION}</span><span className="dh-profile-copyright">© 2026 Ibrahim Alneami — All Rights Reserved</span></footer>
+  </div>;
 
   if(page==='help')return <section className="approved-card help-panel"><div className="approved-card-title">المساعدة</div>{[['كيف أبدأ؟','أنشئ محفظة ثم أضف مشترياتك الفعلية.'],['كيف تُحسب قيمة المحفظة؟','تعتمد على أسعار Backend ذهبي الحالية، مع إبقاء العملات منفصلة.'],['كيف أقرأ الرسم؟','كل نقطة سعر تمثل تحديثًا محفوظًا فعليًا في قاعدة البيانات.'],['لماذا التجار غير ظاهرين؟','لأن بيانات Merchant Location لم تُنفذ في الـBackend بعد؛ لا نعرض بيانات وهمية.']].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>;
 
-  return <><section className="approved-card profile-shortcut"><span className="avatar">{email[0].toUpperCase()}</span><div><strong dir="ltr">{email}</strong><span>حساب مستخدم</span></div><button className="text-button" onClick={()=>navigate('account')}>الملف الشخصي</button></section>
-   <section className="approved-card settings-list"><button onClick={()=>navigate('map')}><span><Icon name="map"/>التجار القريبون</span><Icon name="chevron"/></button><button onClick={()=>navigate('purchases')}><span><Icon name="receipt"/>المشتريات والفواتير</span><Icon name="chevron"/></button><button onClick={()=>navigate('alerts')}><span><Icon name="bell"/>تنبيهات الأسعار</span><Icon name="chevron"/></button><button onClick={()=>navigate('notification-settings')}><span><Icon name="bell"/>إعدادات الإشعارات</span><Icon name="chevron"/></button><button onClick={()=>navigate('help')}><span><Icon name="help"/>المساعدة</span><Icon name="chevron"/></button></section>
-   <section className="approved-card"><div className="approved-card-title">التفضيلات</div><div className="settings-choice"><span>اللغة</span><b className="pill gold">العربية</b><span className="disabled-choice">English · قريبًا</span><span className="disabled-choice">Français · قريبًا</span></div><div className="settings-choice"><span>عملات الأسعار المتاحة</span><b className="pill gold">SAR</b><b className="pill">USD</b></div></section>
-   <button className="danger-button approved-logout" onClick={signOut}><Icon name="logout"/>تسجيل الخروج</button>
-  </>;
+  return <div className="dh-ux-more">
+   <button type="button" className="approved-card dh-ux-account-link" onClick={()=>navigate('account')} aria-label="فتح الملف الشخصي">
+    <span className="avatar dh-ux-avatar" aria-hidden="true">{accountName.trim().charAt(0).toUpperCase()||'ذ'}</span>
+    <span className="dh-ux-account-text"><strong dir="auto">{accountName}</strong><small dir="ltr">{email}</small><span>عرض الملف الشخصي وتعديل بياناتي</span></span>
+    <Icon name="chevron"/>
+   </button>
+   <section className="dh-ux-group" aria-labelledby="dh-more-services-title">
+    <h3 className="dh-ux-group-title" id="dh-more-services-title">خدماتي</h3>
+    <div className="approved-card dh-ux-link-list">
+     <button type="button" onClick={()=>navigate('map')}><span className="dh-ux-row-icon"><Icon name="map"/></span><span className="dh-ux-row-copy"><strong>التجار القريبون</strong><small>استكشاف محلات الذهب من موقعك</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('purchases')}><span className="dh-ux-row-icon"><Icon name="receipt"/></span><span className="dh-ux-row-copy"><strong>المشتريات والفواتير</strong><small>مراجعة المشتريات المسجلة</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('alerts')}><span className="dh-ux-row-icon"><Icon name="bell"/></span><span className="dh-ux-row-copy"><strong>تنبيهات الأسعار</strong><small>متابعة أهداف الأسعار</small></span><Icon name="chevron"/></button>
+    </div>
+   </section>
+   <section className="dh-ux-group" aria-labelledby="dh-more-settings-title">
+    <h3 className="dh-ux-group-title" id="dh-more-settings-title">الإعدادات والمساعدة</h3>
+    <div className="approved-card dh-ux-link-list">
+     <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-ux-row-icon"><Icon name="settings"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات</strong><small>السماح بالإشعارات واختبارها</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('help')}><span className="dh-ux-row-icon"><Icon name="help"/></span><span className="dh-ux-row-copy"><strong>المساعدة</strong><small>إجابات عن الأسئلة الشائعة</small></span><Icon name="chevron"/></button>
+    </div>
+   </section>
+   <section className="approved-card dh-preference-card" aria-labelledby="dh-preferences-title">
+    <h3 className="dh-ux-group-title" id="dh-preferences-title">التفضيلات</h3>
+    <div className="dh-preference-row">
+     <span className="dh-ux-row-icon"><Icon name="settings"/></span>
+     <span className="dh-preference-text"><strong>لغة التطبيق</strong><small>لغة الواجهة الحالية</small></span>
+     <span className="dh-preference-value">العربية</span>
+    </div>
+    <p className="dh-preference-note">الإنجليزية والفرنسية ستتوفران لاحقًا؛ لا يمكن تغيير اللغة الآن.</p>
+    <div className="dh-preference-row">
+     <span className="dh-ux-row-icon"><Icon name="chart"/></span>
+     <span className="dh-preference-text"><strong>عملات الأسعار المتاحة</strong><small>تُحدد عملة العرض من شاشة الأسعار</small></span>
+     <span className="dh-currency-options" aria-label="الريال السعودي والدولار الأمريكي"><span>SAR</span><span>USD</span></span>
+    </div>
+   </section>
+   <button type="button" className="dh-ux-logout" onClick={signOut}><Icon name="logout"/>تسجيل الخروج</button>
+  </div>;
  };
  return <div className={'gold-web workspace '+(page==='home'?'reference-home':'')} dir="rtl" lang="ar"><aside className="desktop-nav">{nav}</aside><div className="workspace-main">{page==='home'?<header className="topbar home-topbar">
   <div className="home-identity"><span className="home-brand-emblem" aria-label="ذهبي"><Icon name="gem"/></span><div><p>مرحبًا بعودتك</p><h1 tabIndex={-1} ref={headingRef} title={accountName}><button type="button" className="home-name-link" onClick={()=>navigate('account')} aria-label="فتح الملف الشخصي"><span dir="auto">{accountName}</span><span aria-hidden="true">👋</span></button></h1></div></div>
