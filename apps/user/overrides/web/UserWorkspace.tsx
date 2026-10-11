@@ -48,6 +48,19 @@ const pages:{id:Page;label:string;icon:string;navLabel?:string}[]=[
 const primaryPages=pages.filter(p=>['home','prices','portfolio','purchases','alerts','map','account'].includes(p.id));
 const mobilePages=pages.filter(p=>['home','prices','calculator','portfolio','more'].includes(p.id));
 function Icon({name}:{name:string}){
+ // Lucide-style 22px outline glyphs used by iPhone More/Preferences only.
+ // Keep the icon language uniform without changing navigation or feature logic.
+ if(name==='storefront'||name==='receipt-text'||name==='bell-ring'||name==='circle-help'||name==='globe'||name==='coins'){
+  const strokes:Record<string,React.ReactNode>={
+   storefront:<><path d="M3 10 5 4h14l2 6v10H3V10Z"/><path d="M3 10h18M9 20v-7h6v7M8 4l-1 6m9-6 1 6"/></>,
+   'receipt-text':<><path d="M4 3h16v18l-3-2-3 2-3-2-3 2-4-2V3Z"/><path d="M8 8h8M8 12h8M8 16h4"/></>,
+   'bell-ring':<><path d="M18 8a6 6 0 0 0-12 0c0 6-3 8-3 8h18s-3-2-3-8ZM10 20h4"/><path d="m3 5-1.5 2M21 5l1.5 2"/></>,
+   'circle-help':<><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4.1 2c-1 .7-1.6 1.3-1.6 2.7M12 17h.01"/></>,
+   globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 2.8 4.5 5.8 4.5 9s-1.5 6.2-4.5 9M12 3c-3 2.8-4.5 5.8-4.5 9s1.5 6.2 4.5 9"/></>,
+   coins:<><circle cx="9" cy="9" r="5.5"/><path d="M9 6v6m-2.5-3h5"/><path d="M16 9.5a5.5 5.5 0 1 1-6.5 6.5"/></>
+  };
+  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{strokes[name]}</svg>;
+ }
  if(name==='gem')return <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="m3 8 4-5h10l4 5-9 12Z"/><path fill="none" stroke="#D4AF37" strokeWidth="1.1" d="M3 8h18M7 3l5 5 5-5"/></svg>;
  if(name==='store')return <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M5 3h14l3 6H2ZM3 11h5v10H3Zm7 0h4v10h-4Zm6 0h5v10h-5Z"/></svg>;
  const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4',calculator:'M5 3h14v18H5Z M8 7h8 M8 11h2 M12 11h2 M16 11h1 M8 15h2 M12 15h2 M16 15h1 M8 18h2 M12 18h5',chevron:'m9 18 6-6-6-6',edit:'M12 20h9 m-3-15 2 2L9 18l-5 1 1-5L16 4l2 2Z',trash:'M4 7h16 M9 7V4h6v3 M6 7l1 14h10l1-14 M10 11v6 M14 11v6',settings:'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7 M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 3.67-.08-.02a1.7 1.7 0 0 0-1.8-.35l-.1.04a1.7 1.7 0 0 0-1.1 1.55V22h-4.24v-.17a1.7 1.7 0 0 0-1.1-1.55l-.1-.04a1.7 1.7 0 0 0-1.8.35l-.08.02-2.12-3.67.06-.06A1.7 1.7 0 0 0 5.56 15l-.02-.1A1.7 1.7 0 0 0 4 13.8H3.8V9.56H4a1.7 1.7 0 0 0 1.54-1.1l.02-.1a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-3.67.08.02a1.7 1.7 0 0 0 1.8.35l.1-.04a1.7 1.7 0 0 0 1.1-1.55V1.4h4.24v.17a1.7 1.7 0 0 0 1.1 1.55l.1.04a1.7 1.7 0 0 0 1.8-.35l.08-.02 2.12 3.67-.06.06a1.7 1.7 0 0 0-.34 1.88l.02.1A1.7 1.7 0 0 0 21 9.56h.2v4.24H21a1.7 1.7 0 0 0-1.54 1.1Z',map:'M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z M9 3v15 M15 6v15'};
@@ -400,7 +413,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
      <button type="button" onClick={()=>navigate('portfolio')}><span className="dh-ux-row-icon"><Icon name="wallet"/></span><span className="dh-ux-row-copy"><strong>محفظتي الذهبية</strong><small>الذهب الذي تتابعه</small></span><Icon name="chevron"/></button>
      <button type="button" onClick={()=>navigate('purchases')}><span className="dh-ux-row-icon"><Icon name="receipt"/></span><span className="dh-ux-row-copy"><strong>سجل المشتريات</strong><small>عمليات الشراء المسجلة</small></span><Icon name="chevron"/></button>
      <button type="button" onClick={()=>navigate('alerts')}><span className="dh-ux-row-icon"><Icon name="bell"/></span><span className="dh-ux-row-copy"><strong>تنبيهات الأسعار</strong><small>الأهداف والتنبيهات المحفوظة</small></span><Icon name="chevron"/></button>
-     <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-ux-row-icon"><Icon name="settings"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات</strong><small>الأذونات والاشتراكات</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-ux-row-icon"><Icon name="bell-ring"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات</strong><small>الأذونات والاشتراكات</small></span><Icon name="chevron"/></button>
      <button type="button" onClick={()=>window.dispatchEvent(new Event('dhahabi:user-check-update'))}><span className="dh-ux-row-icon"><Icon name="refresh"/></span><span className="dh-ux-row-copy"><strong>التحقق من تحديث التطبيق</strong><small>البحث عن إصدار أحدث</small></span><Icon name="chevron"/></button>
     </div>
    </section>
@@ -419,28 +432,28 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    <section className="dh-ux-group" aria-labelledby="dh-more-services-title">
     <h3 className="dh-ux-group-title" id="dh-more-services-title">خدماتي</h3>
     <div className="approved-card dh-ux-link-list">
-     <button type="button" onClick={()=>navigate('map')}><span className="dh-ux-row-icon"><Icon name="map"/></span><span className="dh-ux-row-copy"><strong>التجار القريبون</strong><small>استكشاف محلات الذهب من موقعك</small></span><Icon name="chevron"/></button>
-     <button type="button" onClick={()=>navigate('purchases')}><span className="dh-ux-row-icon"><Icon name="receipt"/></span><span className="dh-ux-row-copy"><strong>المشتريات والفواتير</strong><small>مراجعة المشتريات المسجلة</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('map')}><span className="dh-ux-row-icon"><Icon name="storefront"/></span><span className="dh-ux-row-copy"><strong>التجار القريبون</strong><small>استكشاف محلات الذهب من موقعك</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('purchases')}><span className="dh-ux-row-icon"><Icon name="receipt-text"/></span><span className="dh-ux-row-copy"><strong>المشتريات والفواتير</strong><small>مراجعة المشتريات المسجلة</small></span><Icon name="chevron"/></button>
      <button type="button" onClick={()=>navigate('alerts')}><span className="dh-ux-row-icon"><Icon name="bell"/></span><span className="dh-ux-row-copy"><strong>تنبيهات الأسعار</strong><small>متابعة أهداف الأسعار</small></span><Icon name="chevron"/></button>
     </div>
    </section>
    <section className="dh-ux-group" aria-labelledby="dh-more-settings-title">
     <h3 className="dh-ux-group-title" id="dh-more-settings-title">الإعدادات والمساعدة</h3>
     <div className="approved-card dh-ux-link-list">
-     <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-ux-row-icon"><Icon name="settings"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات</strong><small>السماح بالإشعارات واختبارها</small></span><Icon name="chevron"/></button>
-     <button type="button" onClick={()=>navigate('help')}><span className="dh-ux-row-icon"><Icon name="help"/></span><span className="dh-ux-row-copy"><strong>المساعدة</strong><small>إجابات عن الأسئلة الشائعة</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-ux-row-icon"><Icon name="bell-ring"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات</strong><small>السماح بالإشعارات واختبارها</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('help')}><span className="dh-ux-row-icon"><Icon name="circle-help"/></span><span className="dh-ux-row-copy"><strong>المساعدة</strong><small>إجابات عن الأسئلة الشائعة</small></span><Icon name="chevron"/></button>
     </div>
    </section>
    <section className="approved-card dh-preference-card" aria-labelledby="dh-preferences-title">
     <h3 className="dh-ux-group-title" id="dh-preferences-title">التفضيلات</h3>
     <div className="dh-preference-row">
-     <span className="dh-ux-row-icon"><Icon name="settings"/></span>
+     <span className="dh-ux-row-icon"><Icon name="globe"/></span>
      <span className="dh-preference-text"><strong>لغة التطبيق</strong><small>لغة الواجهة الحالية</small></span>
      <span className="dh-preference-value">العربية</span>
     </div>
     <p className="dh-preference-note">الإنجليزية والفرنسية ستتوفران لاحقًا؛ لا يمكن تغيير اللغة الآن.</p>
     <div className="dh-preference-row">
-     <span className="dh-ux-row-icon"><Icon name="chart"/></span>
+     <span className="dh-ux-row-icon"><Icon name="coins"/></span>
      <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong><small>تُطبّق على الرئيسية والحاسبة والمحفظة والأسعار والمشتريات والتنبيهات، وتحفظ على هذا الجهاز</small><small>تحويل المبالغ المسجلة استرشادي من أسعار الذهب، دون تغيير الفواتير وشروط التنبيه.</small></span>
      <span className="dh-currency-options" role="group" aria-label="اختيار عملة عرض الأسعار">
       <button type="button" aria-pressed={priceCurrency==='SAR'} className={priceCurrency==='SAR'?'selected':''} onClick={()=>setPriceCurrency('SAR')}>SAR</button>

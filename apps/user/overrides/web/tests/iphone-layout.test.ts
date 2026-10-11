@@ -286,6 +286,35 @@ describe('iPhone more and profile UX redesign',()=>{
   expect(css).toContain('min-height:44px');
   expect(css).toContain('@media(max-width:400px)');
  });
+
+ it('uses distinct, meaningful outline icons for iPhone More while keeping routes unchanged',()=>{
+  const workspace=source('../UserWorkspace.tsx');
+  const more=workspace.split('return <div className="dh-ux-more">')[1].split('  </div>;\n };\n return <div className=')[0];
+  expect(workspace).toContain("if(name==='storefront'||name==='receipt-text'||name==='bell-ring'||name==='circle-help'||name==='globe'||name==='coins')");
+  expect(workspace).toContain('strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"');
+  expect(more).toContain('<Icon name="storefront"/></span><span className="dh-ux-row-copy"><strong>التجار القريبون');
+  expect(more).toContain('<Icon name="receipt-text"/></span><span className="dh-ux-row-copy"><strong>المشتريات والفواتير');
+  expect(more).toContain('<Icon name="bell"/></span><span className="dh-ux-row-copy"><strong>تنبيهات الأسعار');
+  expect(more).toContain('<Icon name="bell-ring"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات');
+  expect(more).toContain('<Icon name="circle-help"/></span><span className="dh-ux-row-copy"><strong>المساعدة');
+  expect(more).toContain('<Icon name="globe"/></span>\n     <span className="dh-preference-text"><strong>لغة التطبيق');
+  expect(more).toContain('<Icon name="coins"/></span>\n     <span className="dh-preference-text"><strong>عملة عرض الأسعار');
+  expect(more).toContain("onClick={()=>navigate('notification-settings')}");
+  expect(more).toContain("onClick={()=>navigate('alerts')}");
+  expect(more).toContain("onClick={()=>setPriceCurrency('USD')}");
+  expect(more).toContain("onClick={()=>setPriceCurrency('SAR')}");
+  expect(more).not.toContain('<Icon name="settings"/></span>\n     <span className="dh-preference-text"><strong>لغة التطبيق');
+  expect(more).toContain('لا يمكن تغيير اللغة الآن');
+ });
+ it('uses 44px neutral navy icon boxes and 22px outline strokes instead of excessive gold',()=>{
+  const css=source('../user.css');
+  const scoped=css.split('/* iPhone More: neutral, consistent outline icons; reserve gold for selected controls. */')[1];
+  expect(scoped).toContain('.dh-ux-more .dh-ux-row-icon');
+  expect(scoped).toContain('width:44px;height:44px;min-width:44px');
+  expect(scoped).toContain('width:22px;height:22px;stroke-width:1.8');
+  expect(scoped).toContain('background:#F2F5F9;color:#001F3F');
+  expect(css).toContain('button[aria-pressed="true"]');
+ });
 });
 
 describe('Global display-currency integration regression',()=>{

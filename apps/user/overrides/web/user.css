@@ -2243,3 +2243,20 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  color:#001F3F;background:#F5EDD1;border:1px solid #C5A021;
 }
 .gold-web.workspace .dh-currency-options button:focus-visible{outline:3px solid #C5A021;outline-offset:3px;}
+
+/* iPhone More: neutral, consistent outline icons; reserve gold for selected controls. */
+.gold-web.workspace .dh-ux-more .dh-ux-row-icon,
+.gold-web.workspace .dh-ux-profile .dh-ux-row-icon{
+ width:44px;height:44px;min-width:44px;flex-shrink:0;border-radius:13px;
+ background:#F2F5F9;color:#001F3F;
+}
+.gold-web.workspace .dh-ux-more .dh-ux-row-icon svg,
+.gold-web.workspace .dh-ux-profile .dh-ux-row-icon svg{
+ width:22px;height:22px;stroke-width:1.8;
+}
+.gold-web.workspace .dh-ux-more .dh-ux-link-list >button{
+ min-height:68px;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-row{
+ min-height:72px;
+}
