@@ -1,6 +1,6 @@
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,URL} from 'node:url';
 import {getFreshNearbyPosition,NearbyLocationError} from '../nearby-geolocation';
 
 const source=readFileSync(fileURLToPath(new URL('../NearbyMarkets.tsx',import.meta.url)),'utf8');
@@ -9,7 +9,7 @@ const point={coords:{latitude:17.23966,longitude:42.62208,accuracy:12}};
 
 describe('Near traders: fresh on-demand location on every screen entry',()=>{
  it('requests an uncached high-accuracy fix when permission is already granted',async()=>{
-  const getCurrentPosition=vi.fn((success:(p:typeof point)=>void)=>success(point));
+  const getCurrentPosition=vi.fn((success:(p:typeof point)=>void,_error?:unknown,_options?:unknown)=>success(point));
   const query=vi.fn(async()=>({state:'granted'}));
   vi.stubGlobal('navigator',{geolocation:{getCurrentPosition},permissions:{query}});
   expect(await getFreshNearbyPosition()).toEqual({latitude:17.23966,longitude:42.62208,accuracyMeters:12});
@@ -18,13 +18,13 @@ describe('Near traders: fresh on-demand location on every screen entry',()=>{
   expect(query).toHaveBeenCalledWith({name:'geolocation'});
  });
  it('lets the browser request permission when the state is prompt',async()=>{
-  const getCurrentPosition=vi.fn((success:(p:typeof point)=>void)=>success(point));
+  const getCurrentPosition=vi.fn((success:(p:typeof point)=>void,_error?:unknown,_options?:unknown)=>success(point));
   vi.stubGlobal('navigator',{geolocation:{getCurrentPosition},permissions:{query:async()=>({state:'prompt'})}});
   expect((await getFreshNearbyPosition()).latitude).toBe(17.23966);
   expect(getCurrentPosition).toHaveBeenCalledOnce();
  });
  it('falls back to geolocation when Safari has no working Permissions API',async()=>{
-  const getCurrentPosition=vi.fn((success:(p:typeof point)=>void)=>success(point));
+  const getCurrentPosition=vi.fn((success:(p:typeof point)=>void,_error?:unknown,_options?:unknown)=>success(point));
   vi.stubGlobal('navigator',{geolocation:{getCurrentPosition},permissions:{query:async()=>{throw Error('unsupported');}}});
   expect((await getFreshNearbyPosition()).longitude).toBe(42.62208);
  });
