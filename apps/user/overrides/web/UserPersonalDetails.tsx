@@ -7,7 +7,7 @@ interface PersonalProfile {
  city:string|null;countryCode:string|null;
 }
 export default function UserPersonalDetails(){
- const {updateProfile}=useAuth();
+ const {updateProfile}=useAuth() as ReturnType<typeof useAuth> & {updateProfile:(changes:{fullName:string;city:string})=>Promise<{fullName:string|null;city:string|null}>};
  const [profile,setProfile]=useState<PersonalProfile|null>(null);
  const [loading,setLoading]=useState(true),[editing,setEditing]=useState(false);
  const [name,setName]=useState(''),[city,setCity]=useState('');
@@ -36,15 +36,15 @@ export default function UserPersonalDetails(){
  };
  return <section className="approved-card dh-personal-details-native" aria-labelledby="personal-details-title">
   <div className="dh-personal-head">
-   <h3 id="personal-details-title">البيانات الشخصية</h3>
-   {!editing&&<button type="button" className="dh-personal-edit" aria-label="تعديل البيانات الشخصية" onClick={()=>{setEditing(true);setError('');}}><svg viewBox="0 0 24 24" aria-hidden="true" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="m16 4 4 4L9 19l-5 1 1-5L16 4Z"/></svg><span>تعديل</span></button>}
+   <div><h3 id="personal-details-title">البيانات الشخصية</h3><p>تحديث معلومات الحساب الأساسية</p></div>
+   {!editing&&profile&&<button type="button" className="dh-personal-edit" aria-label="تعديل البيانات الشخصية" onClick={()=>{setEditing(true);setError('');}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="m16 4 4 4L9 19l-5 1 1-5L16 4Z"/></svg><span>تعديل</span></button>}
   </div>
   {loading?<p role="status">جارٍ تحميل البيانات الشخصية…</p>:profile&&(!editing?
    <dl className="dh-personal-rows">
-    <div><dt>الاسم الكامل</dt><dd>{profile.fullName||'غير مضاف'}</dd></div>
-    <div><dt>البريد الإلكتروني</dt><dd dir="ltr">{profile.email}</dd></div>
-    <div><dt>رقم الجوال</dt><dd dir="ltr">{profile.phone||'غير مضاف'}</dd></div>
-    <div><dt>المدينة</dt><dd>{profile.city||'غير مضافة'}</dd></div>
+    <div><dt>الاسم الكامل</dt><dd dir="auto">{profile.fullName||'غير مضاف'}</dd><button type="button" className="dh-personal-row-edit" aria-label="تعديل الاسم الكامل" onClick={()=>{setEditing(true);setError('');}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="m16 4 4 4L9 19l-5 1 1-5L16 4Z"/></svg></button></div>
+    <div><dt>البريد الإلكتروني</dt><dd dir="ltr">{profile.email}</dd><span className="dh-personal-row-static" aria-hidden="true"/></div>
+    <div><dt>رقم الجوال</dt><dd dir="ltr">{profile.phone||'غير مضاف'}</dd><span className="dh-personal-row-static" aria-hidden="true"/></div>
+    <div><dt>المدينة</dt><dd dir="auto">{profile.city||'غير مضافة'}</dd><button type="button" className="dh-personal-row-edit" aria-label="تعديل المدينة" onClick={()=>{setEditing(true);setError('');}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="m16 4 4 4L9 19l-5 1 1-5L16 4Z"/></svg></button></div>
    </dl>:
    <form className="dh-personal-form" onSubmit={save}>
     <label>الاسم الكامل<input required minLength={2} maxLength={80} autoComplete="name" value={name} onChange={e=>setName(e.target.value)} disabled={busy}/></label>
