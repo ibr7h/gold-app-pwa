@@ -289,6 +289,7 @@ describe('iPhone more and profile UX redesign',()=>{
 });
 
 describe('Global display-currency integration regression',()=>{
+ const workspace=source('../UserWorkspace.tsx');
  it('keeps a single preference through home prices, 24K history, calculator and portfolio',()=>{
   expect(workspace).toContain("r.currency===priceCurrency&&r.karat===24");
   expect(workspace).toContain("r.currency===priceCurrency&&r.karat===calcKarat");
