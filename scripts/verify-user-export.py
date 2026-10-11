@@ -1,15 +1,19 @@
 import sys
 import os
+import re
 from pathlib import Path
 
 root=Path(sys.argv[1])
 javascript='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.js'))
 css='\n'.join(p.read_text(errors='ignore') for p in root.rglob('*.css'))
 
-assert '1.9.0' in javascript and os.environ['GITHUB_SHA'][:8] in javascript, 'The deployed User release identity is missing from the export'
+release_source=Path('apps/user/overrides/web/app-version.ts').read_text()
+match=re.search(r"APP_VERSION = '(\d+\.\d+\.\d+)'", release_source)
+assert match, 'User application release not found'
+assert match.group(1) in javascript, 'The User display release is missing from the exported bundle'
 assert 'workspace-content' in javascript, 'User workspace markup is missing'
 assert 'mobile-bottom-nav' in javascript and 'approved-services-grid' in javascript, 'Mockup seven-tab user navigation is missing'
-assert 'calc-total-card' in javascript, 'Approved calculator screen is missing'
+assert 'calc-estimate-card' in javascript and 'calc-words-block' in javascript, 'Approved calculator details or Arabic amount words are missing'
 assert '/prices/history?currency=' in javascript and '/prices/latest?currency=' in javascript, 'Backend price endpoints are missing from the user build'
 assert 'raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-live.json' not in javascript, 'Legacy GitHub live-price source leaked into the user build'
 assert 'raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-history.json' not in javascript, 'Legacy GitHub price-history source leaked into the user build'

@@ -6,8 +6,9 @@ const decimal=(v:string|number|undefined|null)=>v===undefined||v===null?'':Strin
 const n=(v:string)=>v.trim()?Number(v):0;
 const text=(v:unknown)=>typeof v==='string'?v:'';
 
-export default function PurchaseFormFields({portfolios,purchase}:{portfolios:Portfolio[];purchase?:Purchase}){
+export default function PurchaseFormFields({portfolios,purchase,preferredCurrency='SAR'}:{portfolios:Portfolio[];purchase?:Purchase;preferredCurrency?:'SAR'|'USD'}){
  const details=purchase?.invoiceDetails||{};
+ const [formCurrency,setFormCurrency]=useState(purchase?.currency||preferredCurrency);
  const [mode,setMode]=useState<'inclusive'|'itemized'>(details.pricingMode==='itemized'?'itemized':'inclusive');
  const [weight,setWeight]=useState(decimal(purchase?.weightGrams));
  const [invoiceTotal,setInvoiceTotal]=useState(decimal(purchase?.totalPrice));
@@ -41,8 +42,8 @@ export default function PurchaseFormFields({portfolios,purchase}:{portfolios:Por
     </select>
    </label>
    <label>العملة
-    <select name="currency" defaultValue={purchase?.currency||'SAR'} required>
-     {(CURRENCIES.includes(purchase?.currency||'')?CURRENCIES:[purchase?.currency||'SAR',...CURRENCIES]).filter((v,i,a)=>a.indexOf(v)===i).map(c=><option key={c} value={c}>{c}</option>)}
+    <select name="currency" value={formCurrency} onChange={e=>setFormCurrency(e.target.value)} required>
+     {(CURRENCIES.includes(formCurrency)?CURRENCIES:[formCurrency,...CURRENCIES]).filter((v,i,a)=>a.indexOf(v)===i).map(c=><option key={c} value={c}>{c}</option>)}
     </select>
    </label>
    <label>الوزن الصافي (جم)
@@ -92,8 +93,8 @@ export default function PurchaseFormFields({portfolios,purchase}:{portfolios:Por
     <p className="fine">تحقق من طريقة تطبيق الضريبة في فاتورتك. السلع الاستثمارية المؤهلة قد تختلف ضريبتها عن المشغولات؛ لا يفترض التطبيق نسبة موحدة.</p>
    </>}
    <div className="gold-purchase-estimate" aria-live="polite">
-    <div><span>الإجمالي المسجل</span><strong>{quote?num(quote.total):'أدخل الوزن والسعر'}</strong></div>
-    <div><span>تكلفة الجرام</span><strong>{quote?num(quote.effectiveUnitPrice):'غير متاح'}</strong></div>
+    <div><span>الإجمالي المسجل ({formCurrency})</span><strong>{quote?num(quote.total):'أدخل الوزن والسعر'}</strong></div>
+    <div><span>تكلفة الجرام ({formCurrency})</span><strong>{quote?num(quote.effectiveUnitPrice):'غير متاح'}</strong></div>
     {mode==='itemized'&&quote&&<div className="gold-breakdown-note">قيمة الذهب: {num(quote.metalSubtotal)} · إضافات: {num(quote.fees)} · ضريبة: {num(quote.vat)}</div>}
    </div>
   </fieldset>

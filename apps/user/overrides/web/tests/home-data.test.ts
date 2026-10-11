@@ -14,7 +14,7 @@ describe('Home market observations',()=>{
  });
  it('uses the Saudi calendar boundary and excludes yesterday and future quotes',()=>{
   const latest=quote('2026-10-08T23:00:00Z',505);
-  const movement=homeMarketMovement([quote('2026-10-08T20:59:00Z',100),quote('2026-10-08T21:00:00Z',500),quote('2026-10-09T12:00:00Z',900)],latest,now)!;
+  const movement=homeMarketMovement([quote('2026-10-08T20:59:00Z',100),quote('2026-10-08T21:00:00Z',1200),quote('2026-10-08T22:00:00Z',500),quote('2026-10-09T12:00:00Z',900)],latest,now)!;
   expect(movement.difference).toBe(5);
  });
  it('does not invent a daily change for missing, stale, duplicate, or invalid observations',()=>{

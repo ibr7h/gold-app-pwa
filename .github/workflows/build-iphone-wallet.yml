@@ -4,6 +4,10 @@ on:
     branches: ["preview/iphone-render"]
     paths:
       - "apps/user/overrides/web/UserWorkspace.tsx"
+      - "apps/user/overrides/web/display-currency.ts"
+      - "apps/user/overrides/web/tests/display-currency.test.ts"
+      - "apps/user/overrides/web/home-data.ts"
+      - "apps/user/overrides/web/PurchaseFormFields.tsx"
       - "apps/user/overrides/web/NearbyMarkets.tsx"
       - "apps/user/overrides/web/nearby-geolocation.ts"
       - "apps/user/overrides/web/tests/nearby-geolocation.test.ts"
@@ -14,7 +18,7 @@ on:
       - "apps/user/overrides/web/tests/arabic-amount-words.test.ts"
       - "apps/user/overrides/web/tests/price-status.test.ts"
       - "apps/user/overrides/web/tests/iphone-layout.test.ts"
-      - "apps/user/overrides/web/tests/v1920-restore.test.ts"
+      - "apps/user/overrides/web/tests/v1920-restore.test.ts web/tests/display-currency.test.ts"
       - "apps/user/overrides/web/tests/fixtures/v1.9.20-calculator.txt"
       - "apps/user/overrides/web/user.css"
   # Workflow-only maintenance does not automatically rebuild or bump the User release.
