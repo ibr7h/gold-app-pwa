@@ -78,7 +78,7 @@ jobs:
               raise RuntimeError(f'Expected one newly exported entry bundle, found {entries}')
           bundle=entries[0]
           compiled=bundle.read_text()
-          for marker in ('portfolio-card-actions','portfolio-change-value','portfolio-edit','home-chart-card','calc-total-card','weight-presets'):
+          for marker in ('portfolio-card-actions','portfolio-change-value','portfolio-edit','home-chart-card','calc-total-card','weight-presets','calc-tafqeet'):
               if marker not in compiled:
                   raise RuntimeError(f'New wallet code missing in compiled Expo bundle: {marker}')
           css_files=list((src/'_expo/static/css').glob('user-*.css'))

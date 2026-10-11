@@ -1884,3 +1884,10 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web .portfolio-money-row{grid-template-columns:1fr;row-gap:2px}
  .gold-web .portfolio-market-value,.gold-web .portfolio-change-value{font-size:15px}
 }
+
+/* Tafqeet supplements, never replaces, the v1.9.20 calculator's final total. */
+.gold-web.workspace .calc-breakdown .final .calc-tafqeet{
+ display:block;max-width:100%;margin-top:8px;font-size:12px;line-height:1.85;
+ color:#566477;font-weight:600;white-space:normal;overflow-wrap:break-word;
+ direction:rtl;text-align:start;
+}

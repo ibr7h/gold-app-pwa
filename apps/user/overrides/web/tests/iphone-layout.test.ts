@@ -205,13 +205,20 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).not.toContain("المصدر: {homeMarket?.source");
   expect(s).toContain("marketClosed?'لا تداول حاليًا'");
  });
- it('keeps historical charts visible but halts automatic refresh while the market is closed',()=>{
+ it('unmounts both price charts during global market closure, retaining the historical chart when open',()=>{
   const s=source('../UserWorkspace.tsx');
   expect(s).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart');
   expect(s).toContain('<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
-  expect(s).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
+  expect(s).toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
+  expect(s).toContain('{!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
   expect(s).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000)");
   expect(s).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
+ });
+ it('retains tafqeet beneath the final numeric total without changing the rate formula',()=>{
+  const s=source('../UserWorkspace.tsx');
+  expect(s).toContain('amountToSaudiRiyalWords(calcTotal)');
+  expect(s).toContain('calcTotal!==null');
+  expect(source('../user.css')).toContain('.calc-breakdown .final .calc-tafqeet');
  });
 });
 

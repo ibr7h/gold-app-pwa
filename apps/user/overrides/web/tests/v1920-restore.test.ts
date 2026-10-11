@@ -12,13 +12,18 @@ const getCalculator=(src:string)=>{
  return src.slice(a,b);
 };
 describe('v1.9.20 user calculator and historical chart restoration',()=>{
- it('reuses the exact v1.9.20 calculator JSX, not a redesigned approximation',()=>{
-  expect(getCalculator(current)).toBe(v1920Calculator);
+ it('keeps the exact v1.9.20 calculator structure and only appends the retained tafqeet',()=>{
+  const tafqeet="{money(calcTotal,'SAR')}{calcTotal!==null&&<small className=\"calc-tafqeet\" aria-label=\"الإجمالي كتابة\">{amountToSaudiRiyalWords(calcTotal)}</small>}";
+  const actual=getCalculator(current);
+  expect(actual).toContain(tafqeet);
+  expect(actual.replace(tafqeet,"{money(calcTotal,'SAR')}")).toBe(v1920Calculator);
+  expect(current).toContain("import {amountToSaudiRiyalWords} from './arabic-amount-words'");
  });
  it('keeps the original historical chart in both pages with all range/interaction controls',()=>{
-  expect(current).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>');
+  expect(current).toContain('{!marketClosed&&<section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>}');
   expect(current).toContain('<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>');
-  expect(current).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
+  expect(current).toContain('{!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
+  expect(current).toContain('const marketClosed=!isGlobalGoldMarketOpen(clock)');
   expect(current).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000);");
   expect(current).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
   const chart=read('../PriceHistoryChart.tsx');
