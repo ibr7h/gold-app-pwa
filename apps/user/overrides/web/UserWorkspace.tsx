@@ -20,6 +20,7 @@ import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
 import {displayAmount,displayPortfolioSummary,sarPerUsd} from './display-currency';
 import {LanguageProvider,useLanguage,activeLocale} from './i18n';
+import {amountToLocalizedWords} from './amount-words-localized';
 /** Build-time type bridge for the extracted native app's older AuthContext.
  * The Web bundle uses the specialized contexts/AuthContext.web provider.
  */
@@ -271,7 +272,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     </dl>
     <div className="calc-words-block">
      <div className="calc-words-label">الإجمالي كتابة</div>
-     <p className="calc-words-value" aria-label="الإجمالي كتابة">{calcTotal!==null?amountToDisplayCurrencyWords(calcTotal,priceCurrency):'—'}</p>
+     <p className="calc-words-value" aria-label="الإجمالي كتابة">{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
     </div>
    </section>
   </>;
