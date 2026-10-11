@@ -1,4 +1,5 @@
-import {activeLocale} from './i18n';
+import {activeLocale,useLanguage} from './i18n';
+import {localizeFeedback} from './i18n-feedback';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {enablePush,disablePush,inspectPush,testPush,BrowserPushSnapshot} from './push-client';
 import {humanStatus} from './push-status';
@@ -20,6 +21,7 @@ const stateNote:Record<string,string>={
 };
 
 export default function NotificationSettings(){
+ const {language}=useLanguage();
  const [state,setState]=useState<BrowserPushSnapshot|null>(null);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [feedback,setFeedback]=useState(''),[error,setError]=useState('');
@@ -87,9 +89,9 @@ export default function NotificationSettings(){
      إعادة فحص الحالة
     </button>
    </div>
-   {feedback&&<p className="notice success" role="status">{feedback}</p>}
-   {error&&<p className="notice error" role="alert">{error}</p>}
-   {state?.message&&<p className="notice warning" role="status">{state.message}</p>}
+   {feedback&&<p className="notice success" role="status">{localizeFeedback(feedback,language)}</p>}
+   {error&&<p className="notice error" role="alert">{localizeFeedback(error,language)}</p>}
+   {state?.message&&<p className="notice warning" role="status">{localizeFeedback(state.message,language)}</p>}
    {awaitingConfirmation&&<div className="dh-push-confirm">
     <p>{userConfirmed?'أكدت أنت مشاهدة الإشعار على هذا الجهاز.':'هل ظهر إشعار ذهبي على جهازك؟ قد يتأخر أو تمنعه إعدادات النظام.'}</p>
     {!userConfirmed&&<button type="button" className="secondary" onClick={()=>setUserConfirmed(true)}>نعم، ظهر الإشعار</button>}
