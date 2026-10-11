@@ -2308,3 +2308,19 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .gold-web[dir="ltr"] .home-name-link{direction:ltr;}
 .gold-web[dir="ltr"] input[dir="ltr"],
 .gold-web[dir="ltr"] .dh-money{direction:ltr;}
+
+/* LTR parity for the detailed price graph and local PIN screens. */
+.gold-web[dir="ltr"] .dh-price-trend,
+.gold-web[dir="ltr"] .dh-price-trend .dh-trend-controls{
+ direction:ltr;
+}
+.dh-quick-lock[dir="ltr"] .dh-pin-identity,
+.dh-quick-lock[dir="ltr"] .dh-pin-security-note,
+.dh-pin-setup[dir="ltr"] .dh-pin-setup-head,
+.dh-pin-setup[dir="ltr"] > p{
+ text-align:left;
+}
+.dh-pin-setup[dir="ltr"] .dh-pin-dots,
+.dh-quick-lock[dir="ltr"] .dh-pin-dots,
+.dh-quick-lock[dir="ltr"] .dh-pin-keypad,
+.dh-pin-setup[dir="ltr"] .dh-pin-keypad{direction:ltr;}
