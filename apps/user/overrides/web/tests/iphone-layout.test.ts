@@ -243,7 +243,7 @@ describe('iPhone more and profile UX redesign',()=>{
  it('groups More services and settings and presents the verified account name before the email',()=>{
   const workspace=source('../UserWorkspace.tsx');
   expect(workspace).toContain('className="dh-ux-more"');
-  expect(workspace).toContain('className="dh-ux-account-link"');
+  expect(workspace).toContain('className="approved-card dh-ux-account-link"');
   expect(workspace).toContain('className="dh-ux-account-text"');
   expect(workspace).toContain('<strong dir="auto">{accountName}</strong>');
   expect(workspace).toContain('عرض الملف الشخصي وتعديل بياناتي');
