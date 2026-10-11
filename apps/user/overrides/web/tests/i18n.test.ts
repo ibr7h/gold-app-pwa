@@ -226,3 +226,20 @@ describe('Complete invoice details and optional purchase form localization',()=>
   expect(css).toContain('.dialog[dir="ltr"] .gold-purchase-form input[type="date"]');
  });
 });
+
+describe('Concise gold-price disclaimer in all languages',()=>{
+ it('shows only the costs-excluded note in Arabic, English and French',()=>{
+  const ar='لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.';
+  expect(translateUiText(ar,'ar')).toBe(ar);
+  expect(translateUiText(ar,'en')).toBe('Prices exclude workmanship charges, taxes, and dealer margins.');
+  expect(translateUiText(ar,'fr')).toBe('Les prix n’incluent pas les frais de fabrication, les taxes ni la marge du commerçant.');
+ });
+ it('renders the exact short notice without the old backend/source explanation',()=>{
+  const source=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url).href),'utf8');
+  const catalog=readFileSync(fileURLToPath(new URL('../i18n-messages.ts',import.meta.url).href),'utf8');
+  expect(source).toContain("const priceNote=<p className=\"fine\">{tr('لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.')}</p>;");
+  expect(source).not.toContain('جميع الأسعار في هذه النسخة تأتي من Backend');
+  expect(catalog).not.toContain('All prices come from Dhahabi');
+  expect(catalog).not.toContain('Tous les prix proviennent du serveur Dhahabi');
+ });
+});
