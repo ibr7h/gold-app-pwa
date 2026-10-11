@@ -1,0 +1,52 @@
+name: iPhone User UI preflight
+on:
+  pull_request:
+    branches: ["preview/iphone-render"]
+    paths:
+      - "apps/user/overrides/web/**"
+      - ".github/workflows/iphone-user-ui-preflight.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Extract User application source
+        run: |
+          unzip -q "gold-app 17 apr 15-19 adimin icon.zip" -d /tmp
+          echo "SRC=/tmp/gold-app 17 apr 15-19 adimin icon" >> "$GITHUB_ENV"
+      - name: Apply reviewed web compatibility patches
+        run: |
+          python3 -m pip install --quiet pyyaml
+          python3 - <<'PY'
+          import os,subprocess,yaml
+          cfg=yaml.safe_load(open('.github/workflows/deploy-pages.yml',encoding='utf-8'))
+          steps=cfg['jobs']['deploy']['steps']
+          script=next(step['run'] for step in steps if step.get('name')=='Apply web-only PWA compatibility patches')
+          subprocess.run(['bash','-euo','pipefail','-c',script],check=True,env=os.environ)
+          PY
+      - name: Apply User-only overrides
+        run: |
+          cp -R "$GITHUB_WORKSPACE/apps/user/overrides/." "$SRC/"
+          cd "$SRC"
+          for route in chat admin new-order new-client admin-stats admin-users trader-home order-detail admin-invites trader-orders admin-settings trader-clients trader-reports trader-location trader-messages admin-permissions trader-notifications; do
+            find app -type f \( -name "$route.tsx" -o -name "$route.web.tsx" -o -name "$route.jsx" -o -name "$route.js" \) -delete
+          done
+      - name: Run iPhone User tests and static export
+        env:
+          EXPO_NO_TELEMETRY: "1"
+          EXPO_PUBLIC_APP_VARIANT: "user"
+        run: |
+          cd "$SRC"
+          pnpm install --frozen-lockfile
+          pnpm exec vitest run web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts
+          pnpm exec expo export --platform web --output-dir dist-pwa --clear
