@@ -1730,12 +1730,12 @@ export function translateUiText(input:string,lang:Language):string{
   [/^(\d+) كم$/,a=>`${a[1]} km`],
   [/^آخر تحديث: (.+)$/,a=>(lang==='en'?'Last updated: ':'Dernière mise à jour : ')+a[1]],
   [/^آخر فحص: (.+)$/,a=>(lang==='en'?'Last checked: ':'Dernière vérification : ')+a[1]],
-  [/^([0-9٠-٩.,]+)% من الوزن الإجمالي\\.$/,a=>a[1]+(lang==='en'?'% of gross weight.':' % du poids brut.')],
-  [/^% من الوزن الإجمالي\\.$/,()=>lang==='en'?'% of gross weight.':'% du poids brut.'],
+  [/^([0-9٠-٩.,]+)% من الوزن الإجمالي\.$/,a=>a[1]+(lang==='en'?'% of gross weight.':' % du poids brut.')],
+  [/^% من الوزن الإجمالي\.$/,()=>lang==='en'?'% of gross weight.':'% du poids brut.'],
   [/^([0-9٠-٩.,]+) جرام ·$/,a=>a[1]+(lang==='en'?' grams ·':' grammes ·')],
-  [/^عيار (\\d+) · السعر العالمي الاسترشادي، دون مصنعية أو ضريبة$/,a=>(lang==='en'?'Karat ':'Carats ')+a[1]+(lang==='en'?' · Indicative global price, excluding fees and taxes':' · Cours mondial indicatif, hors fabrication et taxes')],
+  [/^عيار (\d+) · السعر العالمي الاسترشادي، دون مصنعية أو ضريبة$/,a=>(lang==='en'?'Karat ':'Carats ')+a[1]+(lang==='en'?' · Indicative global price, excluding fees and taxes':' · Cours mondial indicatif, hors fabrication et taxes')],
   [/^(.+) · آخر سعر مسجل$/,a=>a[1]+(lang==='en'?' · last recorded quote':' · dernier cours enregistré')],
-  [/^(\d+)\\. اختر عيار الذهب$/,a=>a[1]+(lang==='en'?' . Choose gold purity':' . Choisir le carat de l’or')]
+  [/^(\d+)\. اختر عيار الذهب$/,a=>a[1]+(lang==='en'?' . Choose gold purity':' . Choisir le carat de l’or')]
  ];
  for(const [re,fn] of composite){const match=core.match(re);if(match)return m[1]+fn(match)+m[3];}
  for(const [re,fn] of dynamic){const match=core.match(re);if(match)return m[1]+fn(match)+m[3];}
