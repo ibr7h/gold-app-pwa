@@ -1,4 +1,4 @@
-import {uncoveredUiMessages} from './i18n-coverage';
+import {uncoveredUiMessages,secondaryUiMessages} from './i18n-coverage';
 /** Human-reviewed terminology for Dhahabi User interface. No network translation. */
 export type Language='ar'|'en'|'fr';
 export const LANGUAGE_KEY='dhahabi:user:language';
@@ -1693,7 +1693,7 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
  ]
 ];
 const lookup=new Map<string,readonly [string,string]>(
- [...entries,...extendedEntries,...uncoveredUiMessages].map(([ar,en,fr])=>[ar,[en,fr] as const])
+ [...entries,...extendedEntries,...uncoveredUiMessages,...secondaryUiMessages].map(([ar,en,fr])=>[ar,[en,fr] as const])
 );
 export const translationCount=()=>lookup.size;
 export function translateExact(text:string,lang:Language):string|null{
