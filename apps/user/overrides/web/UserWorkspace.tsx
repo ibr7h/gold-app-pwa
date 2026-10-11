@@ -292,7 +292,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
         <div className="portfolio-card-top">
          <div className="portfolio-heading">
           <span className="portfolio-icon" aria-hidden="true"><Icon name="wallet"/></span>
-          <span className="portfolio-heading-text"><strong className="portfolio-name">{portfolio.name}</strong>
+          <span className="portfolio-heading-text"><strong className="portfolio-name" data-no-translate>{portfolio.name}</strong>
            <span className="portfolio-subtitle">{rows.length===0?'محفظة فارغة':rows.length===1?'عملية شراء واحدة':rows.length+' عمليات شراء'}</span>
           </span>
          </div>
@@ -357,8 +357,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   if(page==='purchases')return <section className="approved-card"><div className="approved-card-title"><span>سجل المشتريات</span><button className="primary compact-primary" disabled={busy||!loaded} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}><Icon name="plus"/>{portfolios.length?'تسجيل شراء':'إنشاء محفظة'}</button></div>{!loaded?<Empty>لم يتم تحميل المشتريات بعد.</Empty>:!purchases.length?<Empty>لا توجد مشتريات مسجلة.</Empty>:<div className="records">{purchases.map(p=><article className="record" key={p.id}><div className="record-title"><span className="card-icon"><Icon name="receipt"/></span><div><h3>ذهب عيار {p.karat}</h3><p className="approved-muted">{portfolios.find(x=>x.id===p.portfolioId)?.name||'محفظة'} · {p.purchasedAt.slice(0,10)}</p></div><strong className="record-total">{showMoney(Number(p.totalPrice),p.currency)}</strong></div><dl className="record-details"><div><dt>الوزن</dt><dd>{number(Number(p.weightGrams))} جم</dd></div><div><dt>{p.invoiceDetails?.goldUnitPrice!==undefined?'سعر جرام الذهب دون إضافات':'سعر الجرام المسجل (شامل)'}</dt><dd>{showMoney(p.invoiceDetails?.goldUnitPrice??Number(p.unitPrice),p.currency)}</dd></div>
  <div><dt>التكلفة الفعلية للجرام</dt><dd>{showMoney(Number(p.totalPrice)/Number(p.weightGrams),p.currency)}</dd></div>
  {p.invoiceDetails?.pricingMode==='itemized'&&<div><dt>المصنعية والضريبة والأحجار</dt><dd>{showMoney((p.invoiceDetails.makingCharge||0)+(p.invoiceDetails.vatAmount||0)+(p.invoiceDetails.stonePrice||0),p.currency)}</dd></div>}
- {p.invoiceDetails?.invoiceNumber&&<div><dt>الفاتورة</dt><dd>{p.invoiceDetails.invoiceNumber}</dd></div>}
- {p.invoiceDetails?.sellerName&&<div><dt>التاجر</dt><dd>{p.invoiceDetails.sellerName}</dd></div>}<div className="actions"><button className="secondary" disabled={busy} onClick={()=>openDialog('purchase',p)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/purchase/'+p.id,label:'سجل الشراء'});}}>حذف</button></div></dl></article>)}</div>}</section>;
+ {p.invoiceDetails?.invoiceNumber&&<div><dt>الفاتورة</dt><dd data-no-translate>{p.invoiceDetails.invoiceNumber}</dd></div>}
+ {p.invoiceDetails?.sellerName&&<div><dt>التاجر</dt><dd data-no-translate>{p.invoiceDetails.sellerName}</dd></div>}<div className="actions"><button className="secondary" disabled={busy} onClick={()=>openDialog('purchase',p)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/purchase/'+p.id,label:'سجل الشراء'});}}>حذف</button></div></dl></article>)}</div>}</section>;
 
   if(page==='notification-settings')return <NotificationSettings/>;
   if(page==='alerts')return <section className="approved-card"><div className="approved-card-title"><span>تنبيهات الأسعار</span><button className="primary compact-primary" disabled={busy||!loaded} onClick={()=>openAlertDialog()}><Icon name="plus"/>تنبيه جديد</button></div><div className="dh-push-alert-entry"><p>عندما يصل السعر إلى هدفك، يرسل ذهبي إشعار Push إلى أجهزتك المسجلة، حتى إن كانت الصفحة مغلقة وفق دعم الجهاز.</p><button type="button" className="secondary" onClick={()=>navigate('notification-settings')}><Icon name="bell"/>إعدادات إشعارات الجهاز</button></div>{!loaded?<Empty>لم يتم تحميل التنبيهات بعد.</Empty>:!alerts.length?<Empty>لا توجد تنبيهات. أضف السعر الذي تريد متابعته.</Empty>:<div className="approved-alert-list">{alerts.map(a=><article key={a.id}><div><span className={'pill '+(a.status==='active'?'good':a.status==='triggered'?'warn':'')}>{statusLabels[a.status]}</span><h3>عيار {a.karat} · <span className="dh-currency-label"><CurrencyMark currency={a.currency}/></span></h3><p>{a.direction==='above'?'عند وصول السعر إلى أو أعلى من':'عند وصول السعر إلى أو أقل من'} <b>{showMoney(Number(a.targetPrice),a.currency)}</b></p></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>void mutate('/alerts/'+a.id+(a.status==='active'?'/pause':'/activate'),'POST')}>{a.status==='active'?'إيقاف':a.status==='triggered'?'إعادة تفعيل':'تفعيل'}</button><button className="secondary" disabled={busy} onClick={()=>openAlertDialog(a)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/alerts/'+a.id,label:'التنبيه'});}}>حذف</button></div></article>)}</div>}</section>;
@@ -368,7 +368,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   if(page==='account')return <div className="dh-ux-profile">
    <section className="approved-card dh-ux-profile-hero" aria-label="ملخص حسابك">
     <span className="avatar large dh-ux-avatar" aria-hidden="true">{accountName.trim().charAt(0).toUpperCase()||'ذ'}</span>
-    <div className="dh-ux-identity"><span className="dh-ux-kicker">حساب ذهبي</span><h2 dir="auto">{accountName}</h2><p dir="ltr">{email}</p></div>
+    <div className="dh-ux-identity"><span className="dh-ux-kicker">حساب ذهبي</span><h2 dir="auto" data-no-translate>{accountName}</h2><p dir="ltr">{email}</p></div>
     <span className="dh-ux-role">{role==='admin'?'مسؤول':role==='trader'?'تاجر':'مستخدم'}</span>
    </section>
    <UserPersonalDetails/>
@@ -430,7 +430,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   return <div className="dh-ux-more">
    <button type="button" className="approved-card dh-ux-account-link" onClick={()=>navigate('account')} aria-label="فتح الملف الشخصي">
     <span className="avatar dh-ux-avatar" aria-hidden="true">{accountName.trim().charAt(0).toUpperCase()||'ذ'}</span>
-    <span className="dh-ux-account-text"><strong dir="auto">{accountName}</strong><small dir="ltr">{email}</small><span>عرض الملف الشخصي وتعديل بياناتي</span></span>
+    <span className="dh-ux-account-text"><strong dir="auto" data-no-translate>{accountName}</strong><small dir="ltr">{email}</small><span>عرض الملف الشخصي وتعديل بياناتي</span></span>
     <Icon name="chevron"/>
    </button>
    <section className="dh-ux-group" aria-labelledby="dh-more-services-title">

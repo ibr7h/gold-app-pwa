@@ -29,7 +29,7 @@ function localizeRoot(root:Element,language:Language){
   if(!directionMemory.has(el))directionMemory.set(el,el.getAttribute('dir'));
   const original=directionMemory.get(el);
   if(original==='rtl'||el===root){
-   const desired=language==='ar'?(original||'rtl'):direction;
+   const desired=el===root?direction:(language==='ar'?(original||'rtl'):direction);
    if(el.getAttribute('dir')!==desired)el.setAttribute('dir',desired);
   }
  }

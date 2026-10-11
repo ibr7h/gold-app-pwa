@@ -245,7 +245,7 @@ describe('iPhone more and profile UX redesign',()=>{
   expect(workspace).toContain('className="dh-ux-more"');
   expect(workspace).toContain('className="approved-card dh-ux-account-link"');
   expect(workspace).toContain('className="dh-ux-account-text"');
-  expect(workspace).toContain('<strong dir="auto">{accountName}</strong>');
+  expect(workspace).toContain('<strong dir="auto" data-no-translate>{accountName}</strong>');
   expect(workspace).toContain('عرض الملف الشخصي وتعديل بياناتي');
   expect(workspace).toContain('id="dh-more-services-title"');
   expect(workspace).toContain('id="dh-more-settings-title"');
