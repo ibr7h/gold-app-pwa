@@ -94,8 +94,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   catch{return 'SAR';}
  });
  useEffect(()=>{try{window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency);}catch{/* Storage may be blocked on iOS private browsing. */}},[priceCurrency]);
- const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]);
- const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[marketRows,setMarketRows]=useState<PriceHistoryRow[]>([]),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
+ const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState('');
+ const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
@@ -128,9 +128,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    if(active.current&&seq===marketLoadSequence.current){
     setHistory(historyRows);
     setHomeHistory(homeHistoryRows);
+    setHomeHistoryCurrency(priceCurrency);
     setHistoryQuery(priceCurrency+':'+chartKarat);
     setAllMarketRows(cleanLatest);
-    setMarketRows(cleanLatest.filter(row=>row.currency===priceCurrency));
     setMarketError('');
     setHistoryError('');
    }
@@ -174,8 +174,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    }
   }catch(e){setFormError(e instanceof Error?e.message:'تحقق من القيم.');}
  };
- const sortedHistory=[...history].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
- const currentMarket=marketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
+ const sortedHistory=[...(historyQuery===priceCurrency+':'+chartKarat?history:[])].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
+ const selectedMarketRows=allMarketRows.filter(r=>r.currency===priceCurrency);
+  const currentMarket=selectedMarketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
  const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24) as PriceHistoryRow|undefined;
  const freshness=priceFreshness(homeMarket,clock);
  const marketClosed=!isGlobalGoldMarketOpen(clock);
@@ -198,7 +199,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuote(calcUnit,calcWeightN,calcFeeN,calcVat);
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
  const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded);
- const homeMovement=homeMarketMovement(homeHistory,homeMarket,clock,priceCurrency);
+ const selectedHomeHistory=homeHistoryCurrency===priceCurrency?homeHistory:[];
+  const homeMovement=homeMarketMovement(selectedHomeHistory,homeMarket,clock,priceCurrency);
  const accountName=user?.name?.trim()||'أضف اسمك';
  const mobilePage=mobilePages.some(p=>p.id===page)?page:'more';
  const content=()=>{
@@ -220,13 +222,13 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     {homePortfolio.hasUnconverted&&<p className="home-currency-note">بعض مشترياتك بعملات لا تتوفر لها بيانات تحويل موثوقة؛ راجع التفاصيل حسب عملة التسجيل.</p>}
      {homePortfolio.hasMissingValuation&&<p className="home-currency-note">تقدير قيمة بعض المشتريات غير متاح لغياب سعر سوق موثوق.</p>}
    </section>
-   <section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency={priceCurrency} karat={24} compact/></section>
+   <section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} compact/></section>
   </>;
 
   if(page==='prices')return <>
-   <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?'سعر محدّث من الخادم':marketLabel}</span><p>سعر الأونصة المشتق من عيار 24</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((marketRows.find(r=>r.karat===24)?Number(marketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>آخر فحص: {marketTime(marketRows.find(r=>r.karat===24))}</small></section>
+   <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?'سعر محدّث من الخادم':marketLabel}</span><p>سعر الأونصة المشتق من عيار 24</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((selectedMarketRows.find(r=>r.karat===24)?Number(selectedMarketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>آخر فحص: {marketTime(selectedMarketRows.find(r=>r.karat===24))}</small></section>
    <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value==='USD'?'USD':'SAR')}><option>SAR</option><option>USD</option></select></label></div>
-    <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=marketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
+    <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=selectedMarketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
    <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{historyError}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>}</section>
    {priceNote}
@@ -293,7 +295,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
            const change=item.value===null?null:item.value-item.cost;
            return <div className="portfolio-currency-card" key={item.currency}>
             <div className="portfolio-money-row">
-             <span className="portfolio-metric-label">القيمة الحالية <b dir="ltr">{item.currency}</b></span>
+             <span className="portfolio-metric-label">القيمة الحالية <b dir="ltr" title="عملة التسجيل الأصلية">({item.currency})</b></span>
              <strong className="portfolio-market-value" dir="ltr">{showMoney(item.value,item.currency)}</strong>
             </div>
             <div className="portfolio-money-row portfolio-change-row">
@@ -307,7 +309,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
         </div>
        </div>
        {expanded&&<div className="portfolio-purchases" id={detailsId} aria-label={'محتويات محفظة '+portfolio.name}>
-       <p className="portfolio-purchases-caption">القيمة تقديرية بحسب آخر سعر متاح للعيار والعملة. الفرق مبني على كامل تكلفة الفاتورة المسجلة ويقارنها بالقيمة السوقية الخام؛ لا يشمل رسوم أو فروقات إعادة البيع.</p>
+       <p className="portfolio-purchases-caption">القيمة تقديرية بحسب آخر سعر متاح للعيار والعملة. المبالغ معروضة بعملة التفضيلات عند توفر تحويل موثوق، دون تعديل الفواتير الأصلية. تحويل الريال والدولار استرشادي من أسعار الذهب وليس سعر صرف بنكي. الفرق لا يشمل رسوم أو فروقات إعادة البيع.</p>
        {!rows.length?<p className="portfolio-empty">لا توجد مشتريات في هذه المحفظة حتى الآن.</p>:
        <div className="portfolio-purchases-list">{rows.map(purchase=>{
         const position=purchasePerformance(purchase,allMarketRows);
@@ -439,7 +441,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <p className="dh-preference-note">الإنجليزية والفرنسية ستتوفران لاحقًا؛ لا يمكن تغيير اللغة الآن.</p>
     <div className="dh-preference-row">
      <span className="dh-ux-row-icon"><Icon name="chart"/></span>
-     <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong><small>تُطبّق على الرئيسية والحاسبة والمحفظة والأسعار والمشتريات والتنبيهات، وتحفظ على هذا الجهاز</small></span>
+     <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong><small>تُطبّق على الرئيسية والحاسبة والمحفظة والأسعار والمشتريات والتنبيهات، وتحفظ على هذا الجهاز</small><small>تحويل المبالغ المسجلة استرشادي من أسعار الذهب، دون تغيير الفواتير وشروط التنبيه.</small></span>
      <span className="dh-currency-options" role="group" aria-label="اختيار عملة عرض الأسعار">
       <button type="button" aria-pressed={priceCurrency==='SAR'} className={priceCurrency==='SAR'?'selected':''} onClick={()=>setPriceCurrency('SAR')}>SAR</button>
       <button type="button" aria-pressed={priceCurrency==='USD'} className={priceCurrency==='USD'?'selected':''} onClick={()=>setPriceCurrency('USD')}>USD</button>
