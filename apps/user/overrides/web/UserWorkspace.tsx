@@ -225,14 +225,25 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   </>;
 
   if(page==='calculator')return <>
-   <section className="approved-card calc-total-card"><span>السعر الإجمالي التقريبي</span><strong>{money(calcTotal,'SAR')}</strong><small>سعر الجرام الأساسي: {money(calcUnit,'SAR')} · عيار {calcKarat}</small></section>
    <section className="approved-card calculator-form">
     <label>1. اختر عيار الذهب<div className="karat-switch">{[24,22,21,18].map(k=><button type="button" key={k} className={calcKarat===k?'active':''} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div></label>
     <label>الوزن (جرام)<input type="number" inputMode="decimal" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(e.target.value)}/><div className="weight-presets">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(String(w))}>{w===31.1?'أونصة 31.1g':w+' جرام'}</button>)}</div></label>
     <label>المصنعية / جرام (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
     <div className="calc-toggle"><div><strong>ضريبة 15% (اختيارية)</strong><small>الضريبة = (قيمة الذهب + إجمالي المصنعية) × 15%.</small></div><input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/></div>
    </section>
-   <section className="approved-card"><div className="approved-card-title">تفاصيل السعر المقدر</div><dl className="calc-breakdown"><div><dt>قيمة الذهب الخام</dt><dd>{money(calcRaw,'SAR')}</dd></div><div><dt>إجمالي المصنعية</dt><dd>{money(calcFeeTotal,'SAR')}</dd></div><div><dt>الضريبة التقديرية</dt><dd>{money(calcTax,'SAR')}</dd></div><div className="final"><dt>الإجمالي النهائي</dt><dd>{money(calcTotal,'SAR')}{calcTotal!==null&&<small className="calc-tafqeet" aria-label="الإجمالي كتابة">{amountToSaudiRiyalWords(calcTotal)}</small>}</dd></div></dl></section>
+   <section className="approved-card calc-estimate-card" aria-label="تفاصيل السعر المقدر">
+    <div className="approved-card-title">تفاصيل السعر المقدر</div>
+    <dl className="calc-breakdown">
+     <div><dt>قيمة الذهب الخام</dt><dd dir="ltr">{money(calcRaw,'SAR')}</dd></div>
+     <div><dt>إجمالي المصنعية</dt><dd dir="ltr">{money(calcFeeTotal,'SAR')}</dd></div>
+     <div><dt>الضريبة التقديرية</dt><dd dir="ltr">{money(calcTax,'SAR')}</dd></div>
+     <div className="final"><dt>الإجمالي النهائي</dt><dd dir="ltr">{money(calcTotal,'SAR')}</dd></div>
+    </dl>
+    <div className="calc-words-block">
+     <div className="calc-words-label">الإجمالي كتابة</div>
+     <p className="calc-words-value" aria-label="الإجمالي كتابة">{calcTotal!==null?amountToSaudiRiyalWords(calcTotal):'—'}</p>
+    </div>
+   </section>
   </>;
 
   if(page==='portfolio')return <>

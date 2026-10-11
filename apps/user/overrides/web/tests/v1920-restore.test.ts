@@ -12,11 +12,22 @@ const getCalculator=(src:string)=>{
  return src.slice(a,b);
 };
 describe('v1.9.20 user calculator and historical chart restoration',()=>{
- it('keeps the exact v1.9.20 calculator structure and only appends the retained tafqeet',()=>{
-  const tafqeet="{money(calcTotal,'SAR')}{calcTotal!==null&&<small className=\"calc-tafqeet\" aria-label=\"الإجمالي كتابة\">{amountToSaudiRiyalWords(calcTotal)}</small>}";
-  const actual=getCalculator(current);
-  expect(actual).toContain(tafqeet);
-  expect(actual.replace(tafqeet,"{money(calcTotal,'SAR')}")).toBe(v1920Calculator);
+ it('preserves v1.9.20 inputs and formulas, with the requested single summary card',()=>{
+  const actual=getCalculator(current),baseline=v1920Calculator;
+  const fields=(s:string)=>{
+   const a=s.indexOf('<section className="approved-card calculator-form">');
+   const b=s.indexOf('</section>',a);
+   if(a<0||b<0)throw Error('Calculator inputs missing');
+   return s.slice(a,b+10);
+  };
+  expect(fields(actual)).toBe(fields(baseline));
+  expect(actual).not.toContain('calc-total-card');
+  expect(actual).not.toContain('السعر الإجمالي التقريبي');
+  expect(actual).toContain('className="approved-card calc-estimate-card"');
+  expect(actual).toContain('className="calc-words-block"');
+  expect(actual).toContain('className="calc-words-label">الإجمالي كتابة');
+  expect(actual).toContain('calcTotal!==null?amountToSaudiRiyalWords(calcTotal)');
+  for(const field of ["calcRaw,'SAR'","calcFeeTotal,'SAR'","calcTax,'SAR'","calcTotal,'SAR'"])expect(actual).toContain(field);
   expect(current).toContain("import {amountToSaudiRiyalWords} from './arabic-amount-words'");
  });
  it('keeps the original historical chart in both pages with all range/interaction controls',()=>{

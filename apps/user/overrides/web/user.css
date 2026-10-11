@@ -585,7 +585,6 @@
 .gold-web .inline-select{display:flex;flex-direction:row;align-items:center;gap:7px;margin:0;font-size:11px;color:#64748B}.gold-web .inline-select select{width:auto;min-width:78px;min-height:35px;padding:5px 8px;font-size:12px;background:#FFFFFF;color:#1E293B;border-color:#E2E8F0}
 .gold-web .approved-price-table{display:grid}.gold-web .price-row{display:grid;grid-template-columns:.8fr 1fr 1fr;align-items:center;gap:8px;padding:12px 6px;border-top:1px solid #E2E8F0;text-align:center;font-size:12px}.gold-web .price-row.head{border-top:0;color:#64748B;font-size:11px;font-weight:700}.gold-web .price-row strong{color:#C5A021}.gold-web .karat-badge{display:inline-flex;background:rgba(197,160,33,.13);color:#8B6B00;padding:4px 8px;border-radius:6px;font-size:11px}
 .gold-web .three-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.gold-web .three-stats>div{background:#F1F5F9;border:1px solid #E2E8F0;border-radius:8px;padding:9px;text-align:center}.gold-web .three-stats span{display:block;font-size:9px;color:#64748B}.gold-web .three-stats b{display:block;font-size:10px;color:#1E293B;margin-top:2px}
-.gold-web .calc-total-card{text-align:center}.gold-web .calc-total-card>span{display:block;font-size:12px;color:#64748B}.gold-web .calc-total-card>strong{display:block;font-size:32px;color:#C5A021;margin:2px 0}.gold-web .calc-total-card>small{color:#64748B;font-size:10px}
 .gold-web .calculator-form label{color:#1E293B}.gold-web .karat-switch{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.gold-web .karat-switch button{min-height:42px;border-radius:8px;border:1px solid #E2E8F0;background:#FFFFFF;color:#1E293B;font-weight:700}.gold-web .karat-switch button.active{background:#C5A021;color:#001F3F;border-color:#C5A021}
 .gold-web .weight-presets{display:flex;gap:6px;overflow-x:auto;padding:7px 0 2px}.gold-web .weight-presets button{white-space:nowrap;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:6px;padding:5px 9px;color:#475569;font-size:10px}
 .gold-web .calc-toggle{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0 0;border-top:1px solid #E2E8F0}.gold-web .calc-toggle>div{display:grid}.gold-web .calc-toggle strong{font-size:13px}.gold-web .calc-toggle small{font-size:10px;color:#64748B}.gold-web .calc-toggle input{width:20px;min-height:20px;accent-color:#C5A021}
@@ -1885,9 +1884,75 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web .portfolio-market-value,.gold-web .portfolio-change-value{font-size:15px}
 }
 
-/* Tafqeet supplements, never replaces, the v1.9.20 calculator's final total. */
-.gold-web.workspace .calc-breakdown .final .calc-tafqeet{
- display:block;max-width:100%;margin-top:8px;font-size:12px;line-height:1.85;
- color:#566477;font-weight:600;white-space:normal;overflow-wrap:break-word;
- direction:rtl;text-align:start;
+/* Calculator summary as approved in screenshot: one result card and tafqeet footer. */
+.gold-web.workspace .calc-estimate-card {
+ min-width:0;padding:20px 18px 22px!important;
+ border-radius:18px!important;overflow:hidden;background:#F8FAFC!important;
+}
+.gold-web.workspace .calc-estimate-card>.approved-card-title {
+ color:#132238!important;font-size:clamp(18px,4.2vw,23px)!important;
+ font-weight:800!important;line-height:1.55;
+ padding-bottom:17px!important;margin-bottom:17px!important;
+ border-bottom:1px solid #D8DEE8!important;
+}
+.gold-web.workspace .calc-estimate-card>.calc-breakdown {
+ display:grid!important;gap:0!important;margin:0!important;
+ padding:0!important;min-width:0;
+}
+.gold-web.workspace .calc-estimate-card .calc-breakdown>div {
+ display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+ align-items:center!important;gap:12px!important;margin:0!important;
+ padding:12px 0!important;min-height:58px;border:0!important;
+}
+.gold-web.workspace .calc-estimate-card .calc-breakdown dt {
+ min-width:0;color:#788397!important;
+ text-align:start!important;font-size:clamp(14px,3.6vw,17px)!important;
+ font-weight:650!important;line-height:1.6!important;
+}
+.gold-web.workspace .calc-estimate-card .calc-breakdown dd {
+ min-width:0;max-width:100%;margin:0!important;padding:0!important;
+ justify-self:end;text-align:end!important;direction:ltr!important;
+ unicode-bidi:isolate;color:#132238!important;
+ font-size:clamp(16px,4vw,19px)!important;
+ font-weight:750!important;line-height:1.6!important;
+ font-variant-numeric:tabular-nums;white-space:nowrap!important;
+}
+.gold-web.workspace .calc-estimate-card .calc-breakdown dd .dh-money {
+ display:inline-flex!important;align-items:baseline!important;
+ direction:ltr!important;white-space:nowrap!important;font-size:inherit!important;
+ gap:3px;max-width:100%;
+}
+.gold-web.workspace .calc-estimate-card .calc-breakdown>div.final {
+ padding-top:20px!important;margin-top:12px!important;min-height:74px;
+ border-top:1px solid #D8DEE8!important;
+}
+.gold-web.workspace .calc-estimate-card .calc-breakdown .final dt {
+ color:#788397!important;font-size:clamp(16px,4.1vw,20px)!important;
+ font-weight:800!important;
+}
+.gold-web.workspace .calc-estimate-card .calc-breakdown .final dd {
+ color:#C5A021!important;font-size:clamp(19px,5vw,25px)!important;
+ font-weight:850!important;
+}
+.gold-web.workspace .calc-estimate-card .calc-words-block {
+ margin-top:15px;padding-top:17px;border-top:2px dashed #E2D3A2;
+ min-width:0;
+}
+.gold-web.workspace .calc-estimate-card .calc-words-label {
+ color:#788397;font-size:clamp(14px,3.6vw,17px);
+ font-weight:750;line-height:1.65;margin-bottom:12px;text-align:start;
+}
+.gold-web.workspace .calc-estimate-card .calc-words-value {
+ margin:0;color:#132238;font-size:clamp(16px,4.2vw,20px);
+ font-weight:800;line-height:2;text-align:start;direction:rtl;
+ overflow-wrap:anywhere;white-space:normal;
+}
+@media(max-width:380px) {
+ .gold-web.workspace .calc-estimate-card{padding:16px 13px 19px!important}
+ .gold-web.workspace .calc-estimate-card .calc-breakdown>div{
+  grid-template-columns:minmax(0,1fr) minmax(0,1.12fr)!important;gap:8px!important;
+ }
+ .gold-web.workspace .calc-estimate-card .calc-breakdown dd{font-size:15px!important}
+ .gold-web.workspace .calc-estimate-card .calc-breakdown .final dd{font-size:18px!important}
+ .gold-web.workspace .calc-estimate-card .calc-words-value{font-size:16px}
 }

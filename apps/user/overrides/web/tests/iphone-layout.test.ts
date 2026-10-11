@@ -217,11 +217,25 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000)");
   expect(s).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
  });
- it('retains tafqeet beneath the final numeric total without changing the rate formula',()=>{
+ it('matches the approved estimated-price details card and tafqeet block',()=>{
   const s=source('../UserWorkspace.tsx');
-  expect(s).toContain('amountToSaudiRiyalWords(calcTotal)');
-  expect(s).toContain('calcTotal!==null');
-  expect(source('../user.css')).toContain('.calc-breakdown .final .calc-tafqeet');
+  const css=source('../user.css');
+  expect(s).not.toContain('className="approved-card calc-total-card"');
+  expect(s).not.toContain('السعر الإجمالي التقريبي');
+  expect(s).toContain('className="approved-card calc-estimate-card"');
+  expect(s).toContain('className="calc-words-block"');
+  expect(s).toContain('className="calc-words-label">الإجمالي كتابة');
+  expect(s).toContain('calcTotal!==null?amountToSaudiRiyalWords(calcTotal)');
+  const a=s.indexOf('className="approved-card calc-estimate-card"');
+  let pos=a;
+  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة التقديرية','الإجمالي النهائي','الإجمالي كتابة']){
+   const next=s.indexOf(label,pos+1);
+   expect(next).toBeGreaterThan(pos);
+   pos=next;
+  }
+  expect(css).toContain('.calc-estimate-card .calc-words-block');
+  expect(css).toContain('border-top:2px dashed #E2D3A2');
+  expect(css).toContain('.calc-estimate-card .calc-breakdown .final');
  });
 });
 
