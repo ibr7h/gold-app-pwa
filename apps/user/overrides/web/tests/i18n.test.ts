@@ -84,7 +84,7 @@ describe('Regression: no Arabic interface fragments in English or French',()=>{
   });
  }
  it('walks PIN lock, PIN setup and main app scopes including accessible value labels',()=>{
-  const src=readFileSync(fileURLToPath(new URL('../i18n.tsx',import.meta.url)),'utf8');
+  const src=readFileSync(fileURLToPath(new URL('../i18n.tsx',import.meta.url).href),'utf8');
   expect(src).toContain("document.querySelectorAll('.gold-web, .dh-quick-lock, .dh-pin-setup')");
   expect(src).toContain("'aria-valuetext'");
   expect(src).toContain("root.querySelectorAll('[dir],[data-language-root=\"true\"]')");
