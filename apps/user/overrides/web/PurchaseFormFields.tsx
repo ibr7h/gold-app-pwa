@@ -1,4 +1,6 @@
 import {formatTwo} from './price-display';
+import {useLanguage} from './i18n';
+import {translateUiText} from './i18n-messages';
 import React,{useMemo,useState} from 'react';
 import {Portfolio,Purchase,KARATS,CURRENCIES,localDate,purchaseQuote} from './model';
 
@@ -7,6 +9,8 @@ const n=(v:string)=>v.trim()?Number(v):0;
 const text=(v:unknown)=>typeof v==='string'?v:'';
 
 export default function PurchaseFormFields({portfolios,purchase,preferredCurrency='SAR'}:{portfolios:Portfolio[];purchase?:Purchase;preferredCurrency?:'SAR'|'USD'}){
+ const {language,direction}=useLanguage();
+ const tr=(source:string)=>translateUiText(source,language);
  const details=purchase?.invoiceDetails||{};
  const [formCurrency,setFormCurrency]=useState(purchase?.currency||preferredCurrency);
  const [mode,setMode]=useState<'inclusive'|'itemized'>(details.pricingMode==='itemized'?'itemized':'inclusive');
@@ -24,140 +28,140 @@ export default function PurchaseFormFields({portfolios,purchase,preferredCurrenc
   makingCharge:n(makingCharge),stonePrice:n(stonePrice),vatRate:n(vatRate),vatAmount:n(vatAmount),manualVat:vatMode==='manual'}),
   [mode,weight,invoiceTotal,goldUnitPrice,makingCharge,stonePrice,vatRate,vatAmount,vatMode]);
  const stoneRatio=n(grossWeight)>0?(n(stoneWeight)/n(grossWeight))*100:0;
- const num=(value:number|null|undefined)=>value===null||value===undefined?'غير محدد':formatTwo(value);
+ const num=(value:number|null|undefined)=>value===null||value===undefined?tr('غير محدد'):formatTwo(value);
  const [sellerName,setSellerName]=useState(text(details.sellerName));
  const [invoiceNumber,setInvoiceNumber]=useState(text(details.invoiceNumber));
  const [desc,setDesc]=useState(text(details.itemDescription));
  const missing=[!sellerName?'اسم المتجر':null,!invoiceNumber?'رقم الفاتورة':null,!desc?'وصف المشغول':null].filter(Boolean);
- return <div className="gold-purchase-form" dir="rtl">
-  <label>المحفظة
+ return <div className="gold-purchase-form" dir={direction} lang={language}>
+  <label>{tr('المحفظة')}
    <select name="portfolioId" defaultValue={purchase?.portfolioId||portfolios[0]?.id} required>
     {portfolios.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
    </select>
   </label>
   <div className="form-grid">
-   <label>العيار
+   <label>{tr('العيار')}
     <select name="karat" defaultValue={purchase?.karat||21} required>
-     {(KARATS.includes(purchase?.karat||0)?KARATS:[purchase?.karat||21,...KARATS]).filter((k,i,a)=>a.indexOf(k)===i).map(k=><option key={k} value={k}>عيار {k}</option>)}
+     {(KARATS.includes(purchase?.karat||0)?KARATS:[purchase?.karat||21,...KARATS]).filter((k,i,a)=>a.indexOf(k)===i).map(k=><option key={k} value={k}>{tr('العيار')} {k}</option>)}
     </select>
    </label>
-   <label>العملة
+   <label>{tr('العملة')}
     <select name="currency" value={formCurrency} onChange={e=>setFormCurrency(e.target.value)} required>
      {(CURRENCIES.includes(formCurrency)?CURRENCIES:[formCurrency,...CURRENCIES]).filter((v,i,a)=>a.indexOf(v)===i).map(c=><option key={c} value={c}>{c}</option>)}
     </select>
    </label>
-   <label>الوزن الصافي (جم)
-    <input name="weightGrams" type="number" min="0.0001" max="99999999" step="any" inputMode="decimal" required value={weight} onChange={e=>setWeight(e.target.value)} placeholder="مثال: 5.250"/>
+   <label>{tr('الوزن الصافي (جم)')}
+    <input name="weightGrams" type="number" min="0.0001" max="99999999" step="any" inputMode="decimal" required value={weight} onChange={e=>setWeight(e.target.value)} placeholder={tr('مثال: 5.250')}/>
    </label>
-   <label>التاريخ
+   <label>{tr('التاريخ')}
     <input name="purchasedAt" type="date" required max={localDate()} defaultValue={purchase?.purchasedAt?.slice(0,10)||localDate()}/>
    </label>
   </div>
   <fieldset className="gold-purchase-fieldset">
-   <legend>حساب السعر</legend>
+   <legend>{tr('حساب السعر')}</legend>
    <div className="gold-purchase-mode">
-    <label><input type="radio" name="pricingMode" checked={mode==='inclusive'} value="inclusive" onChange={()=>setMode('inclusive')}/> شامل التكاليف</label>
-    <label><input type="radio" name="pricingMode" checked={mode==='itemized'} value="itemized" onChange={()=>setMode('itemized')}/> تفصيل السعر</label>
+    <label><input type="radio" name="pricingMode" checked={mode==='inclusive'} value="inclusive" onChange={()=>setMode('inclusive')}/> {tr('شامل التكاليف')}</label>
+    <label><input type="radio" name="pricingMode" checked={mode==='itemized'} value="itemized" onChange={()=>setMode('itemized')}/> {tr('تفصيل السعر')}</label>
    </div>
    {mode==='inclusive'?<>
-    <label>المبلغ المدفوع
-     <input type="number" name="invoiceTotal" min="0.0001" step="any" inputMode="decimal" required value={invoiceTotal} onChange={e=>setInvoiceTotal(e.target.value)} placeholder="المبلغ النهائي المدفوع"/>
+    <label>{tr('المبلغ المدفوع')}
+     <input type="number" name="invoiceTotal" min="0.0001" step="any" inputMode="decimal" required value={invoiceTotal} onChange={e=>setInvoiceTotal(e.target.value)} placeholder={tr('المبلغ النهائي المدفوع')}/>
     </label>
-    <p className="fine">سنسجل الإجمالي كما دفعته تمامًا، ونحسب التكلفة الفعلية لكل جرام. لا نضيف مصنعية أو ضريبة مرة أخرى.</p>
+    <p className="fine">{tr('سنسجل الإجمالي كما دفعته تمامًا، ونحسب التكلفة الفعلية لكل جرام. لا نضيف مصنعية أو ضريبة مرة أخرى.')}</p>
    </>:<>
     <div className="form-grid">
-     <label>سعر الجرام
+     <label>{tr('سعر الجرام')}
       <input name="goldUnitPrice" type="number" min="0.0001" step="any" inputMode="decimal" required value={goldUnitPrice} onChange={e=>setGoldUnitPrice(e.target.value)}/>
      </label>
-     <label>المصنعية
+     <label>{tr('المصنعية')}
       <input name="makingCharge" type="number" min="0" step="any" inputMode="decimal" value={makingCharge} onChange={e=>setMakingCharge(e.target.value)}/>
      </label>
-     <label>قيمة الأحجار
+     <label>{tr('قيمة الأحجار')}
       <input name="stonePrice" type="number" min="0" step="any" inputMode="decimal" value={stonePrice} onChange={e=>setStonePrice(e.target.value)}/>
      </label>
-     <label>طريقة الضريبة
+     <label>{tr('طريقة الضريبة')}
       <select name="vatMode" value={vatMode} onChange={e=>setVatMode(e.target.value as 'rate'|'manual')}>
-       <option value="rate">بنسبة مئوية</option><option value="manual">إدخال مبلغ الضريبة يدويًا</option>
+       <option value="rate">{tr('بنسبة مئوية')}</option><option value="manual">{tr('إدخال مبلغ الضريبة يدويًا')}</option>
       </select>
      </label>
-     {vatMode==='rate'?<label>نسبة الضريبة (%)
+     {vatMode==='rate'?<label>{tr('نسبة الضريبة (%)')}
       <select name="vatRate" value={vatRate} onChange={e=>setVatRate(e.target.value)}>
-       <option value="0">0% — لا تطبق/صفرية بحسب الفاتورة</option>
-       <option value="15">15% — إذا كانت المعاملة خاضعة لها</option>
+       <option value="0">{`0% — ${tr('لا تطبق/صفرية بحسب الفاتورة')}`}</option>
+       <option value="15">{`15% — ${tr('إذا كانت المعاملة خاضعة لها')}`}</option>
        {!['0','15'].includes(vatRate)&&<option value={vatRate}>{vatRate}%</option>}
       </select>
-     </label>:<label>قيمة الضريبة
+     </label>:<label>{tr('قيمة الضريبة')}
       <input name="vatAmount" type="number" min="0" step="any" inputMode="decimal" value={vatAmount} onChange={e=>setVatAmount(e.target.value)}/>
      </label>}
     </div>
-    <p className="fine">تحقق من طريقة تطبيق الضريبة في فاتورتك. السلع الاستثمارية المؤهلة قد تختلف ضريبتها عن المشغولات؛ لا يفترض التطبيق نسبة موحدة.</p>
+    <p className="fine">{tr('تحقق من طريقة تطبيق الضريبة في فاتورتك. السلع الاستثمارية المؤهلة قد تختلف ضريبتها عن المشغولات؛ لا يفترض التطبيق نسبة موحدة.')}</p>
    </>}
    <div className="gold-purchase-estimate" aria-live="polite">
-    <div><span>الإجمالي المسجل ({formCurrency})</span><strong>{quote?num(quote.total):'أدخل الوزن والسعر'}</strong></div>
-    <div><span>تكلفة الجرام ({formCurrency})</span><strong>{quote?num(quote.effectiveUnitPrice):'غير متاح'}</strong></div>
-    {mode==='itemized'&&quote&&<div className="gold-breakdown-note">قيمة الذهب: {num(quote.metalSubtotal)} · إضافات: {num(quote.fees)} · ضريبة: {num(quote.vat)}</div>}
+    <div><span>{tr('الإجمالي المسجل')} ({formCurrency})</span><strong>{quote?num(quote.total):tr('أدخل الوزن والسعر')}</strong></div>
+    <div><span>{tr('تكلفة الجرام')} ({formCurrency})</span><strong>{quote?num(quote.effectiveUnitPrice):tr('غير متاح')}</strong></div>
+    {mode==='itemized'&&quote&&<div className="gold-breakdown-note">{tr('قيمة الذهب:')} {num(quote.metalSubtotal)} · {tr('إضافات:')} {num(quote.fees)} · {tr('ضريبة:')} {num(quote.vat)}</div>}
    </div>
   </fieldset>
   <details className="gold-purchase-details" open={Boolean(purchase)}>
-   <summary>بيانات الفاتورة <small>اختياري</small></summary>
+   <summary>{tr('بيانات الفاتورة')} <small>{tr('اختياري')}</small></summary>
    <div className="form-grid">
-    <label>اسم المتجر
-     <input name="sellerName" maxLength={150} value={sellerName} onChange={e=>setSellerName(e.target.value)} placeholder="الاسم التجاري"/>
+    <label>{tr('اسم المتجر')}
+     <input name="sellerName" maxLength={150} value={sellerName} onChange={e=>setSellerName(e.target.value)} placeholder={tr('الاسم التجاري')}/>
     </label>
-    <label>عنوان المحل
-     <input name="sellerAddress" maxLength={250} defaultValue={text(details.sellerAddress)} placeholder="عنوان المتجر كما يظهر في الفاتورة"/>
+    <label>{tr('عنوان المحل')}
+     <input name="sellerAddress" maxLength={250} defaultValue={text(details.sellerAddress)} placeholder={tr('عنوان المتجر كما يظهر في الفاتورة')}/>
     </label>
-    <label>اسم المشتري
-     <input name="buyerName" maxLength={120} defaultValue={text(details.buyerName)} placeholder="اسم المشتري إن وجد"/>
+    <label>{tr('اسم المشتري')}
+     <input name="buyerName" maxLength={120} defaultValue={text(details.buyerName)} placeholder={tr('اسم المشتري إن وجد')}/>
     </label>
-    <label>رقم الفاتورة
+    <label>{tr('رقم الفاتورة')}
      <input name="invoiceNumber" maxLength={120} value={invoiceNumber} onChange={e=>setInvoiceNumber(e.target.value)}/>
     </label>
-    <label>السجل التجاري
+    <label>{tr('السجل التجاري')}
      <input name="sellerCommercialRegistration" maxLength={60} defaultValue={text(details.sellerCommercialRegistration)}/>
     </label>
-    <label>هاتف المتجر
+    <label>{tr('هاتف المتجر')}
      <input name="sellerPhone" type="tel" maxLength={40} defaultValue={text(details.sellerPhone)}/>
     </label>
-    <label>حالة المشغول
+    <label>{tr('حالة المشغول')}
      <select name="itemCondition" defaultValue={details.itemCondition||''}>
-      <option value="">غير محدد</option><option value="new">جديد</option><option value="used">مستعمل</option>
+      <option value="">{tr('غير محدد')}</option><option value="new">{tr('جديد')}</option><option value="used">{tr('مستعمل')}</option>
      </select>
     </label>
-    <label>الدمغة
-     <input name="hallmark" maxLength={120} defaultValue={text(details.hallmark)} placeholder="الدمغة كما تظهر على القطعة"/>
+    <label>{tr('الدمغة')}
+     <input name="hallmark" maxLength={120} defaultValue={text(details.hallmark)} placeholder={tr('الدمغة كما تظهر على القطعة')}/>
     </label>
-    <label>علامة الصانع
+    <label>{tr('علامة الصانع')}
      <input name="manufacturerMark" maxLength={120} defaultValue={text(details.manufacturerMark)}/>
     </label>
-    <label>وزن القطعة (جم)
+    <label>{tr('وزن القطعة (جم)')}
      <input name="grossWeightGrams" type="number" min="0" step="any" inputMode="decimal" value={grossWeight} onChange={e=>setGrossWeight(e.target.value)}/>
     </label>
-    <label>وزن الأحجار (جم)
+    <label>{tr('وزن الأحجار (جم)')}
      <input name="stoneWeightGrams" type="number" min="0" step="any" inputMode="decimal" value={stoneWeight} onChange={e=>setStoneWeight(e.target.value)}/>
     </label>
    </div>
-   <label>وصف القطعة
-    <textarea name="itemDescription" rows={2} maxLength={500} value={desc} onChange={e=>setDesc(e.target.value)} placeholder="مثال: سوار ذهب عيار 21 ..."/>
+   <label>{tr('وصف القطعة')}
+    <textarea name="itemDescription" rows={2} maxLength={500} value={desc} onChange={e=>setDesc(e.target.value)} placeholder={tr('مثال: سوار ذهب عيار 21 ...')}/>
    </label>
    {n(stoneWeight)>0&&<p className={stoneRatio>5?'gold-purchase-stone-warning':'fine'} role="status">
-    وزن الأحجار {num(stoneRatio)}% من الوزن الإجمالي. {stoneRatio>5?'يتجاوز 5%؛ تأكد من بيان وزن المعدن الثمين والأحجار كلٍّ على حدة في الفاتورة.':'تحقق من فصل وزن الذهب الصافي عن الأحجار في بيانات الفاتورة.'}
+     {tr('وزن الأحجار')} {num(stoneRatio)}% {tr('من الوزن الإجمالي.')} {stoneRatio>5?tr('يتجاوز 5%؛ تأكد من بيان وزن المعدن الثمين والأحجار كلٍّ على حدة في الفاتورة.'):tr('تحقق من فصل وزن الذهب الصافي عن الأحجار في بيانات الفاتورة.')}
    </p>}
    <details className="gold-stones-more">
-    <summary>تفاصيل الأحجار</summary>
+    <summary>{tr('تفاصيل الأحجار')}</summary>
     <div className="form-grid">
-     <label>اسم الحجر<input name="stoneName" maxLength={120} defaultValue={text(details.stoneName)}/></label>
-     <label>نوع الحجر<input name="stoneKind" maxLength={100} defaultValue={text(details.stoneKind)}/></label>
-     <label>لون الحجر<input name="stoneColor" maxLength={100} defaultValue={text(details.stoneColor)}/></label>
-     <label>شكل الحجر<input name="stoneShape" maxLength={100} defaultValue={text(details.stoneShape)}/></label>
-     <label>درجة النقاء/الجودة<input name="stoneQuality" maxLength={150} defaultValue={text(details.stoneQuality)}/></label>
-     <label>نوع القطع/التشطيب<input name="stoneCut" maxLength={100} defaultValue={text(details.stoneCut)}/></label>
+     <label>{tr('اسم الحجر')}<input name="stoneName" maxLength={120} defaultValue={text(details.stoneName)}/></label>
+     <label>{tr('نوع الحجر')}<input name="stoneKind" maxLength={100} defaultValue={text(details.stoneKind)}/></label>
+     <label>{tr('لون الحجر')}<input name="stoneColor" maxLength={100} defaultValue={text(details.stoneColor)}/></label>
+     <label>{tr('شكل الحجر')}<input name="stoneShape" maxLength={100} defaultValue={text(details.stoneShape)}/></label>
+     <label>{tr('درجة النقاء/الجودة')}<input name="stoneQuality" maxLength={150} defaultValue={text(details.stoneQuality)}/></label>
+     <label>{tr('نوع القطع/التشطيب')}<input name="stoneCut" maxLength={100} defaultValue={text(details.stoneCut)}/></label>
     </div>
-    <label>العيوب إن وجدت<input name="stoneDefects" maxLength={300} defaultValue={text(details.stoneDefects)}/></label>
-    <label>سلامة الحجر من الخدش أو الكسر<input name="stoneSafety" maxLength={300} defaultValue={text(details.stoneSafety)}/></label>
+    <label>{tr('العيوب إن وجدت')}<input name="stoneDefects" maxLength={300} defaultValue={text(details.stoneDefects)}/></label>
+    <label>{tr('سلامة الحجر من الخدش أو الكسر')}<input name="stoneSafety" maxLength={300} defaultValue={text(details.stoneSafety)}/></label>
    </details>
-   {missing.length>0&&<p className="gold-purchase-completeness">لإكمال توثيق الفاتورة يُستحسن إضافة: {missing.join('، ')}. هذه البيانات اختيارية لتسجيل مشترياتك السابقة.</p>}
-   <p className="fine">هذه بيانات مرجعية أدخلتها أنت؛ لا تعني توثيق الفاتورة رسميًا. احتفظ بصورة الفاتورة الأصلية.</p>
+   {missing.length>0&&<p className="gold-purchase-completeness">{tr('لإكمال توثيق الفاتورة يُستحسن إضافة:')} {missing.map(v=>tr(String(v))).join(language==='ar'?'، ':', ')}. {tr('هذه البيانات اختيارية لتسجيل مشترياتك السابقة.')}</p>}
+   <p className="fine">{tr('هذه بيانات مرجعية أدخلتها أنت؛ لا تعني توثيق الفاتورة رسميًا. احتفظ بصورة الفاتورة الأصلية.')}</p>
   </details>
  </div>;
 }
