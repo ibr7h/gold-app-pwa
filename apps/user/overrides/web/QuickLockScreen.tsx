@@ -1,6 +1,8 @@
 import React,{useEffect,useRef,useState} from 'react';
 import type {User} from '../contexts/AuthContext.web';
 import {PIN_LENGTH,type PinResult} from './quick-pin';
+import {useLanguage} from './i18n';
+import {localizeFeedback} from './i18n-feedback';
 
 /** Native-like local lock screen. The browser's platform verification UI is invoked only on tap. */
 function FaceMark(){
@@ -26,6 +28,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
  account:User;biometricEnabled:boolean;quickPinEnabled:boolean;loading:boolean;error:string|null;
  onPin:(pin:string)=>Promise<PinResult>;onBiometric:()=>Promise<boolean>;onForgot:()=>void;
 }){
+ const {language,direction}=useLanguage();
  const [digits,setDigits]=useState(''),[localError,setLocalError]=useState(''),[busy,setBusy]=useState(false);
  const pending=useRef(false);
  const biometric=()=>{
@@ -60,7 +63,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
   window.addEventListener('keydown',handler);
   return()=>window.removeEventListener('keydown',handler);
  });
- return <main className="dh-quick-lock" dir="rtl" lang="ar" aria-busy={busy||loading}>
+ return <main className="dh-quick-lock" dir={direction} lang={language} aria-busy={busy||loading}>
   <div className="dh-quick-lock-inner">
    <div className="dh-pin-brand"><img src="/gold-app-pwa/full/app_icon_user.jpg" alt="ذهبي"/><span>ذهبي</span></div>
    <div className="dh-pin-identity">
@@ -69,7 +72,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
     <small>{quickPinEnabled?'أدخل رمز الدخول السريع لفتح ذهبي':'اضغط على زر البصمة أو استخدم كلمة المرور'}</small>
    </div>
    {quickPinEnabled&&<PinDots length={digits.length}/>}
-   <div className="dh-pin-feedback" role="alert">{localError||remoteError||' '}</div>
+   <div className="dh-pin-feedback" role="alert">{localizeFeedback(localError||remoteError,language)||' '}</div>
    <button className="dh-pin-forgot" type="button" onClick={onForgot}>نسيت رمز الدخول السريع؟ الدخول بكلمة المرور</button>
    {quickPinEnabled?<Keypad disabled={busy||loading} onDigit={add} onDelete={erase}
     biometric={biometricEnabled} onBiometric={biometric}/>
@@ -81,6 +84,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
 }
 /** Setup and confirmation happen in-app; raw codes are never written to local storage. */
 export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentPin?:string)=>Promise<void>;onClose:()=>void;mode:'enable'|'change'|'disable'}){
+ const {language,direction}=useLanguage();
  const initialStage=mode==='enable'?'enter':'current';
  const [stage,setStage]=useState<'current'|'enter'|'confirm'>(initialStage);
  const [currentPin,setCurrentPin]=useState('');
@@ -103,12 +107,12 @@ export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentP
   }).finally(()=>{pending.current=false;setBusy(false);});
  };
  return <div className="dh-pin-setup-backdrop" role="presentation">
-  <section className="dh-pin-setup" role="dialog" aria-modal="true" aria-label="إعداد رمز الدخول السريع" dir="rtl">
+  <section className="dh-pin-setup" role="dialog" aria-modal="true" aria-label="إعداد رمز الدخول السريع" dir={direction} lang={language}>
    <div className="dh-pin-setup-head"><h2>{mode==='disable'?'إيقاف رمز الدخول':mode==='change'?'تغيير رمز الدخول':'تفعيل الدخول السريع'}</h2>
     <button type="button" aria-label="إغلاق إعداد الرمز" onClick={onClose} disabled={busy}>×</button></div>
    <p>{stage==='current'?'أدخل رمز الدخول الحالي لتأكيد هويتك.':stage==='enter'?'اختر رمزًا من ٦ أرقام لا تستخدمه في خدمات أخرى.':'أعد إدخال الرمز نفسه لتأكيده.'}</p>
    <PinDots length={digits.length}/>
-   <p className="dh-pin-feedback" role="alert">{error||' '}</p>
+   <p className="dh-pin-feedback" role="alert">{localizeFeedback(error,language)||' '}</p>
    <Keypad disabled={busy} onDigit={d=>{if(digits.length<PIN_LENGTH)commit(digits+d);}}
     onDelete={()=>setDigits(x=>x.slice(0,-1))}/>
    <button type="button" className="dh-pin-setup-cancel" onClick={onClose} disabled={busy}>إلغاء</button>
