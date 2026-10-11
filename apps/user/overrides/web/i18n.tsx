@@ -1,5 +1,6 @@
 import React,{createContext,useContext,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {LANGUAGE_KEY,LANGUAGE_META,Language,translateUiText} from './i18n-messages';
+import {deviceLanguage} from './auth-device-language';
 
 type LocaleController={language:Language;setLanguage:(lang:Language)=>void;direction:'rtl'|'ltr'};
 const LocaleContext=createContext<LocaleController|null>(null);
@@ -59,11 +60,11 @@ function localizeRoot(root:Element,language:Language){
  }
 }
 
-export function LanguageProvider({children}:{children:React.ReactNode}){
- const [language,setLanguageState]=useState<Language>(storedLanguage);
+export function LanguageProvider({children,mode='app'}:{children:React.ReactNode;mode?:'app'|'device'}){
+ const [language,setLanguageState]=useState<Language>(()=>mode==='device'?deviceLanguage():storedLanguage());
  runtimeLanguage=language;
  const setLanguage=(next:Language)=>{
-  if(next!=='ar'&&next!=='en'&&next!=='fr')return;
+  if(mode==='device'||(next!=='ar'&&next!=='en'&&next!=='fr'))return;
   runtimeLanguage=next;
   setLanguageState(next);
   try{window.localStorage.setItem(LANGUAGE_KEY,next);}catch{/* iOS private mode may deny storage. */}
@@ -89,7 +90,10 @@ export function LanguageProvider({children}:{children:React.ReactNode}){
   refresh();
   return()=>{observer.disconnect();if(observerRef.current===observer)observerRef.current=null;};
  },[language]);
- useEffect(()=>{try{window.localStorage.setItem(LANGUAGE_KEY,language);}catch{/* no persistent storage */}},[language]);
+ useEffect(()=>{
+  if(mode!=='app')return;
+  try{window.localStorage.setItem(LANGUAGE_KEY,language);}catch{/* no persistent storage */}
+ },[language,mode]);
  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }
 
