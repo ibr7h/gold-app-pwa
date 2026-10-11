@@ -86,7 +86,7 @@ describe('User price alert editor and Push continuity',()=>{
   expect(workspace).toContain('onClick={()=>openAlertDialog(a)}>تعديل</button>');
   expect(workspace).toContain("dialog.alert?'تعديل التنبيه':'تنبيه جديد'");
   expect(workspace).toContain('value={dialog.alert?.karat||24}');
-  expect(workspace).toContain("value={dialog.alert?.currency||'SAR'}");
+  expect(workspace).toContain("value={dialog.alert?.currency||priceCurrency}");
   expect(workspace).toContain("defaultValue={dialog.alert?.targetPrice||''}");
   expect(workspace).toContain("defaultValue={dialog.alert?.direction||'above'}");
  });
@@ -225,7 +225,7 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).toContain('className="approved-card calc-estimate-card"');
   expect(s).toContain('className="calc-words-block"');
   expect(s).toContain('className="calc-words-label">الإجمالي كتابة');
-  expect(s).toContain('calcTotal!==null?amountToSaudiRiyalWords(calcTotal)');
+  expect(s).toContain('calcTotal!==null?amountToDisplayCurrencyWords(calcTotal,priceCurrency)');
   const a=s.indexOf('className="approved-card calc-estimate-card"');
   let pos=a;
   for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة التقديرية','الإجمالي النهائي','الإجمالي كتابة']){
@@ -285,5 +285,25 @@ describe('iPhone more and profile UX redesign',()=>{
   expect(css).toContain('.gold-web.workspace .dh-currency-options button');
   expect(css).toContain('min-height:44px');
   expect(css).toContain('@media(max-width:400px)');
+ });
+});
+
+describe('Global display-currency integration regression',()=>{
+ it('keeps a single preference through home prices, 24K history, calculator and portfolio',()=>{
+  expect(workspace).toContain("r.currency===priceCurrency&&r.karat===24");
+  expect(workspace).toContain("r.currency===priceCurrency&&r.karat===calcKarat");
+  expect(workspace).toContain("homeHistoryCurrency===priceCurrency?homeHistory:[]");
+  expect(workspace).toContain('PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency}');
+  expect(workspace).toContain('money(calcTotal,priceCurrency)');
+  expect(workspace).toContain('displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded)');
+  expect(workspace).toContain("homeMarketMovement(selectedHomeHistory,homeMarket,clock,priceCurrency)");
+ });
+ it('uses preferred display currency but preserves original invoices and alert conditions for writes',()=>{
+  expect(workspace).toContain('preferredCurrency={priceCurrency}');
+  expect(workspace).toContain("value={dialog.alert?.currency||priceCurrency}");
+  expect(workspace).toContain('showMoney(Number(a.targetPrice),a.currency)');
+  expect(workspace).toContain('showMoney(Number(p.totalPrice),p.currency)');
+  expect(workspace).toContain('const payload=purchasePayload(data)');
+  expect(workspace).toContain('const payload=alertPayload(data)');
  });
 });
