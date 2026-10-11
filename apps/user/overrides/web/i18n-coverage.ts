@@ -1,6 +1,17 @@
 /** Additional reviewed English/French strings for previously uncovered iPhone surfaces. */
 export const secondaryUiMessages:ReadonlyArray<readonly [string,string,string]>=[
  [
+  "المقارنة",
+  "Comparison",
+  "Comparaison"
+ ],
+ [
+  "سعر الجرام المسجل (شامل)",
+  "Recorded price per gram (inclusive)",
+  "Prix au gramme enregistré (tout compris)"
+ ]
+,
+ [
   "محفظة",
   "Portfolio",
   "Portefeuille"
