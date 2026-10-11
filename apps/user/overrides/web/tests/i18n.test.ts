@@ -173,3 +173,56 @@ describe('Localized iPhone actions and portfolio summary regressions',()=>{
   expect(css).toContain('white-space:nowrap!important;');
  });
 });
+
+describe('Complete invoice details and optional purchase form localization',()=>{
+ const form=readFileSync(fileURLToPath(new URL('../PurchaseFormFields.tsx',import.meta.url).href),'utf8');
+ const workspace=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url).href),'utf8');
+ const css=readFileSync(fileURLToPath(new URL('../user.css',import.meta.url).href),'utf8');
+ const invoiceLabels=[
+  'بيانات الفاتورة','اختياري','اسم المتجر','عنوان المحل','اسم المشتري',
+  'رقم الفاتورة','السجل التجاري','هاتف المتجر','حالة المشغول',
+  'غير محدد','جديد','مستعمل','الدمغة','علامة الصانع',
+  'وزن القطعة (جم)','وزن الأحجار (جم)','وصف القطعة','تفاصيل الأحجار',
+  'اسم الحجر','نوع الحجر','لون الحجر','شكل الحجر','درجة النقاء/الجودة',
+  'نوع القطع/التشطيب','العيوب إن وجدت','سلامة الحجر من الخدش أو الكسر',
+  'لإكمال توثيق الفاتورة يُستحسن إضافة:',
+  'هذه البيانات اختيارية لتسجيل مشترياتك السابقة.',
+  'هذه بيانات مرجعية أدخلتها أنت؛ لا تعني توثيق الفاتورة رسميًا. احتفظ بصورة الفاتورة الأصلية.'
+ ];
+ it('translates invoice details, Optional and all invoice fields in English and French',()=>{
+  expect(translateUiText('بيانات الفاتورة','en')).toBe('Invoice details');
+  expect(translateUiText('بيانات الفاتورة','fr')).toBe('Détails de la facture');
+  expect(translateUiText('اختياري','en')).toBe('Optional');
+  expect(translateUiText('اختياري','fr')).toBe('Facultatif');
+  for(const lang of ['en','fr'] as const){
+   for(const label of invoiceLabels)expect(translateUiText(label,lang),label).not.toMatch(/[\u0600-\u06FF]/);
+  }
+ });
+ it('translates labels reactively inside PurchaseFormFields rather than relying on a DOM walker',()=>{
+  expect(form).toContain("const {language,direction}=useLanguage()");
+  expect(form).toContain("dir={direction} lang={language}");
+  expect(form).toContain("<summary>{tr('بيانات الفاتورة')} <small>{tr('اختياري')}</small></summary>");
+  for(const label of invoiceLabels.filter(v=>!['غير محدد','جديد','مستعمل'].includes(v))){
+   expect(form,'missing direct translation for '+label).toContain("tr('"+label+"')");
+  }
+  for(const name of ['sellerName','sellerAddress','buyerName','invoiceNumber','sellerCommercialRegistration','stoneWeightGrams','itemDescription']){
+   expect(form).toContain('name="'+name+'"');
+  }
+ });
+ it('localizes purchase modal title and action buttons without changing submit and handlers',()=>{
+  expect(workspace).toContain("<h2 id=\"dialog-title\">{tr(confirm?");
+  expect(workspace).toContain("tr('إلغاء')");
+  expect(workspace).toContain("tr(busy?'جارٍ الحفظ…':'حفظ')");
+  expect(workspace).toContain('dir={direction} lang={language} aria-modal="true"');
+  expect(workspace).toContain("<PurchaseFormFields key={dialog.purchase?.id||'new'}");
+  expect(form).toContain('name="currency"');
+  expect(form).toContain('name="invoiceTotal"');
+  expect(form).toContain('name="vatRate"');
+  expect(form).toContain('name="pricingMode"');
+ });
+ it('uses correct RTL Arabic and LTR English/French layout for invoice details',()=>{
+  expect(css).toContain('/* Localized purchase/invoice modal: keep RTL Arabic and real LTR EN/FR layouts. */');
+  expect(css).toContain('.dialog[dir="ltr"] .gold-purchase-form label');
+  expect(css).toContain('.dialog[dir="ltr"] .gold-purchase-form input[type="date"]');
+ });
+});
