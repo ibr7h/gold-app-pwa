@@ -1,12 +1,15 @@
 import React,{useEffect,useState} from 'react';
 import {useAuth} from '../contexts/AuthContext';
 import {api,errorMessage} from './api';
+import {localizeFeedback} from './i18n-feedback';
+import {useLanguage} from './i18n';
 
 interface PersonalProfile {
  id:string|number;fullName:string|null;email:string;phone:string|null;
  city:string|null;countryCode:string|null;
 }
 export default function UserPersonalDetails(){
+ const {language}=useLanguage();
  const {updateProfile}=useAuth() as ReturnType<typeof useAuth> & {updateProfile:(changes:{fullName:string;city:string})=>Promise<{fullName:string|null;city:string|null}>};
  const [profile,setProfile]=useState<PersonalProfile|null>(null);
  const [loading,setLoading]=useState(true),[editing,setEditing]=useState(false);
@@ -52,6 +55,6 @@ export default function UserPersonalDetails(){
     <p className="dh-personal-readonly">لتغيير البريد الإلكتروني أو رقم الجوال يلزم مسار تحقق منفصل.</p>
     <div className="dh-personal-actions"><button type="submit" className="primary" disabled={busy}>{busy?'جارٍ الحفظ…':'حفظ'}</button><button type="button" className="secondary" disabled={busy} onClick={()=>{setEditing(false);setName(profile.fullName||'');setCity(profile.city||'');setError('');}}>إلغاء</button></div>
    </form>)}
-  {error&&<p className="notice warning" role="alert">{error}</p>}
+  {error&&<p className="notice warning" role="alert">{localizeFeedback(error,language)}</p>}
  </section>;
 }
