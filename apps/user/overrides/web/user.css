@@ -2324,3 +2324,23 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .dh-quick-lock[dir="ltr"] .dh-pin-dots,
 .dh-quick-lock[dir="ltr"] .dh-pin-keypad,
 .dh-pin-setup[dir="ltr"] .dh-pin-keypad{direction:ltr;}
+
+/* Device-locale parity for unauthenticated iPhone screens; do not shift eye controls. */
+.gold-auth[dir="ltr"] .mockup-auth-card .form-label,
+.gold-auth[dir="ltr"] .mockup-auth-card .error-banner,
+.gold-auth[dir="ltr"] .guest-card h2,
+.gold-auth[dir="ltr"] .guest-price-grid article{
+ text-align:left;
+}
+.gold-auth[dir="ltr"] .mockup-input-wrap .form-input:not([dir="ltr"]){
+ text-align:left;
+}
+.gold-auth[dir="ltr"] .mockup-login-options,
+.gold-auth[dir="ltr"] .mockup-remember,
+.gold-auth[dir="ltr"] .guest-back{
+ direction:ltr;
+}
+.gold-auth[dir="ltr"] .mockup-register-link button,
+.gold-auth[dir="ltr"] .mockup-forgot{
+ text-align:left;
+}
