@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 import {readFileSync} from 'node:fs';
 import {describe,it,expect} from 'vitest';
 import {LANGUAGE_META,LANGUAGE_OPTIONS,LANGUAGE_KEY,translateUiText,translateExact,translationCount} from '../i18n-messages';
@@ -83,7 +84,7 @@ describe('Regression: no Arabic interface fragments in English or French',()=>{
   });
  }
  it('walks PIN lock, PIN setup and main app scopes including accessible value labels',()=>{
-  const src=readFileSync(new URL('../i18n.tsx',import.meta.url).pathname,'utf8');
+  const src=readFileSync(fileURLToPath(new URL('../i18n.tsx',import.meta.url)),'utf8');
   expect(src).toContain("document.querySelectorAll('.gold-web, .dh-quick-lock, .dh-pin-setup')");
   expect(src).toContain("'aria-valuetext'");
   expect(src).toContain("root.querySelectorAll('[dir],[data-language-root=\"true\"]')");
