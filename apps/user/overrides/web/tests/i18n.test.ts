@@ -91,3 +91,43 @@ describe('Regression: no Arabic interface fragments in English or French',()=>{
   expect(src).toContain("language==='ar'?(original||'rtl'):direction");
  });
 });
+
+describe('Extended iPhone Arabic-remnant regressions',()=>{
+ const uiStrings=[
+  '1. اختر عيار الذهب',
+  'عيار 21 · السعر العالمي الاسترشادي، دون مصنعية أو ضريبة',
+  'آخر تحديث: 11/10/2026',
+  'أونصة 31.1g',
+  'الذهب الذي تتابعه',
+  'عملية شراء واحدة',
+  'كم',
+  'الوزن الصافي (جم)',
+  'المصنعية / جرام',
+  'القيمة السوقية التقديرية',
+  'فتح ببصمة الجهاز',
+  'تعذر التحقق بالبصمة. استخدم الرمز أو كلمة المرور.',
+  'إعادة الاختبار بعد 31 ثانية',
+  'سعر الجرام · عيار 24',
+  'حركة السوق (عيار 24)',
+  '25 كم',
+  '37% من الوزن الإجمالي.'
+ ];
+ for(const language of ['en','fr'] as const){
+  it('renders all sampled original Arabic UI messages in '+language,()=>{
+   for(const text of uiStrings){
+    const out=translateUiText(text,language);
+    expect(out,text).not.toMatch(/[\u0600-\u06FF]/);
+   }
+  });
+ }
+ it('keeps unrecognized customer names untouched rather than auto-translating them',()=>{
+  expect(translateUiText('اسم المشتري الفعلي في الحساب','en')).toBe('اسم المشتري الفعلي في الحساب');
+  expect(translateUiText('ذهب الأطفال في جازان','fr')).toBe('ذهب الأطفال في جازان');
+ });
+ it('restores original RTL direction from any initial language and covers PIN overlay',()=>{
+  const src=readFileSync(fileURLToPath(new URL('../i18n.tsx',import.meta.url).href),'utf8');
+  expect(src).toContain('el===root?direction:');
+  expect(src).toContain('.dh-quick-lock, .dh-pin-setup');
+  expect(src).toContain("'aria-valuetext'");
+ });
+});
