@@ -1434,8 +1434,265 @@ const entries:ReadonlyArray<readonly [string,string,string]>=[
   "Français"
  ]
 ];
+const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
+ [
+  "تُطبّق على الرئيسية والحاسبة والمحفظة والأسعار والمشتريات والتنبيهات، وتحفظ على هذا الجهاز",
+  "Applied to home, calculator, portfolio, prices, purchases and alerts; saved on this device.",
+  "S'applique à l'accueil, la calculatrice, le portefeuille, les cours, les achats et les alertes ; enregistré sur cet appareil."
+ ],
+ [
+  "تحويل المبالغ المسجلة استرشادي من أسعار الذهب، دون تغيير الفواتير وشروط التنبيه.",
+  "Conversions are indicative estimates based on gold quotes; invoices and alert conditions are unchanged.",
+  "Les conversions sont indicatives et dérivées des cours de l'or ; factures et conditions d'alerte inchangées."
+ ],
+ [
+  "جميع الأسعار في هذه النسخة تأتي من Backend ذهبي نفسه؛ وتشترك البطاقات والمحفظة والتنبيهات والرسم البياني في المصدر ذاته. لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.",
+  "All prices come from Dhahabi's backend. Cards, portfolio, alerts and charts share the same source. They exclude workmanship, taxes and dealer margins.",
+  "Tous les prix proviennent du serveur Dhahabi. Cartes, portefeuille, alertes et graphiques partagent la même source. Frais de fabrication, taxes et marges exclus."
+ ],
+ [
+  "بعض مشترياتك بعملات لا تتوفر لها بيانات تحويل موثوقة؛ راجع التفاصيل حسب عملة التسجيل.",
+  "Some purchases use currencies without reliable conversion data. See their original currencies in the details.",
+  "Certains achats utilisent des devises sans taux de conversion fiable. Consultez leur devise d'origine dans les détails."
+ ],
+ [
+  "تقدير قيمة بعض المشتريات غير متاح لغياب سعر سوق موثوق.",
+  "Some purchases cannot be valued without a reliable market quote.",
+  "Certains achats ne peuvent être évalués sans cours fiable."
+ ],
+ [
+  "عندما يصل السعر إلى هدفك، يرسل ذهبي إشعار Push إلى أجهزتك المسجلة، حتى إن كانت الصفحة مغلقة وفق دعم الجهاز.",
+  "Dhahabi sends a push notification to your registered devices when the target price is reached, even with the page closed when the device allows it.",
+  "Dhahabi envoie une notification Push à vos appareils enregistrés lorsque le prix cible est atteint, même si la page est fermée lorsque l'appareil le permet."
+ ],
+ [
+  "القيمة تقديرية بحسب آخر سعر متاح للعيار والعملة. المبالغ معروضة بعملة التفضيلات عند توفر تحويل موثوق، دون تعديل الفواتير الأصلية. تحويل الريال والدولار استرشادي من أسعار الذهب وليس سعر صرف بنكي. الفرق لا يشمل رسوم أو فروقات إعادة البيع.",
+  "Values are estimated from the latest available quote by purity and currency. Amounts appear in your preferred display currency when a reliable conversion is available; original invoices remain unchanged. The indicative SAR/USD conversion is derived from gold quotes, not a bank FX rate. Resale costs and spreads are excluded.",
+  "Valeurs estimées à partir du dernier cours disponible par carat et devise. Les montants utilisent votre devise d'affichage si la conversion est fiable ; les factures d'origine restent inchangées. Le taux SAR/USD indicatif provient des cours de l'or, non d'un taux bancaire. Frais et marges de revente exclus."
+ ],
+ [
+  "تعذر تحديث الأسعار من الخادم. المعروض آخر سعر متاح، وليس سعرًا مباشرًا.",
+  "Could not refresh prices. Showing the last available quote, not a live quote.",
+  "Impossible d'actualiser les cours. Dernier cours disponible affiché, non en direct."
+ ],
+ [
+  "تم حفظ التغيير على الخادم.",
+  "Changes saved to server.",
+  "Modifications enregistrées sur le serveur."
+ ],
+ [
+  "لا توجد مقارنة كافية اليوم",
+  "Not enough data for today's comparison",
+  "Données insuffisantes pour comparer aujourd'hui"
+ ],
+ [
+  "تم حفظ رمز الدخول السريع لهذا الجهاز.",
+  "Quick access PIN saved on this device.",
+  "Code d'accès rapide enregistré sur cet appareil."
+ ],
+ [
+  "أُوقف رمز الدخول السريع على هذا الجهاز.",
+  "Quick access PIN disabled on this device.",
+  "Code d'accès rapide désactivé sur cet appareil."
+ ],
+ [
+  "أُوقفت بصمة الجهاز في ذهبي.",
+  "Device biometrics disabled in Dhahabi.",
+  "Authentification biométrique désactivée dans Dhahabi."
+ ],
+ [
+  "تم تفعيل تحقق الجهاز. قد يطلب النظام بصمة أو رمز الجهاز؛ بعض المتصفحات تحتاج رمز ذهبي أو كلمة المرور بعد إعادة فتح التطبيق.",
+  "Device verification enabled. Your system may ask for biometrics or the device passcode. Some browsers still require your Dhahabi PIN or password after reopening.",
+  "Vérification de l'appareil activée. Le système peut demander votre biométrie ou votre code. Certains navigateurs exigent encore le code ou mot de passe Dhahabi après réouverture."
+ ],
+ [
+  "تعذر قفل التطبيق. تحقق من جلسة الدخول.",
+  "Could not lock the app. Check your session.",
+  "Impossible de verrouiller l'application. Vérifiez votre session."
+ ],
+ [
+  "عند الضغط على زر البصمة؛ حسب دعم المتصفح",
+  "When tapping the biometric button, if supported by your browser",
+  "En appuyant sur le bouton biométrique, selon le navigateur"
+ ],
+ [
+  "غير مدعومة في هذا المتصفح",
+  "Not supported by this browser",
+  "Non pris en charge par ce navigateur"
+ ],
+ [
+  "يمكنك فتح ذهبي برمز من ٦ أرقام. تُحفظ الجلسة مشفّرة وتجزئة الرمز محليًا؛ ولا تُخزّن بيانات بصمتك. يظهر القفل عند إعادة فتح التطبيق بجلسة محفوظة أو بعد العودة من الخلفية بدقيقة. وقد يطلب النظام تحقق Face ID أو Touch ID بحسب دعم المتصفح.",
+  "Unlock Dhahabi with a six-digit PIN. Your encrypted session and a hashed PIN are stored locally; biometric details are never stored. The lock appears when reopening a saved session or returning from the background. Face ID or Touch ID may be required when supported.",
+  "Déverrouillez Dhahabi avec un code à six chiffres. La session chiffrée et l'empreinte numérique du code sont conservées localement ; les données biométriques ne le sont jamais. Le verrou apparaît après réouverture ou retour de l'arrière-plan. Face ID ou Touch ID peuvent être demandés."
+ ],
+ [
+  "سجّل الدخول بكلمة مرور حسابك لاستعادة الوصول، ثم أعد إعداد الدخول السريع. إذا انتهت الجلسة يلزم تسجيل الدخول الكامل.",
+  "Sign in with your account password to regain access, then set up quick access again. An expired session requires full sign-in.",
+  "Connectez-vous avec le mot de passe de votre compte puis reconfigurez l'accès rapide. Une session expirée exige une connexion complète."
+ ],
+ [
+  "اكتب اسمًا من حرفين إلى ٨٠ حرفًا، ومدينة لا تزيد على ٨٠ حرفًا.",
+  "Enter a name between 2 and 80 characters and a city of no more than 80 characters.",
+  "Saisissez un nom de 2 à 80 caractères et une ville de 80 caractères maximum."
+ ],
+ [
+  "لتغيير البريد الإلكتروني أو رقم الجوال يلزم مسار تحقق منفصل.",
+  "Changing your email or mobile number requires a separate verification process.",
+  "La modification de l'e-mail ou du numéro de mobile nécessite une vérification distincte."
+ ],
+ [
+  "سنسجل الإجمالي كما دفعته تمامًا، ونحسب التكلفة الفعلية لكل جرام. لا نضيف مصنعية أو ضريبة مرة أخرى.",
+  "We record the total exactly as paid and calculate the effective cost per gram. Workmanship and tax are not added again.",
+  "Nous enregistrons exactement le montant payé et calculons le coût réel par gramme. Fabrication et taxes ne sont pas ajoutées une seconde fois."
+ ],
+ [
+  "تحقق من طريقة تطبيق الضريبة في فاتورتك. السلع الاستثمارية المؤهلة قد تختلف ضريبتها عن المشغولات؛ لا يفترض التطبيق نسبة موحدة.",
+  "Check how tax is applied on your invoice. Eligible investment gold may be taxed differently from jewelry; the app does not assume one rate.",
+  "Vérifiez l'application de la taxe sur votre facture. L'or d'investissement éligible peut être taxé différemment des bijoux ; aucun taux unique n'est supposé."
+ ],
+ [
+  "هذه بيانات مرجعية أدخلتها أنت؛ لا تعني توثيق الفاتورة رسميًا. احتفظ بصورة الفاتورة الأصلية.",
+  "These details are provided by you and do not officially validate an invoice. Keep the original invoice.",
+  "Ces informations sont fournies par vous et ne constituent pas une validation officielle. Conservez la facture d'origine."
+ ],
+ [
+  "هذه البيانات اختيارية لتسجيل مشترياتك السابقة.",
+  "These details are optional when recording earlier purchases.",
+  "Ces informations sont facultatives pour enregistrer vos achats antérieurs."
+ ],
+ [
+  "لا يوجد اختبار مسجل",
+  "No test recorded",
+  "Aucun test enregistré"
+ ],
+ [
+  "استخدم متصفحًا يدعم Web Push على اتصال HTTPS. ستبقى التنبيهات ظاهرة داخل ذهبي حتى دون دعم Push.",
+  "Use an HTTPS browser that supports Web Push. In-app alerts remain visible even without Push support.",
+  "Utilisez un navigateur HTTPS prenant en charge Web Push. Les alertes internes restent visibles même sans Push."
+ ],
+ [
+  "على iPhone: افتح ذهبي في Safari، اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية». افتح التطبيق من الأيقونة وارجع إلى إعدادات الإشعارات.",
+  "On iPhone, open Dhahabi in Safari, tap Share, then Add to Home Screen. Open the installed icon and return to notification settings.",
+  "Sur iPhone, ouvrez Dhahabi dans Safari, touchez Partager puis Ajouter à l'écran d'accueil. Lancez l'icône installée et revenez aux notifications."
+ ],
+ [
+  "أُوقف الإذن من خارج التطبيق. لا يمكن لذهبي تغييره نيابةً عنك؛ اتبع تعليمات جهازك أسفل الصفحة.",
+  "Notification permission was blocked outside the app. Dhahabi cannot change it for you; follow your device instructions below.",
+  "L'autorisation a été bloquée hors de l'application. Dhahabi ne peut pas la modifier ; suivez les instructions ci-dessous."
+ ],
+ [
+  "لم تسمح بإشعارات هذا الموقع بعد. اختر «تفعيل الإشعارات» ووافق على طلب النظام.",
+  "Notifications are not allowed yet. Select Enable notifications and approve the system prompt.",
+  "Les notifications ne sont pas encore autorisées. Sélectionnez Activer les notifications et acceptez la demande système."
+ ],
+ [
+  "تعذر الاتصال بخدمة Push أو التحقق من الحساب. تحقق من اتصال الإنترنت ثم حدّث الحالة.",
+  "Could not connect to Push or verify your account. Check your connection, then refresh.",
+  "Connexion Push ou vérification du compte impossible. Vérifiez Internet puis actualisez."
+ ],
+ [
+  "لم يُفعّل مسؤول الخادم مفاتيح Web Push بعد. لا يتيح التطبيق اختبارًا مزيفًا في هذه الحالة.",
+  "The server has not enabled Web Push keys yet. The app will not simulate a successful test.",
+  "Les clés Web Push ne sont pas encore activées sur le serveur. Aucun faux test ne sera affiché."
+ ],
+ [
+  "إذن الإشعارات متاح، لكن هذا المتصفح لم يسجّل اشتراكًا بعد.",
+  "Notifications are permitted, but this browser has no registered subscription.",
+  "Les notifications sont autorisées, mais ce navigateur n'a pas encore d'abonnement."
+ ],
+ [
+  "يوجد اشتراك في المتصفح لكنه غير معروف للخادم؛ اضغط «إصلاح الاشتراك».",
+  "A browser subscription exists but is unknown to the server. Choose Repair subscription.",
+  "Un abonnement existe dans le navigateur mais pas sur le serveur. Choisissez Réparer l'abonnement."
+ ],
+ [
+  "إذن المتصفح مسموح، واشتراك الجهاز مسجل لدى خادم ذهبي. يمكن اختبار إرسال رسالة فعلية.",
+  "Browser permission and server subscription are ready. You can test a real notification.",
+  "L'autorisation et l'abonnement serveur sont actifs. Vous pouvez tester une véritable notification."
+ ],
+ [
+  "نتحقق من إذن المتصفح واشتراك Push والاتصال بالخادم…",
+  "Checking browser permission, Push subscription and server connection…",
+  "Vérification des autorisations, de l'abonnement Push et du serveur…"
+ ],
+ [
+  "آخر اختبار أُرسل:",
+  "Last test sent:",
+  "Dernier test envoyé :"
+ ],
+ [
+  "آخر قبول لدى مزود Push:",
+  "Last Push provider acceptance:",
+  "Dernière acceptation du service Push :"
+ ],
+ [
+  "قبول مزود Push للرسالة لا يضمن وصولها أو ظهورها على شاشة الجهاز. لا يمكن للتطبيق قراءة حالة وضع التركيز أو كتم إشعارات النظام بالكامل.",
+  "Push acceptance does not guarantee delivery or display. The app cannot fully inspect Focus or system notification mute settings.",
+  "L'acceptation par Push ne garantit pas la livraison ou l'affichage. L'application ne peut pas vérifier complètement les réglages Concentration ou Muet."
+ ],
+ [
+  "على الآيفون: فعّل «خدمات الموقع» واسمح لـ Safari أو لتطبيق ذهبي بالوصول إلى موقعك من إعدادات الجهاز.",
+  "On iPhone, enable Location Services and allow Safari or Dhahabi to access your location in device settings.",
+  "Sur iPhone, activez les services de localisation et autorisez Safari ou Dhahabi à accéder à votre position."
+ ],
+ [
+  "النطاق استرشادي؛ يتغير تقريب الخريطة وقد تظهر محلات أبعد.",
+  "Radius is approximate. Map zoom may vary and more distant shops may appear.",
+  "Le rayon est indicatif. Le zoom peut varier et des boutiques plus éloignées peuvent apparaître."
+ ],
+ [
+  "لا يوجد تحديث موثوق",
+  "No reliable update",
+  "Aucune mise à jour fiable"
+ ],
+ [
+  "تم قبول رسالة الاختبار من مزود Push. انتظر إشعار الجهاز؛ هذا لا يؤكد ظهوره.",
+  "Push provider accepted the test. Watch for the device notification; acceptance does not confirm delivery.",
+  "Le service Push a accepté le test. Attendez la notification ; cela ne confirme pas sa livraison."
+ ],
+ [
+  "سُجل هذا الجهاز لدى خدمة إشعارات ذهبي.",
+  "This device has been registered for Dhahabi notifications.",
+  "Cet appareil est enregistré pour les notifications Dhahabi."
+ ],
+ [
+  "تم إلغاء اشتراك الإشعارات على هذا الجهاز.",
+  "Notifications have been disabled on this device.",
+  "Les notifications ont été désactivées sur cet appareil."
+ ],
+ [
+  "هل ظهر إشعار ذهبي على جهازك؟ قد يتأخر أو تمنعه إعدادات النظام.",
+  "Did Dhahabi's notification appear? It may be delayed or blocked by system settings.",
+  "La notification Dhahabi est-elle apparue ? Elle peut être retardée ou bloquée par le système."
+ ],
+ [
+  "تم تأكيد ظهور الإشعار على هذا الجهاز.",
+  "Notification display was confirmed on this device.",
+  "L'affichage de la notification a été confirmé sur cet appareil."
+ ],
+ [
+  "سيُطبّق الشرط الجديد عند الفحص القادم. إذا كان السعر يحقق الشرط الآن، فقد يصلك إشعار.",
+  "The updated condition takes effect at the next check. You may be notified if the current price already meets it.",
+  "La nouvelle condition prend effet à la prochaine vérification. Une notification peut arriver si le prix répond déjà à la condition."
+ ],
+ [
+  "سيبقى التنبيه متوقفًا بعد حفظ التعديل حتى تفعّله بنفسك.",
+  "The alert remains paused until you reactivate it.",
+  "L'alerte reste en pause jusqu'à sa réactivation."
+ ],
+ [
+  "هذا التنبيه تحقق شرطه سابقًا، وسيظل كذلك بعد التعديل حتى تضغط «إعادة تفعيل».",
+  "This alert was triggered earlier and stays triggered until you reactivate it.",
+  "Cette alerte a déjà été déclenchée et le restera jusqu'à sa réactivation."
+ ],
+ [
+  "هذا الإجراء نهائي، ولا يمكن التراجع عن الحذف من التطبيق.",
+  "Deletion is permanent and cannot be undone in the app.",
+  "Cette suppression est définitive et irréversible depuis l'application."
+ ]
+];
 const lookup=new Map<string,readonly [string,string]>(
- entries.map(([ar,en,fr])=>[ar,[en,fr] as const])
+ [...entries,...extendedEntries].map(([ar,en,fr])=>[ar,[en,fr] as const])
 );
 export const translationCount=()=>lookup.size;
 export function translateExact(text:string,lang:Language):string|null{
