@@ -1,5 +1,5 @@
 import {readFileSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,URL} from 'node:url';
 import {describe,it,expect} from 'vitest';
 import {priceFreshness,PRICE_STALE_AFTER_MS,isGlobalGoldMarketOpen} from '../price-status';
 
