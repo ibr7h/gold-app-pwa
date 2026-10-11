@@ -19,14 +19,19 @@ type Original={original:string;rendered:string};
 const textMemory=new WeakMap<Text,Original>();
 const attrMemory=new WeakMap<Element,Map<string,Original>>();
 const directionMemory=new WeakMap<Element,string|null>();
-const attrs=['placeholder','title','aria-label','alt'] as const;
+const attrs=['placeholder','title','aria-label','aria-valuetext','aria-description','alt'] as const;
 
 function localizeRoot(root:Element,language:Language){
  const direction=LANGUAGE_META[language].dir;
- for(const el of [root,...Array.from(root.querySelectorAll('[dir="rtl"],[data-language-root="true"]'))]){
+ // Preserve explicit LTR fields (prices, passwords, account identifiers) while
+ // restoring original RTL layout containers after switching back to Arabic.
+ for(const el of [root,...Array.from(root.querySelectorAll('[dir],[data-language-root="true"]'))]){
   if(!directionMemory.has(el))directionMemory.set(el,el.getAttribute('dir'));
   const original=directionMemory.get(el);
-  if(original==='rtl'||el===root)el.setAttribute('dir',language==='ar'?(original||'rtl'):direction);
+  if(original==='rtl'||el===root){
+   const desired=language==='ar'?(original||'rtl'):direction;
+   if(el.getAttribute('dir')!==desired)el.setAttribute('dir',desired);
+  }
  }
  root.setAttribute('lang',language);
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
@@ -72,11 +77,11 @@ export function LanguageProvider({children}:{children:React.ReactNode}){
   document.title=language==='ar'?'ذهبي':language==='en'?'Dhahabi':'Dhahabi';
   const observe=()=>observerRef.current?.observe(document.body,{
    subtree:true,childList:true,characterData:true,attributes:true,
-   attributeFilter:['placeholder','title','aria-label','alt']
+   attributeFilter:['placeholder','title','aria-label','aria-valuetext','aria-description','alt']
   });
   const refresh=()=>{
    observerRef.current?.disconnect();
-   document.querySelectorAll('.gold-web').forEach(el=>localizeRoot(el,language));
+   document.querySelectorAll('.gold-web, .dh-quick-lock, .dh-pin-setup').forEach(el=>localizeRoot(el,language));
    observe();
   };
   const observer=new MutationObserver(refresh);
