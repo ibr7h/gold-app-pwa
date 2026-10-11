@@ -1,16 +1,24 @@
+import {isGlobalGoldMarketOpen} from './price-status';
+
 export type TrendRange='day'|'week'|'month'|'available';
 export interface TrendSourceRow{
  id?:string; buyPrice:string|number; createdAt?:string|null; timestamp?:string|null;
 }
 export interface TrendPoint{time:number;price:number;id:string}
 
-/** Plot against actual saved timestamps. Do not create/interpolate missing market prices. */
+/** Plot supplier observation times, never the ingestion/polling time.
+ * Previously createdAt won over the real source timestamp, extending a flat graph
+ * through the weekend when the backend re-saved an unchanged spot quote.
+ * Preserve pre-close quotes ingested later, but reject source observations outside
+ * the indicative trading session (weekends / NY 17:00–18:00 rollover).
+ * Market holidays beyond the ordinary schedule are not represented here.
+ */
 export function priceTrendPoints(rows:TrendSourceRow[]):TrendPoint[]{
  const valid=rows.map((row,index)=>{
-  const time=Date.parse(row.createdAt||row.timestamp||'');
+  const time=Date.parse(row.timestamp||row.createdAt||'');
   const price=Number(row.buyPrice);
   return {time,price,id:row.id||String(index)};
- }).filter(p=>Number.isFinite(p.time)&&Number.isFinite(p.price)&&p.price>0)
+ }).filter(p=>Number.isFinite(p.time)&&isGlobalGoldMarketOpen(p.time)&&Number.isFinite(p.price)&&p.price>0)
  .sort((a,b)=>a.time-b.time);
  // Multiple saved updates at exactly the same instant share one x-coordinate.
  // Use the last saved observation, rather than fabricating a time interval.

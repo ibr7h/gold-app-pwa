@@ -20,10 +20,13 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
   expect(current).toContain("import {amountToSaudiRiyalWords} from './arabic-amount-words'");
  });
  it('keeps the original historical chart in both pages with all range/interaction controls',()=>{
-  expect(current).toContain('{!marketClosed&&<section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>}');
+  expect(current).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart rows={homeHistory} currency="SAR" karat={24} compact/></section>');
   expect(current).toContain('<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>');
-  expect(current).toContain('{!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
-  expect(current).toContain('const marketClosed=!isGlobalGoldMarketOpen(clock)');
+  expect(current).toContain('<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
+  expect(current).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
+  const trend=read('../price-trend.ts');
+  expect(trend).toContain('Date.parse(row.timestamp||row.createdAt||\'\')');
+  expect(trend).toContain('isGlobalGoldMarketOpen(p.time)');
   expect(current).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000);");
   expect(current).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
   const chart=read('../PriceHistoryChart.tsx');

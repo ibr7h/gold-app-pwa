@@ -205,12 +205,15 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).not.toContain("المصدر: {homeMarket?.source");
   expect(s).toContain("marketClosed?'لا تداول حاليًا'");
  });
- it('unmounts both price charts during global market closure, retaining the historical chart when open',()=>{
+ it('keeps both charts visible during closure but uses only real trading-session prices',()=>{
   const s=source('../UserWorkspace.tsx');
   expect(s).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart');
   expect(s).toContain('<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
-  expect(s).toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
-  expect(s).toContain('{!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
+  expect(s).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
+  expect(s).not.toContain('{!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
+  const trend=source('../price-trend.ts');
+  expect(trend).toContain('Date.parse(row.timestamp||row.createdAt||\'\')');
+  expect(trend).toContain('isGlobalGoldMarketOpen(p.time)');
   expect(s).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000)");
   expect(s).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
  });

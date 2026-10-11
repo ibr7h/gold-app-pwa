@@ -2,10 +2,10 @@ import {describe,it,expect} from 'vitest';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,trendPercent} from '../price-trend';
 
 const instant=(minute:number,price:number,id='price-'+minute)=>({
- id,createdAt:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),timestamp:'2026-01-01T00:00:00.000Z',buyPrice:String(price)
+ id,createdAt:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),timestamp:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),buyPrice:String(price)
 });
 describe('User real-time gold chart geometry',()=>{
- it('sorts snapshots by saved time rather than array index or stale source timestamps',()=>{
+ it('sorts actual source observations by time rather than ingestion order',()=>{
   const result=priceTrendPoints([instant(40,390),instant(0,385),instant(10,387)]);
   expect(result.map(x=>x.price)).toEqual([385,387,390]);
   expect(result[1].time-result[0].time).toBe(10*60*1000);
@@ -16,7 +16,7 @@ describe('User real-time gold chart geometry',()=>{
   const result=priceTrendPoints([same,{...same,id:'newer',buyPrice:'381'},instant(10,385),
    {...same,id:'bad',buyPrice:'NaN'},
    {...same,id:'zero',buyPrice:'0'},
-   {...same,id:'no-time',createdAt:'invalid',buyPrice:'400'}]);
+   {...same,id:'no-time',createdAt:'invalid',timestamp:'invalid',buyPrice:'400'}]);
   expect(result.map(x=>x.price)).toEqual([381,385]);
   expect(result[0].id).toBe('newer');
  });
@@ -54,5 +54,46 @@ describe('User real-time gold chart geometry',()=>{
   expect(priceTrendRange(points,'month').map(p=>p.id)).toEqual(['30','7','1','0']);
   expect(priceTrendRange(points,'week').map(p=>p.id)).toEqual(['7','1','0']);
   expect(priceTrendRange(points,'day').map(p=>p.id)).toEqual(['1','0']);
+ });
+});
+
+
+describe('Do not extend gold-price chart across closed market hours',()=>{
+ const quote=(id:string,sourceTime:string,price:number,storedAt='2026-10-11T19:00:00Z')=>
+  ({id,timestamp:sourceTime,createdAt:storedAt,buyPrice:String(price)});
+ it('prefers the supplier observation timestamp, even when stored later during closure',()=>{
+  const points=priceTrendPoints([
+   quote('late-saved','2026-10-09T20:58:00Z',410,'2026-10-11T12:00:00Z'),
+   quote('last-trade','2026-10-09T20:59:00Z',411,'2026-10-11T12:01:00Z'),
+   quote('repeated-last-trade','2026-10-09T20:59:00Z',411,'2026-10-11T12:02:00Z')
+  ]);
+  expect(points.map(p=>p.id)).toEqual(['late-saved','repeated-last-trade']);
+  expect(points.at(-1)?.time).toBe(Date.parse('2026-10-09T20:59:00Z'));
+ });
+ it('omits flat after-close observations Friday, Saturday and Sunday before reopening',()=>{
+  const points=priceTrendPoints([
+   quote('friday-trade','2026-10-09T20:59:00Z',411),
+   quote('friday-closed','2026-10-09T21:00:00Z',411),
+   quote('saturday-closed','2026-10-10T11:00:00Z',411),
+   quote('sunday-closed','2026-10-11T21:59:00Z',411)
+  ]);
+  expect(points.map(p=>p.id)).toEqual(['friday-trade']);
+  expect(priceTrendRange(points,'available').map(p=>p.price)).toEqual([411]);
+ });
+ it('resumes with a new true observation when trading opens Sunday 18:00 New York',()=>{
+  const points=priceTrendPoints([
+   quote('last-friday','2026-10-09T20:59:00Z',411),
+   quote('closed','2026-10-11T21:59:00Z',411),
+   quote('first-sunday','2026-10-11T22:01:00Z',412)
+  ]);
+  expect(points.map(p=>p.id)).toEqual(['last-friday','first-sunday']);
+ });
+ it('also excludes the daily 17:00–18:00 New York maintenance window',()=>{
+  const points=priceTrendPoints([
+   quote('before','2026-10-12T20:59:00Z',410),
+   quote('rollover','2026-10-12T21:01:00Z',410),
+   quote('after','2026-10-12T22:01:00Z',411)
+  ]);
+  expect(points.map(p=>p.id)).toEqual(['before','after']);
  });
 });
