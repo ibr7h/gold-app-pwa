@@ -373,7 +373,7 @@ describe('iPhone chart does not visually simulate prices during closed sessions'
   expect(trend).toContain('isGlobalGoldMarketOpen(tick)');
   expect(chart).toContain('priceTrendSegments(points).map(');
   expect(chart).toContain('{paths.map(({line,area,single},i)');
-  expect(chart).not.toContain('<path className="dh-trend-line" d={line}/>');
+  expect(chart).not.toContain('const line=plotted.map(');
  });
  it('prevents overlapping historical Arabic dates with compact tick labels',()=>{
   const chart=source('../PriceHistoryChart.tsx');
