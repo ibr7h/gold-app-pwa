@@ -86,7 +86,7 @@ describe('User price alert editor and Push continuity',()=>{
   expect(workspace).toContain('onClick={()=>openAlertDialog(a)}>تعديل</button>');
   expect(workspace).toContain("dialog.alert?'تعديل التنبيه':'تنبيه جديد'");
   expect(workspace).toContain('value={dialog.alert?.karat||24}');
-  expect(workspace).toContain("value={dialog.alert?.currency||priceCurrency}");
+  expect(workspace).toContain("value={dialog.alert?.currency||(priceCurrency==='EUR'?'USD':priceCurrency)}");
   expect(workspace).toContain("defaultValue={dialog.alert?.targetPrice||''}");
   expect(workspace).toContain("defaultValue={dialog.alert?.direction||'above'}");
  });
@@ -303,6 +303,7 @@ describe('iPhone more and profile UX redesign',()=>{
   expect(more).toContain("onClick={()=>navigate('notification-settings')}");
   expect(more).toContain("onClick={()=>navigate('alerts')}");
   expect(more).toContain("onClick={()=>setPriceCurrency('USD')}");
+  expect(more).toContain("onClick={()=>setPriceCurrency('EUR')}");
   expect(more).toContain("onClick={()=>setPriceCurrency('SAR')}");
   expect(more).not.toContain('<Icon name="settings"/></span>\n     <span className="dh-preference-text"><strong>لغة التطبيق');
   expect(more).toContain("onClick={()=>setLanguage('fr')}");
@@ -326,13 +327,13 @@ describe('Global display-currency integration regression',()=>{
   expect(workspace).toContain("homeHistoryCurrency===priceCurrency?homeHistory:[]");
   expect(workspace).toContain('PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency}');
   expect(workspace).toContain('money(calcTotal,priceCurrency)');
-  expect(workspace).toContain('displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded)');
+  expect(workspace).toContain('displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurFx?.eurPerUsd??null)');
   expect(workspace).toContain("homeMarketMovement(realHomeQuotes,homeMarket,clock,priceCurrency)");
    expect(workspace).toContain("r.kind!=='daily-average'");
  });
  it('uses preferred display currency but preserves original invoices and alert conditions for writes',()=>{
   expect(workspace).toContain('preferredCurrency={priceCurrency}');
-  expect(workspace).toContain("value={dialog.alert?.currency||priceCurrency}");
+  expect(workspace).toContain("value={dialog.alert?.currency||(priceCurrency==='EUR'?'USD':priceCurrency)}");
   expect(workspace).toContain('showMoney(Number(a.targetPrice),a.currency)');
   expect(workspace).toContain('showMoney(Number(p.totalPrice),p.currency)');
   expect(workspace).toContain('const payload=purchasePayload(data)');
