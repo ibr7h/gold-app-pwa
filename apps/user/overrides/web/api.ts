@@ -51,7 +51,7 @@ export async function getVerifiedCachedUser():Promise<VerifiedCachedUser|null>{
  }catch{return null;}
 }
 export async function saveVerifiedUser(user:VerifiedCachedUser){
- await AsyncStorage.setItem(PROFILE,JSON.stringify({id:user.id,email:user.email,role:'user'}));
+ await AsyncStorage.setItem(PROFILE,JSON.stringify({id:user.id,email:user.email,role:'user',...(user.name?.trim()?{name:user.name.trim().slice(0,120)}:{})}));
 }
 export async function saveSession(tokens:any){
  if(typeof tokens?.accessToken!=='string'||!tokens.accessToken||typeof tokens?.refreshToken!=='string'||!tokens.refreshToken)throw new ApiError('استجابة الدخول غير مكتملة.');
