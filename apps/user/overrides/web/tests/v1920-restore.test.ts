@@ -38,8 +38,8 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
   expect(current).toContain("import {amountToDisplayCurrencyWords} from './arabic-amount-words'");
  });
  it('keeps the original historical chart in both pages with all range/interaction controls',()=>{
-  expect(current).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact/></section>');
-  expect(current).toContain('<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar}/>');
+  expect(current).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact range={homeRange} onRangeChange={setHomeRange} now={clock} loading={marketLoading}/></section>');
+  expect(current).toContain('<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={marketLoading}/>');
   expect(current).toContain('<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
   expect(current).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
   const trend=read('../price-trend.ts');
@@ -48,7 +48,7 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
   expect(current).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000);");
   expect(current).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
   const chart=read('../PriceHistoryChart.tsx');
-  for(const marker of ["id:'day'","id:'week'","id:'month'","priceTrendRange(all,range)","role=\"slider\"","onPointerMove","e.key==='ArrowLeft'"])expect(chart).toContain(marker);
+  for(const marker of ["id:'day'","id:'week'","id:'month'","priceTrendRange(all,range,now)","role=\"slider\"","onPointerMove","e.key==='ArrowLeft'"])expect(chart).toContain(marker);
  });
  it('does not roll back other User features or account changes',()=>{
   for(const marker of ['portfolio-card-actions',"dialog.portfolio?'PATCH':'POST'","marketClosed?'السوق العالمي مغلق'"])expect(current).toContain(marker);

@@ -42,7 +42,7 @@ describe('User iPhone price copy and saved calendar preferences',()=>{
   expect(ws).toContain("onClick={()=>setCalendar('gregorian')}");
   expect(ws).toContain("onClick={()=>setCalendar('hijri')}");
   expect(ws).toContain('calendar={calendar} compact');
-  expect(ws).toContain('calendar={calendar}/>');
+  expect(ws).toContain('calendar={calendar} range={chartRange}');
   expect(ws).toContain('formatDisplayDate(p.purchasedAt,activeLocale(),calendar');
   expect(ws).toContain('dateTime(row.timestamp,calendar)');
   expect(chart).toContain('formatDisplayDate(ms,activeLocale(),calendar');
