@@ -231,3 +231,15 @@ describe('History API must cover requested time windows',()=>{
   expect(source).toContain('chartKarat===24&&chartRange===homeRange?selectedHistory:');
  });
 });
+
+describe('Honest selected range coverage',()=>{
+ const chart=readFileSync(fileURLToPath(new URL('../PriceHistoryChart.tsx',import.meta.url).href),'utf8');
+ it('informs the user when seven or thirty day history is unavailable',()=>{
+  expect(chart).toContain("const incompleteRange=range!=='available'&&range!=='day'");
+  expect(chart).toContain("earliestObservation>timeWindow.start+86400000");
+  expect(chart).toContain('Available records do not cover the entire selected period.');
+  expect(chart).toContain('Les cours disponibles ne couvrent pas toute la période choisie.');
+  expect(chart).toContain('السجل المتاح لا يغطي كامل الفترة المختارة.');
+  expect(chart).toContain('className="dh-trend-coverage-warning"');
+ });
+});
