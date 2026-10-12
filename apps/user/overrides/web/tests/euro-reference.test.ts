@@ -15,6 +15,7 @@ const fx=parseEuroReferenceRates({rates:{
 }},now);
 const quotes:MarketPrice[]=[
  {currency:'SAR',karat:24,buyPrice:'375',sellPrice:'380',timestamp:'2026-10-12T12:00:00Z'},
+ {currency:'SAR',karat:21,buyPrice:'328.125',sellPrice:'329',timestamp:'2026-10-12T12:00:00Z'},
  {currency:'USD',karat:24,buyPrice:'100',sellPrice:'102',timestamp:'2026-10-12T12:00:00Z'},
  {currency:'USD',karat:21,buyPrice:'87.5',sellPrice:'89',timestamp:'2026-10-12T12:00:00Z'}
 ];
@@ -43,7 +44,7 @@ describe('Reliable reference EUR pricing in User iPhone',()=>{
   expect(eur).toHaveLength(2);
   expect(eur[0].currency).toBe('EUR');
   expect(Number(eur[0].buyPrice)).toBeCloseTo(89.438,4);
-  expect(eur[0].timestamp).toBe(quotes[1].timestamp);
+  expect(eur[0].timestamp).toBe(quotes[2].timestamp);
   expect(JSON.stringify(quotes)).toEqual(orig);
  });
  it('uses the FX rate from each historical date rather than applying current FX to the month',()=>{
@@ -65,7 +66,7 @@ describe('Reliable reference EUR pricing in User iPhone',()=>{
   const summary=displayPortfolioSummary(buys,market,'EUR',sarPerUsd(market),true,fx.eurPerUsd);
   expect(summary.hasUnconverted).toBe(false);
   expect(summary.cost).toBeCloseTo(375/3.75*fx.eurPerUsd+100,5);
-  expect(summary.value).toBeNull(); // SAR21 not provided, no invented 21K SAR quote
+  expect(summary.value).toBeCloseTo(2*875*fx.eurPerUsd,4);
   expect(JSON.stringify(buys)).toEqual(original);
  });
  it('provides EUR symbol and words in Arabic English and French',()=>{
