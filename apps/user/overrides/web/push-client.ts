@@ -3,11 +3,24 @@ import {classifyPush,PushConditions,PushHealth} from './push-status';
 
 export const PUSH_SCOPE='/gold-app-pwa/full/';
 export interface PushConfig{configured:boolean;publicKey:string|null}
-export interface ServerPushStatus{configured:boolean;registered:boolean;lastTestAt:string|null;lastAcceptedAt:string|null;lastFailureAt:string|null}
+export interface ServerPushStatus{configured:boolean;registered:boolean;lastTestAt:string|null;lastAcceptedAt:string|null;lastFailureAt:string|null;marketSessionEnabled:boolean;preferredLanguage:'ar'|'en'|'fr';displayCurrency:'SAR'|'USD'|'EUR'}
 export interface BrowserPushSnapshot{
  health:PushHealth; conditions:PushConditions;ios:boolean;standalone:boolean;
  endpoint:string|null;lastTestAt:string|null;lastAcceptedAt:string|null;lastFailureAt:string|null;
- config:PushConfig|null;message:string;
+ config:PushConfig|null;message:string;marketSessionEnabled:boolean;
+}
+export type PushUserLanguage='ar'|'en'|'fr';
+export type PushDisplayCurrency='SAR'|'USD'|'EUR';
+function savedPrefs():{preferredLanguage:PushUserLanguage;displayCurrency:PushDisplayCurrency}{
+ let lang='',currency='';
+ try{
+  lang=localStorage.getItem('dhahabi:user:language')||'';
+  currency=localStorage.getItem('dhahabi:user:price-currency')||'';
+ }catch{}
+ return {
+  preferredLanguage:lang==='en'||lang==='fr'?lang:'ar',
+  displayCurrency:currency==='USD'||currency==='EUR'?currency:'SAR'
+ };
 }
 export function platform(){
  const ua=typeof navigator!=='undefined'?navigator.userAgent:'';
@@ -69,7 +82,8 @@ export async function inspectPush():Promise<BrowserPushSnapshot>{
  };
  return {health:classifyPush(conditions),conditions,ios,standalone,endpoint,
   lastTestAt:server?.lastTestAt||null,lastAcceptedAt:server?.lastAcceptedAt||null,
-  lastFailureAt:server?.lastFailureAt||null,config,message};
+  lastFailureAt:server?.lastFailureAt||null,config,message,
+  marketSessionEnabled:!!server?.marketSessionEnabled};
 }
 export async function enablePush(config:PushConfig|null,renew=false):Promise<void>{
  const {ios,standalone}=platform();
@@ -87,7 +101,7 @@ export async function enablePush(config:PushConfig|null,renew=false):Promise<voi
  const serial=sub.toJSON();
  if(!serial.endpoint||!serial.keys?.p256dh||!serial.keys?.auth)throw new Error('اشتراك المتصفح لا يحتوي بيانات مفاتيح كاملة.');
  try{
-  await api('/push/subscriptions',jsonRequest('POST',{endpoint:sub.endpoint,keys:{p256dh:serial.keys.p256dh,auth:serial.keys.auth}}));
+  await api('/push/subscriptions',jsonRequest('POST',{endpoint:sub.endpoint,keys:{p256dh:serial.keys.p256dh,auth:serial.keys.auth},...savedPrefs()}));
  }catch(e){
   // Origin-wide subscriptions may have belonged to a previously signed-out account.
   // Never move a subscription between accounts on the server; rotate it on this device.
@@ -96,7 +110,7 @@ export async function enablePush(config:PushConfig|null,renew=false):Promise<voi
   sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:convertKey(config.publicKey)});
   const renewed=sub.toJSON();
   if(!renewed.keys?.p256dh||!renewed.keys?.auth)throw new Error('تعذر تجديد اشتراك هذا الجهاز.');
-  await api('/push/subscriptions',jsonRequest('POST',{endpoint:sub.endpoint,keys:{p256dh:renewed.keys.p256dh,auth:renewed.keys.auth}}));
+  await api('/push/subscriptions',jsonRequest('POST',{endpoint:sub.endpoint,keys:{p256dh:renewed.keys.p256dh,auth:renewed.keys.auth},...savedPrefs()}));
  }
 }
 export async function disablePush():Promise<void>{
@@ -117,4 +131,23 @@ export async function revokePushBeforeLogout(){
  const serverRemove=api('/push/subscriptions',jsonRequest('DELETE',{endpoint})).catch(()=>null);
  await sub.unsubscribe().catch(()=>false);
  await Promise.race([serverRemove,new Promise(resolve=>setTimeout(resolve,3000))]);
+}
+
+/** Device-scoped market opening/closing opt-in, never grants OS permission itself. */
+export async function setMarketSessionPushEnabled(enabled:boolean):Promise<void>{
+ const sub=await currentSubscription(false);
+ if(!sub)throw new Error('فعّل إشعارات هذا الجهاز قبل الاشتراك في تنبيهات السوق.');
+ await api('/push/preferences',jsonRequest('POST',{endpoint:sub.endpoint,
+  marketSessionEnabled:enabled,...savedPrefs()}));
+}
+/** Sync the chosen language/currency to this particular subscribed device.
+ * Silent when Push is off; never requests permission or creates subscriptions.
+ */
+export async function syncMarketPushPreferences(language:PushUserLanguage,currency:PushDisplayCurrency):Promise<void>{
+ if(!browserSupport()||Notification.permission!=='granted')return;
+ const sub=await currentSubscription(false);
+ if(!sub)return;
+ await api('/push/preferences',jsonRequest('POST',{
+  endpoint:sub.endpoint,preferredLanguage:language,displayCurrency:currency
+ }));
 }
