@@ -1,0 +1,42 @@
+name: Verify live historical chart data
+on:
+  pull_request:
+    branches: ["preview/iphone-render"]
+    paths:
+      - "apps/user/overrides/web/UserWorkspace.tsx"
+      - "apps/user/overrides/web/PriceHistoryChart.tsx"
+      - "apps/user/overrides/web/price-trend.ts"
+      - ".github/workflows/check-history-live-endpoint.yml"
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check production API exposes actual and daily-average series separately
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const base='https://gold-app-api-u8dl.onrender.com';
+          const request=async p=>{
+            const r=await fetch(base+p,{headers:{'Accept':'application/json'}});
+            assert.equal(r.status,200,p+' failed with HTTP '+r.status);
+            return r.json();
+          };
+          const series=await request('/prices/history/chart?currency=SAR&karat=24&range=month');
+          assert(Array.isArray(series));
+          const daily=series.filter(x=>x.kind==='daily-average');
+          const actual=series.filter(x=>x.kind==='spot');
+          assert(daily.length>=21,'historical backfill is absent');
+          assert(actual.length>=1,'real spot data is absent');
+          assert(daily.every(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.day)&&!x.timestamp&&Number(x.buyPrice)>0));
+          assert(actual.every(x=>x.timestamp&&Number(x.buyPrice)>0));
+          const today=await request('/prices/history/chart?currency=SAR&karat=24&range=day');
+          assert(today.every(x=>x.kind==='spot'),'daily averages leaked into the 24h chart');
+          const latest=await request('/prices/latest?currency=SAR&karat=24');
+          assert(latest&&latest.timestamp&&latest.source!=='api.gold-api.com/history');
+          console.log('Live verified: '+daily.length+' archived daily averages and '+actual.length+' actual price points.');
+          NODE

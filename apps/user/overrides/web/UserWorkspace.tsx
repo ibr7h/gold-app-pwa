@@ -78,7 +78,7 @@ const dateTime=(s:string,calendar:DisplayCalendar)=>formatDisplayDate(s,activeLo
 function Empty({children}:{children:React.ReactNode}){return <div className="empty"><Icon name="wallet"/><p>{children}</p></div>;}
 function CurrencySelect({value='SAR'}:{value?:string}){return <select name="currency" defaultValue={value}>{(CURRENCIES.includes(value)?CURRENCIES:[value,...CURRENCIES]).map(c=><option key={c}>{c}</option>)}</select>;}
 function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{(KARATS.includes(value)?KARATS:[value,...KARATS]).map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
-interface PriceHistoryRow{id:string;source:string;currency:string;karat:number;buyPrice:string;sellPrice:string;timestamp:string;createdAt:string}
+interface PriceHistoryRow{id:string;source:string;currency:string;karat:number;buyPrice:string;sellPrice?:string;timestamp?:string;createdAt?:string;kind?:'spot'|'daily-average';day?:string}
 function BootScreen(){
  const [slow,setSlow]=useState(false);
  useEffect(()=>{const timer=setTimeout(()=>setSlow(true),6500);return()=>clearTimeout(timer);},[]);
@@ -150,10 +150,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   try{
    const currencies=['SAR','USD'];
    const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
-   const selectedHistory=api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=200&range='+chartRange);
+   const selectedHistory=api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&range='+chartRange);
    const [historyRows,homeHistoryRows,...latest]=await Promise.all([
     selectedHistory,
-    chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat=24&limit=200&range='+homeRange),
+    chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(priceCurrency)+'&karat=24&range='+homeRange),
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
@@ -207,7 +207,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    }
   }catch(e){setFormError(e instanceof Error?e.message:'تحقق من القيم.');}
  };
- const sortedHistory=[...(historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[])].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
+ // Daily averages never serve as the current market quote, even as a fallback.
+ const sortedHistory=[...(historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[])].filter(r=>r.kind!=='daily-average'&&!!r.timestamp).sort((a,b)=>Date.parse(a.timestamp||a.createdAt||'')-Date.parse(b.timestamp||b.createdAt||''));
  const selectedMarketRows=allMarketRows.filter(r=>r.currency===priceCurrency);
   const currentMarket=selectedMarketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
  const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24) as PriceHistoryRow|undefined;

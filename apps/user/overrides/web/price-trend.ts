@@ -3,8 +3,9 @@ import {isGlobalGoldMarketOpen} from './price-status';
 export type TrendRange='day'|'week'|'month'|'available';
 export interface TrendSourceRow{
  id?:string; buyPrice:string|number; createdAt?:string|null; timestamp?:string|null;
+ kind?:'spot'|'daily-average';day?:string|null;
 }
-export interface TrendPoint{time:number;price:number;id:string}
+export interface TrendPoint{time:number;price:number;id:string;kind:'spot'|'daily-average'}
 
 /** Plot supplier observation times, never the ingestion/polling time.
  * Previously createdAt won over the real source timestamp, extending a flat graph
@@ -15,10 +16,13 @@ export interface TrendPoint{time:number;price:number;id:string}
  */
 export function priceTrendPoints(rows:TrendSourceRow[]):TrendPoint[]{
  const valid=rows.map((row,index)=>{
-  const time=Date.parse(row.timestamp||row.createdAt||'');
+  const kind=row.kind==='daily-average'?'daily-average' as const:'spot' as const;
+  // Noon UTC denotes the *day bucket* on the x-axis, not a fabricated quote time.
+  const dailyDay=typeof row.day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(row.day)?row.day:null;
+  const time=kind==='daily-average'&&dailyDay?Date.parse(dailyDay+'T12:00:00Z'):Date.parse(row.timestamp||row.createdAt||'');
   const price=Number(row.buyPrice);
-  return {time,price,id:row.id||String(index)};
- }).filter(p=>Number.isFinite(p.time)&&isGlobalGoldMarketOpen(p.time)&&Number.isFinite(p.price)&&p.price>0)
+  return {time,price,id:row.id||String(index),kind};
+ }).filter(p=>Number.isFinite(p.time)&&(p.kind==='daily-average'||isGlobalGoldMarketOpen(p.time))&&Number.isFinite(p.price)&&p.price>0)
  .sort((a,b)=>a.time-b.time);
  // Multiple saved updates at exactly the same instant share one x-coordinate.
  // Use the last saved observation, rather than fabricating a time interval.
@@ -35,7 +39,7 @@ export function priceTrendPoints(rows:TrendSourceRow[]):TrendPoint[]{
  const observed:TrendPoint[]=[];
  for(const point of deduped){
   const previous=observed[observed.length-1];
-  if(previous&&Math.round(previous.price*100)===Math.round(point.price*100))continue;
+  if(previous&&previous.kind===point.kind&&Math.round(previous.price*100)===Math.round(point.price*100))continue;
   observed.push(point);
  }
  return observed;
@@ -51,8 +55,9 @@ export function priceTrendSegments(points:TrendPoint[]):TrendPoint[][]{
  for(const point of points){
   const previous=segments.at(-1)?.at(-1);
   const gap=previous?point.time-previous.time:0;
-  let discontinuity=!!previous&&(gap<=0||gap>maxUnobservedGap);
-  if(previous&&!discontinuity){
+  let discontinuity=!!previous&&(gap<=0||previous.kind!==point.kind||
+    gap>(point.kind==='daily-average'?36*60*60*1000:maxUnobservedGap));
+  if(previous&&previous.kind==='spot'&&!discontinuity){
    // Sample the calendar gap rather than only its endpoints: both quotes can
    // fall in open sessions while a closed rollover/weekend lies between them.
    const firstTick=Math.ceil((previous.time+1)/quarterHour)*quarterHour;
@@ -118,7 +123,7 @@ export function priceTrendDomain(points:TrendPoint[]){
  return {min:Math.max(0,low-padding),max:high+padding,low,high};
 }
 export function trendPercent(points:TrendPoint[]):number|null{
- if(points.length<2||points[0].price<=0)return null;
+ if(points.length<2||points[0].price<=0||points.some(p=>p.kind!==points[0].kind))return null;
  return (points[points.length-1].price-points[0].price)/points[0].price*100;
 }
 /** Binary search for closest real observation under a cursor, not a synthesized sample. */
