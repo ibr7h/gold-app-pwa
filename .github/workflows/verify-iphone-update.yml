@@ -1,0 +1,23 @@
+name: Verify iPhone PWA update recovery
+on:
+  pull_request:
+    branches: ["preview/iphone-render"]
+    paths:
+      - "apps/user/scripts/user-update-client.js"
+      - "apps/user/scripts/user-service-worker.js"
+      - "apps/user/scripts/user-update.test.cjs"
+      - "_render_preview/gold-app-pwa/full/pwa-update.js"
+      - "_render_preview/gold-app-pwa/full/sw.js"
+      - ".github/workflows/verify-iphone-update.yml"
+permissions:
+  contents: read
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test apps/user/scripts/user-update.test.cjs
+      - run: node scripts/check-iphone-release.cjs

@@ -16,7 +16,9 @@ assert(updater.includes('version.json?t='),'Update check cache bypass missing');
 new vm.Script(updater);
 const sw=read('_render_preview/gold-app-pwa/full/sw.js');
 assert(sw.includes("const VERSION = '"+stamp+"'"));
-assert(sw.includes("url.pathname.endsWith('/version.json')"),'SW version bypass missing');
+assert(sw.includes("'/version.json'") && sw.includes("'/pwa-update.js'") &&
+  sw.includes("url.pathname.endsWith(path)") && sw.includes("cache:'no-store'"),
+  'SW version and bootstrap network bypass missing');
 new vm.Script(sw);
 let count=0;
 function check(dir){

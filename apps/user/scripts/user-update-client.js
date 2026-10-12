@@ -68,6 +68,8 @@
     location.replace(next.toString());
   }
 
+  // iOS standalone Web Apps may not emit controllerchange promptly. This is
+  // a readiness hint, not a hard prerequisite for navigating to the new HTML.
   function waitForControllerChange() {
     return new Promise(resolve => {
       let done = false;
@@ -77,8 +79,34 @@
         resolve(changed);
       };
       navigator.serviceWorker.addEventListener('controllerchange', () => finish(true), {once:true});
-      setTimeout(() => finish(false), 12000);
+      setTimeout(() => finish(false), 6000);
     });
+  }
+
+  function waitForInstalling(reg) {
+    const worker = reg && reg.installing;
+    if (!worker || worker.state === 'installed' || worker.state === 'activated') return Promise.resolve();
+    return new Promise(resolve => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'installed' || worker.state === 'activated' || worker.state === 'redundant') finish();
+      });
+      setTimeout(finish, 10000);
+    });
+  }
+
+  // Only records the intended version; never clears saved sign-in or user data.
+  const ATTEMPT_KEY = 'dhahabi:user:pwa-update-target';
+  function recordAttempt(version) {
+    try { sessionStorage.setItem(ATTEMPT_KEY, version); } catch {}
+  }
+  function verifyAttempt() {
+    let target = '';
+    try { target = sessionStorage.getItem(ATTEMPT_KEY) || ''; sessionStorage.removeItem(ATTEMPT_KEY); } catch {}
+    if (target && target !== CURRENT) {
+      notice('لم يكتمل التحديث السابق. تحقق من الاتصال وأعد المحاولة.');
+    }
   }
 
   async function applyUpdate(button) {
@@ -89,13 +117,17 @@
     try {
       if (registration) {
         await registration.update();
+        await waitForInstalling(registration);
         if (registration.waiting) {
           const changed = waitForControllerChange();
           registration.waiting.postMessage({type:'SKIP_WAITING'});
-          if (!await changed) throw new Error('activation_timeout');
+          // Safari may delay or suppress controllerchange until navigation.
+          // A versioned, network-first navigation is the safe fallback.
+          await changed;
         }
       }
       // Application data, sessions, IndexedDB, and localStorage are never cleared.
+      recordAttempt(remoteVersion);
       reloadNewVersion();
     } catch {
       applying = false;
@@ -129,6 +161,7 @@
   }
 
   async function start() {
+    verifyAttempt();
     if ('serviceWorker' in navigator) {
       try {
         registration = await navigator.serviceWorker.register(BASE + 'sw.js', {
