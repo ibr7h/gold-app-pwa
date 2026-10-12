@@ -1,4 +1,5 @@
 import {activeLocale,useLanguage} from './i18n';
+import {formatDisplayDate,readDisplayCalendar} from './date-display';
 import {localizeFeedback} from './i18n-feedback';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {enablePush,disablePush,inspectPush,testPush,BrowserPushSnapshot} from './push-client';
@@ -7,7 +8,7 @@ import {ApiError,errorMessage} from './api';
 import './user.css';
 
 const asDate=(value:string|null)=>value&&Number.isFinite(Date.parse(value))
- ?new Intl.DateTimeFormat(activeLocale(),{dateStyle:'medium',timeStyle:'short'}).format(new Date(value)):'لا يوجد اختبار مسجل';
+ ?formatDisplayDate(value,activeLocale(),readDisplayCalendar(),{dateStyle:'medium',timeStyle:'short'}):'لا يوجد اختبار مسجل';
 const stateNote:Record<string,string>={
  'unsupported':'استخدم متصفحًا يدعم Web Push على اتصال HTTPS. ستبقى التنبيهات ظاهرة داخل ذهبي حتى دون دعم Push.',
  'install-required':'على iPhone: افتح ذهبي في Safari، اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية». افتح التطبيق من الأيقونة وارجع إلى إعدادات الإشعارات.',
