@@ -40,7 +40,7 @@ export async function restoreLegacySession(){
  }await legacyFlight;
 }
 export async function hasSession(){return !!session||await hasSessionVault();}
-export interface VerifiedCachedUser{ id:string|number;email:string;role:'user'; }
+export interface VerifiedCachedUser{ id:string|number;email:string;role:'user';name?:string; }
 export async function getVerifiedCachedUser():Promise<VerifiedCachedUser|null>{
  try{
   const value=await AsyncStorage.getItem(PROFILE);
