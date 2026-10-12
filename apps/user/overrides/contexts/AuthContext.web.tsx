@@ -104,7 +104,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  useEffect(()=>{let active=true;const boot=version.current;
   const unsubscribe=onSessionEnded(()=>{
    begin();enrollment.current=null;setLockedAccount(null);setQuickPinEnabled(false);
-   setBiometricEnabled(false);setBiometricEnrolled(false);setUser(null);setLoading(false);
+   setBiometricEnabled(false);setBiometricEnrolled(false);setPinReconnectRequired(false);setUser(null);setLoading(false);
   });
   const onStorage=(event:StorageEvent)=>{
    if(event.key==='dhahabi_user_session_ended'&&event.newValue)void clearSession(false);
@@ -180,7 +180,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  };
  const lockWithBiometric=async():Promise<boolean>=>{
   const attempt=version.current;
-  if(!user||!(quickPinEnabled||biometricEnabled&&enrollment.current)||!await hasSession()||attempt!==version.current)return false;
+  if(!user||pinReconnectRequired||!(quickPinEnabled||biometricEnabled&&enrollment.current)||!await hasSession()||attempt!==version.current)return false;
   begin();lockSession();setLockedAccount(user);setUser(null);return true;
  };
  const authorizePinChange=async(accountId:string,pin:string,attempt:number)=>{
@@ -193,13 +193,27 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const attempt=begin(),accountId=String(user.id);
   if(quickPinEnabled)await authorizePinChange(accountId,currentPin||'',attempt);
   await protectSessionWithPin(accountId,pin,activeSessionTokens());current(attempt);
-  await setQuickPin(accountId,pin);current(attempt);setQuickPinEnabled(true);
+  await setQuickPin(accountId,pin);current(attempt);setQuickPinEnabled(true);setPinReconnectRequired(false);
+ };
+ const reconnectQuickPin=async(currentPin:string)=>{
+  if(!user?.id||!pinReconnectRequired)throw new Error('لا يلزم إعادة ربط رمز الدخول.');
+  const attempt=begin(),accountId=String(user.id);
+  const result=await checkQuickPin(accountId,currentPin);current(attempt);
+  if(!result.ok)throw new Error(result.waitSeconds?'محاولات كثيرة؛ حاول لاحقًا.':'رمز الدخول المحفوظ غير صحيح.');
+  const tokens=activeSessionTokens();
+  // Recover the old encrypted data key if present, without ever reusing its
+  // potentially expired JWTs. This also retains an enrolled biometric envelope.
+  if(await hasSessionVault(accountId))await unlockSessionWithPin(accountId,currentPin);
+  current(attempt);
+  await protectSessionWithPin(accountId,currentPin,tokens);current(attempt);
+  setQuickPinEnabled(true);setPinReconnectRequired(false);
+  await refreshBiometricState(user,attempt);
  };
  const disableQuickPin=async(currentPin:string)=>{
   if(!user?.id)throw new Error('سجّل الدخول أولًا.');
   const attempt=begin(),accountId=String(user.id);
   await authorizePinChange(accountId,currentPin,attempt);
-  await removeQuickPin(accountId);await removeVaultMethod(accountId,'pin');current(attempt);setQuickPinEnabled(false);
+  await removeQuickPin(accountId);await removeVaultMethod(accountId,'pin');current(attempt);setQuickPinEnabled(false);setPinReconnectRequired(false);
  };
  const unlockWithPin=async(pin:string):Promise<PinResult>=>{
   const account=lockedAccount;if(!account?.id||!quickPinEnabled)return {ok:false,waitSeconds:0,remaining:0};
@@ -241,7 +255,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   document.addEventListener('visibilitychange',onVisibility);
   return()=>document.removeEventListener('visibilitychange',onVisibility);
  },[]);
- const logout=()=>{begin();setLockedAccount(null);setUser(null);enrollment.current=null;setQuickPinEnabled(false);setBiometricEnrolled(false);setBiometricEnabled(false);setLoading(false);void clearSession();};
+ const logout=()=>{begin();setLockedAccount(null);setUser(null);enrollment.current=null;setQuickPinEnabled(false);setPinReconnectRequired(false);setBiometricEnrolled(false);setBiometricEnabled(false);setLoading(false);void clearSession();};
  const updateProfile=async(changes:{fullName:string;city:string})=>{
   const updated=await api<{id:string|number;fullName:string|null;city:string|null;phone:string|null;email:string}>('/auth/profile',{
     method:'PATCH',body:JSON.stringify(changes)
@@ -261,7 +275,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   }catch(e){setError(errorMessage(e));return false;}
  };
  const unsupported=async()=>{setError('هذه الميزة غير متاحة من الخادم حاليًا.');return false;};
- const value:AuthContextType={user,lockedAccount,quickPinEnabled,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,clearError:()=>setError(null),
+ const value:AuthContextType={user,lockedAccount,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,clearError:()=>setError(null),
  biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
  resetStep:'email',resetEmail:'',resetCode:'',sendResetCode:unsupported,verifyResetCode:unsupported,resetPassword:unsupported,resendResetCode:unsupported,cancelReset:()=>{},
  registerStep:'form',registerEmail:'',registerCode:'',startRegistration,verifyRegistration:unsupported,resendRegisterCode:unsupported,cancelRegistration:()=>{},updateProfile,updateName,changePassword:unsupported};
