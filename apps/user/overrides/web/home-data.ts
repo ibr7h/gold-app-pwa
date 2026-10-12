@@ -4,7 +4,7 @@ import {priceTrendPoints} from './price-trend';
 const saudiDay=(time:number)=>new Date(time+3*60*60*1000).toISOString().slice(0,10);
 
 /** Compare observed 24K quotes in the selected currency within today's Saudi calendar date. */
-export function homeMarketMovement(history:MarketPrice[],latest:MarketPrice|undefined,now:number,currency='SAR'){
+export function homeMarketMovement(history:Array<Pick<MarketPrice,'currency'|'karat'|'buyPrice'|'timestamp'>>,latest:MarketPrice|undefined,now:number,currency='SAR'){
  if(!latest||latest.currency!==currency||latest.karat!==24||!Number.isFinite(now)||!Number.isFinite(Number(latest.buyPrice))||Number(latest.buyPrice)<=0)return null;
  const points=priceTrendPoints([...history.filter(row=>row.currency===currency&&row.karat===24),latest])
   .filter(point=>point.time<=now&&saudiDay(point.time)===saudiDay(now));
