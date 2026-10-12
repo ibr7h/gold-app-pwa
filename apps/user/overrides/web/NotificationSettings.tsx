@@ -1,8 +1,9 @@
 import {activeLocale,useLanguage} from './i18n';
+import {translateUiText} from './i18n-messages';
 import {formatDisplayDate,readDisplayCalendar} from './date-display';
 import {localizeFeedback} from './i18n-feedback';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {enablePush,disablePush,inspectPush,testPush,BrowserPushSnapshot} from './push-client';
+import {enablePush,disablePush,inspectPush,testPush,setMarketSessionPushEnabled,BrowserPushSnapshot} from './push-client';
 import {humanStatus} from './push-status';
 import {ApiError,errorMessage} from './api';
 import './user.css';
@@ -23,6 +24,7 @@ const stateNote:Record<string,string>={
 
 export default function NotificationSettings(){
  const {language}=useLanguage();
+ const tr=(text:string)=>translateUiText(text,language);
  const [state,setState]=useState<BrowserPushSnapshot|null>(null);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [feedback,setFeedback]=useState(''),[error,setError]=useState('');
@@ -58,7 +60,7 @@ export default function NotificationSettings(){
  const enabled=state?.health==='ready';
  const recoverable=state&&(['permission-required','subscription-missing','server-missing'].includes(state.health));
  const info=state?.health||'server-unavailable';
- return <div className="dh-push-settings" dir="rtl">
+ return <div className="dh-push-settings" dir={language==='ar'?'rtl':'ltr'}>
   <section className="approved-card dh-push-summary">
    <div className="approved-card-title"><span>حالة إشعارات الجهاز</span>
     <span className={'pill '+(enabled?'good':info==='blocked'?'warn':'')}>{loading?'جارٍ الفحص…':humanStatus(info)}</span>
@@ -75,6 +77,18 @@ export default function NotificationSettings(){
      onClick={()=>void run(()=>enablePush(state.config,info==='server-missing'), 'سُجل هذا الجهاز لدى خدمة إشعارات ذهبي.')}>
      {busy?'جارٍ التنفيذ…':info==='server-missing'?'إصلاح الاشتراك':'تفعيل الإشعارات'}
     </button>}
+    {enabled&&<div className="dh-market-session-settings" role="group" aria-label={tr('تنبيهات افتتاح وإغلاق سوق الذهب')}>
+     <strong>{tr('تنبيهات افتتاح وإغلاق سوق الذهب')}</strong>
+     <p className="fine">{tr('احصل على إشعار عند فتح السوق أو إغلاقه مع أول أو آخر سعر مسجل لعيار 24 حسب لغتك وعملة العرض.')}</p>
+     <button type="button" className={state?.marketSessionEnabled?'secondary':'primary'}
+      aria-pressed={!!state?.marketSessionEnabled} disabled={busy}
+      onClick={()=>void run(()=>setMarketSessionPushEnabled(!state?.marketSessionEnabled),
+       state?.marketSessionEnabled?'تنبيهات السوق متوقفة لهذا الجهاز.':'تنبيهات السوق مفعّلة لهذا الجهاز.')}>
+      {busy?tr('جارٍ التنفيذ…'):tr(state?.marketSessionEnabled?'إيقاف تنبيهات السوق':'تفعيل تنبيهات السوق')}
+     </button>
+     <p className="fine">{tr('يتطلب استقبال التنبيه موافقة النظام واشتراك Push والاتصال بالإنترنت.')}</p>
+    </div>}
+    {!enabled&&<p className="fine">{tr('لن تُرسل إشعارات افتتاح وإغلاق السوق حتى تفعّلها على هذا الجهاز.')}</p>}
     {enabled&&<button className="primary" type="button" disabled={busy||cooldownSeconds>0}
      onClick={()=>void run(async()=>{
       if(!state?.endpoint)throw new Error('اشتراك هذا الجهاز غير متاح.');
@@ -90,7 +104,7 @@ export default function NotificationSettings(){
      إعادة فحص الحالة
     </button>
    </div>
-   {feedback&&<p className="notice success" role="status">{localizeFeedback(feedback,language)}</p>}
+   {feedback&&<p className="notice success" role="status">{tr(localizeFeedback(feedback,language))}</p>}
    {error&&<p className="notice error" role="alert">{localizeFeedback(error,language)}</p>}
    {state?.message&&<p className="notice warning" role="status">{localizeFeedback(state.message,language)}</p>}
    {awaitingConfirmation&&<div className="dh-push-confirm">
