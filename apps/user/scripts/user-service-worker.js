@@ -72,13 +72,17 @@ self.addEventListener('push', event => {
     try { payload=event.data ? event.data.json() : {}; } catch { payload={}; }
     const title=typeof payload.title==='string' ? payload.title.slice(0,90) : 'ذهبي';
     const body=typeof payload.body==='string' ? payload.body.slice(0,230) : 'لديك تنبيه جديد من ذهبي';
-    const url=new URL(typeof payload.url==='string' ? payload.url : BASE, self.location.origin);
+    const requested=typeof payload.url==='string' ? payload.url : BASE;
+    // Relative hashes follow each installed PWA scope, whether GitHub /iphone/
+    // or Render /full/; absolute destinations remain same-origin and in-scope.
+    const url=new URL(requested.startsWith('#')?BASE+requested:requested,self.location.origin);
+    const lang=['ar','en','fr'].includes(payload.lang)?payload.lang:'ar';
     const destination=url.origin===self.location.origin&&url.pathname.startsWith(BASE)
       ? url.href : new URL(BASE,self.location.origin).href;
     const tag=typeof payload.tag==='string' ? payload.tag.slice(0,90) : 'dhahabi-alert';
     await self.registration.showNotification(title,{
       body,tag,icon:BASE+'pwa-icon.png',badge:BASE+'pwa-icon.png',
-      lang:'ar',dir:'rtl',data:{url:destination}
+      lang,dir:lang==='ar'?'rtl':'ltr',data:{url:destination}
     });
   })());
 });
