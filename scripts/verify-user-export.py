@@ -14,7 +14,7 @@ assert match.group(1) in javascript, 'The User display release is missing from t
 assert 'workspace-content' in javascript, 'User workspace markup is missing'
 assert 'mobile-bottom-nav' in javascript and 'approved-services-grid' in javascript, 'Mockup seven-tab user navigation is missing'
 assert 'calc-estimate-card' in javascript and 'calc-words-block' in javascript, 'Approved calculator details or Arabic amount words are missing'
-assert '/prices/history?currency=' in javascript and '/prices/latest?currency=' in javascript, 'Backend price endpoints are missing from the user build'
+assert '/prices/history/chart?currency=' in javascript and '/prices/latest?currency=' in javascript, 'Current Backend chart-history or latest-price endpoints are missing from the user build'
 assert 'raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-live.json' not in javascript, 'Legacy GitHub live-price source leaked into the user build'
 assert 'raw.githubusercontent.com/ibr7h/gold-app-pwa/main/prices-history.json' not in javascript, 'Legacy GitHub price-history source leaked into the user build'
 html_paths=[p.relative_to(root).as_posix().lower() for p in root.rglob('*.html')]
