@@ -2436,3 +2436,15 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 }
 .gold-web .dh-trend-range-coverage strong{font-size:12px;font-weight:700;}
 .gold-web .dh-trend-range-coverage small{font-size:11px;opacity:.8;}
+
+
+/* True market-session boundaries. Symbols are deliberately different in
+   shape and vertical lane, and the neutral bridge is NOT a market quote. */
+.gold-web .dh-session-legend{display:flex;gap:8px 16px;align-items:center;flex-wrap:wrap;line-height:1.6;font-size:11px;color:#53657d;padding:8px 0 2px}
+.gold-web .dh-session-legend span{display:inline-flex;align-items:center;gap:5px}
+.gold-web .dh-session-legend b{display:inline-flex;align-items:center;justify-content:center;min-width:19px;min-height:19px;border-radius:5px;font-size:12px;font-weight:800;line-height:1}
+.gold-web .dh-session-legend .dh-session-open{color:#fff;background:#1a8b74}
+.gold-web .dh-session-legend .dh-session-close{color:#fff;background:#ad5d35}
+.gold-web .dh-price-trend.compact .dh-session-legend{grid-column:1/-1;gap:6px 12px;font-size:9px}
+.gold-web .dh-price-trend.compact .dh-session-legend b{min-width:16px;min-height:16px;font-size:10px}
+.gold-web[dir="ltr"] .dh-session-legend{direction:ltr}

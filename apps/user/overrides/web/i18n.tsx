@@ -68,6 +68,7 @@ export function LanguageProvider({children,mode='app'}:{children:React.ReactNode
   runtimeLanguage=next;
   setLanguageState(next);
   try{window.localStorage.setItem(LANGUAGE_KEY,next);}catch{/* iOS private mode may deny storage. */}
+  window.dispatchEvent(new Event('dhahabi:user-language-changed'));
  };
  const value=useMemo<LocaleController>(()=>({language,setLanguage,direction:LANGUAGE_META[language].dir}),[language]);
  const observerRef=useRef<MutationObserver|null>(null);

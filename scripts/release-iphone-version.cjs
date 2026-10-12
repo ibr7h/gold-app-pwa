@@ -21,7 +21,7 @@ function stamp(folder){
   if(e.isDirectory()){if(['_expo','assets','node_modules'].includes(e.name))continue;stamp(path.join(folder,e.name));continue;}
   if(!e.name.endsWith('.html'))continue;
   const f=path.join(folder,e.name),old=read(f);
-  const fresh=old.replace(/((?:iphone-preview-lock\.(?:css|js)|pwa-update\.js)\?v=)[A-Za-z0-9.-]+/g,'$1'+token);
+  const fresh=old.replace(/((?:iphone-preview-lock\.(?:css|js)|user-update-locales\.js|pwa-update\.js)\?v=)[A-Za-z0-9.-]+/g,'$1'+token);
   if(fresh!==old){write(f,fresh);count++;}
  }
 }

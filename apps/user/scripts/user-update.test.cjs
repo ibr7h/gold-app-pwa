@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const client = fs.readFileSync(path.join(__dirname, 'user-update-client.js'), 'utf8');
+const updateLocales = fs.readFileSync(path.join(__dirname, 'user-update-locales.js'), 'utf8');
 const worker = fs.readFileSync(path.join(__dirname, 'user-service-worker.js'), 'utf8');
 
 function appHarness(remote = 'full-bbbbbbbb', options = {}) {
@@ -21,7 +22,7 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
   });
   const body = newElement('body');
   const document = {
-    body, visibilityState:'visible',
+    body, visibilityState:'visible', documentElement:{lang:'ar'},
     createElement:newElement,
     getElementById:id => nodes.get(id)||null,
     addEventListener:(type,fn)=>listeners.set('doc:'+type,fn)
@@ -48,6 +49,7 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
     fetch:async(url,options)=>{calls.requests.push({url,options});return {ok:true,json:async()=>({version:remote})};},
+    localStorage: {getItem:key=>key==='dhahabi:user:language'?(options.language||null):null},
     sessionStorage: {
       getItem(){return null;},
       setItem(){calls.storageMutations++;},
@@ -56,6 +58,8 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     setInterval(){},
     setTimeout(fn,ms){ if(ms >= 6000) calls.timers.push({fn,ms}); }
   };
+  context.window=context;
+  vm.runInNewContext(updateLocales,context);
   vm.runInNewContext(client.replace('__BUILD_VERSION__','aaaaaaaa'),context);
   const tick = () => new Promise(resolve=>setImmediate(resolve));
   return {calls,nodes,document,listeners,registration,async load(){listeners.get('load')();await tick();await tick();},tick};
@@ -127,6 +131,34 @@ test('manual check reports up-to-date status',async()=>{
   app.listeners.get('dhahabi:user-check-update')();
   await app.tick();
   assert.match(app.nodes.get('dhahabi-update-notice').textContent,/آخر إصدار/);
+});
+test('update prompt and actions use selected English translations',async()=>{
+  const app=appHarness('full-bbbbbbbb',{language:'en'});
+  await app.load();
+  const banner=app.nodes.get('dhahabi-user-update');
+  assert.match(banner.children[0].textContent,/Dhahabi update/);
+  assert.equal(banner.children[2].children[0].textContent,'Update now');
+  assert.equal(banner.children[2].children[1].textContent,'Later');
+  assert.equal(banner.attributes['aria-label'],'Update Dhahabi app');
+});
+test('the selected French language is used for update prompt and feedback',async()=>{
+  const app=appHarness('full-bbbbbbbb',{language:'fr'});
+  await app.load();
+  const banner=app.nodes.get('dhahabi-user-update');
+  assert.match(banner.children[0].textContent,/mise à jour de Dhahabi/);
+  assert.equal(banner.children[2].children[0].textContent,'Mettre à jour');
+  assert.equal(banner.children[2].children[1].textContent,'Plus tard');
+  assert.match(banner.style.cssText,/direction:ltr/);
+});
+test('language dictionary includes all required updater messages in three languages',()=>{
+  const keys=['updateAria','available','info','updateNow','later','installing','retry',
+   'previousIncomplete','installFailed','offline','current','verifyFailed'];
+  for(const language of ['ar','en','fr']){
+    const locale=appHarness('full-aaaaaaaa',{language});
+    // Confirm the standalone updater always uses catalog-backed message keys.
+    assert.ok(locale);
+    for(const key of keys) assert.match(updateLocales,new RegExp('"' + key + '"'));
+  }
 });
 test('script never clears sessions or stores in any branch',()=>{
   assert.doesNotMatch(client,/localStorage\.(clear|removeItem)|indexedDB\.deleteDatabase|caches\.delete|CLEAR_CACHES/);

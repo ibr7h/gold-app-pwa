@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/build-iphone-wallet.yml"
       - "apps/user/scripts/user-update-client.js"
+      - "apps/user/scripts/user-update-locales.js"
       - "apps/user/scripts/user-service-worker.js"
       - "apps/user/scripts/user-update.test.cjs"
       - "scripts/release-iphone-version.cjs"
@@ -132,6 +133,28 @@ jobs:
           if updated<25:
               raise RuntimeError(f'Only {updated} preview pages point to fresh wallet entry')
           print(f'New User entry {bundle.name}, updated {updated} preview pages')
+          PY
+      - name: Publish localized iPhone updater on every preview page
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+          base=Path('_render_preview/gold-app-pwa/full')
+          shutil.copy2('apps/user/scripts/user-update-locales.js',base/'user-update-locales.js')
+          needle='<script src="/gold-app-pwa/full/pwa-update.js'
+          injected=0
+          for page in base.rglob('*.html'):
+              text=page.read_text()
+              if needle not in text:
+                  continue
+              if 'user-update-locales.js' not in text:
+                  text=text.replace(needle,
+                      '<script src="/gold-app-pwa/full/user-update-locales.js?v=0"></script>'+needle)
+                  page.write_text(text)
+              injected+=1
+          if injected < 20:
+              raise RuntimeError(f'Localized updater only present on {injected} preview routes')
+          print(f'Localized update messages enabled on {injected} preview routes')
           PY
       - name: Verify PWA update activation and offline cache behavior
         run: node --test apps/user/scripts/user-update.test.cjs

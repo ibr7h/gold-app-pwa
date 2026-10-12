@@ -157,7 +157,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
-   const cleanLatest=latest.filter((row):row is PriceHistoryRow=>!!row&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
+   const cleanLatest=latest.filter((row):row is PriceHistoryRow&MarketPrice=>!!row&&typeof row.timestamp==='string'&&
+    row.kind!=='daily-average'&&row.sellPrice!==undefined&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
    if(active.current&&seq===marketLoadSequence.current){
     setHistory(historyRows);
     setHomeHistory(homeHistoryRows);
@@ -211,7 +212,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const sortedHistory=[...(historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[])].filter(r=>r.kind!=='daily-average'&&!!r.timestamp).sort((a,b)=>Date.parse(a.timestamp||a.createdAt||'')-Date.parse(b.timestamp||b.createdAt||''));
  const selectedMarketRows=allMarketRows.filter(r=>r.currency===priceCurrency);
   const currentMarket=selectedMarketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
- const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24) as PriceHistoryRow|undefined;
+ const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24);
  const freshness=priceFreshness(homeMarket,clock);
  const marketClosed=!isGlobalGoldMarketOpen(clock);
  const stale=marketClosed||freshness!=='fresh'||!!marketError;
@@ -234,7 +235,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
  const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded);
  const selectedHomeHistory=homeHistoryCurrency===priceCurrency?homeHistory:[];
-  const homeMovement=homeMarketMovement(selectedHomeHistory,homeMarket,clock,priceCurrency);
+  // Daily historical averages are not live quotes and must not enter daily P/L.
+  const realHomeQuotes=selectedHomeHistory.filter((r):r is PriceHistoryRow&{timestamp:string}=>
+    r.kind!=='daily-average'&&typeof r.timestamp==='string');
+  const homeMovement=homeMarketMovement(realHomeQuotes,homeMarket,clock,priceCurrency);
  const accountName=user?.name?.trim()||'أضف اسمك';
  const mobilePage=mobilePages.some(p=>p.id===page)?page:'more';
  const content=()=>{
@@ -260,11 +264,11 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   </>;
 
   if(page==='prices')return <>
-   <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?tr('آخر سعر متاح'):marketLabel}</span><p>سعر الأونصة المشتق من عيار 24</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((selectedMarketRows.find(r=>r.karat===24)?Number(selectedMarketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>آخر فحص: {marketTime(selectedMarketRows.find(r=>r.karat===24))}</small></section>
+   <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?tr('آخر سعر متاح'):marketLabel}</span><p>{tr('سعر الأونصة المشتق من عيار 24')}</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((selectedMarketRows.find(r=>r.karat===24)?Number(selectedMarketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>{tr('آخر فحص:')} {marketTime(selectedMarketRows.find(r=>r.karat===24))}</small></section>
    <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value==='USD'?'USD':'SAR')}><option>SAR</option><option>USD</option></select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=selectedMarketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
-   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={marketLoading}/>}</section>
+   <section className="approved-card"><div className="approved-card-title"><span>{tr('الرسم الزمني للأسعار')}</span><label className="inline-select">{tr('العيار')}<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={marketLoading}/>}</section>
    {priceNote}
   </>;
 
