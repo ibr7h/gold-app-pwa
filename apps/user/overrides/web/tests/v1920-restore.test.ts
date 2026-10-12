@@ -40,7 +40,7 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
  it('keeps the original historical chart in both pages with all range/interaction controls',()=>{
   expect(current).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact range={homeRange} onRangeChange={setHomeRange} now={clock} loading={marketLoading}/></section>');
   expect(current).toContain('<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={marketLoading}/>');
-  expect(current).toContain('<section className="approved-card"><div className="approved-card-title"><span>{tr('الرسم الزمني للأسعار')}</span>');
+  expect(current).toContain(`<section className="approved-card"><div className="approved-card-title"><span>{tr('الرسم الزمني للأسعار')}</span>`);
   expect(current).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
   const trend=read('../price-trend.ts');
   expect(trend).toContain('Date.parse(row.timestamp||row.createdAt||\'\')');
