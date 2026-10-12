@@ -1,10 +1,10 @@
 import {activeLocale} from './i18n';
 import {DisplayCalendar,formatDisplayDate} from './date-display';
 import React,{useEffect,useId,useMemo,useRef,useState} from 'react';
-import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendSegments,priceTrendTickIndices,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
+import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendWindow,priceTrendSegments,priceTrendTickIndices,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
 import {Money,formatTwo,formattedMoney} from './price-display';
 
-interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean;calendar?:DisplayCalendar}
+interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean;calendar?:DisplayCalendar;range?:TrendRange;onRangeChange?:(r:TrendRange)=>void;now?:number;loading?:boolean}
 const currencyNumber=formatTwo;
 const timeLabel=(ms:number,range:TrendRange,calendar:DisplayCalendar)=>range==='day'?
  formatDisplayDate(ms,activeLocale(),calendar,{hour:'numeric',minute:'2-digit'}):
@@ -15,14 +15,17 @@ const scopeLabels:{id:TrendRange;label:string}[]=[
 ];
 const compactScopes:{id:TrendRange;label:string}[]=[{id:'day',label:'يوم'},{id:'week',label:'أسبوع'},{id:'month',label:'شهر'}];
 
-export default function PriceHistoryChart({rows,currency,karat,compact=false,calendar='gregorian'}:Props){
- const [range,setRange]=useState<TrendRange>(compact?'day':'available');
+export default function PriceHistoryChart({rows,currency,karat,compact=false,calendar='gregorian',range:controlledRange,onRangeChange,now=Date.now(),loading=false}:Props){
+ const [localRange,setLocalRange]=useState<TrendRange>(compact?'day':'available');
+ const range=controlledRange??localRange;
+ const setRange=(next:TrendRange)=>{setLocalRange(next);onRangeChange?.(next);};
  const [width,setWidth]=useState(640);
  const [selectedIndex,setSelectedIndex]=useState<number|null>(null);
  const plotRef=useRef<HTMLDivElement>(null);
  const gradientId='dh-price-gradient-'+useId().replace(/:/g,'');
  const all=useMemo(()=>priceTrendPoints(rows),[rows]);
- const points=useMemo(()=>priceTrendRange(all,range),[all,range]);
+ const points=useMemo(()=>priceTrendRange(all,range,now),[all,range,now]);
+ const timeWindow=priceTrendWindow(range,now,points);
  const domain=useMemo(()=>priceTrendDomain(points),[points]);
  const latest=points[points.length-1];
  const index=selectedIndex!==null&&selectedIndex>=0&&selectedIndex<points.length?selectedIndex:points.length-1;
@@ -30,8 +33,9 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  const change=trendPercent(points);
  const rising=change!==null&&change>=0;
  const left=12,right=Math.max(left+70,width-(compact?12:75)),top=24,bottom=compact?123:204;
- const spanTime=Math.max(1,(latest?.time||0)-(points[0]?.time||0));
- const projectX=(p:TrendPoint)=>left+(right-left)*((p.time-points[0].time)/spanTime);
+ const axisStart=timeWindow?.start??0,axisEnd=timeWindow?.end??0;
+ const spanTime=Math.max(1,axisEnd-axisStart);
+ const projectX=(p:TrendPoint)=>left+(right-left)*((p.time-axisStart)/spanTime);
  const projectY=(p:TrendPoint)=>bottom-(bottom-top)*((p.price-(domain?.min||0))/Math.max(.00001,(domain?.max||1)-(domain?.min||0)));
  const plotted=points.map(p=>({x:projectX(p),y:projectY(p),point:p}));
  const series=priceTrendSegments(points).map(segment=>segment.map(p=>({x:projectX(p),y:projectY(p),point:p})));
@@ -43,13 +47,15 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  const focus=plotted[index];
  const ticks=domain&&!compact?Array.from({length:4},(_,i)=>domain.max-(domain.max-domain.min)*i/3):[];
  const tickIndices=priceTrendTickIndices(points,right-left,compact);
+ const explicitRange=range!=='available'&&timeWindow!==null;
+ const xAxisLabels=explicitRange?[{time:axisStart,x:left,anchor:'start' as const},{time:axisEnd,x:right,anchor:'end' as const}]:[];
  const timeCoverage=all.length>1?(all[all.length-1].time-all[0].time)/(60*60*1000):0;
  const movePointer=(clientX:number)=>{
   if(!points.length||!plotRef.current)return;
   const rect=plotRef.current.getBoundingClientRect();
   const localX=(clientX-rect.left)/Math.max(1,rect.width)*width;
   const ratio=Math.min(1,Math.max(0,(localX-left)/Math.max(1,right-left)));
-  const target=points[0].time+ratio*spanTime;
+  const target=axisStart+ratio*spanTime;
   const nearest=nearestTrendIndex(points,target);
   if(nearest>=0)setSelectedIndex(nearest);
  };
@@ -85,10 +91,11 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
     aria-pressed={range===option.id} className={range===option.id?'selected':''}
     onClick={()=>setRange(option.id)}>{option.label}</button>)}
   </div>
+  {loading&&<p className="dh-trend-loading" role="status">جارٍ تحميل أسعار الفترة المختارة…</p>}
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
     <strong>{all.length<2?'لا توجد تحديثات سعرية كافية لرسم الاتجاه.':'لا توجد نقطتان مسجلتان ضمن الفترة المختارة.'}</strong>
-    <span>{compact?'بانتظار تحديثات فعلية إضافية من الخادم.':'نعرض الأسعار الحقيقية المسجلة فقط. يمكنك اختيار «المتاح» لعرض جميع السجلات المحمّلة.'}</span>
+    <span>{range!=='available'?'لا تتوفر نقطتان فعليتان في المدة المحددة. اختر فترة أطول، ولن نملأ الفراغ بأسعار افتراضية.':compact?'بانتظار تحديثات فعلية إضافية.':'نعرض الأسعار الحقيقية المسجلة فقط. اختر مدة أخرى عند توفر بيانات أقدم.'}</span>
    </div>
   :
    <>
@@ -126,7 +133,10 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
        {(!compact||selectedIndex!==null)&&<circle cx={focus.x} cy={focus.y} r="8" className="dh-trend-ring"/>}
        <circle cx={focus.x} cy={focus.y} r="4" className="dh-trend-point"/>
       </g>}
-      {tickIndices.map((n,i)=><text key={n} className="dh-trend-x"
+      {explicitRange?xAxisLabels.map((tick,i)=><text key={'window-'+i} className="dh-trend-x"
+       x={tick.x} y={compact?154:238} textAnchor={tick.anchor}>
+       {timeLabel(tick.time,range,calendar)}
+      </text>):tickIndices.map((n,i)=><text key={n} className="dh-trend-x"
        x={plotted[n].x} y={compact?154:238} textAnchor={i===0?'start':i===tickIndices.length-1?'end':'middle'}>
        {timeLabel(points[n].time,range,calendar)}
       </text>)}
