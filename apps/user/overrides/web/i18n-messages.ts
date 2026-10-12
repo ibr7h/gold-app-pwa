@@ -1,4 +1,5 @@
 import {chartRangeMessages} from './i18n-chart-ranges';
+import {marketPushMessages} from './i18n-market-push';
 import {followupUiMessages} from './i18n-followup';
 import {invoiceAndErrorMessages} from './i18n-invoice-errors';
 import {uncoveredUiMessages,secondaryUiMessages} from './i18n-coverage';
@@ -1696,7 +1697,7 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
  ]
 ];
 const lookup=new Map<string,readonly [string,string]>(
- [...entries,...extendedEntries,...uncoveredUiMessages,...secondaryUiMessages,...followupUiMessages,...invoiceAndErrorMessages,...chartRangeMessages].map(([ar,en,fr])=>[ar,[en,fr] as const])
+ [...entries,...extendedEntries,...uncoveredUiMessages,...secondaryUiMessages,...followupUiMessages,...invoiceAndErrorMessages,...chartRangeMessages,...marketPushMessages].map(([ar,en,fr])=>[ar,[en,fr] as const])
 );
 export const translationCount=()=>lookup.size;
 export function translateExact(text:string,lang:Language):string|null{
