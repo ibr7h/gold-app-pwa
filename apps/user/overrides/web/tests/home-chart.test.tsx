@@ -5,7 +5,7 @@ const {renderToStaticMarkup}=require('react-dom/server') as {renderToStaticMarku
 describe('Compact home chart',()=>{
  it('renders day/week/month controls and real observations without the full prices dashboard',()=>{
   const rows=[{id:'1',buyPrice:'500.1234',timestamp:'2026-10-09T07:00:00Z'},{id:'2',buyPrice:'502.7594',timestamp:'2026-10-09T07:55:00Z'}];
-  const html=renderToStaticMarkup(<PriceHistoryChart rows={rows} currency="SAR" karat={24} compact/>);
+  const html=renderToStaticMarkup(<PriceHistoryChart rows={rows} currency="SAR" karat={24} compact now={Date.parse('2026-10-09T08:00:00Z')}/>);
   expect(html).toContain('حركة السوق (عيار 24)');
   expect(html).toContain('>يوم</button>');
   expect(html).toContain('>أسبوع</button>');
@@ -16,7 +16,7 @@ describe('Compact home chart',()=>{
   expect(html).not.toContain('class="dh-trend-summary"');
  });
  it('shows an honest empty state for insufficient data, without a decorative fake curve',()=>{
-  const html=renderToStaticMarkup(<PriceHistoryChart rows={[]} currency="SAR" karat={24} compact/>);
+  const html=renderToStaticMarkup(<PriceHistoryChart rows={[]} currency="SAR" karat={24} compact now={Date.parse('2026-10-09T08:00:00Z')}/>);
   expect(html).toContain('لا توجد تحديثات سعرية كافية');
   expect(html).not.toContain('class="dh-trend-line"');
   expect(html).not.toContain('role="slider"');
