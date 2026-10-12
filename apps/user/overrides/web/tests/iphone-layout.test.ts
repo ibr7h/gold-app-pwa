@@ -378,7 +378,7 @@ describe('iPhone chart does not visually simulate prices during closed sessions'
  it('prevents overlapping historical Arabic dates with compact tick labels',()=>{
   const chart=source('../PriceHistoryChart.tsx');
   expect(chart).toContain('priceTrendTickIndices(points,right-left,compact)');
-  expect(chart).toContain("'ar-SA-u-ca-gregory'");
-  expect(chart).toContain("day:'2-digit',month:'2-digit'");
+  expect(chart).toContain('formatDisplayDate(ms,activeLocale(),calendar,');
+  expect(chart).toContain("{day:'2-digit',month:'2-digit'}");
  });
 });
