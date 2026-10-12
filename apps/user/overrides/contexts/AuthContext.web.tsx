@@ -139,8 +139,9 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    const cachedBefore=await getVerifiedCachedUser();
    const savedPinAccount=await storedQuickPinAccountId();current(attempt);
    await authenticate(path,data);current(attempt);const me=await loadMe(attempt,cachedBefore);
-   const sameSavedAccount=!!me.id&&(String(me.id)===savedPinAccount||
-     !!cachedBefore&&String(me.id)===String(cachedBefore.id));
+   const sameSavedAccount=!!me.id&&(savedPinAccount
+    ?String(me.id)===savedPinAccount
+    :!!cachedBefore&&String(me.id)===String(cachedBefore.id));
    if(!sameSavedAccount){
     // A different account must not inherit this device's encrypted PIN vault.
     await clearSessionVault();
@@ -262,6 +263,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   });
   setUser(previous=>previous&&String(previous.id)===String(updated.id)
     ?{...previous,name:updated.fullName?.trim()||undefined}:previous);
+  if(user?.id&&String(user.id)===String(updated.id))
+   await saveVerifiedUser({id:user.id,email:user.email,role:'user',name:updated.fullName?.trim()||undefined});
   return updated;
  };
  const updateName=async(newName:string)=>{
@@ -271,6 +274,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    });
    setUser(previous=>previous&&String(previous.id)===String(updated.id)
     ?{...previous,name:updated.fullName?.trim()||undefined}:previous);
+   if(user?.id&&String(user.id)===String(updated.id))
+    await saveVerifiedUser({id:user.id,email:user.email,role:'user',name:updated.fullName?.trim()||undefined});
    return true;
   }catch(e){setError(errorMessage(e));return false;}
  };
