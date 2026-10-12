@@ -128,5 +128,9 @@ describe('No untranslated User price chart text',()=>{
   expect(jsx).toContain('priceTrendTradingCoordinates');
   expect(jsx).toContain('priceTrendVisibleMarkers');
   expect(jsx).toContain('dh-session-legend');
+  expect(jsx).not.toContain('dh-trend-footnote');
+  expect(jsx).not.toContain('تم ضغط فترات إغلاق السوق بصريًا؛');
+  expect(jsx).not.toContain('الخط المتقطع يمثل متوسطات يومية تاريخية؛');
+
  });
 });
