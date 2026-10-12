@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,trendPercent} from '../price-trend';
+import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendSegments,priceTrendTickIndices,trendPercent} from '../price-trend';
 
 const instant=(minute:number,price:number,id='price-'+minute)=>({
  id,createdAt:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),timestamp:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),buyPrice:String(price)
@@ -95,5 +95,60 @@ describe('Do not extend gold-price chart across closed market hours',()=>{
    quote('after','2026-10-12T22:01:00Z',411)
   ]);
   expect(points.map(p=>p.id)).toEqual(['before','after']);
+ });
+});
+
+describe('iPhone closed-session trend and readable axis labels',()=>{
+ const sample=(id:string,timestamp:string,price:number)=>({id,timestamp,buyPrice:String(price)});
+ it('removes repeated unchanged polling prices from old backend history',()=>{
+  const points=priceTrendPoints([
+   sample('open','2026-10-09T20:00:00Z',500),
+   sample('repeat1','2026-10-09T20:05:00Z',500.002),
+   sample('repeat2','2026-10-09T20:10:00Z',500.001),
+   sample('changed','2026-10-09T20:15:00Z',500.11)
+  ]);
+  expect(points.map(x=>x.id)).toEqual(['open','changed']);
+ });
+ it('never joins Friday and Sunday through the closed weekend',()=>{
+  const p=priceTrendPoints([
+   sample('fri','2026-10-09T20:55:00Z',500),
+   sample('sun','2026-10-11T22:05:00Z',504),
+   sample('mon','2026-10-11T22:10:00Z',505)
+  ]);
+  expect(priceTrendSegments(p).map(g=>g.map(q=>q.id))).toEqual([['fri'],['sun','mon']]);
+ });
+ it('breaks lines across daily New York 17:00–18:00 maintenance',()=>{
+  const p=priceTrendPoints([
+   sample('before','2026-10-12T20:59:00Z',500),
+   sample('after','2026-10-12T22:01:00Z',501)
+  ]);
+  expect(priceTrendSegments(p).map(g=>g.map(q=>q.id))).toEqual([['before'],['after']]);
+ });
+ it('does not interpolate through lengthy unobserved gaps during open trading',()=>{
+  const p=priceTrendPoints([
+   sample('start','2026-10-12T12:00:00Z',501),
+   sample('end','2026-10-12T19:30:00Z',502)
+  ]);
+  expect(priceTrendSegments(p)).toHaveLength(2);
+ });
+ it('renders only endpoints for the compact iPhone chart regardless of late price clusters',()=>{
+  const p=priceTrendPoints([
+   sample('old','2026-10-12T12:00:00Z',501),
+   sample('a','2026-10-12T19:00:00Z',502),
+   sample('b','2026-10-12T19:01:00Z',503),
+   sample('c','2026-10-12T19:02:00Z',504)
+  ]);
+  expect(priceTrendTickIndices(p,300,true)).toEqual([0,3]);
+  expect(priceTrendTickIndices(p,260,false)).toEqual([0,3]);
+  expect(priceTrendTickIndices(p,450,false)).toEqual([0,3]);
+  expect(priceTrendTickIndices([],300,true)).toEqual([]);
+ });
+ it('allows a distinct centre date on a wide chart only when spaced far enough',()=>{
+  const p=priceTrendPoints([
+   sample('first','2026-10-12T12:00:00Z',501),
+   sample('mid','2026-10-12T15:00:00Z',502),
+   sample('last','2026-10-12T18:00:00Z',503)
+  ]);
+  expect(priceTrendTickIndices(p,500,false)).toEqual([0,1,2]);
  });
 });
