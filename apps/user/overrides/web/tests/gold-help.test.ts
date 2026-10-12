@@ -4,7 +4,7 @@ import {fileURLToPath,URL} from 'node:url';
 import {
  helpArticles,helpCopy,helpNavMessages,helpReferences,helpSections,
  karatReference,localized,ounceGrams,gemCaratGrams,
- theoreticalFineGold,theoreticalGoldInvoice
+ theoreticalFineGold,theoreticalGoldInvoice,theoreticalStoneCharge
 } from '../gold-help-content';
 import {translateUiText} from '../i18n-messages';
 
@@ -32,6 +32,9 @@ describe('Gold guide — trustworthy calculations',()=>{
   expect(ounceGrams).toBe(31.1034768);
   expect(gemCaratGrams).toBe(.2);
   expect(0.5*gemCaratGrams).toBeCloseTo(.1);
+  expect(theoreticalStoneCharge(2,300)).toBe(600);
+  expect(theoreticalStoneCharge(2,-1)).toBeNull();
+  expect(theoreticalStoneCharge(NaN,300)).toBeNull();
  });
  it('calculates an illustrative bill without inventing a real gold price or tax',()=>{
   expect(theoreticalGoldInvoice(10,300,250,400)).toEqual({gold:3000,subtotal:3650});
@@ -40,6 +43,7 @@ describe('Gold guide — trustworthy calculations',()=>{
   expect(guide).toContain('t(helpCopy.equationSub)');
   expect(guide).toContain('t(helpCopy.taxCaveat)');
   expect(guide).toContain('t(helpCopy.exampleNet)');
+  expect(guide).toContain('t(helpCopy.gemRateNote)');
  });
 });
 
