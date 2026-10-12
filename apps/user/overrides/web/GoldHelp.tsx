@@ -1,7 +1,7 @@
 import React,{useMemo,useState} from 'react';
 import {
  helpArticles,helpCopy,helpReferences,helpSections,karatReference,
- localized,theoreticalFineGold,theoreticalGoldInvoice,gemCaratGrams,
+ localized,theoreticalFineGold,theoreticalGoldInvoice,theoreticalStoneCharge,gemCaratGrams,
  type HelpLanguage,type HelpSection
 } from './gold-help-content';
 import './gold-help.css';
@@ -16,6 +16,7 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
  const [karat,setKarat]=useState(21);
  const [weight,setWeight]=useState('10');
  const [carats,setCarats]=useState('1');
+ const [gemRate,setGemRate]=useState('200');
  const locale=language==='ar'?'ar-SA':language==='fr'?'fr-FR':'en-US';
  const number=(x:number,digits=2)=>new Intl.NumberFormat(locale,{
   minimumFractionDigits:digits,maximumFractionDigits:digits
@@ -24,6 +25,8 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
  const alloy=fine===null?null:Number(weight)-fine;
  const stoneGrams=carats.trim()!==''&&Number.isFinite(Number(carats))&&Number(carats)>=0&&Number(carats)<=1000000
   ?Number(carats)*gemCaratGrams:null;
+ const stoneCharge=carats.trim()!==''&&gemRate.trim()!==''
+  ?theoreticalStoneCharge(Number(carats),Number(gemRate)):null;
  const quote=theoreticalGoldInvoice(10,300,250,400)!;
  const normalized=(s:string)=>s.toLocaleLowerCase().normalize('NFKD').replace(/[\u064B-\u065F\u0670]/g,'').trim();
  const matching=useMemo(()=>{
@@ -72,10 +75,16 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
       <input type="number" inputMode="decimal" min="0" max="1000000" step="any"
        value={carats} onChange={e=>setCarats(e.target.value)}/>
      </label>
+     <label>{t(helpCopy.gemRate)}
+      <input type="number" inputMode="decimal" min="0" max="100000000" step="any"
+       value={gemRate} onChange={e=>setGemRate(e.target.value)}/>
+     </label>
      <div className="dh-knowledge-result" aria-live="polite">
       <div><span>{t(helpCopy.gemGrams)}</span><strong dir="ltr">{stoneGrams===null?'—':number(stoneGrams,3)} g</strong></div>
+      <div><span>{t(helpCopy.gemValue)}</span><strong dir="ltr">{stoneCharge===null?'—':number(stoneCharge)}</strong></div>
      </div>
      <p className="dh-knowledge-caption">{t(helpCopy.gemNote)}</p>
+     <p className="dh-knowledge-caption">{t(helpCopy.gemRateNote)}</p>
     </div>
    </div>
   </section>
