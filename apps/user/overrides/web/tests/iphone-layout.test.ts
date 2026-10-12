@@ -208,7 +208,7 @@ describe('Approved global gold market-closed UI',()=>{
  it('keeps both charts visible during closure but uses only real trading-session prices',()=>{
   const s=source('../UserWorkspace.tsx');
   expect(s).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart');
-  expect(s).toContain('<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
+  expect(s).toContain('<section className="approved-card"><div className="approved-card-title"><span>{tr(\'الرسم الزمني للأسعار\')}</span>');
   expect(s).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
   expect(s).not.toContain('{!marketClosed&&<section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span>');
   const trend=source('../price-trend.ts');
@@ -403,7 +403,8 @@ describe('iPhone chart period controls request the matching real historical wind
  it('draws selected window endpoints, not a misleading zoom to the last saved record',()=>{
   const chart=source('../PriceHistoryChart.tsx');
   expect(chart).toContain("const timeWindow=priceTrendWindow(range,now,points)");
-  expect(chart).toContain("const projectX=(p:TrendPoint)=>left+(right-left)*((p.time-axisStart)/spanTime)");
+  expect(chart).toContain("priceTrendTradingCoordinates(points,axisStart,axisEnd)");
+   expect(chart).toContain("const projectX=(_p:TrendPoint,i:number)=>left+(right-left)*(proportions[i]??0)");
   expect(chart).toContain("const explicitRange=range!=='available'&&timeWindow!==null");
   expect(chart).toContain("onClick={()=>setRange(option.id)}");
   expect(chart).toContain("aria-pressed={range===option.id}");
