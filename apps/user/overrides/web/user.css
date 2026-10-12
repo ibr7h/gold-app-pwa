@@ -2426,3 +2426,13 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web.workspace .dh-calendar-options{flex:1 1 100%;justify-content:stretch;margin-inline-start:0;}
  .gold-web.workspace .dh-calendar-options button{flex:1 1 0;}
 }
+
+/* Explain the selected date window and actual records: no artificial chart points. */
+.gold-web .dh-trend-range-coverage{
+ display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+ gap:4px 12px;padding:9px 12px;margin:8px 0;
+ background:#F4F6FA;border:1px solid #E2E7EE;border-radius:10px;
+ color:#001F3F;font-size:12px;line-height:1.5;
+}
+.gold-web .dh-trend-range-coverage strong{font-size:12px;font-weight:700;}
+.gold-web .dh-trend-range-coverage small{font-size:11px;opacity:.8;}
