@@ -215,9 +215,36 @@ describe('iPhone chart controls visibly respond to periods',()=>{
   expect(chart).toContain('timeLabel(axisEnd,range,calendar)');
  });
  it('requests selected range and clears old results while new range loads',()=>{
-  expect(app).toContain("'&limit=200&range='+chartRange");
+  expect(app).toContain("'&karat='+chartKarat+'&range='+chartRange");
+  expect(app).toContain("'/prices/history/chart?currency='");
   expect(app).toContain("setHistoryQuery(previous=>previous===priceCurrency+':'+chartKarat+':'+chartRange?previous:'')");
   expect(app).toContain("onRangeChange={setChartRange}");
   expect(app).toContain("onRangeChange={setHomeRange}");
+ });
+});
+
+describe('Archived monthly daily averages are labeled, not fabricated spot prices',()=>{
+ it('uses the dated daily bucket independently of the global market session',()=>{
+  const points=priceTrendPoints([
+   {id:'archive',kind:'daily-average',day:'2026-09-20',buyPrice:'516.52'},
+   {id:'spot',kind:'spot',timestamp:'2026-10-09T20:30:00Z',buyPrice:'520.10'}
+  ]);
+  expect(points).toHaveLength(2);
+  expect(points[0]).toMatchObject({kind:'daily-average',price:516.52,id:'archive'});
+  expect(points[0].time).toBe(Date.parse('2026-09-20T12:00:00Z'));
+  expect(priceTrendSegments(points)).toHaveLength(2);
+  expect(trendPercent(points)).toBeNull();
+ });
+ it('breaks a historical line across missing days, and never invents a Saturday quote',()=>{
+  const points=priceTrendPoints([
+   {id:'day-1',kind:'daily-average',day:'2026-09-17',buyPrice:'510'},
+   {id:'day-2',kind:'daily-average',day:'2026-09-18',buyPrice:'511'},
+   {id:'day-3',kind:'daily-average',day:'2026-09-20',buyPrice:'512'}
+  ]);
+  expect(priceTrendSegments(points).map(g=>g.map(p=>p.id))).toEqual([['day-1','day-2'],['day-3']]);
+ });
+ it('does not use historical average rows as the latest quote in the market card',()=>{
+  const app=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url).href),'utf8');
+  expect(app).toContain("filter(r=>r.kind!=='daily-average'");
  });
 });
