@@ -4,6 +4,7 @@ import {
  localized,theoreticalFineGold,theoreticalGoldInvoice,gemCaratGrams,
  type HelpLanguage,type HelpSection
 } from './gold-help-content';
+import './gold-help.css';
 
 /** Offline, accessible User gold-literacy center. It never reads or persists
  * account credentials, wallet totals, prices, or exchange rates.
