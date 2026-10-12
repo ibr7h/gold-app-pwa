@@ -8,7 +8,7 @@ const decimal=(v:string|number|undefined|null)=>v===undefined||v===null?'':Strin
 const n=(v:string)=>v.trim()?Number(v):0;
 const text=(v:unknown)=>typeof v==='string'?v:'';
 
-export default function PurchaseFormFields({portfolios,purchase,preferredCurrency='SAR'}:{portfolios:Portfolio[];purchase?:Purchase;preferredCurrency?:'SAR'|'USD'}){
+export default function PurchaseFormFields({portfolios,purchase,preferredCurrency='SAR'}:{portfolios:Portfolio[];purchase?:Purchase;preferredCurrency?:'SAR'|'USD'|'EUR'}){
  const {language,direction}=useLanguage();
  const tr=(source:string)=>translateUiText(source,language);
  const details=purchase?.invoiceDetails||{};
