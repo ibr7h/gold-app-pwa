@@ -2497,3 +2497,44 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  .gold-web.reference-home .dh-home-price-unit{font-size:.49em!important}
  .gold-web.reference-home .buy-sell-mini .dh-buy-sell-row{gap:3px}
 }
+
+
+/* iPhone FR: "Semaine" must never protrude outside its selected segment.
+   At phone widths the long French chart heading gets its own grid row, leaving
+   a full-width, three-equal-column period selector below it. Other locales
+   keep their approved compact single-row header when it fits. */
+@media(max-width:700px){
+ .gold-web[lang="fr"] .dh-price-trend.compact{
+  grid-template-columns:minmax(0,1fr)!important;
+  row-gap:10px!important;
+ }
+ .gold-web[lang="fr"] .dh-price-trend.compact .home-chart-title{
+  grid-column:1/-1;
+  min-width:0;
+  overflow-wrap:break-word;
+ }
+ .gold-web[lang="fr"] .dh-price-trend.compact .dh-trend-controls{
+  grid-column:1/-1;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box;
+  justify-self:stretch;
+  overflow:hidden;
+ }
+ .gold-web[lang="fr"] .dh-price-trend.compact .dh-trend-controls button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+  padding:7px 4px!important;
+  font-size:clamp(11px,3.15vw,14px)!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:clip;
+ }
+}
