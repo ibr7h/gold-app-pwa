@@ -149,7 +149,7 @@ jobs:
                   continue
               if 'user-update-locales.js' not in text:
                   text=text.replace(needle,
-                      '<script src="/gold-app-pwa/full/user-update-locales.js?v=0"></script>\\n'+needle)
+                      '<script src="/gold-app-pwa/full/user-update-locales.js?v=0"></script>'+needle)
                   page.write_text(text)
               injected+=1
           if injected < 20:
