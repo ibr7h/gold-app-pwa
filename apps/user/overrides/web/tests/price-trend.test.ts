@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendSegments,priceTrendTickIndices,trendPercent} from '../price-trend';
+import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendWindow,priceTrendSegments,priceTrendTickIndices,trendPercent} from '../price-trend';
 
 const instant=(minute:number,price:number,id='price-'+minute)=>({
  id,createdAt:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),timestamp:new Date(Date.UTC(2026,9,8,8,minute)).toISOString(),buyPrice:String(price)
@@ -27,16 +27,18 @@ describe('User real-time gold chart geometry',()=>{
   expect(nearestTrendIndex(points,-Infinity)).toBe(0);
   expect(nearestTrendIndex([],Date.now())).toBe(-1);
  });
- it('filters 24h and 7d relative to the most recently saved snapshot, not wall clock',()=>{
+ it('filters 24h and 7d against the selected wall-clock window',()=>{
   const start=Date.UTC(2026,9,1);
   const points=priceTrendPoints([
    {id:'old',buyPrice:'400',createdAt:new Date(start).toISOString()},
    {id:'week',buyPrice:'405',createdAt:new Date(start+6*86400000).toISOString()},
    {id:'day',buyPrice:'406',createdAt:new Date(start+7*86400000).toISOString()}
   ]);
-  expect(priceTrendRange(points,'day').map(p=>p.price)).toEqual([405,406]);
-  expect(priceTrendRange(points,'week')).toHaveLength(3);
-  expect(priceTrendRange(points,'available')).toHaveLength(3);
+  const now=start+7*86400000;
+  expect(priceTrendRange(points,'day',now).map(p=>p.price)).toEqual([405,406]);
+  expect(priceTrendRange(points,'week',now)).toHaveLength(3);
+  expect(priceTrendRange(points,'available',now)).toHaveLength(3);
+  expect(priceTrendRange(points,'day',now+2*86400000)).toHaveLength(0);
  });
  it('computes visible min/max and actual percent change without false zero baselines',()=>{
   const data=priceTrendPoints([instant(0,400),instant(10,404)]);
@@ -51,9 +53,9 @@ describe('User real-time gold chart geometry',()=>{
  it('filters a 30-day month without synthesizing missing daily prices',()=>{
   const latest=Date.UTC(2026,9,9);
   const points=priceTrendPoints([31,30,7,1,0].map(days=>({id:String(days),buyPrice:String(500+days),timestamp:new Date(latest-days*86400000).toISOString()})));
-  expect(priceTrendRange(points,'month').map(p=>p.id)).toEqual(['30','7','1','0']);
-  expect(priceTrendRange(points,'week').map(p=>p.id)).toEqual(['7','1','0']);
-  expect(priceTrendRange(points,'day').map(p=>p.id)).toEqual(['1','0']);
+  expect(priceTrendRange(points,'month',latest).map(p=>p.id)).toEqual(['30','7','1','0']);
+  expect(priceTrendRange(points,'week',latest).map(p=>p.id)).toEqual(['7','1','0']);
+  expect(priceTrendRange(points,'day',latest).map(p=>p.id)).toEqual(['1','0']);
  });
 });
 
@@ -78,7 +80,7 @@ describe('Do not extend gold-price chart across closed market hours',()=>{
    quote('sunday-closed','2026-10-11T21:59:00Z',411)
   ]);
   expect(points.map(p=>p.id)).toEqual(['friday-trade']);
-  expect(priceTrendRange(points,'available').map(p=>p.price)).toEqual([411]);
+  expect(priceTrendRange(points,'available',Date.parse('2026-10-11T19:00:00Z')).map(p=>p.price)).toEqual([411]);
  });
  it('resumes with a new true observation when trading opens Sunday 18:00 New York',()=>{
   const points=priceTrendPoints([
@@ -150,5 +152,44 @@ describe('iPhone closed-session trend and readable axis labels',()=>{
    sample('last','2026-10-12T18:00:00Z',503)
   ]);
   expect(priceTrendTickIndices(p,500,false)).toEqual([0,1,2]);
+ });
+});
+
+describe('Different date windows must change the iPhone price chart',()=>{
+ const now=Date.parse('2026-10-12T15:00:00Z');
+ const series=priceTrendPoints([
+  {id:'lastMonth',timestamp:'2026-09-22T12:00:00Z',buyPrice:'400'},
+  {id:'lastWeek',timestamp:'2026-10-06T12:00:00Z',buyPrice:'410'},
+  {id:'yesterday',timestamp:'2026-10-11T22:15:00Z',buyPrice:'420'},
+  {id:'today',timestamp:'2026-10-12T12:00:00Z',buyPrice:'430'}
+ ]);
+ it('always draws the complete 24-hour, 7-day, and 30-day time axis',()=>{
+  const wDay=priceTrendWindow('day',now,series)!;
+  const wWeek=priceTrendWindow('week',now,series)!;
+  const wMonth=priceTrendWindow('month',now,series)!;
+  expect(wDay.end-wDay.start).toBe(86400000);
+  expect(wWeek.end-wWeek.start).toBe(7*86400000);
+  expect(wMonth.end-wMonth.start).toBe(30*86400000);
+  expect(priceTrendWindow('available',now,series)!.start).toBe(series[0].time);
+ });
+ it('uses different true recorded points for each selected period',()=>{
+  expect(priceTrendRange(series,'day',now).map(p=>p.id)).toEqual(['yesterday','today']);
+  expect(priceTrendRange(series,'week',now).map(p=>p.id)).toEqual(['lastWeek','yesterday','today']);
+  expect(priceTrendRange(series,'month',now).map(p=>p.id)).toEqual(['lastMonth','lastWeek','yesterday','today']);
+  expect(priceTrendRange(series,'available',now).map(p=>p.id)).toEqual(['lastMonth','lastWeek','yesterday','today']);
+ });
+ it('never treats old Friday quotes as current day prices on Monday',()=>{
+  const friday=priceTrendPoints([{id:'friday',timestamp:'2026-10-09T20:58:00Z',buyPrice:'410'}]);
+  expect(priceTrendRange(friday,'day',now)).toHaveLength(0);
+  expect(priceTrendRange(friday,'week',now)).toHaveLength(1);
+ });
+ it('changes even when source has only one day of history: time windows differ',()=>{
+  const recent=priceTrendPoints([
+   {id:'a',timestamp:'2026-10-12T12:00:00Z',buyPrice:'410'},
+   {id:'b',timestamp:'2026-10-12T12:02:00Z',buyPrice:'411'}
+  ]);
+  expect(priceTrendRange(recent,'day',now)).toHaveLength(2);
+  expect(priceTrendRange(recent,'month',now)).toHaveLength(2);
+  expect(priceTrendWindow('day',now,recent)?.start).not.toBe(priceTrendWindow('month',now,recent)?.start);
  });
 });
