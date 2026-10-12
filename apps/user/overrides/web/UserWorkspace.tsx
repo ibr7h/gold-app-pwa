@@ -157,7 +157,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
-   const cleanLatest=latest.filter((row):row is PriceHistoryRow=>!!row&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
+   const cleanLatest=latest.filter((row):row is MarketPrice=>!!row&&typeof row.timestamp==='string'&&
+    row.kind!=='daily-average'&&row.sellPrice!==undefined&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
    if(active.current&&seq===marketLoadSequence.current){
     setHistory(historyRows);
     setHomeHistory(homeHistoryRows);
@@ -211,7 +212,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const sortedHistory=[...(historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[])].filter(r=>r.kind!=='daily-average'&&!!r.timestamp).sort((a,b)=>Date.parse(a.timestamp||a.createdAt||'')-Date.parse(b.timestamp||b.createdAt||''));
  const selectedMarketRows=allMarketRows.filter(r=>r.currency===priceCurrency);
   const currentMarket=selectedMarketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
- const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24) as PriceHistoryRow|undefined;
+ const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24);
  const freshness=priceFreshness(homeMarket,clock);
  const marketClosed=!isGlobalGoldMarketOpen(clock);
  const stale=marketClosed||freshness!=='fresh'||!!marketError;
@@ -234,7 +235,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
  const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded);
  const selectedHomeHistory=homeHistoryCurrency===priceCurrency?homeHistory:[];
-  const homeMovement=homeMarketMovement(selectedHomeHistory,homeMarket,clock,priceCurrency);
+  // Daily historical averages are not live quotes and must not enter daily P/L.
+  const realHomeQuotes=selectedHomeHistory.filter((r):r is PriceHistoryRow&{timestamp:string}=>
+    r.kind!=='daily-average'&&typeof r.timestamp==='string');
+  const homeMovement=homeMarketMovement(realHomeQuotes,homeMarket,clock,priceCurrency);
  const accountName=user?.name?.trim()||'أضف اسمك';
  const mobilePage=mobilePages.some(p=>p.id===page)?page:'more';
  const content=()=>{
