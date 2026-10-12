@@ -1,0 +1,36 @@
+name: Verify iPhone EUR reference display
+on:
+  pull_request:
+    branches: ["preview/iphone-render"]
+    paths:
+      - "apps/user/overrides/web/euro-reference.ts"
+      - "apps/user/overrides/web/display-currency.ts"
+      - "apps/user/overrides/web/amount-words-localized.ts"
+      - "apps/user/overrides/web/arabic-amount-words.ts"
+      - "apps/user/overrides/web/UserWorkspace.tsx"
+      - "apps/user/overrides/web/tests/euro-reference.test.ts"
+      - ".github/workflows/verify-iphone-eur.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '9.12.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build isolated User source
+        run: |
+          unzip -q "gold-app 17 apr 15-19 adimin icon.zip" -d /tmp
+          echo "SRC=/tmp/gold-app 17 apr 15-19 adimin icon" >> "$GITHUB_ENV"
+      - name: Check EUR conversions and purchase safety
+        run: |
+          cp -R apps/user/overrides/. "$SRC/"
+          cd "$SRC"
+          pnpm install --frozen-lockfile
+          pnpm exec vitest run web/tests/euro-reference.test.ts web/tests/display-currency.test.ts web/tests/arabic-amount-words.test.ts
+          pnpm exec tsc --noEmit
