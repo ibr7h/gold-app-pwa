@@ -11,6 +11,10 @@ on:
       - "scripts/release-iphone-version.cjs"
       - "scripts/check-iphone-release.cjs"
       - "apps/user/overrides/web/UserWorkspace.tsx"
+      - "apps/user/overrides/web/GoldHelp.tsx"
+      - "apps/user/overrides/web/gold-help-content.ts"
+      - "apps/user/overrides/web/gold-help.css"
+      - "apps/user/overrides/web/tests/gold-help.test.ts"
       - "apps/user/overrides/web/auth-device-language.ts"
       - "apps/user/overrides/web/AuthForm.tsx"
       - "apps/user/overrides/web/tests/auth-device-language.test.ts"
@@ -99,7 +103,7 @@ jobs:
         run: |
           cd "$SRC"
           pnpm install --frozen-lockfile
-          pnpm exec vitest run web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts web/tests/i18n.test.ts web/tests/auth-device-language.test.ts web/tests/calendar-preferences.test.ts
+          pnpm exec vitest run web/tests/gold-help.test.ts web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts web/tests/i18n.test.ts web/tests/auth-device-language.test.ts web/tests/calendar-preferences.test.ts
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
       - name: Preserve preview PWA assets and replace compiled bundle
         run: |
