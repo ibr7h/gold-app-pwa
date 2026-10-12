@@ -79,14 +79,15 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const me=await api('/auth/me');current(attempt);
   if(!me?.userId||!me?.email)throw new ApiError('Invalid user');
   if(me.role!=='user'){await clearSession();throw new ApiError('User app role mismatch',403);}
-  let fullName:string|null=null;
+  const known=await getVerifiedCachedUser();current(attempt);
+  let fullName:string|null=known&&String(known.id)===String(me.userId)?known.name||null:null;
   try{
     const profile=await api<{id:string|number;fullName:string|null}>('/auth/profile');
     current(attempt);
     if(String(profile.id)===String(me.userId))fullName=profile.fullName;
   }catch(e){current(attempt); /* Name lookup failure must not break a valid login. */}
   const verified={id:me.userId,email:me.email,role:'user',name:fullName?.trim()||undefined} as User;
-  await saveVerifiedUser({id:verified.id!,email:verified.email,role:'user'});current(attempt);
+  await saveVerifiedUser({id:verified.id!,email:verified.email,role:'user',name:verified.name});current(attempt);
   return verified;
  };
  const refreshBiometricState=async(me:User|null,attempt=version.current)=>{
