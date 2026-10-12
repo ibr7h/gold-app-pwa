@@ -126,6 +126,109 @@ export function trendPercent(points:TrendPoint[]):number|null{
  if(points.length<2||points[0].price<=0||points.some(p=>p.kind!==points[0].kind))return null;
  return (points[points.length-1].price-points[0].price)/points[0].price*100;
 }
+
+export interface MarketBoundaryMarker{
+ index:number;type:'open'|'close';
+}
+/** A compact, DST-aware trading-time axis: weekends and NY rollover consume
+ * no horizontal space. The points retain their real source timestamps and the
+ * chart NEVER fabricates a quote in those intervals. Date-only daily averages
+ * are positioned in their calendar day's first open session if noon is closed;
+ * this is a display bucket, not an observation timestamp.
+ */
+export function priceTrendTradingCoordinates(points:TrendPoint[],start:number,end:number):number[]{
+ if(!points.length)return [];
+ const QUARTER=15*60*1000;
+ const displayAt=(point:TrendPoint)=>{
+  if(point.kind!=='daily-average'||isGlobalGoldMarketOpen(point.time))return point.time;
+  for(let t=point.time;t<point.time+24*60*60*1000;t+=QUARTER){
+   if(isGlobalGoldMarketOpen(t))return t;
+  }
+  return point.time;
+ };
+ const dates=points.map(displayAt);
+ const origin=Math.min(start,dates[0]);
+ const finish=Math.max(end,dates[dates.length-1],origin+1);
+ const events=[origin,...dates,finish];
+ const values=[0];
+ let elapsed=0;
+ for(let i=1;i<events.length;i++){
+  const a=events[i-1],b=Math.max(events[i],a);
+  for(let t=a;t<b;){
+   const next=Math.min(b,Math.floor(t/QUARTER+1)*QUARTER);
+   if(isGlobalGoldMarketOpen(t+(next-t)/2))elapsed+=next-t;
+   t=next;
+  }
+  values.push(elapsed);
+ }
+ const total=values.at(-1)||0;
+ if(total<=0)return points.map((_,i)=>(i+1)/(points.length+1));
+ // Bound the coordinate to [0,1]; schedule gaps have zero duration.
+ return points.map((_,i)=>Math.max(0,Math.min(1,values[i+1]/total)));
+}
+export function nearestTrendPlotIndex(coords:number[],ratio:number):number{
+ if(!coords.length)return -1;
+ let best=0,diff=Infinity;
+ coords.forEach((x,i)=>{const d=Math.abs(x-ratio);if(d<diff){diff=d;best=i;}});
+ return best;
+}
+/** Mark ONLY first/last actual supplier observations adjacent to a scheduled
+ * closure; not a theoretical exact open/close price or a daily average. */
+export function priceTrendMarketMarkers(points:TrendPoint[],now:number):MarketBoundaryMarker[]{
+ const spot=points.map((p,i)=>p.kind==='spot'?i:-1).filter(i=>i>=0);
+ const markers:MarketBoundaryMarker[]=[];
+ const STEP=15*60*1000,NEAR=3*60*60*1000;
+ const closedSpan=(a:number,b:number):{first:number;last:number}|null=>{
+  let first=-1,last=-1;
+  for(let t=a;t<b;){
+   const stop=Math.min(b,Math.floor(t/STEP+1)*STEP);
+   if(!isGlobalGoldMarketOpen(t+(stop-t)/2)){
+    if(first<0)first=t;
+    last=stop;
+   }
+   t=stop;
+  }
+  return first<0?null:{first,last};
+ };
+ for(let n=1;n<spot.length;n++){
+  const a=spot[n-1],b=spot[n],prev=points[a],next=points[b];
+  if(next.time-prev.time>5*86400000)continue; // do not mislabel months-long outages.
+  const closure=closedSpan(prev.time,next.time);
+  if(!closure)continue;
+  if(closure.first-prev.time<=NEAR)markers.push({index:a,type:'close'});
+  if(next.time-closure.last<=NEAR)markers.push({index:b,type:'open'});
+ }
+ const last=spot.at(-1);
+ if(last!==undefined&&now>points[last].time&&now-points[last].time<5*86400000
+   &&!isGlobalGoldMarketOpen(now)){
+  const closure=closedSpan(points[last].time,now);
+  if(closure&&closure.first-points[last].time<=NEAR)markers.push({index:last,type:'close'});
+ }
+ const seen=new Set<string>();
+ return markers.filter(marker=>{
+  const key=marker.index+':'+marker.type;
+  if(seen.has(key))return false;
+  seen.add(key);return true;
+ });
+}
+/** Keep symbols readable at narrow widths; retain the newest markers first
+ * and never hide the type distinction of a close/open pair. */
+export function priceTrendVisibleMarkers(markers:MarketBoundaryMarker[],
+ points:{x:number;y:number}[],compact:boolean):MarketBoundaryMarker[]{
+ const out:MarketBoundaryMarker[]=[];
+ const max=compact?6:12;
+ for(let i=markers.length-1;i>=0&&out.length<max;i--){
+  const marker=markers[i],point=points[marker.index];
+  if(!point)continue;
+  if(out.some(existing=>{
+   const other=points[existing.index];
+   return existing.type===marker.type&&Math.hypot(other.x-point.x,other.y-point.y)<22;
+  }))continue;
+  out.push(marker);
+ }
+ return out.reverse();
+}
+
 /** Binary search for closest real observation under a cursor, not a synthesized sample. */
 export function nearestTrendIndex(points:TrendPoint[],targetTime:number):number{
  if(!points.length)return -1;
