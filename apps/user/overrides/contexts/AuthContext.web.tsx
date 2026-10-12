@@ -136,10 +136,25 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const passwordSession=async(path:'/auth/login'|'/auth/register',data:object)=>{
   const attempt=begin();setLoading(true);setError(null);
   try{
-   await authenticate(path,data);current(attempt);const me=await loadMe(attempt);
-   // A successful password login is the recovery path. Re-enroll device convenience factors.
-   await clearSessionVault();await removeQuickPin(String(me.id));await forgetLocalCredential();current(attempt);
-   enrollment.current=null;setQuickPinEnabled(false);setBiometricEnrolled(false);setBiometricEnabled(false);
+   const cachedBefore=await getVerifiedCachedUser();
+   const savedPinAccount=await storedQuickPinAccountId();current(attempt);
+   await authenticate(path,data);current(attempt);const me=await loadMe(attempt,cachedBefore);
+   const sameSavedAccount=!!me.id&&(String(me.id)===savedPinAccount||
+     !!cachedBefore&&String(me.id)===String(cachedBefore.id));
+   if(!sameSavedAccount){
+    // A different account must not inherit this device's encrypted PIN vault.
+    await clearSessionVault();
+    if(savedPinAccount)await removeQuickPin(savedPinAccount);
+    await forgetLocalCredential();current(attempt);
+    enrollment.current=null;setQuickPinEnabled(false);setPinReconnectRequired(false);
+    setBiometricEnrolled(false);setBiometricEnabled(false);
+   }else{
+    // Preserve the verifier. Reconfirm the old PIN once to re-wrap the freshly
+    // issued JWTs; never write an unencrypted password, PIN or refresh token.
+    const pinReady=await hasQuickPin(String(me.id));current(attempt);
+    setQuickPinEnabled(pinReady);setPinReconnectRequired(pinReady);
+    await refreshBiometricState(me,attempt);
+   }
    setLockedAccount(null);setUser(me);setBiometricAvailable(await localBiometricSupported());
   }catch(e){if(attempt===version.current)setError(errorMessage(e));throw e;}
   finally{if(attempt===version.current)setLoading(false);}
