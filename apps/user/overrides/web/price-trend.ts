@@ -85,11 +85,30 @@ export function priceTrendTickIndices(points:TrendPoint[],width:number,compact:b
  return candidate===-1?[0,end]:[0,candidate,end];
 }
 
-export function priceTrendRange(points:TrendPoint[],range:TrendRange):TrendPoint[]{
- if(!points.length||range==='available')return points;
- const period=(range==='day'?1:range==='week'?7:30)*24*60*60*1000;
- const cutoff=points[points.length-1].time-period;
- return points.filter(p=>p.time>=cutoff);
+/** Fixed wall-clock window. A week must span a week on the X axis, even when
+ * fewer than seven days of real market observations are available.
+ */
+export function priceTrendWindow(range:TrendRange,now=Date.now(),points:TrendPoint[]=[]):{start:number;end:number}|null{
+ if(range==='available'){
+  return points.length?{start:points[0].time,end:Math.max(points[0].time+1,points[points.length-1].time)}:null;
+ }
+ const days=range==='day'?1:range==='week'?7:30;
+ return {start:now-days*86400000,end:now};
+}
+export function priceTrendRange(points:TrendPoint[],range:TrendRange,now=Date.now()):TrendPoint[]{
+ if(!points.length)return points;
+ const window=priceTrendWindow(range,now,points);
+ if(!window)return points;
+ return points.filter(p=>p.time>=window.start&&p.time<=window.end);
+}
+/** Visible labels describe the exact selected window, not the first/last quote.
+ * This prevents identical axis labels when the server has only recent records.
+ */
+export function priceTrendCoverage(points:TrendPoint[],range:TrendRange,now=Date.now()):{
+ total:number;oldest:number|null;newest:number|null;windowStart:number|null;windowEnd:number|null;
+}{
+ const win=priceTrendWindow(range,now,points);
+ return {total:points.length,oldest:points[0]?.time??null,newest:points.at(-1)?.time??null,windowStart:win?.start??null,windowEnd:win?.end??null};
 }
 export function priceTrendDomain(points:TrendPoint[]){
  if(!points.length)return null;
