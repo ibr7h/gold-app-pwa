@@ -19,7 +19,8 @@ import {canShowBiometricLogin} from './biometric-visibility';
 import {calculatorQuote} from './calculator-quote';
 import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
-import {displayAmount,displayPortfolioSummary,sarPerUsd} from './display-currency';
+import {displayAmount,displayPortfolioSummary,sarPerUsd,DisplayCurrency} from './display-currency';
+import {loadEuroReferenceRates,euroMarketRows,euroHistoryRows,EuroReferenceRates} from './euro-reference';
 import {LanguageProvider,useLanguage,activeLocale} from './i18n';
 import {amountToLocalizedWords} from './amount-words-localized';
 import {translateUiText} from './i18n-messages';
@@ -116,11 +117,13 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
- const [priceCurrency,setPriceCurrency]=useState<'SAR'|'USD'>(()=>{
-  try{return typeof window!=='undefined'&&window.localStorage.getItem('dhahabi:user:price-currency')==='USD'?'USD':'SAR';}
+ const [priceCurrency,setPriceCurrency]=useState<DisplayCurrency>(()=>{
+  try{const saved=typeof window!=='undefined'?window.localStorage.getItem('dhahabi:user:price-currency'):null;
+   return saved==='USD'||saved==='EUR'?saved:'SAR';}
   catch{return 'SAR';}
  });
  useEffect(()=>{try{window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency);}catch{/* Storage may be blocked on iOS private browsing. */}},[priceCurrency]);
+ const [eurFx,setEurFx]=useState<EuroReferenceRates|null>(null);
  const [calendar,setCalendar]=useState<DisplayCalendar>(readDisplayCalendar);
  useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState(''),[homeRange,setHomeRange]=useState<TrendRange>('day');
@@ -149,22 +152,26 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   }
   try{
    const currencies=['SAR','USD'];
+   const sourceCurrency=priceCurrency==='EUR'?'USD':priceCurrency;
+   const eurFxRequest=priceCurrency==='EUR'?loadEuroReferenceRates():Promise.resolve(null);
    const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
-   const selectedHistory=api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&range='+chartRange);
-   const [historyRows,homeHistoryRows,...latest]=await Promise.all([
+   const selectedHistory=api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(sourceCurrency)+'&karat='+chartKarat+'&range='+chartRange);
+   const [historyRows,homeHistoryRows,reference,...latest]=await Promise.all([
     selectedHistory,
-    chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(priceCurrency)+'&karat=24&range='+homeRange),
+    chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(sourceCurrency)+'&karat=24&range='+homeRange),
+    eurFxRequest,
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
    const cleanLatest=latest.filter((row):row is PriceHistoryRow&MarketPrice=>!!row&&typeof row.timestamp==='string'&&
     row.kind!=='daily-average'&&row.sellPrice!==undefined&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
    if(active.current&&seq===marketLoadSequence.current){
-    setHistory(historyRows);
-    setHomeHistory(homeHistoryRows);
+    setHistory(reference?euroHistoryRows(historyRows,reference):historyRows);
+    setHomeHistory(reference?euroHistoryRows(homeHistoryRows,reference):homeHistoryRows);
+    if(reference)setEurFx(reference);
     setHomeHistoryCurrency(priceCurrency);
     setHistoryQuery(priceCurrency+':'+chartKarat+':'+chartRange);
-    setAllMarketRows(cleanLatest);
+    setAllMarketRows(reference?[...cleanLatest,...euroMarketRows(cleanLatest,reference)]:cleanLatest);
     setMarketError('');
     setHistoryError('');
    }
@@ -220,7 +227,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const summary=totals(purchases,allMarketRows),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
  const visibleHistory=historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[];
   const fxRate=sarPerUsd(allMarketRows);
-  const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate);return <Money amount={display.amount} currency={display.currency}/>;};
+  const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate,eurFx?.eurPerUsd??null);return <Money amount={display.amount} currency={display.currency}/>;};
  const priceNote=<p className="fine">{tr('لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.')}</p>;
  const marketTime=(row:Pick<MarketPrice,'timestamp'>|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp,calendar):'لا يوجد تحديث موثوق';
  const priceBlock=<section className="market-price-card">
@@ -233,7 +240,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const calcWeightN=Math.max(0,Number(calcWeight)||0),calcFeeN=Math.max(0,Number(calcFee)||0);
  const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuote(calcUnit,calcWeightN,calcFeeN,calcVat);
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
- const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded);
+ const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurFx?.eurPerUsd??null);
  const selectedHomeHistory=homeHistoryCurrency===priceCurrency?homeHistory:[];
   // Daily historical averages are not live quotes and must not enter daily P/L.
   const realHomeQuotes=selectedHomeHistory.filter((r):r is PriceHistoryRow&{timestamp:string}=>
@@ -265,7 +272,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
 
   if(page==='prices')return <>
    <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?tr('آخر سعر متاح'):marketLabel}</span><p>{tr('سعر الأونصة المشتق من عيار 24')}</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((selectedMarketRows.find(r=>r.karat===24)?Number(selectedMarketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>{tr('آخر فحص:')} {marketTime(selectedMarketRows.find(r=>r.karat===24))}</small></section>
-   <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value==='USD'?'USD':'SAR')}><option>SAR</option><option>USD</option></select></label></div>
+   <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value==='USD'||e.target.value==='EUR'?e.target.value:'SAR')}><option>SAR</option><option>USD</option><option>EUR</option></select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=selectedMarketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
    <section className="approved-card"><div className="approved-card-title"><span>{tr('الرسم الزمني للأسعار')}</span><label className="inline-select">{tr('العيار')}<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={marketLoading}/>}</section>
@@ -486,6 +493,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
      <span className="dh-currency-options" role="group" aria-label="اختيار عملة عرض الأسعار">
       <button type="button" aria-pressed={priceCurrency==='SAR'} className={priceCurrency==='SAR'?'selected':''} onClick={()=>setPriceCurrency('SAR')}>SAR</button>
       <button type="button" aria-pressed={priceCurrency==='USD'} className={priceCurrency==='USD'?'selected':''} onClick={()=>setPriceCurrency('USD')}>USD</button>
+      <button type="button" aria-pressed={priceCurrency==='EUR'} className={priceCurrency==='EUR'?'selected':''} onClick={()=>setPriceCurrency('EUR')}>EUR €</button>
      </span>
     </div>
     <div className="dh-preference-row">
@@ -514,7 +522,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  {confirm?<><div className="confirm-warning" id="confirm-warning-description"><strong>هل تريد حذف {confirm.label}؟</strong><p>هذا الإجراء نهائي، ولا يمكن التراجع عن الحذف من التطبيق.</p></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>setConfirm(null)}>إلغاء</button><button className="danger-button" disabled={busy} onClick={()=>void mutate(confirm.path,'DELETE')}>{busy?'جارٍ الحذف…':'حذف'}</button></div></>:<form onSubmit={submit}>
  {dialog?.type==='portfolio'&&<label>اسم المحفظة<input key={dialog.portfolio?.id||'new'} name="name" required maxLength={100} defaultValue={dialog.portfolio?.name||''} placeholder="مثال: ادخار الأسرة" autoComplete="off"/></label>}
  {dialog?.type==='purchase'&&<PurchaseFormFields key={dialog.purchase?.id||'new'} purchase={dialog.purchase} portfolios={portfolios} preferredCurrency={priceCurrency}/>}
- {dialog?.type==='alert'&&<><div className="form-grid"><label>العيار<KaratSelect value={dialog.alert?.karat||24}/></label><label>العملة<CurrencySelect value={dialog.alert?.currency||priceCurrency}/></label></div><label>السعر المستهدف<input name="targetPrice" type="number" inputMode="decimal" min="0.0001" max="99999999" step="0.0001" required defaultValue={dialog.alert?.targetPrice||''}/></label><label>الشرط<select name="direction" defaultValue={dialog.alert?.direction||'above'}><option value="above">يرتفع إلى الهدف أو أكثر</option><option value="below">ينخفض إلى الهدف أو أقل</option></select></label>{dialog.alert&&<p className="fine alert-edit-guidance" role="note">{dialog.alert.status==='active'?'سيُطبّق الشرط الجديد عند الفحص القادم. إذا كان السعر يحقق الشرط الآن، فقد يصلك إشعار.':dialog.alert.status==='paused'?'سيبقى التنبيه متوقفًا بعد حفظ التعديل حتى تفعّله بنفسك.':'هذا التنبيه تحقق شرطه سابقًا، وسيظل كذلك بعد التعديل حتى تضغط «إعادة تفعيل».'}</p>}</>}
+ {dialog?.type==='alert'&&<><div className="form-grid"><label>العيار<KaratSelect value={dialog.alert?.karat||24}/></label><label>العملة<CurrencySelect value={dialog.alert?.currency||(priceCurrency==='EUR'?'USD':priceCurrency)}/></label></div><label>السعر المستهدف<input name="targetPrice" type="number" inputMode="decimal" min="0.0001" max="99999999" step="0.0001" required defaultValue={dialog.alert?.targetPrice||''}/></label><label>الشرط<select name="direction" defaultValue={dialog.alert?.direction||'above'}><option value="above">يرتفع إلى الهدف أو أكثر</option><option value="below">ينخفض إلى الهدف أو أقل</option></select></label>{dialog.alert&&<p className="fine alert-edit-guidance" role="note">{dialog.alert.status==='active'?'سيُطبّق الشرط الجديد عند الفحص القادم. إذا كان السعر يحقق الشرط الآن، فقد يصلك إشعار.':dialog.alert.status==='paused'?'سيبقى التنبيه متوقفًا بعد حفظ التعديل حتى تفعّله بنفسك.':'هذا التنبيه تحقق شرطه سابقًا، وسيظل كذلك بعد التعديل حتى تضغط «إعادة تفعيل».'}</p>}</>}
  {formError&&<p className="notice error" role="alert">{localizeFeedback(formError,language)}</p>}<div className="actions"><button className="primary" disabled={busy}>{tr(busy?'جارٍ الحفظ…':'حفظ')}</button><button type="button" className="secondary" disabled={busy} onClick={()=>setDialog(null)}>{tr('إلغاء')}</button></div></form>}{confirm&&formError&&<p className="notice error" role="alert">{localizeFeedback(formError,language)}</p>}
  </div></div>}</div>;
 }
