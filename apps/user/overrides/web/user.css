@@ -2538,3 +2538,18 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
   text-overflow:clip;
  }
 }
+
+
+/* User-only market session push consent; no floating or overlapping controls. */
+.gold-web .dh-market-session-settings{
+ display:grid;gap:8px;flex:1 1 100%;width:100%;min-width:0;
+ padding:14px;border:1px solid #dbe3eb;border-radius:14px;
+ background:#f8fafc;box-sizing:border-box;
+}
+.gold-web .dh-market-session-settings>strong{color:#001f3f;font-size:14px;line-height:1.5}
+.gold-web .dh-market-session-settings>.fine{margin:0!important;line-height:1.7!important}
+.gold-web .dh-market-session-settings>button{justify-self:start;min-width:180px}
+.gold-web[dir="ltr"] .dh-market-session-settings{text-align:left}
+@media(max-width:600px){
+ .gold-web .dh-market-session-settings>button{width:100%;min-width:0}
+}
