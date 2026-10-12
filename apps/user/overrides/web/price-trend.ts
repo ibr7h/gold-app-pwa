@@ -39,11 +39,29 @@ export function priceTrendPoints(rows:TrendSourceRow[]):TrendPoint[]{
  const observed:TrendPoint[]=[];
  for(const point of deduped){
   const previous=observed[observed.length-1];
-  if(previous&&previous.kind===point.kind&&Math.round(previous.price*100)===Math.round(point.price*100))continue;
+  // A new session's first observed quote is meaningful even when its rounded
+  // price equals the previous close. Keep it for the open/close markers.
+  const crossedClosure=previous?.kind==='spot'&&point.kind==='spot'
+    &&hasMarketClosureBetween(previous.time,point.time);
+  if(previous&&previous.kind===point.kind&&!crossedClosure
+   &&Math.round(previous.price*100)===Math.round(point.price*100))continue;
   observed.push(point);
  }
  return observed;
 }
+/** Exact schedule sampling is DST-aware via America/New_York; quote times
+ * come from the supplier, never from our polling/storage clock. */
+export function hasMarketClosureBetween(a:number,b:number):boolean{
+ if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a)return false;
+ const quarter=15*60*1000;
+ for(let t=a;t<b;){
+  const stop=Math.min(b,(Math.floor(t/quarter)+1)*quarter);
+  if(!isGlobalGoldMarketOpen(t+(stop-t)/2))return true;
+  t=stop;
+ }
+ return false;
+}
+
 /** A chart must never imply trades across a market closure or an extended
  * period with no observations. Each returned group is an actual uninterrupted
  * observed session; gaps are rendered with no connecting line.
