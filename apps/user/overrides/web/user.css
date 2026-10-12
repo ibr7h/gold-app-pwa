@@ -2553,3 +2553,12 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 @media(max-width:600px){
  .gold-web .dh-market-session-settings>button{width:100%;min-width:0}
 }
+
+
+/* Reconnect existing encrypted PIN after a password sign-in; never re-enroll
+   or expose PIN credentials in copy, logs or client URLs. */
+.gold-web .dh-quick-reconnect{width:100%;box-sizing:border-box;display:grid;gap:9px;
+ margin:12px 0;padding:12px 14px;border:1px solid #d8c58f;
+ border-radius:13px;background:#fffaf0}
+.gold-web .dh-quick-reconnect p{margin:0;line-height:1.7;font-size:13px;color:#354255}
+.gold-web .dh-quick-reconnect button{width:100%;max-width:100%;white-space:normal}

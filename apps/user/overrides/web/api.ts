@@ -40,18 +40,18 @@ export async function restoreLegacySession(){
  }await legacyFlight;
 }
 export async function hasSession(){return !!session||await hasSessionVault();}
-export interface VerifiedCachedUser{ id:string|number;email:string;role:'user'; }
+export interface VerifiedCachedUser{ id:string|number;email:string;role:'user';name?:string; }
 export async function getVerifiedCachedUser():Promise<VerifiedCachedUser|null>{
  try{
   const value=await AsyncStorage.getItem(PROFILE);
   if(!value)return null;
   const data=JSON.parse(value);
   if(data?.role!=='user'||!(typeof data.id==='string'||typeof data.id==='number')||typeof data.email!=='string'||!data.email.includes('@'))return null;
-  return {id:data.id,email:data.email,role:'user'};
+  return {id:data.id,email:data.email,role:'user',...(typeof data.name==='string'&&data.name.trim()?{name:data.name.trim().slice(0,120)}:{})};
  }catch{return null;}
 }
 export async function saveVerifiedUser(user:VerifiedCachedUser){
- await AsyncStorage.setItem(PROFILE,JSON.stringify({id:user.id,email:user.email,role:'user'}));
+ await AsyncStorage.setItem(PROFILE,JSON.stringify({id:user.id,email:user.email,role:'user',...(user.name?.trim()?{name:user.name.trim().slice(0,120)}:{})}));
 }
 export async function saveSession(tokens:any){
  if(typeof tokens?.accessToken!=='string'||!tokens.accessToken||typeof tokens?.refreshToken!=='string'||!tokens.refreshToken)throw new ApiError('استجابة الدخول غير مكتملة.');

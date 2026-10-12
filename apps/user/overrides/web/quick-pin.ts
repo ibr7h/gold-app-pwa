@@ -42,6 +42,13 @@ function recordValid(value:unknown):value is PinRecord{
 async function read():Promise<PinRecord|null>{
  try{const value=await AsyncStorage.getItem(KEY);if(!value)return null;const data=JSON.parse(value);return recordValid(data)?data:null;}catch{return null;}
 }
+/** Account binding of the stored PIN verifier; never exposes the PIN/hash.
+ * Used only after /auth/me authenticates an account to distinguish a device
+ * returning to that account from an actual account switch. */
+export async function storedQuickPinAccountId():Promise<string|null>{
+ if(typeof window==='undefined'||!window.isSecureContext||!crypto?.subtle)return null;
+ return (await read())?.accountId||null;
+}
 export async function hasQuickPin(accountId:string):Promise<boolean>{
  if(typeof window==='undefined'||!window.isSecureContext||!crypto?.subtle)return false;
  const p=await read();return !!p&&p.accountId===accountId;

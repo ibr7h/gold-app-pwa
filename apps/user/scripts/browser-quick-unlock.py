@@ -135,8 +135,11 @@ with sync_playwright() as p:
     assert page.evaluate('localStorage.getItem("dhahabi_user_session_vault_v1")') is None
     login()
     account()
-    expect(page.get_by_role('switch', name='تفعيل رمز الدخول السريع')).to_have_attribute('aria-checked', 'false')
-    setup('406195')
+    expect(page.get_by_role('switch', name='تفعيل رمز الدخول السريع')).to_have_attribute('aria-checked', 'true')
+    page.get_by_role('button', name='تأكيد رمز الدخول المحفوظ', exact=True).click()
+    existing = page.get_by_role('dialog', name='إعداد رمز الدخول السريع')
+    digits(existing, '406195')
+    expect(existing).not_to_be_visible(timeout=15000)
     page.get_by_role('button', name='قفل ذهبي الآن', exact=True).click()
     for width, height in [(375, 667), (390, 844), (1024, 768), (1440, 900)]:
         page.set_viewport_size({'width': width, 'height': height})
