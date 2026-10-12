@@ -197,6 +197,5 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
    <span><b className="dh-session-open">▶</b>{tr('أول سعر مسجل بعد فتح السوق')}</span>
    <span><b className="dh-session-close">■</b>{tr('آخر سعر مسجل قبل إغلاق السوق')}</span>
   </div>}
-  <p className="dh-trend-footnote">{tr('تم ضغط فترات إغلاق السوق بصريًا؛ لا تعني الوصلات الرمادية حدوث تداول.')} · {hasDaily?tr('الخط المتقطع يمثل متوسطات يومية تاريخية؛ والخط المتصل يمثل تحديثات فعلية. لا يمثل المتوسط اليومي سعر إغلاق أو سعرًا لحظيًا.') :tr(compact?'أسعار مسجلة فقط، دون تقديرات.':'يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.')} · {tr('الفترة')}: {tr(rangeDescription)}</p>
  </div>;
 }
