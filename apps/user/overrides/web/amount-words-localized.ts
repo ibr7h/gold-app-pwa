@@ -63,7 +63,7 @@ function frWords(n:number):string{
 }
 
 /** Display-only verbalization. The invoice, alert and quote amounts are never changed. */
-export function amountToLocalizedWords(value:number|null|undefined,currency:'SAR'|'USD',language:Language):string{
+export function amountToLocalizedWords(value:number|null|undefined,currency:'SAR'|'USD'|'EUR',language:Language):string{
  if(language==='ar')return amountToDisplayCurrencyWords(value,currency);
  if(value==null||!Number.isFinite(value)||value<0)return '';
  const minorTotal=Math.round((value+Number.EPSILON)*100);
@@ -71,10 +71,11 @@ export function amountToLocalizedWords(value:number|null|undefined,currency:'SAR
  const whole=Math.floor(minorTotal/100),minor=minorTotal%100;
  const words=language==='en'?enWords:frWords;
  if(language==='en'){
-  const major=currency==='USD'?'US dollar':'Saudi riyal',small=currency==='USD'?'cent':'halala';
+  const major=currency==='USD'?'US dollar':currency==='EUR'?'euro':'Saudi riyal',small=currency==='SAR'?'halala':'cent';
   return 'Only '+words(whole)+' '+major+(whole===1?'':'s')+(minor?' and '+words(minor)+' '+small+(minor===1?'':'s'):'')+'.';
  }
- const major=currency==='USD'?(whole>1?'dollars américains':'dollar américain'):(whole>1?'riyals saoudiens':'riyal saoudien');
- const small=currency==='USD'?'centime':'halala';
+ const major=currency==='USD'?(whole>1?'dollars américains':'dollar américain'):
+  currency==='EUR'?(whole>1?'euros':'euro'):(whole>1?'riyals saoudiens':'riyal saoudien');
+ const small=currency==='SAR'?'halala':'centime';
  return 'Seulement '+words(whole)+' '+major+(minor?' et '+words(minor)+' '+small+(minor>1?'s':''):'')+'.';
 }

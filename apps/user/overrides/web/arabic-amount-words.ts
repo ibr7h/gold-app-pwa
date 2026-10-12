@@ -79,11 +79,13 @@ export function amountToSaudiRiyalWords(amount:number|null|undefined):string{
 
 
 /** Spell out the chosen DISPLAY currency; never label USD amounts as Saudi riyals. */
-export function amountToDisplayCurrencyWords(amount:number|null|undefined,currency:'SAR'|'USD'):string{
+export function amountToDisplayCurrencyWords(amount:number|null|undefined,currency:'SAR'|'USD'|'EUR'):string{
  if(currency==='SAR')return amountToSaudiRiyalWords(amount);
  if(amount===null||amount===undefined||!Number.isFinite(amount)||amount<0)return '';
  const centsTotal=Math.round((amount+Number.EPSILON)*100);
  if(!Number.isSafeInteger(centsTotal)||centsTotal>99999999999999)return '';
  const dollars=Math.floor(centsTotal/100),cents=centsTotal%100;
- return 'فقط '+numberToArabicWords(dollars)+' دولار أمريكي'+(cents?' و'+numberToArabicWords(cents)+' سنت أمريكي':'')+' لا غير';
+ const major=currency==='EUR'?' يورو':' دولار أمريكي';
+ const minor=currency==='EUR'?' سنت يورو':' سنت أمريكي';
+ return 'فقط '+numberToArabicWords(dollars)+major+(cents?' و'+numberToArabicWords(cents)+minor:'')+' لا غير';
 }
