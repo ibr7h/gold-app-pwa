@@ -297,7 +297,8 @@ describe('iPhone more and profile UX redesign',()=>{
   expect(more).toContain('<Icon name="receipt-text"/></span><span className="dh-ux-row-copy"><strong>المشتريات والفواتير');
   expect(more).toContain('<Icon name="bell"/></span><span className="dh-ux-row-copy"><strong>تنبيهات الأسعار');
   expect(more).toContain('<Icon name="bell-ring"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات');
-  expect(more).toContain('<Icon name="circle-help"/></span><span className="dh-ux-row-copy"><strong>المساعدة');
+  expect(more).toContain('<Icon name="circle-help"/></span><span className="dh-ux-row-copy"><strong>{tr(\'المساعدة\')}');
+  expect(more).toContain("tr('دليل الذهب والعيارات والأحجار والمصنعية')");
   expect(more).toContain('<Icon name="globe"/></span>\n     <span className="dh-preference-text"><strong>لغة التطبيق');
   expect(more).toContain('<Icon name="coins"/></span>\n     <span className="dh-preference-text"><strong>عملة عرض الأسعار');
   expect(more).toContain("onClick={()=>navigate('notification-settings')}");
