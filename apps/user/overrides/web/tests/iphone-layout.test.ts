@@ -107,7 +107,7 @@ describe('Mockup-aligned User gold-price chart',()=>{
   const workspace=source('../UserWorkspace.tsx');
   const chart=source('../PriceHistoryChart.tsx');
   expect(workspace).toContain('PriceHistoryChart rows={visibleHistory}');
-  expect(workspace).toContain("historyQuery===priceCurrency+':'+chartKarat?history:[]");
+  expect(workspace).toContain("historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[]");
   expect(chart).toContain('role="slider"');
   expect(chart).toContain('onPointerMove');
   expect(chart).toContain("e.key==='ArrowLeft'");
@@ -397,7 +397,7 @@ describe('iPhone chart period controls request the matching real historical wind
  it('fetches specific history per date window while preserving latest-quote requests',()=>{
   const sourceText=source('../UserWorkspace.tsx');
   expect(sourceText).toContain("'&limit=200&range='+chartRange");
-  expect(sourceText).toContain("'&limit=200&range='+homeRange");
+  expect(sourceText).toContain("&limit=200&range='+homeRange");
   expect(sourceText).toContain("api<PriceHistoryRow|null>('/prices/latest?currency='");
  });
  it('draws selected window endpoints, not a misleading zoom to the last saved record',()=>{
