@@ -157,7 +157,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
-   const cleanLatest=latest.filter((row):row is MarketPrice=>!!row&&typeof row.timestamp==='string'&&
+   const cleanLatest=latest.filter((row):row is PriceHistoryRow&MarketPrice=>!!row&&typeof row.timestamp==='string'&&
     row.kind!=='daily-average'&&row.sellPrice!==undefined&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
    if(active.current&&seq===marketLoadSequence.current){
     setHistory(historyRows);
