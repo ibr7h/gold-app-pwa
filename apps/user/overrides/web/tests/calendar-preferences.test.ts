@@ -31,7 +31,9 @@ describe('User iPhone price copy and saved calendar preferences',()=>{
   expect(ws).toContain("!stale?tr('آخر سعر متاح'):marketLabel");
   expect(ws).not.toContain('<small>تُطبّق على الرئيسية والحاسبة');
   expect(ws).not.toContain('<small>تحويل المبالغ المسجلة استرشادي');
-  expect(chart).toContain('يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.');
+  expect(chart).not.toContain('dh-trend-footnote');
+  expect(chart).not.toContain('تم ضغط فترات إغلاق السوق بصريًا؛');
+  expect(chart).not.toContain('يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.');
   expect(chart).not.toContain('بحد أقصى 200 سجل من الخادم');
   expect(chart).not.toContain('الخط يربط تحديثات فعلية، والمسافات الأفقية');
  });
@@ -51,9 +53,7 @@ describe('User iPhone price copy and saved calendar preferences',()=>{
   expect(src('../model.ts')).not.toContain('readDisplayCalendar');
  });
  it('translates all new labels into English and French',()=>{
-  for(const phrase of ['آخر سعر متاح','التقويم','نوع التاريخ','ميلادي','هجري',
-   'يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.',
-   'أسعار مسجلة فقط، دون تقديرات.']){
+  for(const phrase of ['آخر سعر متاح','التقويم','نوع التاريخ','ميلادي','هجري']){
    expect(translateUiText(phrase,'en'),phrase).not.toMatch(/[\u0600-\u06FF]/);
    expect(translateUiText(phrase,'fr'),phrase).not.toMatch(/[\u0600-\u06FF]/);
   }
