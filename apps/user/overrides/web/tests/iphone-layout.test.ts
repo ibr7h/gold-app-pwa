@@ -112,7 +112,7 @@ describe('Mockup-aligned User gold-price chart',()=>{
   expect(chart).toContain('onPointerMove');
   expect(chart).toContain("e.key==='ArrowLeft'");
   expect(chart).toContain("role=\"group\"");
-  expect(chart).toContain("priceTrendRange(all,range)");
+  expect(chart).toContain("priceTrendRange(all,range,now)");
   expect(chart).toContain('priceTrendDomain(points)');
   expect(chart).toContain('dh-trend-summary');
   expect(chart).toContain('preserveAspectRatio="none"');
@@ -380,5 +380,33 @@ describe('iPhone chart does not visually simulate prices during closed sessions'
   expect(chart).toContain('priceTrendTickIndices(points,right-left,compact)');
   expect(chart).toContain('formatDisplayDate(ms,activeLocale(),calendar,');
   expect(chart).toContain("{day:'2-digit',month:'2-digit'}");
+ });
+});
+
+describe('iPhone chart period controls request the matching real historical window',()=>{
+ it('keeps separate home and price-page selections and passes them to charts',()=>{
+  const sourceText=source('../UserWorkspace.tsx');
+  expect(sourceText).toContain("setHomeRange]=useState<TrendRange>('day')");
+  expect(sourceText).toContain("setChartRange]=useState<TrendRange>('available')");
+  expect(sourceText).toContain("onRangeChange={setHomeRange}");
+  expect(sourceText).toContain("onRangeChange={setChartRange}");
+  expect(sourceText).toContain("range={homeRange}");
+  expect(sourceText).toContain("range={chartRange}");
+  expect(sourceText).toContain("historyQuery===priceCurrency+':'+chartKarat+':'+chartRange");
+ });
+ it('fetches specific history per date window while preserving latest-quote requests',()=>{
+  const sourceText=source('../UserWorkspace.tsx');
+  expect(sourceText).toContain("'&limit=200&range='+chartRange");
+  expect(sourceText).toContain("'&limit=200&range='+homeRange");
+  expect(sourceText).toContain("api<PriceHistoryRow|null>('/prices/latest?currency='");
+ });
+ it('draws selected window endpoints, not a misleading zoom to the last saved record',()=>{
+  const chart=source('../PriceHistoryChart.tsx');
+  expect(chart).toContain("const timeWindow=priceTrendWindow(range,now,points)");
+  expect(chart).toContain("const projectX=(p:TrendPoint)=>left+(right-left)*((p.time-axisStart)/spanTime)");
+  expect(chart).toContain("const explicitRange=range!=='available'&&timeWindow!==null");
+  expect(chart).toContain("onClick={()=>setRange(option.id)}");
+  expect(chart).toContain("aria-pressed={range===option.id}");
+  expect(chart).toContain("xAxisLabels.map");
  });
 });
