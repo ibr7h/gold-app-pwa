@@ -32,6 +32,8 @@ import {DisplayCalendar,readDisplayCalendar,saveDisplayCalendar,formatDisplayDat
 type UserLockAuth=ReturnType<typeof useAuth> & {
  lockedAccount:{id?:number|string;email:string;role:'user'|'admin'|'trader';name?:string}|null;
  quickPinEnabled:boolean;
+ pinReconnectRequired:boolean;
+ reconnectQuickPin:(currentPin:string)=>Promise<void>;
  unlockWithPin:(pin:string)=>Promise<{ok:boolean;waitSeconds:number;remaining:number}>;
  enableQuickPin:(pin:string,currentPin?:string)=>Promise<void>;
  disableQuickPin:(currentPin:string)=>Promise<void>;
@@ -111,9 +113,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   const {language,setLanguage,direction}=useLanguage();
   // Explicit React translations for dynamic/critical labels: no dependence on DOM observer timing.
   const tr=(source:string)=>translateUiText(source,language);
- const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,enableQuickPin,disableQuickPin}=useUserLockAuth();
+ const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,enableQuickPin,disableQuickPin}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
- const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|null>(null);
+ const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|'reconnect'|null>(null);
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
@@ -424,7 +426,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     }else setPinSetup('enable');
    })()}><span/></button>
  </div>
- {quickPinEnabled&&<div className="dh-quick-row-actions">
+ {quickPinEnabled&&pinReconnectRequired&&<div className="dh-quick-reconnect" role="status"><p>رمز الدخول محفوظ على جهازك. بعد تسجيل الدخول بكلمة المرور، أكّد الرمز الحالي مرة واحدة لربطه بالجلسة الجديدة.</p><button type="button" className="primary" onClick={()=>setPinSetup('reconnect')}>تأكيد رمز الدخول المحفوظ</button></div>}
+  {quickPinEnabled&&<div className="dh-quick-row-actions">
   <button type="button" className="secondary" onClick={()=>setPinSetup('change')}>تغيير رمز الدخول السريع</button>
  </div>}
  <div className="dh-quick-setting-row">
@@ -442,7 +445,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  </div>
  {biometricNotice&&<p className="notice info" role="status">{biometricNotice}</p>}
  <div className="dh-quick-row-actions">
-  {(quickPinEnabled||biometricActive)&&<button type="button" className="primary" onClick={()=>void (async()=>{
+  {!pinReconnectRequired&&(quickPinEnabled||biometricActive)&&<button type="button" className="primary" onClick={()=>void (async()=>{
    if(!await lockWithBiometric())setBiometricNotice('تعذر قفل التطبيق. تحقق من جلسة الدخول.');
   })()}>قفل ذهبي الآن</button>}
  </div>
@@ -526,6 +529,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  {pinSetup&&<QuickPinSetup mode={pinSetup} onClose={()=>setPinSetup(null)}
   onSave={async(pin,currentPin)=>{
    if(pinSetup==='disable'){await disableQuickPin(currentPin||'');setBiometricNotice('أُوقف رمز الدخول السريع على هذا الجهاز.');}
+   else if(pinSetup==='reconnect'){await reconnectQuickPin(currentPin||'');setBiometricNotice('تم ربط رمز الدخول المحفوظ بالجلسة الجديدة.');}
    else{await enableQuickPin(pin,currentPin);setBiometricNotice('تم حفظ رمز الدخول السريع لهذا الجهاز.');}
   }}/>}
  {(dialog||confirm)&&<div className="dialog-backdrop"><div className={'dialog '+(confirm?'confirm-dialog':'')} ref={modalRef} role={confirm?'alertdialog':'dialog'} dir={direction} lang={language} aria-modal="true" aria-labelledby="dialog-title" aria-describedby={confirm?'confirm-warning-description':undefined}><div className="section-heading"><h2 id="dialog-title">{tr(confirm?'تأكيد الحذف':dialog?.type==='portfolio'?(dialog.portfolio?'تعديل اسم المحفظة':'محفظة جديدة'):dialog?.type==='alert'?(dialog.alert?'تعديل التنبيه':'تنبيه جديد'):dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء')}</h2><button className="icon-button" aria-label={tr('إغلاق')} disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
