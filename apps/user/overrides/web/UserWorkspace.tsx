@@ -23,6 +23,7 @@ import {LanguageProvider,useLanguage,activeLocale} from './i18n';
 import {amountToLocalizedWords} from './amount-words-localized';
 import {translateUiText} from './i18n-messages';
 import {localizeFeedback} from './i18n-feedback';
+import {DisplayCalendar,readDisplayCalendar,saveDisplayCalendar,formatDisplayDate} from './date-display';
 /** Build-time type bridge for the extracted native app's older AuthContext.
  * The Web bundle uses the specialized contexts/AuthContext.web provider.
  */
@@ -72,7 +73,7 @@ function Icon({name}:{name:string}){
 }
 const number=(n:number)=>formatTwo(n);
 const money=(n:number|null,c:string)=><Money amount={n} currency={c}/>;
-const dateTime=(s:string)=>new Date(s).toLocaleString(activeLocale(),{dateStyle:'medium',timeStyle:'short'});
+const dateTime=(s:string,calendar:DisplayCalendar)=>formatDisplayDate(s,activeLocale(),calendar,{dateStyle:'medium',timeStyle:'short'});
 function Empty({children}:{children:React.ReactNode}){return <div className="empty"><Icon name="wallet"/><p>{children}</p></div>;}
 function CurrencySelect({value='SAR'}:{value?:string}){return <select name="currency" defaultValue={value}>{(CURRENCIES.includes(value)?CURRENCIES:[value,...CURRENCIES]).map(c=><option key={c}>{c}</option>)}</select>;}
 function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{(KARATS.includes(value)?KARATS:[value,...KARATS]).map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
@@ -119,6 +120,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   catch{return 'SAR';}
  });
  useEffect(()=>{try{window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency);}catch{/* Storage may be blocked on iOS private browsing. */}},[priceCurrency]);
+ const [calendar,setCalendar]=useState<DisplayCalendar>(readDisplayCalendar);
+ useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState('');
  const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
@@ -212,7 +215,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   const fxRate=sarPerUsd(allMarketRows);
   const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate);return <Money amount={display.amount} currency={display.currency}/>;};
  const priceNote=<p className="fine">{tr('لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.')}</p>;
- const marketTime=(row:Pick<MarketPrice,'timestamp'>|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp):'لا يوجد تحديث موثوق';
+ const marketTime=(row:Pick<MarketPrice,'timestamp'>|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp,calendar):'لا يوجد تحديث موثوق';
  const priceBlock=<section className="market-price-card">
   <div className="row"><div><p className="mock-supporting">{marketClosed?'آخر سعر مسجل':'سعر الذهب الآن'}</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(!stale?'good':'warn')}>{marketLabel}</span></div>
   <p className="market-update">آخر تحديث: {marketTime(homeMarket)}</p>
@@ -247,15 +250,15 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     {homePortfolio.hasUnconverted&&<p className="home-currency-note">بعض مشترياتك بعملات لا تتوفر لها بيانات تحويل موثوقة؛ راجع التفاصيل حسب عملة التسجيل.</p>}
      {homePortfolio.hasMissingValuation&&<p className="home-currency-note">تقدير قيمة بعض المشتريات غير متاح لغياب سعر سوق موثوق.</p>}
    </section>
-   <section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} compact/></section>
+   <section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact/></section>
   </>;
 
   if(page==='prices')return <>
-   <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?'سعر محدّث من الخادم':marketLabel}</span><p>سعر الأونصة المشتق من عيار 24</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((selectedMarketRows.find(r=>r.karat===24)?Number(selectedMarketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>آخر فحص: {marketTime(selectedMarketRows.find(r=>r.karat===24))}</small></section>
+   <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?tr('آخر سعر متاح'):marketLabel}</span><p>سعر الأونصة المشتق من عيار 24</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((selectedMarketRows.find(r=>r.karat===24)?Number(selectedMarketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>آخر فحص: {marketTime(selectedMarketRows.find(r=>r.karat===24))}</small></section>
    <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value==='USD'?'USD':'SAR')}><option>SAR</option><option>USD</option></select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=selectedMarketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
-   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat}/>}</section>
+   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar}/>}</section>
    {priceNote}
   </>;
 
@@ -340,7 +343,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
         const position=purchasePerformance(purchase,allMarketRows);
         return <div className="portfolio-purchase-row" key={purchase.id}>
          <div className="portfolio-purchase-identity"><strong>ذهب عيار {purchase.karat}</strong>
-          <span>{number(Number(purchase.weightGrams))} جرام · {purchase.purchasedAt.slice(0,10)}</span>
+          <span>{number(Number(purchase.weightGrams))} جرام · {formatDisplayDate(purchase.purchasedAt,activeLocale(),calendar,{dateStyle:'medium'})}</span>
          </div>
          <dl className="portfolio-purchase-metrics">
           <div><dt>{purchase.invoiceDetails?.goldUnitPrice!==undefined?'سعر جرام الذهب دون إضافات':'سعر الجرام المسجل (شامل)'}</dt><dd>{showMoney(purchase.invoiceDetails?.goldUnitPrice??Number(purchase.unitPrice),purchase.currency)}</dd></div>
@@ -362,7 +365,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    </section>
   </>;
 
-  if(page==='purchases')return <section className="approved-card"><div className="approved-card-title"><span>سجل المشتريات</span><button className="primary compact-primary" disabled={busy||!loaded} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}><Icon name="plus"/>{portfolios.length?tr('تسجيل شراء'):tr('إنشاء محفظة')}</button></div>{!loaded?<Empty>لم يتم تحميل المشتريات بعد.</Empty>:!purchases.length?<Empty>لا توجد مشتريات مسجلة.</Empty>:<div className="records">{purchases.map(p=><article className="record" key={p.id}><div className="record-title"><span className="card-icon"><Icon name="receipt"/></span><div><h3>ذهب عيار {p.karat}</h3><p className="approved-muted">{portfolios.find(x=>x.id===p.portfolioId)?.name||'محفظة'} · {p.purchasedAt.slice(0,10)}</p></div><strong className="record-total">{showMoney(Number(p.totalPrice),p.currency)}</strong></div><dl className="record-details"><div><dt>الوزن</dt><dd>{number(Number(p.weightGrams))} جم</dd></div><div><dt>{p.invoiceDetails?.goldUnitPrice!==undefined?'سعر جرام الذهب دون إضافات':'سعر الجرام المسجل (شامل)'}</dt><dd>{showMoney(p.invoiceDetails?.goldUnitPrice??Number(p.unitPrice),p.currency)}</dd></div>
+  if(page==='purchases')return <section className="approved-card"><div className="approved-card-title"><span>سجل المشتريات</span><button className="primary compact-primary" disabled={busy||!loaded} onClick={()=>openDialog(portfolios.length?'purchase':'portfolio')}><Icon name="plus"/>{portfolios.length?tr('تسجيل شراء'):tr('إنشاء محفظة')}</button></div>{!loaded?<Empty>لم يتم تحميل المشتريات بعد.</Empty>:!purchases.length?<Empty>لا توجد مشتريات مسجلة.</Empty>:<div className="records">{purchases.map(p=><article className="record" key={p.id}><div className="record-title"><span className="card-icon"><Icon name="receipt"/></span><div><h3>ذهب عيار {p.karat}</h3><p className="approved-muted">{portfolios.find(x=>x.id===p.portfolioId)?.name||'محفظة'} · {formatDisplayDate(p.purchasedAt,activeLocale(),calendar,{dateStyle:'medium'})}</p></div><strong className="record-total">{showMoney(Number(p.totalPrice),p.currency)}</strong></div><dl className="record-details"><div><dt>الوزن</dt><dd>{number(Number(p.weightGrams))} جم</dd></div><div><dt>{p.invoiceDetails?.goldUnitPrice!==undefined?'سعر جرام الذهب دون إضافات':'سعر الجرام المسجل (شامل)'}</dt><dd>{showMoney(p.invoiceDetails?.goldUnitPrice??Number(p.unitPrice),p.currency)}</dd></div>
  <div><dt>التكلفة الفعلية للجرام</dt><dd>{showMoney(Number(p.totalPrice)/Number(p.weightGrams),p.currency)}</dd></div>
  {p.invoiceDetails?.pricingMode==='itemized'&&<div><dt>المصنعية والضريبة والأحجار</dt><dd>{showMoney((p.invoiceDetails.makingCharge||0)+(p.invoiceDetails.vatAmount||0)+(p.invoiceDetails.stonePrice||0),p.currency)}</dd></div>}
  {p.invoiceDetails?.invoiceNumber&&<div><dt>الفاتورة</dt><dd data-no-translate>{p.invoiceDetails.invoiceNumber}</dd></div>}
@@ -469,10 +472,18 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     </div>
     <div className="dh-preference-row">
      <span className="dh-ux-row-icon"><Icon name="coins"/></span>
-     <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong><small>تُطبّق على الرئيسية والحاسبة والمحفظة والأسعار والمشتريات والتنبيهات، وتحفظ على هذا الجهاز</small><small>تحويل المبالغ المسجلة استرشادي من أسعار الذهب، دون تغيير الفواتير وشروط التنبيه.</small></span>
+     <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong></span>
      <span className="dh-currency-options" role="group" aria-label="اختيار عملة عرض الأسعار">
       <button type="button" aria-pressed={priceCurrency==='SAR'} className={priceCurrency==='SAR'?'selected':''} onClick={()=>setPriceCurrency('SAR')}>SAR</button>
       <button type="button" aria-pressed={priceCurrency==='USD'} className={priceCurrency==='USD'?'selected':''} onClick={()=>setPriceCurrency('USD')}>USD</button>
+     </span>
+    </div>
+    <div className="dh-preference-row">
+     <span className="dh-ux-row-icon"><Icon name="globe"/></span>
+     <span className="dh-preference-text"><strong>{tr('التقويم')}</strong><small>{tr('نوع التاريخ')}</small></span>
+     <span className="dh-calendar-options" role="group" aria-label={tr('التاريخ الهجري أو الميلادي')}>
+      <button type="button" aria-pressed={calendar==='gregorian'} className={calendar==='gregorian'?'selected':''} onClick={()=>setCalendar('gregorian')}>{tr('ميلادي')}</button>
+      <button type="button" aria-pressed={calendar==='hijri'} className={calendar==='hijri'?'selected':''} onClick={()=>setCalendar('hijri')}>{tr('هجري')}</button>
      </span>
     </div>
    </section>
