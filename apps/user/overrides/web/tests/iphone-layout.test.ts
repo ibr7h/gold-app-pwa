@@ -327,7 +327,8 @@ describe('Global display-currency integration regression',()=>{
   expect(workspace).toContain('PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency}');
   expect(workspace).toContain('money(calcTotal,priceCurrency)');
   expect(workspace).toContain('displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded)');
-  expect(workspace).toContain("homeMarketMovement(selectedHomeHistory,homeMarket,clock,priceCurrency)");
+  expect(workspace).toContain("homeMarketMovement(realHomeQuotes,homeMarket,clock,priceCurrency)");
+   expect(workspace).toContain("r.kind!=='daily-average'");
  });
  it('uses preferred display currency but preserves original invoices and alert conditions for writes',()=>{
   expect(workspace).toContain('preferredCurrency={priceCurrency}');
