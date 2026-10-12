@@ -2404,3 +2404,25 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .gold-web .gold-purchase-form .gold-purchase-details summary{
  white-space:normal;overflow-wrap:break-word;
 }
+
+/* iPhone calendar preference shares the same 44px accessible controls as currency. */
+.gold-web.workspace .dh-calendar-options{
+ display:inline-flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;align-items:center;
+ margin-inline-start:auto;max-width:100%;
+}
+.gold-web.workspace .dh-calendar-options button{
+ min-height:44px;min-width:76px;padding:8px 11px;border-radius:11px;
+ border:1px solid #DCE2EA;background:#F7F9FC;color:#001F3F;
+ font-weight:700;cursor:pointer;
+}
+.gold-web.workspace .dh-calendar-options button[aria-pressed="true"]{
+ background:#F5EDD1;border-color:#C5A021;color:#001F3F;
+}
+.gold-web.workspace .dh-calendar-options button:focus-visible{
+ outline:3px solid #C5A021;outline-offset:2px;
+}
+@media(max-width:390px){
+ .gold-web.workspace .dh-preference-row:has(.dh-calendar-options){flex-wrap:wrap;}
+ .gold-web.workspace .dh-calendar-options{flex:1 1 100%;justify-content:stretch;margin-inline-start:0;}
+ .gold-web.workspace .dh-calendar-options button{flex:1 1 0;}
+}

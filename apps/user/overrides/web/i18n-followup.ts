@@ -115,4 +115,62 @@ export const followupUiMessages:ReadonlyArray<readonly [string,string,string]>=[
   "This action is permanent and cannot be undone in the app.",
   "Cette action est définitive et ne peut être annulée depuis l'application."
  ]
+,
+
+ [
+  "آخر سعر متاح",
+  "Last available price",
+  "Dernier cours disponible"
+ ],
+ [
+  "التقويم",
+  "Calendar",
+  "Calendrier"
+ ],
+ [
+  "نوع التاريخ",
+  "Calendar type",
+  "Type de calendrier"
+ ],
+ [
+  "التاريخ الهجري أو الميلادي",
+  "Hijri or Gregorian date",
+  "Calendrier hégirien ou grégorien"
+ ],
+ [
+  "هجري",
+  "Hijri",
+  "Hégirien"
+ ],
+ [
+  "ميلادي",
+  "Gregorian",
+  "Grégorien"
+ ],
+ [
+  "يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.",
+  "The chart shows recorded price changes over the selected period, with no estimated prices added.",
+  "Le graphique présente les variations de prix enregistrées sur la période choisie, sans prix estimés."
+ ],
+ [
+  "بانتظار تحديثات سعرية إضافية.",
+  "Waiting for additional price updates.",
+  "En attente de nouveaux relevés de prix."
+ ],
+ [
+  "أسعار مسجلة فقط، دون تقديرات.",
+  "Recorded prices only, without estimates.",
+  "Cours enregistrés uniquement, sans estimations."
+ ],
+ [
+  "بانتظار تحديثات فعلية إضافية من الخادم.",
+  "Waiting for additional real price updates.",
+  "En attente de nouveaux cours réels."
+ ],
+ [
+  "نعرض الأسعار الحقيقية المسجلة فقط. يمكنك اختيار «المتاح» لعرض جميع السجلات المحمّلة.",
+  "Only recorded prices are shown. Choose All available to view the full available history.",
+  "Seuls les cours enregistrés sont affichés. Choisissez Toutes les données pour voir l'historique disponible."
+ ]
+
 ];

@@ -11,6 +11,9 @@ on:
       - "apps/user/overrides/app/register.web.tsx"
       - "apps/user/overrides/web/i18n.tsx"
       - "apps/user/overrides/web/i18n-messages.ts"
+      - "apps/user/overrides/web/date-display.ts"
+      - "apps/user/overrides/web/i18n-followup.ts"
+      - "apps/user/overrides/web/tests/calendar-preferences.test.ts"
       - "apps/user/overrides/web/i18n-invoice-errors.ts"
       - "apps/user/overrides/web/i18n-feedback.ts"
       - "apps/user/overrides/web/QuickLockScreen.tsx"
@@ -88,7 +91,7 @@ jobs:
         run: |
           cd "$SRC"
           pnpm install --frozen-lockfile
-          pnpm exec vitest run web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts web/tests/i18n.test.ts web/tests/auth-device-language.test.ts
+          pnpm exec vitest run web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts web/tests/i18n.test.ts web/tests/auth-device-language.test.ts web/tests/calendar-preferences.test.ts
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
       - name: Preserve preview PWA assets and replace compiled bundle
         run: |

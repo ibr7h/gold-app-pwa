@@ -1,23 +1,21 @@
 import {activeLocale} from './i18n';
+import {DisplayCalendar,formatDisplayDate} from './date-display';
 import React,{useEffect,useId,useMemo,useRef,useState} from 'react';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendSegments,priceTrendTickIndices,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
 import {Money,formatTwo,formattedMoney} from './price-display';
 
-interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean}
+interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean;calendar?:DisplayCalendar}
 const currencyNumber=formatTwo;
-const timeLabel=(ms:number,range:TrendRange)=>{
- const date=new Date(ms);
- return range==='day'?
-  date.toLocaleTimeString(activeLocale(),{hour:'numeric',minute:'2-digit',timeZone:'Asia/Riyadh'}):
-  date.toLocaleDateString(activeLocale()==='ar-SA'?'ar-SA-u-ca-gregory':activeLocale(),{day:'2-digit',month:'2-digit',timeZone:'Asia/Riyadh'});
-};
-const completeDate=(ms:number)=>new Date(ms).toLocaleString(activeLocale(),{dateStyle:'medium',timeStyle:'short'});
+const timeLabel=(ms:number,range:TrendRange,calendar:DisplayCalendar)=>range==='day'?
+ formatDisplayDate(ms,activeLocale(),calendar,{hour:'numeric',minute:'2-digit'}):
+ formatDisplayDate(ms,activeLocale(),calendar,{day:'2-digit',month:'2-digit'});
+const completeDate=(ms:number,calendar:DisplayCalendar)=>formatDisplayDate(ms,activeLocale(),calendar,{dateStyle:'medium',timeStyle:'short'});
 const scopeLabels:{id:TrendRange;label:string}[]=[
  {id:'day',label:'24 ساعة'},{id:'week',label:'7 أيام'},{id:'month',label:'30 يومًا'},{id:'available',label:'المتاح'}
 ];
 const compactScopes:{id:TrendRange;label:string}[]=[{id:'day',label:'يوم'},{id:'week',label:'أسبوع'},{id:'month',label:'شهر'}];
 
-export default function PriceHistoryChart({rows,currency,karat,compact=false}:Props){
+export default function PriceHistoryChart({rows,currency,karat,compact=false,calendar='gregorian'}:Props){
  const [range,setRange]=useState<TrendRange>(compact?'day':'available');
  const [width,setWidth]=useState(640);
  const [selectedIndex,setSelectedIndex]=useState<number|null>(null);
@@ -73,7 +71,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
    <div className="dh-trend-reading">
     <span className="dh-trend-overline">سعر الجرام · عيار {karat}</span>
     <div className="dh-trend-price"><strong className="dh-trend-amount">{selected?<Money amount={selected.price} currency={currency}/>:'—'}</strong></div>
-    {selected&&<small>التحديث: {completeDate(selected.time)}</small>}
+    {selected&&<small>التحديث: {completeDate(selected.time,calendar)}</small>}
    </div>
    <div className="dh-trend-movement">
     <span className={'dh-change '+(change===null?'neutral':rising?'up':'down')}>
@@ -97,7 +95,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
     <div className="dh-trend-plot" ref={plotRef} tabIndex={0} role="slider"
      aria-label={'استعراض أسعار الذهب عيار '+karat+' زمنيًا'}
      aria-valuemin={0} aria-valuemax={points.length-1} aria-valuenow={index}
-     aria-valuetext={formattedMoney(selected.price,currency)+'، '+completeDate(selected.time)}
+     aria-valuetext={formattedMoney(selected.price,currency)+'، '+completeDate(selected.time,calendar)}
      onPointerMove={e=>movePointer(e.clientX)}
      onPointerDown={e=>movePointer(e.clientX)}
      onPointerLeave={()=>setSelectedIndex(null)}
@@ -130,7 +128,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
       </g>}
       {tickIndices.map((n,i)=><text key={n} className="dh-trend-x"
        x={plotted[n].x} y={compact?154:238} textAnchor={i===0?'start':i===tickIndices.length-1?'end':'middle'}>
-       {timeLabel(points[n].time,range)}
+       {timeLabel(points[n].time,range,calendar)}
       </text>)}
      </svg>
     </div>
@@ -139,15 +137,9 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
      <div><span>الأدنى</span><strong><Money amount={domain.low} currency={currency}/></strong></div>
      <div><span>بداية الفترة</span><strong><Money amount={points[0].price} currency={currency}/></strong></div>
     </div>}
-    {compact&&selectedIndex!==null&&<p className="home-chart-selection"><Money amount={selected.price} currency={currency}/> · {completeDate(selected.time)}</p>}
+    {compact&&selectedIndex!==null&&<p className="home-chart-selection"><Money amount={selected.price} currency={currency}/> · {completeDate(selected.time,calendar)}</p>}
    </>
   }
-  <p className="dh-trend-footnote">
-   {compact?<>تحديثات فعلية من السجل المتاح فقط · بحد أقصى 200 تحديث.</>:<>
-    {all.length>1?'الخط يربط تحديثات فعلية، والمسافات الأفقية تمثل الزمن الحقيقي.':'بانتظار حفظ تحديثات سعرية إضافية.'}
-    {all.length>1&&timeCoverage<24&&range==='available'?' · السجل المتاح أقل من 24 ساعة.':''}
-    {' '}بحد أقصى 200 سجل من الخادم؛ لا نضيف أسعارًا افتراضية.
-   </>}
-  </p>
+  <p className="dh-trend-footnote">{compact?'أسعار مسجلة فقط، دون تقديرات.':all.length>1?'يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.':'بانتظار تحديثات سعرية إضافية.'}</p>
  </div>;
 }
