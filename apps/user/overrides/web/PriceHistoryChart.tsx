@@ -35,6 +35,8 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  const selected=points[index];
  const change=trendPercent(points);
  const rising=change!==null&&change>=0;
+ const hasDaily=points.some(p=>p.kind==='daily-average');
+ const hasSpot=points.some(p=>p.kind==='spot');
  const left=12,right=Math.max(left+70,width-(compact?12:75)),top=24,bottom=compact?123:204;
  const axisStart=timeWindow?.start??0,axisEnd=timeWindow?.end??0;
  const spanTime=Math.max(1,axisEnd-axisStart);
@@ -43,9 +45,10 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  const plotted=points.map(p=>({x:projectX(p),y:projectY(p),point:p}));
  const series=priceTrendSegments(points).map(segment=>segment.map(p=>({x:projectX(p),y:projectY(p),point:p})));
  const paths=series.map(segment=>{
+  const kind=segment[0].point.kind;
   const line=segment.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(2)+' '+p.y.toFixed(2)).join(' ');
   const area=segment.length>1?line+' L'+segment[segment.length-1].x.toFixed(2)+' '+bottom+' L'+segment[0].x.toFixed(2)+' '+bottom+' Z':'';
-  return {line,area,single:segment.length===1?segment[0]:null};
+  return {line,area:kind==='spot'?area:'',single:segment.length===1?segment[0]:null,kind};
  });
  const focus=plotted[index];
  const ticks=domain&&!compact?Array.from({length:4},(_,i)=>domain.max-(domain.max-domain.min)*i/3):[];
@@ -57,6 +60,8 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
   ?tr('جميع الأسعار المسجلة المتاحة')
   :tr('الفترة المحددة')+': '+timeLabel(axisStart,range,calendar)+' — '+timeLabel(axisEnd,range,calendar);
  const coverageNotice=points.length===0?tr('لا توجد أسعار مسجلة في هذه الفترة'):
+  hasDaily?(language==='ar'?'متوسطات يومية: ':language==='fr'?'Moyennes quotidiennes : ':'Daily averages: ')+String(points.filter(p=>p.kind==='daily-average').length)+
+   (hasSpot?' · '+tr('تحديثات فعلية')+': '+String(points.filter(p=>p.kind==='spot').length):''):
   points.length===1?tr('تحديث سعري واحد في هذه الفترة'):
   (language==='ar'?'عدد تحديثات الأسعار: ':language==='fr'?'Relevés disponibles : ':'Price observations: ')+String(points.length);
 
@@ -87,11 +92,11 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
    <div className="dh-trend-reading">
     <span className="dh-trend-overline">سعر الجرام · عيار {karat}</span>
     <div className="dh-trend-price"><strong className="dh-trend-amount">{selected?<Money amount={selected.price} currency={currency}/>:'—'}</strong></div>
-    {selected&&<small>التحديث: {completeDate(selected.time,calendar)}</small>}
+    {selected&&<small>{selected.kind==='daily-average'?tr('متوسط يومي')+': ':tr('التحديث')+': '}{completeDate(selected.time,calendar)}</small>}
    </div>
    <div className="dh-trend-movement">
     <span className={'dh-change '+(change===null?'neutral':rising?'up':'down')}>
-     {change===null?'لا توجد مقارنة':(rising?'+':'')+currencyNumber(change)+'%'}
+     {hasDaily&&hasSpot?tr('نوعان من البيانات'):change===null?'لا توجد مقارنة':(rising?'+':'')+currencyNumber(change)+'%'}
     </span>
     <small>التغير ضمن النطاق المعروض</small>
    </div>
@@ -114,7 +119,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
     <div className="dh-trend-plot" ref={plotRef} tabIndex={0} role="slider"
      aria-label={'استعراض أسعار الذهب عيار '+karat+' زمنيًا'}
      aria-valuemin={0} aria-valuemax={points.length-1} aria-valuenow={index}
-     aria-valuetext={formattedMoney(selected.price,currency)+'، '+completeDate(selected.time,calendar)}
+     aria-valuetext={formattedMoney(selected.price,currency)+'، '+(selected.kind==='daily-average'?tr('متوسط يومي')+'، ':'')+completeDate(selected.time,calendar)}
      onPointerMove={e=>movePointer(e.clientX)}
      onPointerDown={e=>movePointer(e.clientX)}
      onPointerLeave={()=>setSelectedIndex(null)}
@@ -135,9 +140,9 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
        return <g key={i}><line className="dh-trend-grid" x1={left} y1={y} x2={right} y2={y}/>
         <text className="dh-trend-y" x={right+8} y={y+4} textAnchor="start">{currencyNumber(v)}</text></g>;
       })}
-      {paths.map(({line,area,single},i)=><g key={i}>
+      {paths.map(({line,area,single,kind},i)=><g key={i}>
        {area&&<path className="dh-trend-area" d={area} fill={'url(#'+gradientId+')'}/>}
-       <path className="dh-trend-line" d={line}/>
+       <path className="dh-trend-line" d={line} strokeDasharray={kind==='daily-average'?'5 4':undefined}/>
        {single&&<circle className="dh-trend-point" cx={single.x} cy={single.y} r="3"/>}
       </g>)}
       {focus&&<g className="dh-trend-focus">
@@ -159,9 +164,9 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
      <div><span>الأدنى</span><strong><Money amount={domain.low} currency={currency}/></strong></div>
      <div><span>بداية الفترة</span><strong><Money amount={points[0].price} currency={currency}/></strong></div>
     </div>}
-    {compact&&selectedIndex!==null&&<p className="home-chart-selection"><Money amount={selected.price} currency={currency}/> · {completeDate(selected.time,calendar)}</p>}
+    {compact&&selectedIndex!==null&&<p className="home-chart-selection"><Money amount={selected.price} currency={currency}/> · {selected.kind==='daily-average'?tr('متوسط يومي')+' · ':''}{completeDate(selected.time,calendar)}</p>}
    </>
   }
-  <p className="dh-trend-footnote">{tr(compact?'أسعار مسجلة فقط، دون تقديرات.':'يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.')} · {tr('الفترة')}: {tr(rangeDescription)}</p>
+  <p className="dh-trend-footnote">{hasDaily?tr('الخط المتقطع يمثل متوسطات يومية تاريخية؛ والخط المتصل يمثل تحديثات فعلية. لا يمثل المتوسط اليومي سعر إغلاق أو سعرًا لحظيًا.') :tr(compact?'أسعار مسجلة فقط، دون تقديرات.':'يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.')} · {tr('الفترة')}: {tr(rangeDescription)}</p>
  </div>;
 }
