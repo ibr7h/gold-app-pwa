@@ -4,6 +4,7 @@ import AuthForm from './AuthForm';
 import {QuickLockScreen,QuickPinSetup} from './QuickLockScreen';
 import PurchaseFormFields from './PurchaseFormFields';
 import PriceHistoryChart from './PriceHistoryChart';
+import {TrendRange} from './price-trend';
 import {Money,formatTwo,CurrencyMark} from './price-display';
 import NotificationSettings from './NotificationSettings';
 import NearbyMarkets from './NearbyMarkets';
@@ -122,8 +123,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  useEffect(()=>{try{window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency);}catch{/* Storage may be blocked on iOS private browsing. */}},[priceCurrency]);
  const [calendar,setCalendar]=useState<DisplayCalendar>(readDisplayCalendar);
  useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
- const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState('');
- const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24);
+ const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState(''),[homeRange,setHomeRange]=useState<TrendRange>('day');
+ const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24),[chartRange,setChartRange]=useState<TrendRange>('available');
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
@@ -145,10 +146,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   try{
    const currencies=['SAR','USD'];
    const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
-   const selectedHistory=api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=200');
+   const selectedHistory=api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=200&range='+chartRange);
    const [historyRows,homeHistoryRows,...latest]=await Promise.all([
     selectedHistory,
-    chartKarat===24?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency='+priceCurrency+'&karat=24&limit=200'),
+    chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat=24&limit=200&range='+homeRange),
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
@@ -157,7 +158,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     setHistory(historyRows);
     setHomeHistory(homeHistoryRows);
     setHomeHistoryCurrency(priceCurrency);
-    setHistoryQuery(priceCurrency+':'+chartKarat);
+    setHistoryQuery(priceCurrency+':'+chartKarat+':'+chartRange);
     setAllMarketRows(cleanLatest);
     setMarketError('');
     setHistoryError('');
@@ -168,7 +169,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   }finally{
    if(active.current&&seq===marketLoadSequence.current)setMarketLoading(false);
   }
- },[priceCurrency,chartKarat]);
+ },[priceCurrency,chartKarat,chartRange,homeRange]);
  useEffect(()=>{active.current=true;void loadData();void loadMarket();
   const clockTimer=setInterval(()=>setClock(Date.now()),60000);
   const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000);
@@ -202,7 +203,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    }
   }catch(e){setFormError(e instanceof Error?e.message:'تحقق من القيم.');}
  };
- const sortedHistory=[...(historyQuery===priceCurrency+':'+chartKarat?history:[])].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
+ const sortedHistory=[...(historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[])].sort((a,b)=>Date.parse(a.createdAt||a.timestamp)-Date.parse(b.createdAt||b.timestamp));
  const selectedMarketRows=allMarketRows.filter(r=>r.currency===priceCurrency);
   const currentMarket=selectedMarketRows.find(r=>r.karat===chartKarat)||sortedHistory[sortedHistory.length-1]||null;
  const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24) as PriceHistoryRow|undefined;
@@ -211,7 +212,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const stale=marketClosed||freshness!=='fresh'||!!marketError;
  const marketLabel=marketClosed?'السوق العالمي مغلق':freshness==='fresh'&&!marketError?'مباشر':freshness==='missing'?'غير متاح':'آخر سعر محفوظ';
  const summary=totals(purchases,allMarketRows),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
- const visibleHistory=historyQuery===priceCurrency+':'+chartKarat?history:[];
+ const visibleHistory=historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[];
   const fxRate=sarPerUsd(allMarketRows);
   const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate);return <Money amount={display.amount} currency={display.currency}/>;};
  const priceNote=<p className="fine">{tr('لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.')}</p>;
@@ -250,7 +251,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     {homePortfolio.hasUnconverted&&<p className="home-currency-note">بعض مشترياتك بعملات لا تتوفر لها بيانات تحويل موثوقة؛ راجع التفاصيل حسب عملة التسجيل.</p>}
      {homePortfolio.hasMissingValuation&&<p className="home-currency-note">تقدير قيمة بعض المشتريات غير متاح لغياب سعر سوق موثوق.</p>}
    </section>
-   <section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact/></section>
+   <section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact range={homeRange} onRangeChange={setHomeRange} now={clock} loading={marketLoading}/></section>
   </>;
 
   if(page==='prices')return <>
@@ -258,7 +259,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value==='USD'?'USD':'SAR')}><option>SAR</option><option>USD</option></select></label></div>
     <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=selectedMarketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
    </section>
-   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar}/>}</section>
+   <section className="approved-card"><div className="approved-card-title"><span>الرسم الزمني للأسعار</span><label className="inline-select">العيار<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={marketLoading}/>}</section>
    {priceNote}
   </>;
 
