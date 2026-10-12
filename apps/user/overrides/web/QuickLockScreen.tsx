@@ -83,7 +83,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
  </main>;
 }
 /** Setup and confirmation happen in-app; raw codes are never written to local storage. */
-export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentPin?:string)=>Promise<void>;onClose:()=>void;mode:'enable'|'change'|'disable'}){
+export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentPin?:string)=>Promise<void>;onClose:()=>void;mode:'enable'|'change'|'disable'|'reconnect'}){
  const {language,direction}=useLanguage();
  const initialStage=mode==='enable'?'enter':'current';
  const [stage,setStage]=useState<'current'|'enter'|'confirm'>(initialStage);
@@ -94,21 +94,21 @@ export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentP
   if(busy||pending.current)return;
   setDigits(value);
   if(value.length!==PIN_LENGTH)return;
-  if(stage==='current'&&mode!=='disable'){
+  if(stage==='current'&&mode!=='disable'&&mode!=='reconnect'){
    setCurrentPin(value);setDigits('');setStage('enter');setError('');return;
   }
   if(stage==='enter'){
    setFirst(value);setDigits('');setStage('confirm');setError('');return;
   }
-  if(mode!=='disable'&&value!==first){setError('الرمزان غير متطابقين؛ أدخل رمزًا جديدًا.');setFirst('');setDigits('');setStage('enter');return;}
+  if(mode!=='disable'&&mode!=='reconnect'&&value!==first){setError('الرمزان غير متطابقين؛ أدخل رمزًا جديدًا.');setFirst('');setDigits('');setStage('enter');return;}
   pending.current=true;setBusy(true);
-  void onSave(mode==='disable'?'':value,mode==='disable'?value:currentPin||undefined).then(onClose).catch(e=>{
+  void onSave(mode==='disable'||mode==='reconnect'?'':value,mode==='disable'||mode==='reconnect'?value:currentPin||undefined).then(onClose).catch(e=>{
    setError(e instanceof Error?e.message:'تعذر حفظ الرمز.');setDigits('');setFirst('');setCurrentPin('');setStage(initialStage);
   }).finally(()=>{pending.current=false;setBusy(false);});
  };
  return <div className="dh-pin-setup-backdrop" role="presentation">
   <section className="dh-pin-setup" role="dialog" aria-modal="true" aria-label="إعداد رمز الدخول السريع" dir={direction} lang={language}>
-   <div className="dh-pin-setup-head"><h2>{mode==='disable'?'إيقاف رمز الدخول':mode==='change'?'تغيير رمز الدخول':'تفعيل الدخول السريع'}</h2>
+   <div className="dh-pin-setup-head"><h2>{mode==='disable'?'إيقاف رمز الدخول':mode==='change'?'تغيير رمز الدخول':mode==='reconnect'?'تأكيد رمز الدخول المحفوظ':'تفعيل الدخول السريع'}</h2>
     <button type="button" aria-label="إغلاق إعداد الرمز" onClick={onClose} disabled={busy}>×</button></div>
    <p>{stage==='current'?'أدخل رمز الدخول الحالي لتأكيد هويتك.':stage==='enter'?'اختر رمزًا من ٦ أرقام لا تستخدمه في خدمات أخرى.':'أعد إدخال الرمز نفسه لتأكيده.'}</p>
    <PinDots length={digits.length}/>
