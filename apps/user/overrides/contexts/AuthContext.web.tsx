@@ -3,7 +3,7 @@ import {localBiometricSupported,readLocalCredential,enrollLocalCredential,forget
 import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {hasSessionVault,hasBiometricVault,hasOpenVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
-import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,type PinResult} from '../web/quick-pin';
+import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
 export type UserRole = 'user' | 'admin' | 'trader';
 export type BiometricType = 'face' | 'fingerprint' | 'none';
 export type ResetStep = 'email' | 'code' | 'newPassword' | 'success';
@@ -21,6 +21,8 @@ interface AuthContextType {
   user: User | null;
   lockedAccount: User | null;
   quickPinEnabled: boolean;
+  pinReconnectRequired: boolean;
+  reconnectQuickPin:(currentPin:string)=>Promise<void>;
   enableQuickPin:(pin:string,currentPin?:string)=>Promise<void>;
   disableQuickPin:(currentPin:string)=>Promise<void>;
   unlockWithPin:(pin:string)=>Promise<PinResult>;
@@ -70,16 +72,17 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const [biometricEnabled,setBiometricEnabled]=useState(false);
  const [lockedAccount,setLockedAccount]=useState<User|null>(null);
  const [quickPinEnabled,setQuickPinEnabled]=useState(false);
+ const [pinReconnectRequired,setPinReconnectRequired]=useState(false);
  const latestUser=useRef<User|null>(null),quickLockState=useRef(false),biometricLockState=useRef(false);
- latestUser.current=user;quickLockState.current=quickPinEnabled;biometricLockState.current=biometricEnabled;
+ latestUser.current=user;quickLockState.current=quickPinEnabled&&!pinReconnectRequired;biometricLockState.current=biometricEnabled&&!pinReconnectRequired;
  const enrollment=useRef<LocalCredential|null>(null);
  const begin=()=>{request.current?.abort();request.current=new AbortController();return ++version.current;};
  const current=(attempt:number)=>{if(attempt!==version.current)throw new Error('تغيرت الجلسة. أعد المحاولة.');};
- const loadMe=async(attempt=version.current)=>{
+ const loadMe=async(attempt=version.current,fallback?:User|null)=>{
   const me=await api('/auth/me');current(attempt);
   if(!me?.userId||!me?.email)throw new ApiError('Invalid user');
   if(me.role!=='user'){await clearSession();throw new ApiError('User app role mismatch',403);}
-  const known=await getVerifiedCachedUser();current(attempt);
+  const known=fallback||await getVerifiedCachedUser();current(attempt);
   let fullName:string|null=known&&String(known.id)===String(me.userId)?known.name||null:null;
   try{
     const profile=await api<{id:string|number;fullName:string|null}>('/auth/profile');
