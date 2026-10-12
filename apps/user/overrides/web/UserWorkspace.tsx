@@ -125,7 +125,14 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  useEffect(()=>{try{window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency);}catch{/* Storage may be blocked on iOS private browsing. */}},[priceCurrency]);
  // Each PWA install retains its own chosen language and currency for Push,
  // even when the application is closed. This never requests OS permission.
- useEffect(()=>{void syncMarketPushPreferences(language,priceCurrency).catch(()=>{});},[language,priceCurrency]);
+ useEffect(()=>{
+  const sync=()=>{if(document.visibilityState==='visible')
+    void syncMarketPushPreferences(language,priceCurrency).catch(()=>{});};
+  sync();
+  window.addEventListener('online',sync);
+  window.addEventListener('focus',sync);
+  return()=>{window.removeEventListener('online',sync);window.removeEventListener('focus',sync);};
+ },[language,priceCurrency]);
  const [eurFx,setEurFx]=useState<EuroReferenceRates|null>(null);
  const [calendar,setCalendar]=useState<DisplayCalendar>(readDisplayCalendar);
  useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
