@@ -2448,3 +2448,52 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .gold-web .dh-price-trend.compact .dh-session-legend{grid-column:1/-1;gap:6px 12px;font-size:9px}
 .gold-web .dh-price-trend.compact .dh-session-legend b{min-width:16px;min-height:16px;font-size:10px}
 .gold-web[dir="ltr"] .dh-session-legend{direction:ltr}
+
+
+/* iPhone: preserve one visual order for amount, currency and /gram in RTL/LTR.
+   Arabic is read from the right: number ← currency ← /جرام.
+   English/French are read from the left: number → currency → /gram.
+   Only the live-market card is affected; other monetary screens retain their styles. */
+.gold-web.reference-home .price-tag-large{
+ display:inline-flex!important;
+ flex-wrap:nowrap!important;
+ align-items:baseline!important;
+ justify-content:flex-start;
+ gap:clamp(5px,1.4vw,9px)!important;
+ max-width:100%;
+ white-space:nowrap;
+ overflow-wrap:normal!important;
+}
+.gold-web.reference-home .dh-home-price-amount{
+ display:inline-flex;align-items:baseline;direction:ltr;
+ white-space:nowrap;flex:0 1 auto;min-width:0;
+}
+.gold-web.reference-home .dh-home-price-unit{
+ display:inline-flex;align-items:baseline;gap:2px;flex:none;
+ font-size:.43em!important;line-height:1.25;white-space:nowrap;
+ margin:0!important;color:#64748B!important;
+}
+.gold-web.reference-home .dh-home-price-unit .dh-unit-slash{
+ display:inline-block;direction:ltr;unicode-bidi:isolate;
+}
+/* Money numbers remain LTR, but the currency mark moves between the number
+   and the translated unit when the UI is Arabic. Do not reverse digits. */
+.gold-web.reference-home[dir="rtl"] .price-tag-large .dh-money-currency,
+.gold-web.reference-home[dir="rtl"] .buy-sell-mini .dh-money-currency{
+ order:-1;margin-inline-start:0!important;margin-inline-end:.23em!important;
+}
+.gold-web.reference-home .buy-sell-mini .dh-buy-sell-row{
+ display:flex;align-items:baseline;justify-content:flex-start;
+ gap:5px;min-width:0;white-space:nowrap;direction:inherit;
+}
+.gold-web.reference-home .buy-sell-mini .dh-buy-sell-row>b{
+ display:inline-flex;align-items:baseline;min-width:0;
+}
+@media(max-width:400px){
+ .gold-web.reference-home .price-tag-large{
+  font-size:clamp(20px,6vw,26px)!important;
+  gap:5px!important;
+ }
+ .gold-web.reference-home .dh-home-price-unit{font-size:.49em!important}
+ .gold-web.reference-home .buy-sell-mini .dh-buy-sell-row{gap:3px}
+}
