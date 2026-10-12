@@ -3,6 +3,11 @@ on:
   push:
     branches: ["preview/iphone-render"]
     paths:
+      - "apps/user/scripts/user-update-client.js"
+      - "apps/user/scripts/user-service-worker.js"
+      - "apps/user/scripts/user-update.test.cjs"
+      - "scripts/release-iphone-version.cjs"
+      - "scripts/check-iphone-release.cjs"
       - "apps/user/overrides/web/UserWorkspace.tsx"
       - "apps/user/overrides/web/auth-device-language.ts"
       - "apps/user/overrides/web/AuthForm.tsx"
@@ -126,6 +131,8 @@ jobs:
               raise RuntimeError(f'Only {updated} preview pages point to fresh wallet entry')
           print(f'New User entry {bundle.name}, updated {updated} preview pages')
           PY
+      - name: Verify PWA update activation and offline cache behavior
+        run: node --test apps/user/scripts/user-update.test.cjs
       - name: Advance and verify iPhone release version
         run: |
           node scripts/release-iphone-version.cjs
