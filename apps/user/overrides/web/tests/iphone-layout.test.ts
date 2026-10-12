@@ -372,7 +372,7 @@ describe('iPhone chart does not visually simulate prices during closed sessions'
   expect(trend).toContain('priceTrendSegments(points:TrendPoint[])');
   expect(trend).toContain('isGlobalGoldMarketOpen(tick)');
   expect(chart).toContain('priceTrendSegments(points).map(');
-  expect(chart).toContain('{paths.map(({line,area,single},i)');
+  expect(chart).toContain('{paths.map(({line,area,single,kind},i)');
   expect(chart).not.toContain('const line=plotted.map(');
  });
  it('prevents overlapping historical Arabic dates with compact tick labels',()=>{
@@ -396,8 +396,8 @@ describe('iPhone chart period controls request the matching real historical wind
  });
  it('fetches specific history per date window while preserving latest-quote requests',()=>{
   const sourceText=source('../UserWorkspace.tsx');
-  expect(sourceText).toContain("'&limit=200&range='+chartRange");
-  expect(sourceText).toContain("&limit=200&range='+homeRange");
+  expect(sourceText).toContain("'&range='+chartRange");
+  expect(sourceText).toContain("&range='+homeRange");
   expect(sourceText).toContain("api<PriceHistoryRow|null>('/prices/latest?currency='");
  });
  it('draws selected window endpoints, not a misleading zoom to the last saved record',()=>{
