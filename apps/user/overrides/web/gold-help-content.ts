@@ -55,6 +55,10 @@ export const helpCopy={
  openReference:{ar:'فتح المرجع',en:'Open source',fr:'Voir la source'}
 } satisfies Record<string,HelpText|readonly HelpText[]>;
 
+export const helpNavMessages:ReadonlyArray<readonly [string,string,string]>=[
+ ['دليل الذهب والعيارات والأحجار والمصنعية','Gold, karats, gemstones & making charges','Or, carats, pierres et fabrication']
+];
+
 export const helpSections:ReadonlyArray<{id:HelpSection;label:HelpText;summary:HelpText}>=[
  {id:'purity',label:{ar:'العيارات والنقاوة',en:'Karats & purity',fr:'Carats et pureté'},summary:{ar:'24 أم 22 أم 21 أم 18؟',en:'24K, 22K, 21K or 18K?',fr:'24, 22, 21 ou 18 carats ?'}},
  {id:'weight',label:{ar:'الأوزان والمقاييس',en:'Weights & units',fr:'Poids et unités'},summary:{ar:'الجرام والأونصة والتولة',en:'Gram, troy ounce & tola',fr:'Gramme, once troy et tola'}},
