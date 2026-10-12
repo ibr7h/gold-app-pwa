@@ -50,6 +50,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write # Dispatch the main-branch Pages publisher after the iPhone bundle is ready.
 concurrency:
   group: build-iphone-wallet
   cancel-in-progress: false
@@ -146,3 +147,12 @@ jobs:
           git diff --cached --quiet && { echo "No compiled changes"; exit 1; }
           git commit -m "build(user-iphone): wallet-card Expo bundle"
           git push origin HEAD:preview/iphone-render
+      # GitHub Pages is deployed only from main. The iPhone release is built on
+      # preview/iphone-render, so without this explicit dispatch /iphone/ remains
+      # on an old version and can never offer the latest update.
+      - name: Publish approved iPhone preview to GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" -f ref=main
+          echo "Requested main-branch Pages deployment with the updated /iphone/ bundle."
