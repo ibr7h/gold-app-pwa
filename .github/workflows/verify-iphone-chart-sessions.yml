@@ -1,0 +1,38 @@
+name: Verify market chart session markers and localization
+on:
+  pull_request:
+    branches: ["preview/iphone-render"]
+    paths:
+      - "apps/user/overrides/web/price-trend.ts"
+      - "apps/user/overrides/web/PriceHistoryChart.tsx"
+      - "apps/user/overrides/web/UserWorkspace.tsx"
+      - "apps/user/overrides/web/i18n-chart-ranges.ts"
+      - "apps/user/overrides/web/tests/market-session-chart.test.ts"
+      - ".github/workflows/verify-iphone-chart-sessions.yml"
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '9.12.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Extract iPhone user source
+        run: |
+          unzip -q "gold-app 17 apr 15-19 adimin icon.zip" -d /tmp
+          echo "SRC=/tmp/gold-app 17 apr 15-19 adimin icon" >> "$GITHUB_ENV"
+      - name: Apply User overrides and run focused regression tests
+        run: |
+          cp -R apps/user/overrides/. "$SRC/"
+          cd "$SRC"
+          pnpm install --frozen-lockfile
+          pnpm exec vitest run web/tests/market-session-chart.test.ts web/tests/price-trend.test.ts web/tests/i18n.test.ts web/tests/iphone-layout.test.ts
+      - name: Type-check chart and date-language integration
+        run: |
+          cd "$SRC"
+          pnpm exec tsc --noEmit
