@@ -7,7 +7,7 @@ import {Money,formatTwo,formattedMoney} from './price-display';
 interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean;calendar?:DisplayCalendar;range?:TrendRange;onRangeChange?:(r:TrendRange)=>void;now?:number;loading?:boolean}
 const currencyNumber=formatTwo;
 const timeLabel=(ms:number,range:TrendRange,calendar:DisplayCalendar)=>range==='day'?
- formatDisplayDate(ms,activeLocale(),calendar,{hour:'numeric',minute:'2-digit'}):
+ formatDisplayDate(ms,activeLocale(),calendar,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):
  formatDisplayDate(ms,activeLocale(),calendar,{day:'2-digit',month:'2-digit'});
 const completeDate=(ms:number,calendar:DisplayCalendar)=>formatDisplayDate(ms,activeLocale(),calendar,{dateStyle:'medium',timeStyle:'short'});
 const scopeLabels:{id:TrendRange;label:string}[]=[
@@ -49,7 +49,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  const tickIndices=priceTrendTickIndices(points,right-left,compact);
  const explicitRange=range!=='available'&&timeWindow!==null;
  const xAxisLabels=explicitRange?[{time:axisStart,x:left,anchor:'start' as const},{time:axisEnd,x:right,anchor:'end' as const}]:[];
- const timeCoverage=all.length>1?(all[all.length-1].time-all[0].time)/(60*60*1000):0;
+ const rangeDescription=range==='day'?'24 ساعة':range==='week'?'7 أيام':range==='month'?'30 يومًا':'الفترة المتاحة';
  const movePointer=(clientX:number)=>{
   if(!points.length||!plotRef.current)return;
   const rect=plotRef.current.getBoundingClientRect();
@@ -94,7 +94,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
   {loading&&<p className="dh-trend-loading" role="status">جارٍ تحميل أسعار الفترة المختارة…</p>}
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
-    <strong>{all.length<2?'لا توجد تحديثات سعرية كافية لرسم الاتجاه.':'لا توجد نقطتان مسجلتان ضمن الفترة المختارة.'}</strong>
+    <strong>{'البيانات خلال '+rangeDescription+': '+(points.length===0?'لا توجد أسعار مسجلة.':'لا توجد تحديثات كافية لرسم الاتجاه.')}</strong>
     <span>{range!=='available'?'لا تتوفر نقطتان فعليتان في المدة المحددة. اختر فترة أطول، ولن نملأ الفراغ بأسعار افتراضية.':compact?'بانتظار تحديثات فعلية إضافية.':'نعرض الأسعار الحقيقية المسجلة فقط. اختر مدة أخرى عند توفر بيانات أقدم.'}</span>
    </div>
   :
@@ -150,6 +150,6 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
     {compact&&selectedIndex!==null&&<p className="home-chart-selection"><Money amount={selected.price} currency={currency}/> · {completeDate(selected.time,calendar)}</p>}
    </>
   }
-  <p className="dh-trend-footnote">{compact?'أسعار مسجلة فقط، دون تقديرات.':all.length>1?'يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.':'بانتظار تحديثات سعرية إضافية.'}</p>
+  <p className="dh-trend-footnote">{'الفترة: '+rangeDescription+' · أسعار مسجلة فعليًا فقط، دون تمديد الرسم خلال إغلاق السوق.'}</p>
  </div>;
 }
