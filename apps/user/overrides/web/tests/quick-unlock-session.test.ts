@@ -5,7 +5,7 @@ vi.mock('@react-native-async-storage/async-storage',()=>({default:{
  getItem:async(k:string)=>memory.get(k)||null,setItem:async(k:string,v:string)=>{memory.set(k,v);},removeItem:async(k:string)=>{memory.delete(k);},
  multiRemove:async(keys:string[])=>{keys.forEach(k=>memory.delete(k));}
 }}));
-import {clearSession,saveSession,lockSession,api,activeSessionTokens,hasSession} from '../api';
+import {clearSession,saveSession,lockSession,api,activeSessionTokens,hasSession,saveVerifiedUser,getVerifiedCachedUser} from '../api';
 import {protectSessionWithPin,unlockSessionWithPin} from '../session-vault';
 import {verifyQuickUnlock} from '../quick-unlock-session';
 const tokens={accessToken:'access-fixture',refreshToken:'refresh-fixture'};
@@ -24,6 +24,33 @@ describe('quick-unlock authentication state machine',()=>{
   expect(fetch.mock.calls[0][0]).toMatch(/\/auth\/me$/);
   expect(new Headers(fetch.mock.calls[0][1].headers).get('Authorization')).toBe('Bearer access-fixture');
   expect(activeSessionTokens()).toEqual(tokens);
+ });
+ it('restores the real name from the profile after PIN unlock and caches it for a later cold start',async()=>{
+  const fetch=vi.fn(async(url:string)=>url.endsWith('/auth/profile')
+   ?response({id:'account',fullName:'الاسم الكامل',email:'user@example.test'})
+   :response({userId:'account',email:'user@example.test',role:'user'}));
+  vi.stubGlobal('fetch',fetch);
+  const recovered=await verifyQuickUnlock('account',tokens,()=>true);
+  expect(recovered.name).toBe('الاسم الكامل');
+  expect((await getVerifiedCachedUser())?.name).toBe('الاسم الكامل');
+  expect(fetch.mock.calls.some(x=>String(x[0]).endsWith('/auth/profile'))).toBe(true);
+ });
+ it('uses an account-matched cached name when profile temporarily cannot load',async()=>{
+  await saveVerifiedUser({id:'account',email:'user@example.test',role:'user',name:'اسم محفوظ'});
+  vi.stubGlobal('fetch',vi.fn(async(url:string)=>{
+   if(url.endsWith('/auth/profile'))throw new Error('Temporary connection issue');
+   return response({userId:'account',email:'user@example.test',role:'user'});
+  }));
+  const recovered=await verifyQuickUnlock('account',tokens,()=>true);
+  expect(recovered.name).toBe('اسم محفوظ');
+  expect((await getVerifiedCachedUser())?.name).toBe('اسم محفوظ');
+ });
+ it('never copies a cached name from a different account after a verified unlock',async()=>{
+  await saveVerifiedUser({id:'other',email:'other@example.test',role:'user',name:'اسم حساب آخر'});
+  vi.stubGlobal('fetch',vi.fn(async(url:string)=>url.endsWith('/auth/profile')
+    ?response({id:'account',fullName:null})
+    :response({userId:'account',email:'user@example.test',role:'user'})));
+  expect((await verifyQuickUnlock('account',tokens,()=>true)).name).toBeUndefined();
  });
  it.each([{userId:'other',role:'user'},{userId:'account',role:'admin'},{userId:'account',role:'merchant'}])('rejects an account or role mismatch: %j',async identity=>{
   vi.stubGlobal('fetch',vi.fn(async()=>response({...identity,email:'user@example.test'})));
