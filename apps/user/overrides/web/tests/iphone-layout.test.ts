@@ -364,3 +364,21 @@ describe('iPhone bilingual and French support',()=>{
   expect(ws).not.toContain('الإنجليزية والفرنسية ستتوفران لاحقًا');
  });
 });
+
+describe('iPhone chart does not visually simulate prices during closed sessions',()=>{
+ it('uses disconnected real-observation segments instead of one line through downtime',()=>{
+  const trend=source('../price-trend.ts');
+  const chart=source('../PriceHistoryChart.tsx');
+  expect(trend).toContain('priceTrendSegments(points:TrendPoint[])');
+  expect(trend).toContain('isGlobalGoldMarketOpen(tick)');
+  expect(chart).toContain('priceTrendSegments(points).map(');
+  expect(chart).toContain('{paths.map(({line,area,single},i)');
+  expect(chart).not.toContain('const line=plotted.map(');
+ });
+ it('prevents overlapping historical Arabic dates with compact tick labels',()=>{
+  const chart=source('../PriceHistoryChart.tsx');
+  expect(chart).toContain('priceTrendTickIndices(points,right-left,compact)');
+  expect(chart).toContain("'ar-SA-u-ca-gregory'");
+  expect(chart).toContain("day:'2-digit',month:'2-digit'");
+ });
+});

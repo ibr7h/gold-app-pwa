@@ -24,11 +24,67 @@ export function priceTrendPoints(rows:TrendSourceRow[]):TrendPoint[]{
  // Use the last saved observation, rather than fabricating a time interval.
  const deduped:TrendPoint[]=[];
  for(const point of valid){
-  if(deduped.length&&deduped[deduped.length-1].time===point.time)deduped[deduped.length-1]=point;
+  const last=deduped[deduped.length-1];
+  // Same provider timestamp: take the most recent stored observation.
+  if(last&&last.time===point.time)deduped[deduped.length-1]=point;
   else deduped.push(point);
  }
- return deduped;
+ // Older backend versions may have stored the same price at every polling
+ // interval. Those records are not market movements, and must not extend a flat
+ // line across hours/days. Compare the same 2 decimals displayed to the user.
+ const observed:TrendPoint[]=[];
+ for(const point of deduped){
+  const previous=observed[observed.length-1];
+  if(previous&&Math.round(previous.price*100)===Math.round(point.price*100))continue;
+  observed.push(point);
+ }
+ return observed;
 }
+/** A chart must never imply trades across a market closure or an extended
+ * period with no observations. Each returned group is an actual uninterrupted
+ * observed session; gaps are rendered with no connecting line.
+ */
+export function priceTrendSegments(points:TrendPoint[]):TrendPoint[][]{
+ const segments:TrendPoint[][]=[];
+ const maxUnobservedGap=6*60*60*1000;
+ const quarterHour=15*60*1000;
+ for(const point of points){
+  const previous=segments.at(-1)?.at(-1);
+  const gap=previous?point.time-previous.time:0;
+  let discontinuity=!!previous&&(gap<=0||gap>maxUnobservedGap);
+  if(previous&&!discontinuity){
+   // Sample the calendar gap rather than only its endpoints: both quotes can
+   // fall in open sessions while a closed rollover/weekend lies between them.
+   const firstTick=Math.ceil((previous.time+1)/quarterHour)*quarterHour;
+   for(let tick=firstTick;tick<point.time;tick+=quarterHour){
+    if(!isGlobalGoldMarketOpen(tick)){discontinuity=true;break;}
+   }
+  }
+  if(!segments.length||discontinuity)segments.push([]);
+  segments[segments.length-1].push(point);
+ }
+ return segments;
+}
+
+/** Sparse / heavily clustered observations must not overlap x-axis dates.
+ * Only endpoints on narrow cards, plus one central date on wider charts when
+ * there is enough *actual horizontal space* to label it.
+ */
+export function priceTrendTickIndices(points:TrendPoint[],width:number,compact:boolean):number[]{
+ if(points.length<2)return [];
+ const end=points.length-1;
+ if(compact||width<350)return [0,end];
+ const duration=points[end].time-points[0].time;
+ if(duration<=0)return [0,end];
+ let candidate=-1,dist=Infinity;
+ for(let i=1;i<end;i++){
+  const r=(points[i].time-points[0].time)/duration;
+  const x=r*width,score=Math.abs(x-width/2);
+  if(x>=85&&width-x>=85&&score<dist){candidate=i;dist=score;}
+ }
+ return candidate===-1?[0,end]:[0,candidate,end];
+}
+
 export function priceTrendRange(points:TrendPoint[],range:TrendRange):TrendPoint[]{
  if(!points.length||range==='available')return points;
  const period=(range==='day'?1:range==='week'?7:30)*24*60*60*1000;
