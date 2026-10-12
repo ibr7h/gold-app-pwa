@@ -215,9 +215,31 @@ describe('iPhone chart controls visibly respond to periods',()=>{
   expect(chart).toContain('timeLabel(axisEnd,range,calendar)');
  });
  it('requests selected range and clears old results while new range loads',()=>{
-  expect(app).toContain("'&limit=200&range='+chartRange");
+  expect(app).toContain("'&limit=500&range='+chartRange");
   expect(app).toContain("setHistoryQuery(previous=>previous===priceCurrency+':'+chartKarat+':'+chartRange?previous:'')");
   expect(app).toContain("onRangeChange={setChartRange}");
   expect(app).toContain("onRangeChange={setHomeRange}");
+ });
+});
+
+describe('History API must cover requested time windows',()=>{
+ const source=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url).href),'utf8');
+ it('fetches period-spanning points for both charts and never assumes 200 recent points span a month',()=>{
+  expect(source).toContain("'&limit=500&range='+chartRange");
+  expect(source).toContain("'&karat=24&limit=500&range='+homeRange");
+  expect(source).not.toContain("'&limit=200&range='+chartRange");
+  expect(source).toContain('chartKarat===24&&chartRange===homeRange?selectedHistory:');
+ });
+});
+
+describe('Honest selected range coverage',()=>{
+ const chart=readFileSync(fileURLToPath(new URL('../PriceHistoryChart.tsx',import.meta.url).href),'utf8');
+ it('informs the user when seven or thirty day history is unavailable',()=>{
+  expect(chart).toContain("const incompleteRange=range!=='available'&&range!=='day'");
+  expect(chart).toContain("earliestObservation>timeWindow.start+86400000");
+  expect(chart).toContain('Available records do not cover the entire selected period.');
+  expect(chart).toContain('Les cours disponibles ne couvrent pas toute la période choisie.');
+  expect(chart).toContain('السجل المتاح لا يغطي كامل الفترة المختارة.');
+  expect(chart).toContain('className="dh-trend-coverage-warning"');
  });
 });

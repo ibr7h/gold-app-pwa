@@ -56,6 +56,16 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  const rangeCoverage=range==='available'
   ?tr('جميع الأسعار المسجلة المتاحة')
   :tr('الفترة المحددة')+': '+timeLabel(axisStart,range,calendar)+' — '+timeLabel(axisEnd,range,calendar);
+ // Clearly identify historical gaps, rather than presenting identical short records
+ // as if they covered the chosen 7- or 30-day period.
+ const earliestObservation=all[0]?.time??null;
+ const incompleteRange=range!=='available'&&range!=='day'&&earliestObservation!==null
+  &&timeWindow!==null&&earliestObservation>timeWindow.start+86400000;
+ const historyGapNote=incompleteRange?(
+  language==='en'?'Available records do not cover the entire selected period.':
+  language==='fr'?'Les cours disponibles ne couvrent pas toute la période choisie.':
+  'السجل المتاح لا يغطي كامل الفترة المختارة.'
+ ):null;
  const coverageNotice=points.length===0?tr('لا توجد أسعار مسجلة في هذه الفترة'):
   points.length===1?tr('تحديث سعري واحد في هذه الفترة'):
   (language==='ar'?'عدد تحديثات الأسعار: ':language==='fr'?'Relevés disponibles : ':'Price observations: ')+String(points.length);
@@ -104,6 +114,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
   <div className="dh-trend-range-coverage" role="status" aria-live="polite" key={range}>
    <strong>{rangeCoverage}</strong><small>{loading?tr('جارٍ تحميل أسعار الفترة المختارة…'):coverageNotice}</small>
   </div>
+  {historyGapNote&&!loading&&<p className="dh-trend-coverage-warning" role="status">{historyGapNote}</p>}
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
     <strong>{tr('لا توجد تحديثات سعرية كافية لرسم الاتجاه.')} ({tr(rangeDescription)})</strong>

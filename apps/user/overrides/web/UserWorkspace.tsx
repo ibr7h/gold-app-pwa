@@ -150,10 +150,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   try{
    const currencies=['SAR','USD'];
    const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
-   const selectedHistory=api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=200&range='+chartRange);
+   const selectedHistory=api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat='+chartKarat+'&limit=500&range='+chartRange);
    const [historyRows,homeHistoryRows,...latest]=await Promise.all([
     selectedHistory,
-    chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat=24&limit=200&range='+homeRange),
+    chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history?currency='+encodeURIComponent(priceCurrency)+'&karat=24&limit=500&range='+homeRange),
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');

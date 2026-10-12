@@ -2436,3 +2436,10 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 }
 .gold-web .dh-trend-range-coverage strong{font-size:12px;font-weight:700;}
 .gold-web .dh-trend-range-coverage small{font-size:11px;opacity:.8;}
+
+/* Chart-range honesty: data may be shorter than the selected historic period. */
+.gold-web .dh-trend-coverage-warning{
+ margin:4px 0 12px;padding:8px 12px;border-inline-start:3px solid #C5A021;
+ border-radius:7px;background:#F9F5E9;color:#604B21;
+ font-size:12px;line-height:1.65;white-space:normal;
+}
