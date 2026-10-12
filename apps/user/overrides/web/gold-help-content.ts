@@ -29,6 +29,9 @@ export const helpCopy={
  gemToolTitle:{ar:'تحويل قيراط الأحجار',en:'Gemstone carat converter',fr:'Convertisseur de carats de pierre'},
  gemCarats:{ar:'وزن الحجر (قيراط ct)',en:'Stone weight (ct)',fr:'Poids de la pierre (ct)'},
  gemGrams:{ar:'وزن الحجر بالجرام',en:'Stone weight in grams',fr:'Poids de la pierre en grammes'},
+ gemRate:{ar:'السعر المتفق عليه لكل قيراط (مثال افتراضي)',en:'Agreed price per carat (illustrative)',fr:'Prix convenu par carat (exemple fictif)'},
+ gemValue:{ar:'قيمة الحجر في المثال',en:'Illustrative stone charge',fr:'Prix illustratif de la pierre'},
+ gemRateNote:{ar:'حساب السعر هنا = القيراط × السعر المتفق عليه للقيراط؛ ولا يُعد تسعيرًا حقيقيًا. النوع والمنشأ والقطع واللون والنقاء والمعالجة قد تغيّر القيمة.',en:'Here: stone charge = carats × agreed rate per carat. This is not an actual gem valuation; type, origin, cut, colour, clarity and treatment matter.',fr:'Ici : coût = carats × prix convenu par carat. Ce n’est pas une expertise : type, origine, taille, couleur, pureté et traitements comptent.'},
  gemNote:{ar:'قيراط الحجر وحدة وزن (0.2 جرام)، أما عيار الذهب فهو نسبة نقاوة. قيمة الحجر لا تُستنتج من وزنه وحده.',en:'Gemstone carat is a mass unit (0.2 g); gold karat measures purity. Stone value cannot be inferred from weight alone.',fr:'Le carat des pierres mesure une masse (0,2 g) ; le carat de l’or mesure sa pureté. Le poids seul ne fixe pas la valeur.'},
  equationTitle:{ar:'كيف تُحسب فاتورة قطعة ذهب؟',en:'How is a jewellery bill calculated?',fr:'Comment calculer une facture de bijou ?'},
  equationSub:{ar:'مثال افتراضي للتعلّم، وليس سعر الذهب اليوم أو قاعدة ضريبية ملزمة.',en:'An illustrative example, not today’s gold price or a binding tax rule.',fr:'Exemple pédagogique : ni cotation du jour, ni règle fiscale applicable.'},
@@ -81,6 +84,11 @@ export const ounceGrams=31.1034768;
 export const gemCaratGrams=0.2;
 export function theoreticalFineGold(grams:number,karat:number){
  return Number.isFinite(grams)&&grams>=0&&grams<=1000000&&karat>=1&&karat<=24?grams*karat/24:null;
+}
+export function theoreticalStoneCharge(carats:number,pricePerCarat:number){
+ if(!Number.isFinite(carats)||!Number.isFinite(pricePerCarat)||carats<0||pricePerCarat<0||carats>1000000||pricePerCarat>100000000)return null;
+ const value=carats*pricePerCarat;
+ return Number.isFinite(value)?value:null;
 }
 export function theoreticalGoldInvoice(netGrams:number,perGram:number,making:number,stones:number){
  const values=[netGrams,perGram,making,stones];
