@@ -1,6 +1,6 @@
 import {activeLocale} from './i18n';
 import React,{useEffect,useId,useMemo,useRef,useState} from 'react';
-import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
+import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendSegments,priceTrendTickIndices,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
 import {Money,formatTwo,formattedMoney} from './price-display';
 
 interface Props{rows:TrendSourceRow[];currency:string;karat:number;compact?:boolean}
@@ -9,7 +9,7 @@ const timeLabel=(ms:number,range:TrendRange)=>{
  const date=new Date(ms);
  return range==='day'?
   date.toLocaleTimeString(activeLocale(),{hour:'numeric',minute:'2-digit',timeZone:'Asia/Riyadh'}):
-  date.toLocaleDateString(activeLocale(),{day:'numeric',month:'short',timeZone:'Asia/Riyadh'});
+  date.toLocaleDateString(activeLocale()==='ar-SA'?'ar-SA-u-ca-gregory':activeLocale(),{day:'2-digit',month:'2-digit',timeZone:'Asia/Riyadh'});
 };
 const completeDate=(ms:number)=>new Date(ms).toLocaleString(activeLocale(),{dateStyle:'medium',timeStyle:'short'});
 const scopeLabels:{id:TrendRange;label:string}[]=[
@@ -36,11 +36,15 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
  const projectX=(p:TrendPoint)=>left+(right-left)*((p.time-points[0].time)/spanTime);
  const projectY=(p:TrendPoint)=>bottom-(bottom-top)*((p.price-(domain?.min||0))/Math.max(.00001,(domain?.max||1)-(domain?.min||0)));
  const plotted=points.map(p=>({x:projectX(p),y:projectY(p),point:p}));
- const line=plotted.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(2)+' '+p.y.toFixed(2)).join(' ');
- const area=plotted.length>1?line+' L'+plotted[plotted.length-1].x.toFixed(2)+' '+bottom+' L'+plotted[0].x.toFixed(2)+' '+bottom+' Z':'';
+ const series=priceTrendSegments(points).map(segment=>segment.map(p=>({x:projectX(p),y:projectY(p),point:p})));
+ const paths=series.map(segment=>{
+  const line=segment.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(2)+' '+p.y.toFixed(2)).join(' ');
+  const area=segment.length>1?line+' L'+segment[segment.length-1].x.toFixed(2)+' '+bottom+' L'+segment[0].x.toFixed(2)+' '+bottom+' Z':'';
+  return {line,area,single:segment.length===1?segment[0]:null};
+ });
  const focus=plotted[index];
  const ticks=domain&&!compact?Array.from({length:4},(_,i)=>domain.max-(domain.max-domain.min)*i/3):[];
- const tickIndices=points.length>=2?(compact?[0,Math.floor((points.length-1)/3),Math.floor((points.length-1)*2/3),points.length-1]:[0,Math.floor((points.length-1)/2),points.length-1]).filter((n,i,arr)=>arr.indexOf(n)===i):[];
+ const tickIndices=priceTrendTickIndices(points,right-left,compact);
  const timeCoverage=all.length>1?(all[all.length-1].time-all[0].time)/(60*60*1000):0;
  const movePointer=(clientX:number)=>{
   if(!points.length||!plotRef.current)return;
@@ -114,8 +118,11 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false}:Pr
        return <g key={i}><line className="dh-trend-grid" x1={left} y1={y} x2={right} y2={y}/>
         <text className="dh-trend-y" x={right+8} y={y+4} textAnchor="start">{currencyNumber(v)}</text></g>;
       })}
-      <path className="dh-trend-area" d={area} fill={'url(#'+gradientId+')'}/>
-      <path className="dh-trend-line" d={line}/>
+      {paths.map(({line,area,single},i)=><g key={i}>
+       {area&&<path className="dh-trend-area" d={area} fill={'url(#'+gradientId+')'}/>}
+       <path className="dh-trend-line" d={line}/>
+       {single&&<circle className="dh-trend-point" cx={single.x} cy={single.y} r="3"/>}
+      </g>)}
       {focus&&<g className="dh-trend-focus">
        {(!compact||selectedIndex!==null)&&<line x1={focus.x} y1={top} x2={focus.x} y2={bottom} className="dh-trend-crosshair"/>}
        {(!compact||selectedIndex!==null)&&<circle cx={focus.x} cy={focus.y} r="8" className="dh-trend-ring"/>}
