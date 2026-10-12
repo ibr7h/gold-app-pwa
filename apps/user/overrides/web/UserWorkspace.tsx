@@ -9,7 +9,7 @@ import {Money,formatTwo,CurrencyMark} from './price-display';
 import NotificationSettings from './NotificationSettings';
 import NearbyMarkets from './NearbyMarkets';
 import UserPersonalDetails from './UserPersonalDetails';
-import {revokePushBeforeLogout} from './push-client';
+import {revokePushBeforeLogout,syncMarketPushPreferences} from './push-client';
 import {api,jsonRequest,errorMessage} from './api';
 import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePerformance,purchasePayload,alertPayload,localDate} from './model';
 import {priceFreshness,isGlobalGoldMarketOpen} from './price-status';
@@ -123,6 +123,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   catch{return 'SAR';}
  });
  useEffect(()=>{try{window.localStorage.setItem('dhahabi:user:price-currency',priceCurrency);}catch{/* Storage may be blocked on iOS private browsing. */}},[priceCurrency]);
+ // Each PWA install retains its own chosen language and currency for Push,
+ // even when the application is closed. This never requests OS permission.
+ useEffect(()=>{void syncMarketPushPreferences(language,priceCurrency).catch(()=>{});},[language,priceCurrency]);
  const [eurFx,setEurFx]=useState<EuroReferenceRates|null>(null);
  const [calendar,setCalendar]=useState<DisplayCalendar>(readDisplayCalendar);
  useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
