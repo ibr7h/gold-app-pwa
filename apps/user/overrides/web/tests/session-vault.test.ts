@@ -44,6 +44,20 @@ describe('encrypted User session persistence',()=>{
   expect(await unlockSessionWithPin('account','918273')).toEqual(rotated);closeSessionVault();
   expect(await unlockSessionWithBiometric('account',secret)).toEqual(rotated);
  });
+ it('rebinds a previously saved PIN to a fresh password session without storing secrets',async()=>{
+  await protectSessionWithPin('account','406195',tokens);
+  await protectSessionWithBiometric('account',secret,tokens);
+  closeSessionVault(); // Browser memory is lost when the password form takes over.
+  const newlyAuthorized={accessToken:'new-session-access',refreshToken:'new-session-refresh'};
+  expect(await unlockSessionWithPin('account','406195')).toEqual(tokens);
+  await protectSessionWithPin('account','406195',newlyAuthorized);
+  closeSessionVault();
+  expect(await unlockSessionWithPin('account','406195')).toEqual(newlyAuthorized);
+  closeSessionVault();
+  expect(await unlockSessionWithBiometric('account',secret)).toEqual(newlyAuthorized);
+  const persisted=[...memory.values()].join('');
+  for(const secret of ['406195',newlyAuthorized.accessToken,newlyAuthorized.refreshToken])expect(persisted).not.toContain(secret);
+ });
  it('requires PIN/password after restart when the browser lacks authenticator PRF',async()=>{
   await protectSessionWithPin('account','406195',tokens);
   expect(await unlockSessionWithBiometric('account',null)).toEqual(tokens);
