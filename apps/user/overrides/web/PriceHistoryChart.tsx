@@ -1,4 +1,5 @@
-import {activeLocale} from './i18n';
+import {activeLocale,useLanguage} from './i18n';
+import {translateUiText} from './i18n-messages';
 import {DisplayCalendar,formatDisplayDate} from './date-display';
 import React,{useEffect,useId,useMemo,useRef,useState} from 'react';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendWindow,priceTrendSegments,priceTrendTickIndices,trendPercent,TrendPoint,TrendRange,TrendSourceRow} from './price-trend';
@@ -16,6 +17,8 @@ const scopeLabels:{id:TrendRange;label:string}[]=[
 const compactScopes:{id:TrendRange;label:string}[]=[{id:'day',label:'يوم'},{id:'week',label:'أسبوع'},{id:'month',label:'شهر'}];
 
 export default function PriceHistoryChart({rows,currency,karat,compact=false,calendar='gregorian',range:controlledRange,onRangeChange,now=Date.now(),loading=false}:Props){
+ const {language,direction}=useLanguage();
+ const tr=(label:string)=>translateUiText(label,language);
  const [localRange,setLocalRange]=useState<TrendRange>(compact?'day':'available');
  const range=controlledRange??localRange;
  const setRange=(next:TrendRange)=>{setLocalRange(next);onRangeChange?.(next);};
@@ -71,7 +74,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  },[points.length>=2]);
  useEffect(()=>setSelectedIndex(null),[range,karat,currency,rows]);
 
- return <div className={'dh-price-trend '+(compact?'compact':'')} dir="rtl">
+ return <div className={'dh-price-trend '+(compact?'compact':'')} dir={direction}>
   {compact&&<h3 className="home-chart-title">حركة السوق (عيار {karat})</h3>}
   {!compact&&<div className="dh-trend-header">
    <div className="dh-trend-reading">
@@ -89,13 +92,13 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
   <div className="dh-trend-controls" role="group" aria-label="الفترة الزمنية للرسم">
    {(compact?compactScopes:scopeLabels).map(option=><button key={option.id} type="button"
     aria-pressed={range===option.id} className={range===option.id?'selected':''}
-    onClick={()=>setRange(option.id)}>{option.label}</button>)}
+    onClick={()=>setRange(option.id)}>{tr(option.label)}</button>)}
   </div>
   {loading&&<p className="dh-trend-loading" role="status">جارٍ تحميل أسعار الفترة المختارة…</p>}
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
-    <strong>{'البيانات خلال '+rangeDescription+': '+(points.length===0?'لا توجد أسعار مسجلة.':'لا توجد تحديثات كافية لرسم الاتجاه.')}</strong>
-    <span>{range!=='available'?'لا تتوفر نقطتان فعليتان في المدة المحددة. اختر فترة أطول، ولن نملأ الفراغ بأسعار افتراضية.':compact?'بانتظار تحديثات فعلية إضافية.':'نعرض الأسعار الحقيقية المسجلة فقط. اختر مدة أخرى عند توفر بيانات أقدم.'}</span>
+    <strong>{tr('لا توجد تحديثات سعرية كافية لرسم الاتجاه.')} ({tr(rangeDescription)})</strong>
+    <span>{tr(range!=='available'?'لا تتوفر نقطتان فعليتان في المدة المحددة. اختر فترة أطول، ولن نملأ الفراغ بأسعار افتراضية.':compact?'بانتظار تحديثات فعلية إضافية.':'نعرض الأسعار الحقيقية المسجلة فقط. اختر مدة أخرى عند توفر بيانات أقدم.')}</span>
    </div>
   :
    <>
@@ -150,6 +153,6 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
     {compact&&selectedIndex!==null&&<p className="home-chart-selection"><Money amount={selected.price} currency={currency}/> · {completeDate(selected.time,calendar)}</p>}
    </>
   }
-  <p className="dh-trend-footnote">{'الفترة: '+rangeDescription+' · أسعار مسجلة فعليًا فقط، دون تمديد الرسم خلال إغلاق السوق.'}</p>
+  <p className="dh-trend-footnote">{tr(compact?'أسعار مسجلة فقط، دون تقديرات.':'يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.')} · {tr('الفترة')}: {tr(rangeDescription)}</p>
  </div>;
 }
