@@ -12,8 +12,14 @@ const CORE = [
 ];
 
 self.addEventListener('install', event => {
-  // A new build waits until the user chooses "Update now".
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)));
+  // Only the application shell is essential. A temporarily missing icon must
+  // not abort the entire SW install and strand iOS on an old release.
+  // A new worker still waits for the user's explicit update action.
+  event.waitUntil(caches.open(CACHE).then(async cache => {
+    await cache.addAll([BASE, BASE + 'index.html']);
+    await Promise.allSettled(CORE.filter(url => url !== BASE && url !== BASE + 'index.html')
+      .map(url => cache.add(url)));
+  }));
 });
 
 self.addEventListener('activate', event => {
@@ -33,14 +39,19 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || !url.pathname.startsWith(BASE)) return;
 
-  // Version metadata and live price snapshots must never come from an old cache.
-  if (url.pathname.endsWith('/version.json') || url.pathname.endsWith('/prices-live.json')) {
+  // Update/bootstrap scripts and version metadata must bypass old SW caches.
+  // This also permits recovery when the previous worker remains in control.
+  const fresh = ['/version.json','/prices-live.json','/pwa-update.js','/sw.js',
+    '/standalone-install-gate.js','/iphone-preview-lock.js'];
+  if (fresh.some(path => url.pathname.endsWith(path))) {
     event.respondWith(fetch(event.request, {cache:'no-store'}));
     return;
   }
 
-  if (event.request.mode === 'navigate') {
-    event.respondWith(fetch(event.request).catch(() => caches.match(BASE + 'index.html')));
+  // Never return a stale HTML shell while online, including direct index.html.
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('/index.html')) {
+    event.respondWith(fetch(event.request, {cache:'no-store'})
+      .catch(() => caches.match(BASE + 'index.html')));
     return;
   }
 
