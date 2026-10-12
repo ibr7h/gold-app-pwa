@@ -7,10 +7,10 @@ const vm = require('node:vm');
 const client = fs.readFileSync(path.join(__dirname, 'user-update-client.js'), 'utf8');
 const worker = fs.readFileSync(path.join(__dirname, 'user-service-worker.js'), 'utf8');
 
-function appHarness(remote = 'full-bbbbbbbb') {
+function appHarness(remote = 'full-bbbbbbbb', options = {}) {
   const listeners = new Map();
   const nodes = new Map();
-  const calls = {requests: [], registrationUpdates: 0, messages: [], replaced: [], storageMutations: 0};
+  const calls = {requests: [], registrationUpdates: 0, messages: [], replaced: [], storageMutations: 0, timers: []};
   const newElement = tag => ({
     tag, children: [], attributes: {}, listeners: {}, style: {}, textContent: '', disabled: false,
     setAttribute(k,v){this.attributes[k] = v;},
@@ -33,10 +33,10 @@ function appHarness(remote = 'full-bbbbbbbb') {
     async register(){return registration;}
   };
   const registration = {
-    waiting:{postMessage(data) {
+    waiting: options.noWaiting ? null : {postMessage(data) {
       calls.messages.push(data);
       const handler = swListeners.get('controllerchange');
-      if(handler) handler();
+      if(handler && !options.suppressControllerChange) handler();
     }},
     addEventListener(){},
     async update(){calls.registrationUpdates++;}
@@ -48,8 +48,13 @@ function appHarness(remote = 'full-bbbbbbbb') {
     location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
     fetch:async(url,options)=>{calls.requests.push({url,options});return {ok:true,json:async()=>({version:remote})};},
+    sessionStorage: {
+      getItem(){return null;},
+      setItem(){calls.storageMutations++;},
+      removeItem(){calls.storageMutations++;}
+    },
     setInterval(){},
-    setTimeout(){}
+    setTimeout(fn,ms){ if(ms >= 6000) calls.timers.push({fn,ms}); }
   };
   vm.runInNewContext(client.replace('__BUILD_VERSION__','aaaaaaaa'),context);
   const tick = () => new Promise(resolve=>setImmediate(resolve));
@@ -83,6 +88,30 @@ test('user approval activates waiting SW before a cache-busted reload',async()=>
   assert.equal(app.calls.replaced.length,1);
   assert.match(app.calls.replaced[0],/_pwa=/);
 });
+test('iOS: controllerchange may not fire; reload still proceeds after bounded wait',async()=>{
+  const app=appHarness('full-bbbbbbbb',{suppressControllerChange:true});
+  await app.load();
+  const actions=app.nodes.get('dhahabi-user-update').children[2];
+  actions.children[0].listeners.click();
+  await app.tick(); await app.tick();
+  assert.equal(app.calls.messages[0]?.type,'SKIP_WAITING');
+  assert.equal(app.calls.replaced.length,0);
+  const timeout=app.calls.timers.find(t=>t.ms===6000);
+  assert.ok(timeout);
+  timeout.fn();
+  await app.tick(); await app.tick();
+  assert.equal(app.calls.replaced.length,1);
+  assert.match(app.calls.replaced[0],/_pwa=/);
+});
+test('iOS: no waiting worker still triggers a fresh navigation without touching app data',async()=>{
+  const app=appHarness('full-bbbbbbbb',{noWaiting:true});
+  await app.load();
+  const actions=app.nodes.get('dhahabi-user-update').children[2];
+  actions.children[0].listeners.click();
+  await app.tick(); await app.tick();
+  assert.equal(app.calls.replaced.length,1);
+  assert.equal(app.calls.messages.length,0);
+});
 test('later dismisses the banner without affecting app data',async()=>{
   const app=appHarness();
   await app.load();
@@ -108,6 +137,14 @@ test('new worker never activates in install and only clears its own old caches o
   assert.match(worker,/event\.data\?\.type === 'SKIP_WAITING'/);
   assert.match(worker,/key\.startsWith\(PREFIX\) && key !== CACHE/);
   assert.doesNotMatch(worker,/CLEAR_CACHES/);
+});
+test('new worker does not block install on optional icon failures or cache the update bootstrap',()=>{
+  const install=worker.split("self.addEventListener('install'")[1].split("self.addEventListener('activate'")[0];
+  assert.match(install,/Promise\.allSettled/);
+  assert.match(worker,/url\.pathname\.endsWith\('\/index\.html'\)/);
+  assert.match(worker,/'\/pwa-update\.js'/);
+  assert.match(worker,/'\/standalone-install-gate\.js'/);
+  assert.match(worker,/fetch\(event\.request, \{cache:'no-store'\}\)/);
 });
 test('new worker is isolated to the User origin/scope and never caches fresh version metadata',()=>{
   assert.match(worker,/url\.origin !== self\.location\.origin/);
