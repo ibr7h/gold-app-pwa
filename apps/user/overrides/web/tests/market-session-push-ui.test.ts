@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {fileURLToPath,URL} from 'node:url';
+import {join} from 'node:path';
 import {describe,it,expect} from 'vitest';
 import {translateUiText} from '../i18n-messages';
 const source=(p:string)=>readFileSync(fileURLToPath(new URL('../'+p,import.meta.url)),'utf8');
@@ -30,7 +31,7 @@ describe('Market opening and closing Push preferences',()=>{
   }
  });
  it('service worker preserves the payload language and routes to prices on either origin',()=>{
-  const worker=readFileSync(fileURLToPath(new URL('../../scripts/user-service-worker.js',import.meta.url)),'utf8');
+  const worker=readFileSync(join(process.env.GITHUB_WORKSPACE||process.cwd(),'apps/user/scripts/user-service-worker.js'),'utf8');
   expect(worker).toContain("const lang=['ar','en','fr'].includes(payload.lang)?payload.lang:'ar'");
   expect(worker).toContain("lang,dir:lang==='ar'?'rtl':'ltr'");
   expect(worker).toContain("requested.startsWith('#')?BASE+requested:requested");
