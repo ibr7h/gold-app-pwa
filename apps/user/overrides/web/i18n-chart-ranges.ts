@@ -1,33 +1,49 @@
-/** Translations for actual-period market chart controls and status. */
+/** User iPhone chart labels and session-boundary semantics.
+ * Keep every chart-visible literal in this translation catalog (ar/en/fr).
+ */
 export const chartRangeMessages:ReadonlyArray<readonly [string,string,string]>=[
- [
-  "الفترة",
-  "Period",
-  "Période"
- ],
- [
-  "الفترة المتاحة",
-  "All available",
-  "Toute la période disponible"
- ],
- [
-  "لا تتوفر نقطتان فعليتان في المدة المحددة. اختر فترة أطول، ولن نملأ الفراغ بأسعار افتراضية.",
-  "Not enough recorded quotes for this period. Select a longer period; no prices are fabricated.",
-  "Pas assez de cours enregistrés sur cette période. Choisissez une période plus longue ; aucun cours n’est inventé."
- ],
- [
-  "نعرض الأسعار الحقيقية المسجلة فقط. اختر مدة أخرى عند توفر بيانات أقدم.",
-  "Only recorded prices are shown. Choose another period if older history becomes available.",
-  "Seuls les prix enregistrés sont affichés. Choisissez une autre période lorsque des données plus anciennes sont disponibles."
- ],
- [
-  "بانتظار تحديثات فعلية إضافية.",
-  "Waiting for more recorded price updates.",
-  "En attente de nouveaux cours enregistrés."
- ],
- [
-  "جارٍ تحميل أسعار الفترة المختارة…",
-  "Loading prices for selected period…",
-  "Chargement des cours de la période sélectionnée…"
- ]
+ ["24 ساعة", "24 hours", "24 heures"],
+ ["7 أيام", "7 days", "7 jours"],
+ ["30 يومًا", "30 days", "30 jours"],
+ ["المتاح", "Available", "Disponible"],
+ ["يوم", "Day", "Jour"],
+ ["أسبوع", "Week", "Semaine"],
+ ["شهر", "Month", "Mois"],
+ ["سعر الجرام · عيار", "Price per gram · karat", "Prix au gramme · carat"],
+ ["متوسطات يومية:", "Daily averages:", "Moyennes quotidiennes :"],
+ ["تحديثات فعلية:", "Recorded quotes:", "Cours enregistrés :"],
+ ["عدد تحديثات الأسعار:", "Price observations:", "Cours relevés :"],
+ ["حركة السوق", "Market movement", "Évolution du marché"],
+ ["نوعان من البيانات", "Two data types", "Deux types de données"],
+ ["التغير ضمن النطاق المعروض", "Change within selected range", "Variation sur la période affichée"],
+ ["الفترة الزمنية للرسم", "Chart time range", "Période du graphique"],
+ ["لا توجد أسعار مسجلة في هذه الفترة", "No recorded prices for this period", "Aucun cours enregistré pour cette période"],
+ ["تحديث سعري واحد في هذه الفترة", "One recorded quote in this period", "Un cours enregistré sur cette période"],
+ ["جميع الأسعار المسجلة المتاحة", "All available recorded prices", "Tous les cours enregistrés disponibles"],
+ ["الفترة المحددة", "Selected period", "Période sélectionnée"],
+ ["لا توجد تحديثات سعرية كافية لرسم الاتجاه.", "Not enough recorded prices to draw a trend.", "Pas assez de cours enregistrés pour tracer une tendance."],
+ ["متوسط يومي", "Daily average", "Moyenne quotidienne"],
+ ["التحديث", "Observation", "Relevé"],
+ ["ملخص حركة الأسعار خلال الفترة المعروضة", "Summary of price movement for selected period", "Résumé de l'évolution des cours sur la période"],
+ ["الأعلى", "High", "Maximum"],
+ ["الأدنى", "Low", "Minimum"],
+ ["بداية الفترة", "Period start", "Début de période"],
+ ["لا توجد مقارنة", "No comparison available", "Comparaison indisponible"],
+ ["علامات جلسات السوق", "Market session markers", "Repères des séances de marché"],
+ ["أول سعر مسجل بعد فتح السوق", "First recorded quote after market open", "Premier cours enregistré après l’ouverture"],
+ ["آخر سعر مسجل قبل إغلاق السوق", "Last recorded quote before market close", "Dernier cours enregistré avant la fermeture"],
+ ["تم ضغط فترات إغلاق السوق بصريًا؛ لا تعني الوصلات الرمادية حدوث تداول.", "Closed-market periods are visually compressed; gray links do not represent trading.", "Les périodes de fermeture sont compressées visuellement ; les liaisons grises ne représentent pas des échanges."],
+ ["الخط المتقطع يمثل متوسطات يومية تاريخية؛ والخط المتصل يمثل تحديثات فعلية. لا يمثل المتوسط اليومي سعر إغلاق أو سعرًا لحظيًا.", "The dashed gold line shows historical daily averages; the solid line shows actual recorded quotes. A daily average is neither a closing price nor a live quote.", "Le trait doré pointillé représente les moyennes quotidiennes historiques ; le trait continu montre les cours réellement relevés. La moyenne n’est ni un cours de clôture ni un cours en direct."],
+ ["أسعار مسجلة فقط، دون تقديرات.", "Recorded prices only; no estimates.", "Cours enregistrés uniquement, sans estimations."],
+ ["يعرض الرسم تغير الأسعار المسجلة خلال الفترة المختارة، دون إضافة أسعار تقديرية.", "The chart shows recorded price changes over the selected period, without estimated quotes.", "Le graphique montre les variations des cours enregistrés, sans prix estimés."],
+ ["لا تتوفر نقطتان فعليتان في المدة المحددة. اختر فترة أطول، ولن نملأ الفراغ بأسعار افتراضية.", "Fewer than two recorded quotes are available. Choose a longer period; missing prices will not be fabricated.", "Moins de deux cours sont disponibles. Choisissez une période plus longue ; aucun cours ne sera inventé."],
+ ["نعرض الأسعار الحقيقية المسجلة فقط. اختر مدة أخرى عند توفر بيانات أقدم.", "Only real recorded prices are shown. Choose another period when older records become available.", "Seuls les cours réellement enregistrés sont affichés. Choisissez une autre période quand l’historique sera disponible."],
+ ["بانتظار تحديثات فعلية إضافية.", "Waiting for more real price observations.", "En attente de nouveaux relevés réels."],
+ ["جارٍ تحميل أسعار الفترة المختارة…", "Loading prices for the selected period…", "Chargement des cours pour la période choisie…"],
+ ["الفترة المتاحة", "Available history", "Historique disponible"],
+ ["الفترة", "Period", "Période"],
+ ["الرسم الزمني للأسعار", "Price history chart", "Graphique historique des cours"],
+ ["العيار", "Karat", "Carat"],
+ ["سعر الأونصة المشتق من عيار 24", "24K-derived ounce price", "Prix de l’once calculé à partir du 24 carats"],
+ ["آخر فحص:", "Last checked:", "Dernière vérification :"],
 ];
