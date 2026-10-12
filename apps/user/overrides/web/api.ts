@@ -47,7 +47,7 @@ export async function getVerifiedCachedUser():Promise<VerifiedCachedUser|null>{
   if(!value)return null;
   const data=JSON.parse(value);
   if(data?.role!=='user'||!(typeof data.id==='string'||typeof data.id==='number')||typeof data.email!=='string'||!data.email.includes('@'))return null;
-  return {id:data.id,email:data.email,role:'user'};
+  return {id:data.id,email:data.email,role:'user',...(typeof data.name==='string'&&data.name.trim()?{name:data.name.trim().slice(0,120)}:{})};
  }catch{return null;}
 }
 export async function saveVerifiedUser(user:VerifiedCachedUser){
