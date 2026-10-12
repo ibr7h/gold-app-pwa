@@ -53,6 +53,13 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  const explicitRange=range!=='available'&&timeWindow!==null;
  const xAxisLabels=explicitRange?[{time:axisStart,x:left,anchor:'start' as const},{time:axisEnd,x:right,anchor:'end' as const}]:[];
  const rangeDescription=range==='day'?'24 ساعة':range==='week'?'7 أيام':range==='month'?'30 يومًا':'الفترة المتاحة';
+ const rangeCoverage=range==='available'
+  ?tr('جميع الأسعار المسجلة المتاحة')
+  :tr('الفترة المحددة')+': '+timeLabel(axisStart,range,calendar)+' — '+timeLabel(axisEnd,range,calendar);
+ const coverageNotice=points.length===0?tr('لا توجد أسعار مسجلة في هذه الفترة'):
+  points.length===1?tr('تحديث سعري واحد في هذه الفترة'):
+  (language==='ar'?'عدد تحديثات الأسعار: ':language==='fr'?'Relevés disponibles : ':'Price observations: ')+String(points.length);
+
  const movePointer=(clientX:number)=>{
   if(!points.length||!plotRef.current)return;
   const rect=plotRef.current.getBoundingClientRect();
@@ -94,7 +101,9 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
     aria-pressed={range===option.id} className={range===option.id?'selected':''}
     onClick={()=>setRange(option.id)}>{tr(option.label)}</button>)}
   </div>
-  {loading&&<p className="dh-trend-loading" role="status">جارٍ تحميل أسعار الفترة المختارة…</p>}
+  <div className="dh-trend-range-coverage" role="status" aria-live="polite" key={range}>
+   <strong>{rangeCoverage}</strong><small>{loading?tr('جارٍ تحميل أسعار الفترة المختارة…'):coverageNotice}</small>
+  </div>
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
     <strong>{tr('لا توجد تحديثات سعرية كافية لرسم الاتجاه.')} ({tr(rangeDescription)})</strong>

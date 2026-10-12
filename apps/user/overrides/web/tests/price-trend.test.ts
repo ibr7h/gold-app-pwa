@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {describe,it,expect} from 'vitest';
 import {nearestTrendIndex,priceTrendDomain,priceTrendPoints,priceTrendRange,priceTrendWindow,priceTrendSegments,priceTrendTickIndices,trendPercent} from '../price-trend';
 
@@ -191,5 +193,31 @@ describe('Different date windows must change the iPhone price chart',()=>{
   expect(priceTrendRange(recent,'day',now)).toHaveLength(2);
   expect(priceTrendRange(recent,'month',now)).toHaveLength(2);
   expect(priceTrendWindow('day',now,recent)?.start).not.toBe(priceTrendWindow('month',now,recent)?.start);
+ });
+});
+
+
+describe('iPhone chart controls visibly respond to periods',()=>{
+ const chart=readFileSync(fileURLToPath(new URL('../PriceHistoryChart.tsx',import.meta.url).href),'utf8');
+ const app=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url).href),'utf8');
+ it('exposes distinct 24h 7d 30d and available selectors',()=>{
+  for(const code of ["id:'day',label:'24 ساعة'","id:'week',label:'7 أيام'","id:'month',label:'30 يومًا'","id:'available',label:'المتاح'"]){
+   expect(chart).toContain(code);
+  }
+  expect(chart).toContain('onClick={()=>setRange(option.id)}');
+  expect(chart).toContain('priceTrendRange(all,range,now)');
+ });
+ it('reflects selected exact time boundaries and observation count in a live status area',()=>{
+  expect(chart).toContain('const rangeCoverage=range===');
+  expect(chart).toContain('const coverageNotice=points.length===0');
+  expect(chart).toContain('aria-live="polite" key={range}');
+  expect(chart).toContain('timeLabel(axisStart,range,calendar)');
+  expect(chart).toContain('timeLabel(axisEnd,range,calendar)');
+ });
+ it('requests selected range and clears old results while new range loads',()=>{
+  expect(app).toContain("'&limit=200&range='+chartRange");
+  expect(app).toContain("setHistoryQuery(previous=>previous===priceCurrency+':'+chartKarat+':'+chartRange?previous:'')");
+  expect(app).toContain("onRangeChange={setChartRange}");
+  expect(app).toContain("onRangeChange={setHomeRange}");
  });
 });

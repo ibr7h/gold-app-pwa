@@ -142,7 +142,11 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  },[]);
  const loadMarket=useCallback(async()=>{
   const seq=++marketLoadSequence.current;
-  if(active.current)setMarketLoading(true);
+  if(active.current){
+   setMarketLoading(true);
+   // Do not show observations for the prior selection while requesting a new window.
+   setHistoryQuery(previous=>previous===priceCurrency+':'+chartKarat+':'+chartRange?previous:'');
+  }
   try{
    const currencies=['SAR','USD'];
    const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
