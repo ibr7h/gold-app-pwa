@@ -15,6 +15,21 @@
 
   const online = () => typeof navigator.onLine !== 'boolean' || navigator.onLine;
   const visible = () => document.visibilityState !== 'hidden';
+  const trUpdate = key => globalThis.DhahabiUpdateLocale?.t(key) || key;
+  const updateDirection = () => globalThis.DhahabiUpdateLocale?.direction() || 'rtl';
+  function refreshPromptLanguage() {
+    if (!banner) return;
+    const title = banner.children[0], info = banner.children[1], actions = banner.children[2];
+    if (!title || !info || !actions) return;
+    const newer = /^full-(\\d+\\.\\d+\\.\\d+)-\\d{8}$/.exec(remoteVersion);
+    title.textContent = trUpdate('available') + (newer ? ' v' + newer[1] : '');
+    info.textContent = trUpdate('info');
+    actions.children[0].textContent = trUpdate('updateNow');
+    actions.children[1].textContent = trUpdate('later');
+    banner.setAttribute('aria-label', trUpdate('updateAria'));
+    banner.style.direction = updateDirection();
+    banner.style.textAlign = updateDirection() === 'rtl' ? 'right' : 'left';
+  }
 
   function notice(message) {
     const prior = document.getElementById('dhahabi-update-notice');
@@ -23,7 +38,7 @@
     el.id = 'dhahabi-update-notice';
     el.setAttribute('role', 'status');
     el.textContent = message;
-    el.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top, 0px) + 16px);left:50%;transform:translateX(-50%);z-index:2147483600;max-width:calc(100vw - 32px);padding:12px 18px;background:#001F3F;color:#F8F9FA;border:1px solid #C5A021;border-radius:14px;font:600 14px system-ui,sans-serif;box-shadow:0 10px 32px #0003;text-align:center;direction:rtl';
+    el.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top, 0px) + 16px);left:50%;transform:translateX(-50%);z-index:2147483600;max-width:calc(100vw - 32px);padding:12px 18px;background:#001F3F;color:#F8F9FA;border:1px solid #C5A021;border-radius:14px;font:600 14px system-ui,sans-serif;box-shadow:0 10px 32px #0003;text-align:center;direction:' + updateDirection();
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 4500);
   }
@@ -35,25 +50,25 @@
     banner = document.createElement('section');
     banner.id = PROMPT_ID;
     banner.setAttribute('role', 'status');
-    banner.setAttribute('aria-label', 'تحديث تطبيق ذهبي');
-    banner.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top, 0px) + 12px);left:50%;transform:translateX(-50%);z-index:2147483600;box-sizing:border-box;width:min(390px,calc(100vw - 28px));padding:14px;border-radius:18px;border:1px solid #C5A021;background:#F8F9FA;color:#001F3F;box-shadow:0 12px 36px #0004;direction:rtl;text-align:right;font-family:system-ui,sans-serif';
+    banner.setAttribute('aria-label', trUpdate('updateAria'));
+    banner.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top, 0px) + 12px);left:50%;transform:translateX(-50%);z-index:2147483600;box-sizing:border-box;width:min(390px,calc(100vw - 28px));padding:14px;border-radius:18px;border:1px solid #C5A021;background:#F8F9FA;color:#001F3F;box-shadow:0 12px 36px #0004;direction:' + updateDirection() + ';text-align:' + (updateDirection()==='rtl'?'right':'left') + ';font-family:system-ui,sans-serif';
     const title = document.createElement('strong');
     const newer = /^full-(\d+\.\d+\.\d+)-\d{8}$/.exec(version);
-    title.textContent = newer ? 'يتوفر تحديث ذهبي v' + newer[1] : 'يتوفر تحديث جديد لذهبي';
+    title.textContent = trUpdate('available') + (newer ? ' v' + newer[1] : '');
     title.style.cssText = 'display:block;font-size:15px;line-height:1.6';
     const info = document.createElement('p');
-    info.textContent = 'يمكن تثبيت الإصدار الجديد مع الاحتفاظ بحسابك وبياناتك.';
+    info.textContent = trUpdate('info');
     info.style.cssText = 'margin:5px 0 12px;font-size:12px;line-height:1.6';
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
     const update = document.createElement('button');
     update.type = 'button';
-    update.textContent = 'تحديث الآن';
+    update.textContent = trUpdate('updateNow');
     update.style.cssText = 'flex:1;min-height:44px;padding:8px 16px;border:0;border-radius:12px;background:#C5A021;color:#001F3F;font:700 14px system-ui,sans-serif;cursor:pointer';
     update.addEventListener('click', () => { void applyUpdate(update); });
     const later = document.createElement('button');
     later.type = 'button';
-    later.textContent = 'لاحقًا';
+    later.textContent = trUpdate('later');
     later.style.cssText = 'min-height:44px;padding:8px 14px;border:1px solid #C5A021;border-radius:12px;background:#fff;color:#001F3F;font:600 13px system-ui,sans-serif;cursor:pointer';
     later.addEventListener('click', () => {
       dismissedVersion = remoteVersion;
@@ -63,6 +78,7 @@
     actions.append(update, later);
     banner.append(title, info, actions);
     document.body.appendChild(banner);
+    refreshPromptLanguage();
   }
 
   function reloadNewVersion() {
@@ -108,7 +124,7 @@
     let target = '';
     try { target = sessionStorage.getItem(ATTEMPT_KEY) || ''; sessionStorage.removeItem(ATTEMPT_KEY); } catch {}
     if (target && target !== CURRENT) {
-      notice('لم يكتمل التحديث السابق. تحقق من الاتصال وأعد المحاولة.');
+      notice(trUpdate('previousIncomplete'));
     }
   }
 
@@ -116,7 +132,7 @@
     if (applying) return;
     applying = true;
     button.disabled = true;
-    button.textContent = 'جارٍ تثبيت التحديث…';
+    button.textContent = trUpdate('installing');
     try {
       if (registration) {
         await registration.update();
@@ -135,15 +151,15 @@
     } catch {
       applying = false;
       button.disabled = false;
-      button.textContent = 'إعادة المحاولة';
-      notice('تعذر تثبيت التحديث الآن. حاول مرة أخرى عند توفر الاتصال.');
+      button.textContent = trUpdate('retry');
+      notice(trUpdate('installFailed'));
     }
   }
 
   async function checkForUpdate(manual = false) {
     if (checking) return;
     if (!online()) {
-      if (manual) notice('لا يوجد اتصال بالإنترنت للتحقق من التحديثات.');
+      if (manual) notice(trUpdate('offline'));
       return;
     }
     checking = true;
@@ -155,9 +171,9 @@
       if (data.version !== CURRENT) {
         showPrompt(data.version);
         if (registration) await registration.update().catch(() => {});
-      } else if (manual) notice('تطبيق ذهبي محدّث إلى آخر إصدار' + (DISPLAY_VERSION ? ' (' + DISPLAY_VERSION + ')' : '') + '.');
+      } else if (manual) notice(trUpdate('current') + (DISPLAY_VERSION ? ' (' + DISPLAY_VERSION + ')' : '') + '.');
     } catch {
-      if (manual) notice('تعذر التحقق من التحديثات. حاول مرة أخرى.');
+      if (manual) notice(trUpdate('verifyFailed'));
     } finally {
       checking = false;
     }
@@ -208,6 +224,7 @@
   addEventListener('focus', () => { if (visible()) void checkForUpdate(); });
   addEventListener('online', () => { if (visible()) void checkForUpdate(); });
   document.addEventListener('visibilitychange', () => { if (visible()) void checkForUpdate(); });
+  addEventListener('dhahabi:user-language-changed', refreshPromptLanguage);
   addEventListener('dhahabi:user-check-update', () => { void checkForUpdate(true); });
   setInterval(() => { if (visible()) void checkForUpdate(); }, CHECK_EVERY_MS);
 })();
