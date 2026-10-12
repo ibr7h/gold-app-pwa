@@ -5,7 +5,7 @@ import {amountToDisplayCurrencyWords} from '../arabic-amount-words';
 import {amountToLocalizedWords} from '../amount-words-localized';
 import type {MarketPrice,Purchase} from '../model';
 import {readFileSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,URL} from 'node:url';
 
 const now=Date.parse('2026-10-12T18:00:00Z');
 const fx=parseEuroReferenceRates({rates:{
