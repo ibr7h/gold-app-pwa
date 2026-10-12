@@ -3,6 +3,7 @@ on:
   push:
     branches: ["preview/iphone-render"]
     paths:
+      - ".github/workflows/build-iphone-wallet.yml"
       - "apps/user/scripts/user-update-client.js"
       - "apps/user/scripts/user-service-worker.js"
       - "apps/user/scripts/user-update.test.cjs"
@@ -46,7 +47,7 @@ on:
       - "apps/user/overrides/web/tests/v1920-restore.test.ts"
       - "apps/user/overrides/web/tests/fixtures/v1.9.20-calculator.txt"
       - "apps/user/overrides/web/user.css"
-  # Workflow-only maintenance does not automatically rebuild or bump the User release.
+  # Changes to this release workflow are versioned too, so Pages receives the latest iPhone bundle.
   workflow_dispatch:
 permissions:
   contents: write
