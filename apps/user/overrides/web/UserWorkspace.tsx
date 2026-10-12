@@ -8,6 +8,7 @@ import {TrendRange} from './price-trend';
 import {Money,formatTwo,CurrencyMark} from './price-display';
 import NotificationSettings from './NotificationSettings';
 import NearbyMarkets from './NearbyMarkets';
+import GoldHelp from './GoldHelp';
 import UserPersonalDetails from './UserPersonalDetails';
 import {revokePushBeforeLogout,syncMarketPushPreferences} from './push-client';
 import {api,jsonRequest,errorMessage} from './api';
@@ -466,7 +467,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    <footer className="dh-ux-profile-footer"><span className="app-version-account" dir="ltr">{APP_DISPLAY_VERSION}</span><span className="dh-profile-copyright">© 2026 Ibrahim Alneami — All Rights Reserved</span></footer>
   </div>;
 
-  if(page==='help')return <section className="approved-card help-panel"><div className="approved-card-title">المساعدة</div>{[['كيف أبدأ؟','أنشئ محفظة ثم أضف مشترياتك الفعلية.'],['كيف تُحسب قيمة المحفظة؟','تعتمد على أسعار Backend ذهبي الحالية، مع إبقاء العملات منفصلة.'],['كيف أقرأ الرسم؟','كل نقطة سعر تمثل تحديثًا محفوظًا فعليًا في قاعدة البيانات.'],['لماذا التجار غير ظاهرين؟','لأن بيانات Merchant Location لم تُنفذ في الـBackend بعد؛ لا نعرض بيانات وهمية.']].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>;
+  if(page==='help')return <GoldHelp language={language}/>;
 
   return <div className="dh-ux-more">
    <button type="button" className="approved-card dh-ux-account-link" onClick={()=>navigate('account')} aria-label="فتح الملف الشخصي">
@@ -486,7 +487,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <h3 className="dh-ux-group-title" id="dh-more-settings-title">الإعدادات والمساعدة</h3>
     <div className="approved-card dh-ux-link-list">
      <button type="button" onClick={()=>navigate('notification-settings')}><span className="dh-ux-row-icon"><Icon name="bell-ring"/></span><span className="dh-ux-row-copy"><strong>إعدادات الإشعارات</strong><small>السماح بالإشعارات واختبارها</small></span><Icon name="chevron"/></button>
-     <button type="button" onClick={()=>navigate('help')}><span className="dh-ux-row-icon"><Icon name="circle-help"/></span><span className="dh-ux-row-copy"><strong>المساعدة</strong><small>إجابات عن الأسئلة الشائعة</small></span><Icon name="chevron"/></button>
+     <button type="button" onClick={()=>navigate('help')}><span className="dh-ux-row-icon"><Icon name="circle-help"/></span><span className="dh-ux-row-copy"><strong>{tr('المساعدة')}</strong><small>{tr('دليل الذهب والعيارات والأحجار والمصنعية')}</small></span><Icon name="chevron"/></button>
     </div>
    </section>
    <section className="approved-card dh-preference-card" aria-labelledby="dh-preferences-title">
