@@ -12,6 +12,12 @@ const next=[+m[1],+m[2],+m[3]+1].join('.');
 const parts=new Intl.DateTimeFormat('en-US',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Riyadh'}).formatToParts(new Date());
 const d=Object.fromEntries(parts.map(p=>[p.type,p.value]));
 const date=d.year+d.month+d.day,token=next+'-'+date,version='full-'+token;
+// Compatibility bridge: iPhones installed before semantic versioning only
+// recognize version.json.version as "full-<8-40 hex chars>". Keep that field
+// valid for legacy clients; new clients prefer the semantic releaseVersion.
+const releaseSha=(process.env.GITHUB_SHA||process.env.IPHONE_RELEASE_SHA||'').trim();
+if(!/^[a-f0-9]{8,40}$/i.test(releaseSha))throw Error('Valid release SHA is required for legacy iPhone update migration');
+const legacyVersion='full-'+releaseSha.slice(0,8).toLowerCase();
 const swPath=path.join(base,'sw.js'),clientPath=path.join(base,'pwa-update.js');
 let sw=read(swPath),client=read(clientPath);
 if(!/const VERSION = '[^']+';/.test(sw)||!/const CURRENT = 'full-[^']+';/.test(client)||!client.includes('watchAccountVersion()'))throw Error('Release scripts not ready');
@@ -32,5 +38,5 @@ sw=sw.replace(/const VERSION = '[^']+';/,"const VERSION = '"+token+"';");
 write(src,current.replace(m[0],"export const APP_VERSION = '"+next+"';"));
 write(clientPath,client);
 write(swPath,sw);
-write(path.join(base,'version.json'),JSON.stringify({version,displayVersion:'v'+next,releasedAt:date,force:true},null,2)+'\n');
+write(path.join(base,'version.json'),JSON.stringify({version:legacyVersion,releaseVersion:version,displayVersion:'v'+next,releasedAt:date,force:true},null,2)+'\n');
 console.log('Prepared iPhone User '+version+' on '+count+' preview pages');

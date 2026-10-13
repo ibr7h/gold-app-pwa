@@ -48,7 +48,7 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     URL,Date,Promise,
     location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
-    fetch:async(url,options)=>{calls.requests.push({url,options});return {ok:true,json:async()=>({version:remote})};},
+    fetch:async(url,fetchOptions)=>{calls.requests.push({url,options:fetchOptions});return {ok:true,json:async()=>options.legacyVersion?{version:options.legacyVersion,releaseVersion:remote}:{version:remote}};},
     localStorage: {getItem:key=>key==='dhahabi:user:language'?(options.language||null):null},
     sessionStorage: {
       getItem(){return null;},
@@ -71,6 +71,31 @@ test('a matching version causes no disruptive banner',async()=>{
   assert.equal(app.nodes.has('dhahabi-user-update'),false);
   assert.equal(app.calls.requests[0].options.cache,'no-store');
   assert.equal(app.calls.registrationUpdates,1);
+});
+test('legacy SHA-style metadata safely prompts when a previously installed client is behind',async()=>{
+  const app=appHarness('full-bbbbbbbb');
+  await app.load();
+  assert.ok(app.nodes.get('dhahabi-user-update'));
+  assert.equal(app.calls.requests[0].options.cache,'no-store');
+});
+test('modern installed client compares semantic releaseVersion instead of compatibility SHA',async()=>{
+  const app=appHarness('full-aaaaaaaa',{legacyVersion:'full-bbbbbbbb'});
+  await app.load();
+  assert.equal(app.nodes.has('dhahabi-user-update'),false);
+  assert.equal(app.calls.requests[0].options.cache,'no-store');
+});
+test('modern client offers semantic release even when legacy SHA metadata has another value',async()=>{
+  const app=appHarness('full-1.9.62-20261013',{legacyVersion:'full-deadbeef'});
+  await app.load();
+  const prompt=app.nodes.get('dhahabi-user-update');
+  assert.ok(prompt);
+  assert.match(prompt.children[0].textContent,/1\.9\.62/);
+});
+test('release generator preserves legacy parsability and independent modern release identity',()=>{
+  const release=fs.readFileSync(path.join(__dirname,'../../../scripts/release-iphone-version.cjs'),'utf8');
+  assert.match(release,/legacyVersion='full-'/);
+  assert.match(release,/releaseVersion:version/);
+  assert.match(release,/displayVersion:'v'/);
 });
 test('a newer version shows a mobile-safe prompt without automatic navigation',async()=>{
   const app=appHarness();
