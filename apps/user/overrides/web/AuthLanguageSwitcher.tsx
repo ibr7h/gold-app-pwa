@@ -29,7 +29,7 @@ export function AuthLanguageSwitcher(){
    </svg>
    <span className="dh-auth-language-code">{language.toUpperCase()}</span>
   </button>
-  {open&&<div className="dh-auth-language-menu" role="menu" aria-label={aria} dir="auto">
+  {open&&<div className="dh-auth-language-menu" role="menu" aria-label={aria} dir={language==='ar'?'rtl':'ltr'}>
    {options.map(option=><button type="button" key={option.value} role="menuitemradio"
     aria-checked={language===option.value} lang={option.value} onClick={()=>{setLanguage(option.value);setOpen(false);}}>
      <span>{option.label}</span>{language===option.value&&<span aria-hidden="true">✓</span>}
