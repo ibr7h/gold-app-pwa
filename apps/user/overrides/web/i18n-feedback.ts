@@ -9,6 +9,7 @@ const backendEnglish:Record<string,readonly [string,string]>={
  'Invalid credentials':['Incorrect email or password.','Adresse e-mail ou mot de passe incorrect.'],
  'البريد الإلكتروني أو رقم الجوال مسجل بالفعل. استخدم تسجيل الدخول.':['This email or mobile number is already registered. Please sign in.','Cet e-mail ou ce numéro de mobile est déjà enregistré. Connectez-vous.'],
  'أدخل رقم جوال صحيحًا.':['Enter a valid mobile number.','Saisissez un numéro de mobile valide.'],
+ 'تحقق من رقم الجوال ورمز الدولة المحدد.':['Check the mobile number and selected country calling code.','Vérifiez le numéro de mobile et l’indicatif du pays sélectionné.'],
  'أدخل رقم جوال صحيحًا، مثل 05xxxxxxxx أو رقمًا دوليًا يبدأ بعلامة +.':['Enter a valid Saudi mobile number: 05xxxxxxxx, 5xxxxxxxx or +9665xxxxxxxx.','Saisissez un numéro saoudien valide : 05xxxxxxxx, 5xxxxxxxx ou +9665xxxxxxxx.'],
  'كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.':['The password is too long (maximum 72 bytes).','Le mot de passe est trop long (72 octets maximum).'],
  'التحقق بالبريد غير متاح حاليًا. حاول لاحقًا.':['Email verification is currently unavailable. Please try later.','La vérification par e-mail est actuellement indisponible. Réessayez plus tard.'],
