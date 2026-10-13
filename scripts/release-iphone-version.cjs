@@ -38,12 +38,24 @@ if(count<20)throw Error('Not all preview HTML entrypoints stamped: '+count);
  // so older iPhones can migrate through legacy hex metadata to semantic releases.
 const oldDecision="if (data.version !== CURRENT) {";
 const oldPrompt="showPrompt(data.version);";
-if(!client.includes(oldDecision)||!client.includes(oldPrompt))throw Error('Published updater is missing expected pre-migration markers');
-client=client.replace(oldDecision,
-  "const requested = data?.semanticReleaseVersion || data?.releaseVersion || data?.version;\n"+
-  "      if (typeof requested !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\\d+\\.\\d+\\.\\d+-\\d{8})$/.test(requested)) throw new Error('version_invalid');\n"+
-  "      if (requested !== CURRENT) {");
-client=client.replace(oldPrompt,'showPrompt(requested);');
+const legacyDeclaration="const requested = data?.releaseVersion || data?.version;";
+const modernDeclaration="const requested = data?.semanticReleaseVersion || data?.releaseVersion || data?.version;";
+const versionValidator=
+  "      if (typeof requested !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\\d+\\.\\d+\\.\\d+-\\d{8})$/.test(requested)) throw new Error('version_invalid');";
+// Builds start from either the original hex-only updater or the already
+// released v1.9.62 semantic updater. Never require a one-time legacy marker.
+if(client.includes(oldDecision)){
+ if(!client.includes(oldPrompt))throw Error('Legacy updater missing notification call');
+ client=client.replace(oldDecision,modernDeclaration+"\n"+versionValidator+"\n      if (requested !== CURRENT) {");
+ client=client.replace(oldPrompt,'showPrompt(requested);');
+}else if(client.includes(legacyDeclaration)){
+ client=client.replace(legacyDeclaration,modernDeclaration);
+}else if(!client.includes(modernDeclaration)){
+ throw Error('Unknown published updater template; refusing unsafe release');
+}
+const validatorLine=/^[ \t]*if \(typeof requested !== 'string' \|\| !\/\^full-.*\)\$\/\.test\(requested\)\) throw new Error\('version_invalid'\);/m;
+if(!validatorLine.test(client))throw Error('Updater semantic version validation missing');
+client=client.replace(validatorLine,versionValidator);
 client=client.replace(/const CURRENT = 'full-[^']+';/,"const CURRENT = '"+version+"';");
 sw=sw.replace(/const VERSION = '[^']+';/,"const VERSION = '"+token+"';");
 write(src,current.replace(m[0],"export const APP_VERSION = '"+next+"';"));
