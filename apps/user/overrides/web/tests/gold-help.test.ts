@@ -101,6 +101,27 @@ describe('Gold guide — multilingual editorial completeness',()=>{
  });
 });
 
+describe('Gold guide — existing Help visual language',()=>{
+ it('preserves the original approved-card help-panel and title rather than introducing a second landing page',()=>{
+  expect(guide).toContain('<section className="approved-card help-panel dh-knowledge"');
+  expect(guide).toContain('<div className="approved-card-title">{t(helpCopy.helpLabel)}</div>');
+  expect(guide).toContain('<summary>{t(row.title)}</summary>');
+  expect(guide).not.toContain('dh-knowledge-hero');
+  expect(guide).not.toContain('dh-knowledge-halo');
+  expect(css).not.toContain('linear-gradient(135deg,#001f3f,#0c385c)');
+  for(const lang of ['ar','en','fr'] as const)expect(helpCopy.helpLabel[lang]).toBeTruthy();
+ });
+ it('keeps all existing calculators and references in native, collapsible Help sections',()=>{
+  for(const name of ['dh-knowledge-tools','dh-knowledge-karat','dh-knowledge-invoice',
+                     'dh-knowledge-checklist','dh-knowledge-sources']){
+    expect(guide).toContain('<details className="dh-knowledge-utility '+name+'">');
+  }
+  expect(css).toContain('.gold-web .dh-knowledge .dh-knowledge-article>summary');
+  expect(css).toContain('.gold-web .dh-knowledge .dh-knowledge-utility>summary');
+  expect(css).toContain('border-bottom:1px solid #e2e8f0');
+ });
+});
+
 describe('Gold guide — accessible mobile UI',()=>{
  it('supports real search, chapter filters, native expandable articles and local language direction',()=>{
   expect(guide).toContain('type="search"');
@@ -118,7 +139,7 @@ describe('Gold guide — accessible mobile UI',()=>{
   expect(css).toContain('@media(max-width:600px)');
   expect(css).toContain('grid-template-columns:minmax(0,1fr)');
   expect(css).toContain('.gold-web .dh-knowledge-tool input');
-  expect(css).toContain('.gold-web .dh-knowledge-article summary');
+  expect(css).toContain('.gold-web .dh-knowledge .dh-knowledge-article>summary');
   expect(css).toContain(':focus-visible');
  });
 });
