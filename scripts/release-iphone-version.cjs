@@ -40,8 +40,8 @@ const oldDecision="if (data.version !== CURRENT) {";
 const oldPrompt="showPrompt(data.version);";
 if(!client.includes(oldDecision)||!client.includes(oldPrompt))throw Error('Published updater is missing expected pre-migration markers');
 client=client.replace(oldDecision,
-  "const requested = data?.releaseVersion || data?.version;\n"+
-  "      if (typeof requested !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\\\\d+\\\\.\\\\d+\\\\.\\\\d+-\\\\d{8})$/.test(requested)) throw new Error('version_invalid');\n"+
+  "const requested = data?.semanticReleaseVersion || data?.releaseVersion || data?.version;\n"+
+  "      if (typeof requested !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\\d+\\.\\d+\\.\\d+-\\d{8})$/.test(requested)) throw new Error('version_invalid');\n"+
   "      if (requested !== CURRENT) {");
 client=client.replace(oldPrompt,'showPrompt(requested);');
 client=client.replace(/const CURRENT = 'full-[^']+';/,"const CURRENT = '"+version+"';");
@@ -49,5 +49,11 @@ sw=sw.replace(/const VERSION = '[^']+';/,"const VERSION = '"+token+"';");
 write(src,current.replace(m[0],"export const APP_VERSION = '"+next+"';"));
 write(clientPath,client);
 write(swPath,sw);
-write(path.join(base,'version.json'),JSON.stringify({version:legacyVersion,releaseVersion:version,displayVersion:'v'+next,releasedAt:date,force:true},null,2)+'\n');
+// Legacy iPhones have a broken double-escaped semantic regex; supplying the
+// hex compatibility id here deliberately recovers their update dialog.
+// New iPhones read semanticReleaseVersion first and compare true semantic ids.
+write(path.join(base,'version.json'),JSON.stringify({
+ version:legacyVersion,releaseVersion:legacyVersion,semanticReleaseVersion:version,
+ displayVersion:'v'+next,releasedAt:date,force:true
+},null,2)+'\n');
 console.log('Prepared iPhone User '+version+' on '+count+' preview pages');

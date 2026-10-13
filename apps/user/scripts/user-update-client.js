@@ -167,7 +167,7 @@
       // Older installed clients read version.json.version (a legacy SHA).
       // Modern releases instead compare the semantic releaseVersion, so
       // historical installs migrate rather than silently rejecting updates.
-      const requested = data?.releaseVersion || data?.version;
+      const requested = data?.semanticReleaseVersion || data?.releaseVersion || data?.version;
       if (typeof requested !== 'string' ||
           !/^full-(?:[a-f0-9]{8,40}|\d+\.\d+\.\d+-\d{8})$/.test(requested))
         throw new Error('version_invalid');
