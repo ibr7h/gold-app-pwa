@@ -10,6 +10,7 @@ export interface GoldHelpArticle{
 }
 export const localized=(t:HelpText,l:HelpLanguage)=>t[l];
 export const helpCopy={
+ helpLabel:{ar:'المساعدة',en:'Help',fr:'Aide'},
  title:{ar:'دليل الذهب والمجوهرات',en:'Gold & jewellery guide',fr:'Guide de l’or et des bijoux'},
  intro:{ar:'معلومات موثوقة تساعدك على فهم النقاوة والوزن والأحجار والتسعير قبل الشراء أو البيع.',en:'Reliable essentials for understanding purity, weights, gemstones and pricing before you buy or sell.',fr:'Des repères fiables pour comprendre le titrage, le poids, les pierres et les prix avant d’acheter ou de vendre.'},
  eyebrow:{ar:'تعلّم قبل أن تقرر',en:'Learn before you decide',fr:'Comprendre avant de choisir'},
