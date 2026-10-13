@@ -112,6 +112,18 @@ describe('Gold knowledge — editorial and language quality',()=>{
 });
 
 describe('Gold knowledge — responsive structured content',()=>{
+ it('uses high-contrast foregrounds for open purity tables on iOS (including WebKit fill)',()=>{
+  const tail=styles.slice(styles.lastIndexOf('/* iOS PWA contrast guard'));
+  expect(tail).toContain('.dh-help-category[open] .dh-knowledge-table thead th');
+  expect(tail).toContain('.dh-help-category[open] .dh-knowledge-table tbody td');
+  expect(tail).toContain('.dh-help-category[open] .dh-knowledge-karat-button');
+  expect(tail).toContain('-webkit-text-fill-color:#14273d!important');
+  expect(tail).toContain('-webkit-text-fill-color:#001f3f!important');
+  expect(tail).toContain('background:#fff!important');
+  expect(tail).toContain('color-scheme:light');
+  expect(tail).not.toContain('opacity:0');
+  expect(component).toContain('<Table label={t(guideText.purity)}');
+ });
  it('renders actual HTML data tables with accessible headers and a scroll boundary',()=>{
   expect(component).toContain('<table className="dh-knowledge-table"');
   expect(component).toContain('<thead><tr>');
