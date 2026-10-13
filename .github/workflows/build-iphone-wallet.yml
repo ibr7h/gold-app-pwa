@@ -13,6 +13,7 @@ on:
       - "apps/user/overrides/web/UserWorkspace.tsx"
       - "apps/user/overrides/web/GoldHelp.tsx"
       - "apps/user/overrides/web/gold-help-content.ts"
+      - "apps/user/overrides/web/gold-help-facts.ts"
       - "apps/user/overrides/web/gold-help.css"
       - "apps/user/overrides/web/tests/gold-help.test.ts"
       - "apps/user/overrides/web/auth-device-language.ts"
