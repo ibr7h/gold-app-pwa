@@ -37,15 +37,51 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
   ].some(v=>normalized(v).includes(q))));
  },[language,search,section]);
  const sections=section==='all'?helpSections:helpSections.filter(s=>s.id===section);
- return <div className="dh-knowledge" lang={language} dir={language==='ar'?'rtl':'ltr'}>
-  <header className="dh-knowledge-hero">
-   <span className="dh-knowledge-eyebrow">✦ {t(helpCopy.eyebrow)}</span>
-   <h2>{t(helpCopy.title)}</h2>
-   <p>{t(helpCopy.intro)}</p>
-   <div className="dh-knowledge-halo" aria-hidden="true">Au</div>
-  </header>
+ return <section className="approved-card help-panel dh-knowledge" lang={language} dir={language==='ar'?'rtl':'ltr'}>
+  <div className="approved-card-title">{t(helpCopy.helpLabel)}</div>
+  <p className="dh-knowledge-intro">{t(helpCopy.intro)}</p>
 
-  <section className="dh-knowledge-tools" aria-label={t(helpCopy.toolTitle)}>
+  <div className="dh-knowledge-library">
+   <div className="dh-knowledge-section-heading">
+    <h3>{t(helpCopy.title)}</h3>
+    <span className="dh-knowledge-count" aria-live="polite">{matching.length} {t(helpCopy.articlesCount)}</span>
+   </div>
+   <label className="dh-knowledge-search">
+    <span className="dh-visually-hidden">{t(helpCopy.searchLabel)}</span>
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
+    <input type="search" value={search} onChange={e=>setSearch(e.target.value)}
+     placeholder={t(helpCopy.search)} aria-label={t(helpCopy.searchLabel)}/>
+   </label>
+   <div className="dh-knowledge-tabs" role="group" aria-label={t(helpCopy.title)}>
+    <button type="button" aria-pressed={section==='all'} onClick={()=>setSection('all')}
+     className={section==='all'?'active':''}>{t(helpCopy.everything)}</button>
+    {helpSections.map(s=><button type="button" key={s.id} aria-pressed={section===s.id}
+     className={section===s.id?'active':''} onClick={()=>setSection(s.id)}>{t(s.label)}</button>)}
+   </div>
+   {matching.length===0?<div className="dh-knowledge-empty" role="status">
+    <p>{t(helpCopy.noResults)}</p><button type="button" onClick={()=>{setSearch('');setSection('all');}}>{t(helpCopy.everything)}</button>
+   </div>:sections.map(s=>{
+    const rows=matching.filter(x=>x.section===s.id);
+    if(!rows.length)return null;
+    return <div key={s.id} className="dh-knowledge-chapter">
+     <div className="dh-knowledge-chapter-head">
+      <h4>{t(s.label)}</h4><small>{t(s.summary)}</small>
+     </div>
+     <div className="dh-knowledge-articles">
+      {rows.map(row=><details className="dh-knowledge-article" key={row.id}>
+       <summary>{t(row.title)}</summary>
+       <div className="dh-knowledge-answer"><p>{t(row.body)}</p>
+        {row.tip&&<div className="dh-knowledge-tip"><strong>{t(helpCopy.note)}</strong><p>{t(row.tip)}</p></div>}
+       </div>
+      </details>)}
+     </div>
+    </div>;
+   })}
+  </div>
+
+  <details className="dh-knowledge-utility dh-knowledge-tools">
+   <summary>{t(helpCopy.toolTitle)}</summary>
+   <div className="dh-knowledge-utility-body">
    <div className="dh-knowledge-tools-heading">
     <h3>{t(helpCopy.toolTitle)}</h3><p>{t(helpCopy.toolDescription)}</p>
    </div>
@@ -87,9 +123,12 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
      <p className="dh-knowledge-caption">{t(helpCopy.gemRateNote)}</p>
     </div>
    </div>
-  </section>
+   </div>
+  </details>
 
-  <section className="dh-knowledge-karat" aria-label={t(helpSections[0].label)}>
+  <details className="dh-knowledge-utility dh-knowledge-karat">
+   <summary>{t(helpSections[0].label)}</summary>
+   <div className="dh-knowledge-utility-body">
    <div className="dh-knowledge-section-heading">
     <h3>{t(helpSections[0].label)}</h3>
     <p>{t(helpSections[0].summary)}</p>
@@ -103,9 +142,12 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
      <small dir="ltr">{k.perThousand}</small>
     </button>)}
    </div>
-  </section>
+   </div>
+  </details>
 
-  <section className="dh-knowledge-invoice">
+  <details className="dh-knowledge-utility dh-knowledge-invoice">
+   <summary>{t(helpCopy.equationTitle)}</summary>
+   <div className="dh-knowledge-utility-body">
    <div className="dh-knowledge-section-heading">
     <h3>{t(helpCopy.equationTitle)}</h3><p>{t(helpCopy.equationSub)}</p>
    </div>
@@ -124,57 +166,28 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
      <p>{t(helpCopy.taxCaveat)}</p>
     </div>
    </div>
-  </section>
-
-  <section className="dh-knowledge-library">
-   <div className="dh-knowledge-section-heading">
-    <h3>{t(helpCopy.title)}</h3>
-    <span className="dh-knowledge-count" aria-live="polite">{matching.length} {t(helpCopy.articlesCount)}</span>
    </div>
-   <label className="dh-knowledge-search">
-    <span className="dh-visually-hidden">{t(helpCopy.searchLabel)}</span>
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
-    <input type="search" value={search} onChange={e=>setSearch(e.target.value)}
-     placeholder={t(helpCopy.search)} aria-label={t(helpCopy.searchLabel)}/>
-   </label>
-   <div className="dh-knowledge-tabs" role="group" aria-label={t(helpCopy.title)}>
-    <button type="button" aria-pressed={section==='all'} onClick={()=>setSection('all')}
-     className={section==='all'?'active':''}>{t(helpCopy.everything)}</button>
-    {helpSections.map(s=><button type="button" key={s.id} aria-pressed={section===s.id}
-     className={section===s.id?'active':''} onClick={()=>setSection(s.id)}>{t(s.label)}</button>)}
-   </div>
-   {matching.length===0?<div className="dh-knowledge-empty" role="status">
-    <p>{t(helpCopy.noResults)}</p><button type="button" onClick={()=>{setSearch('');setSection('all');}}>{t(helpCopy.everything)}</button>
-   </div>:sections.map(s=>{
-    const rows=matching.filter(x=>x.section===s.id);
-    if(!rows.length)return null;
-    return <div key={s.id} className="dh-knowledge-chapter">
-     <div className="dh-knowledge-chapter-head">
-      <h4>{t(s.label)}</h4><small>{t(s.summary)}</small>
-     </div>
-     <div className="dh-knowledge-articles">
-      {rows.map(row=><details className="dh-knowledge-article" key={row.id}>
-       <summary><span>{t(row.title)}</span><span aria-hidden="true" className="dh-knowledge-plus">+</span></summary>
-       <div className="dh-knowledge-answer"><p>{t(row.body)}</p>
-        {row.tip&&<div className="dh-knowledge-tip"><strong>{t(helpCopy.note)}</strong><p>{t(row.tip)}</p></div>}
-       </div>
-      </details>)}
-     </div>
-    </div>;
-   })}
-  </section>
+  </details>
 
-  <section className="dh-knowledge-checklist">
+  <details className="dh-knowledge-utility dh-knowledge-checklist">
+   <summary>{t(helpCopy.checklistTitle)}</summary>
+   <div className="dh-knowledge-utility-body">
    <h3>{t(helpCopy.checklistTitle)}</h3>
    <ol>{helpCopy.checklist.map((item,i)=><li key={i}>{t(item)}</li>)}</ol>
-  </section>
-  <section className="dh-knowledge-sources">
+   </div>
+  </details>
+
+  <details className="dh-knowledge-utility dh-knowledge-sources">
+   <summary>{t(helpCopy.sourcesTitle)}</summary>
+   <div className="dh-knowledge-utility-body">
    <h3>{t(helpCopy.sourcesTitle)}</h3>
    <p>{t(helpCopy.sourceNote)}</p>
    <ul>{helpReferences.map(ref=><li key={ref.url}><a href={ref.url}
      target="_blank" rel="noopener noreferrer" aria-label={t(ref.name)+' — '+t(helpCopy.openReference)}>
       {t(ref.name)} <span aria-hidden="true">↗</span>
      </a></li>)}</ul>
-  </section>
- </div>;
+   </div>
+  </details>
+
+ </section>;
 }
