@@ -4,6 +4,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const os = require('node:os');
+const {spawnSync} = require('node:child_process');
 const client = fs.readFileSync(path.join(__dirname, 'user-update-client.js'), 'utf8');
 const updateLocales = fs.readFileSync(path.join(__dirname, 'user-update-locales.js'), 'utf8');
 const worker = fs.readFileSync(path.join(__dirname, 'user-service-worker.js'), 'utf8');
@@ -228,4 +230,49 @@ test('new worker is isolated to the User origin/scope and never caches fresh ver
   assert.match(worker,/url\.pathname\.startsWith\(BASE\)/);
   assert.match(worker,/version\.json/);
   assert.match(worker,/'no-store'/);
+});
+
+
+test('release generator upgrades both legacy and already-patched published updater templates',()=>{
+  const repoRoot=path.resolve(__dirname,'../../..');
+  const source=fs.readFileSync(path.join(repoRoot,'scripts/release-iphone-version.cjs'),'utf8');
+  const modernClient=fs.readFileSync(path.join(repoRoot,'_render_preview/gold-app-pwa/full/pwa-update.js'),'utf8');
+  const worker=fs.readFileSync(path.join(repoRoot,'_render_preview/gold-app-pwa/full/sw.js'),'utf8');
+  const versionSource=fs.readFileSync(path.join(repoRoot,'apps/user/overrides/web/app-version.ts'),'utf8');
+  const legacyBlock=/^[ \t]*const requested = data\?\.releaseVersion \|\| data\?\.version;\r?\n[^\n]*version_invalid'\);\r?\n[^\n]*if \(requested !== CURRENT\) \{\r?\n[^\n]*showPrompt\(requested\);/m;
+  assert.match(modernClient,legacyBlock,'Current committed client must have a semantic block for the compatibility test');
+  const originalClient=modernClient.replace(legacyBlock,
+    "      if (data.version !== CURRENT) {\n        showPrompt(data.version);");
+  for(const [label,input] of [['legacy',originalClient],['patched',modernClient]]){
+    const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dhahabi-release-test-'));
+    try{
+      const base=path.join(dir,'_render_preview/gold-app-pwa/full');
+      const scripts=path.join(dir,'scripts');
+      const src=path.join(dir,'apps/user/overrides/web');
+      fs.mkdirSync(base,{recursive:true});fs.mkdirSync(scripts,{recursive:true});fs.mkdirSync(src,{recursive:true});
+      fs.writeFileSync(path.join(scripts,'release-iphone-version.cjs'),source);
+      fs.writeFileSync(path.join(src,'app-version.ts'),versionSource);
+      fs.writeFileSync(path.join(base,'sw.js'),worker);
+      fs.writeFileSync(path.join(base,'pwa-update.js'),input);
+      for(let i=0;i<25;i++){
+        const file=path.join(base,'route'+i+'.html');
+        fs.writeFileSync(file,'<script src="/gold-app-pwa/full/pwa-update.js?v=seed"></script>');
+      }
+      const result=spawnSync(process.execPath,[path.join(scripts,'release-iphone-version.cjs')],{
+        cwd:dir,encoding:'utf8',env:{...process.env,GITHUB_SHA:'aabbccddeeff0011223344556677889900aabbcc'}
+      });
+      assert.equal(result.status,0,label+' generator: '+result.stderr+' '+result.stdout);
+      const released=JSON.parse(fs.readFileSync(path.join(base,'version.json'),'utf8'));
+      assert.equal(released.releaseVersion,released.version);
+      assert.match(released.semanticReleaseVersion,/^full-\d+\.\d+\.\d+-\d{8}$/);
+      const updated=fs.readFileSync(path.join(base,'pwa-update.js'),'utf8');
+      assert.match(updated,/const requested = data\?\.semanticReleaseVersion \|\| data\?\.releaseVersion \|\| data\?\.version;/);
+      const line=updated.split('\n').find(x=>x.includes("typeof requested !== 'string'"));
+      const matched=line?.match(/!\/(\^full-\(\?:.+\)\$)\/\.test\(requested\)/);
+      assert.ok(matched,label+' version regex');
+      const regex=new RegExp(matched[1]);
+      assert.equal(regex.test(released.semanticReleaseVersion),true,label+' semantic release accepted');
+      assert.equal(regex.test(released.version),true,label+' hex compatibility accepted');
+    }finally{fs.rmSync(dir,{recursive:true,force:true});}
+  }
 });
