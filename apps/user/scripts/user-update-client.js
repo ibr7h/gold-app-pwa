@@ -169,7 +169,7 @@
       // historical installs migrate rather than silently rejecting updates.
       const requested = data?.releaseVersion || data?.version;
       if (typeof requested !== 'string' ||
-          !/^full-(?:[a-f0-9]{8,40}|\\d+\\.\\d+\\.\\d+-\\d{8})$/.test(requested))
+          !/^full-(?:[a-f0-9]{8,40}|\d+\.\d+\.\d+-\d{8})$/.test(requested))
         throw new Error('version_invalid');
       if (requested !== CURRENT) {
         showPrompt(requested);
