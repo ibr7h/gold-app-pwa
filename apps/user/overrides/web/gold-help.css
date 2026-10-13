@@ -130,3 +130,66 @@
  .gold-web .dh-knowledge-table{min-width:340px}
  .gold-web .dh-knowledge-tool .dh-knowledge-form-row{grid-template-columns:minmax(0,1fr)}
 }
+
+
+/* vNext — restored user-approved tap-to-open Help cards.  All sections start
+   collapsed.  Critical card surfaces also have inline fallback styles so a
+   stale PWA stylesheet never turns the guide into unformatted dark text. */
+.gold-web .dh-knowledge.dh-help-accordion{
+ display:grid;gap:12px;min-width:0;max-width:1080px;width:100%;margin:0 auto;
+ padding:0 0 28px;color:#132c45;
+}
+.gold-web .dh-help-category{
+ display:block;min-width:0;border:1px solid #e1e8f0;border-radius:15px;
+ background:#fff;overflow:hidden;box-shadow:0 3px 14px rgba(0,31,63,.055);
+}
+.gold-web .dh-help-category>summary,
+.gold-web .dh-help-topic>summary{
+ list-style:none;display:flex;align-items:center;justify-content:flex-start;
+ cursor:pointer;user-select:none;min-width:0;
+}
+.gold-web .dh-help-category>summary::-webkit-details-marker,
+.gold-web .dh-help-topic>summary::-webkit-details-marker{display:none}
+.gold-web .dh-help-category>summary{min-height:70px;gap:12px;padding:14px 16px;background:#fff;color:#001f3f;line-height:1.6}
+.gold-web .dh-help-category[open]>summary{background:#fffcf4;border-bottom:1px solid #f0e5c7}
+.gold-web .dh-help-category-icon{display:grid;place-items:center;flex:0 0 43px;
+ height:43px;min-width:43px;border-radius:11px;background:#fbf5df;
+ border:1px solid #eee0b2;color:#9e7d1d;font-size:14px;font-weight:800}
+.gold-web .dh-help-category-name{flex:1;min-width:0;font-size:15px;color:#001f3f;font-weight:750;line-height:1.5;overflow-wrap:break-word}
+.gold-web .dh-help-chevron{flex:0 0 29px;display:grid;place-items:center;width:29px;height:29px;
+ border-radius:50%;color:#916f18;background:#f7edcb;font-size:22px;line-height:1;
+ transition:transform .15s ease}
+.gold-web details[open]>summary>.dh-help-chevron{transform:rotate(180deg)}
+.gold-web .dh-help-category-body{padding:0 14px 15px;min-width:0;background:#fff}
+.gold-web .dh-help-category-body>.dh-knowledge-table-scroll{margin:14px 0 12px;
+ background:#fff;border-radius:11px;border:1px solid #e2e8f0;overflow-x:auto}
+.gold-web .dh-help-topics{display:grid;gap:9px;min-width:0;padding-top:4px}
+.gold-web .dh-help-topic{background:#fff;border:1px solid #e3e9f1;border-radius:12px;
+ overflow:hidden;min-width:0}
+.gold-web .dh-help-topic[open]{background:#fffdfa;border-color:#dec784}
+.gold-web .dh-help-topic>summary{padding:14px 15px;gap:12px;min-height:50px;
+ color:#001f3f;font-size:13.5px;font-weight:650;line-height:1.6}
+.gold-web .dh-help-topic[open]>summary{border-bottom:1px solid #eee8d6}
+.gold-web .dh-help-topic-body{padding:0 15px 16px;background:#fff}
+.gold-web .dh-help-topic-body ul,.gold-web .dh-help-checklist ul{padding-inline-start:20px;
+ margin:10px 0 0;display:grid;gap:9px;color:#34485c;font-size:13px;line-height:1.75}
+.gold-web .dh-help-topic-body li::marker,.gold-web .dh-help-checklist li::marker{color:#c5a021}
+.gold-web .dh-help-checklist{border-top:1px solid #e5ebf2;margin-top:14px;padding:12px 4px 3px}
+.gold-web .dh-help-checklist h4{font-size:14px;color:#001f3f;margin:0}
+.gold-web .dh-help-reference-list{padding-inline-start:19px;display:grid;gap:10px;font-size:13px;line-height:1.7}
+.gold-web .dh-help-reference-list a{color:#075481;text-decoration:underline;overflow-wrap:anywhere}
+.gold-web .dh-help-reference-note{color:#63758b;line-height:1.7}
+.gold-web .dh-knowledge-table{min-width:315px}
+.gold-web .dh-help-accordion summary:focus-visible,.gold-web .dh-help-accordion button:focus-visible,
+.gold-web .dh-help-accordion input:focus-visible{outline:3px solid #c5a021;outline-offset:2px}
+@media(max-width:600px){
+ .gold-web .dh-help-category>summary{min-height:65px;padding:12px 13px;gap:10px}
+ .gold-web .dh-help-category-icon{width:38px;height:38px;min-width:38px;flex-basis:38px}
+ .gold-web .dh-help-category-name{font-size:14px}
+ .gold-web .dh-help-category-body{padding:0 10px 12px}
+ .gold-web .dh-help-topic>summary{font-size:13px;padding:13px 11px}
+ .gold-web .dh-help-topic-body{padding:0 11px 14px}
+ .gold-web .dh-knowledge-table th,.gold-web .dh-knowledge-table td{padding:9px 8px;font-size:11px}
+ .gold-web .dh-knowledge-tool-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){.gold-web .dh-help-chevron{transition:none}}
