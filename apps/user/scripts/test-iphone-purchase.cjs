@@ -22,9 +22,10 @@ assert(src.includes("purchaseQuote("), 'Original quote calculation missing');
 const man=JSON.parse(read('_render_preview/gold-app-pwa/full/manifest.json'));
 assert(man.icons.length>0);
 const version=JSON.parse(read('_render_preview/gold-app-pwa/full/version.json'));
-const suffix=version.version.replace(/^full-/,'');
-assert(/^([a-f0-9]{8}|\d+\.\d+\.\d+-\d{8})$/.test(suffix),'Unexpected release identifier');
-assert(read('_render_preview/gold-app-pwa/full/pwa-update.js').includes("const CURRENT = '"+version.version+"'"));
+const suffix=(version.releaseVersion||version.version).replace(/^full-/,'');
+assert(/^full-[a-f0-9]{8,40}$/.test(version.version),'Legacy iPhone versions must remain parseable');
+assert(/^\d+\.\d+\.\d+-\d{8}$/.test(suffix),'Unexpected semantic release identifier');
+assert(read('_render_preview/gold-app-pwa/full/pwa-update.js').includes("const CURRENT = '"+(version.releaseVersion||version.version)+"'"));
 assert(read('_render_preview/gold-app-pwa/full/sw.js').includes("const VERSION = '"+suffix+"'"));
 if(version.displayVersion){
  const semver=suffix.split('-')[0];
