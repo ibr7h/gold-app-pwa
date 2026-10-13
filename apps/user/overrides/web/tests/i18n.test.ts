@@ -310,3 +310,17 @@ describe('Real purchase invoice aliases and localized backend errors',()=>{
   expect(css).toContain('overflow-wrap:break-word;word-break:normal;line-height:1.7');
  });
 });
+
+
+describe('Registration errors respect selected language',()=>{
+ it('shows an actionable error for invalid Saudi phone instead of a generic failure',()=>{
+  const text='أدخل رقم جوال صحيحًا، مثل 05xxxxxxxx أو رقمًا دوليًا يبدأ بعلامة +.';
+  expect(localizeFeedback(text,'en')).toContain('Saudi mobile number');
+  expect(localizeFeedback(text,'fr')).toContain('numéro saoudien');
+  expect(localizeFeedback(text,'ar')).toContain('رقم جوال');
+ });
+ it('translates actual duplicate-email and OTP-delivery errors',()=>{
+  expect(localizeFeedback('البريد الإلكتروني أو رقم الجوال مسجل بالفعل. استخدم تسجيل الدخول.','en')).toContain('already registered');
+  expect(localizeFeedback('تعذر إرسال رمز التحقق. حاول لاحقًا.','fr')).toContain('code de vérification');
+ });
+});
