@@ -89,7 +89,7 @@ test('modern client offers semantic release even when legacy SHA metadata has an
   await app.load();
   const prompt=app.nodes.get('dhahabi-user-update');
   assert.ok(prompt);
-  assert.match(prompt.children[0].textContent,/1\\.9\\.62/);
+  assert.match(prompt.children[0].textContent,/1\.9\.62/);
 });
 test('release generator preserves legacy parsability and independent modern release identity',()=>{
   const release=fs.readFileSync(path.join(__dirname,'../../../scripts/release-iphone-version.cjs'),'utf8');
