@@ -49,7 +49,6 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
     )}</tr>)}</tbody>
    </table>
   </div>;
- const gram=t(guideText.gram);
  return <div className="dh-knowledge" dir={language==='ar'?'rtl':'ltr'} lang={language}>
   <header className="dh-knowledge-header">
    <span className="dh-knowledge-eyebrow">Au · {t(guideText.subtitle)}</span>
