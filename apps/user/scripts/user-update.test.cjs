@@ -239,7 +239,7 @@ test('release generator upgrades both legacy and already-patched published updat
   const modernClient=fs.readFileSync(path.join(repoRoot,'_render_preview/gold-app-pwa/full/pwa-update.js'),'utf8');
   const worker=fs.readFileSync(path.join(repoRoot,'_render_preview/gold-app-pwa/full/sw.js'),'utf8');
   const versionSource=fs.readFileSync(path.join(repoRoot,'apps/user/overrides/web/app-version.ts'),'utf8');
-  const legacyBlock=/^[ \t]*const requested = data\?\.(?:semanticReleaseVersion \|\| data\?\.releaseVersion \|\| )?releaseVersion \|\| data\?\.version;\r?\n[^\n]*version_invalid'\);\r?\n[^\n]*if \(requested !== CURRENT\) \{\r?\n[^\n]*showPrompt\(requested\);/m;
+  const legacyBlock=/^[ \t]*const requested = data\?\.(?:semanticReleaseVersion \|\| data\?\.)?releaseVersion \|\| data\?\.version;\r?\n[^\n]*version_invalid'\);\r?\n[^\n]*if \(requested !== CURRENT\) \{\r?\n[^\n]*showPrompt\(requested\);/m;
   assert.match(modernClient,legacyBlock,'Current committed client must have a semantic block for the compatibility test');
   const originalClient=modernClient.replace(legacyBlock,
     "      if (data.version !== CURRENT) {\n        showPrompt(data.version);");
