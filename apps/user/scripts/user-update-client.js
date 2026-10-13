@@ -164,9 +164,15 @@
       const response = await fetch(BASE + 'version.json?t=' + Date.now(), {cache:'no-store'});
       if (!response.ok) throw new Error('version_unavailable');
       const data = await response.json();
-      if (!data || typeof data.version !== 'string' || !/^full-[a-f0-9]{8,40}$/.test(data.version)) throw new Error('version_invalid');
-      if (data.version !== CURRENT) {
-        showPrompt(data.version);
+      // Older installed clients read version.json.version (a legacy SHA).
+      // Modern releases instead compare the semantic releaseVersion, so
+      // historical installs migrate rather than silently rejecting updates.
+      const requested = data?.releaseVersion || data?.version;
+      if (typeof requested !== 'string' ||
+          !/^full-(?:[a-f0-9]{8,40}|\\d+\\.\\d+\\.\\d+-\\d{8})$/.test(requested))
+        throw new Error('version_invalid');
+      if (requested !== CURRENT) {
+        showPrompt(requested);
         if (registration) await registration.update().catch(() => {});
       } else if (manual) notice(trUpdate('current') + '.');
     } catch {
