@@ -79,7 +79,12 @@ async function raw(path:string,options:RequestInit={},token?:string){
   const headers=new Headers(options.headers);if(options.body)headers.set('Content-Type','application/json');if(token)headers.set('Authorization','Bearer '+token);
   const response=await fetch(API_BASE+path,{...options,headers,signal:controller.signal,cache:'no-store'});
   const body=await response.text();let data:any=null;try{data=body?JSON.parse(body):null;}catch{if(response.ok)throw new ApiError('استجابة الخادم غير صالحة.');}
-  if(!response.ok)throw new ApiError(Array.isArray(data?.message)?data.message.join('، '):data?.message||'تعذر تنفيذ الطلب.',response.status);
+  if(!response.ok){
+   const details=data?.error?.details;
+   const message=Array.isArray(data?.message)?data.message.join('، '):data?.message||
+     (Array.isArray(details)?details.join('، '):data?.error?.message)||'تعذر تنفيذ الطلب.';
+   throw new ApiError(message,response.status);
+  }
   return data;
  }catch(e){if(e instanceof ApiError)throw e;throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.');}finally{clearTimeout(timer);}
 }
