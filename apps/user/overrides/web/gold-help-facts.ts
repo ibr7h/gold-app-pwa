@@ -82,7 +82,7 @@ export const guideCards:readonly GuideCard[]=[
  ]},
  {id:'regional',section:'weight',heading:{ar:'التولة والمثقال',en:'Tola and mithqal',fr:'Tola et mithqal'},points:[
   {ar:'التولة المتداولة في بعض الأسواق ≈ 11.6638 جم.',en:'A commonly traded tola ≈ 11.6638 g.',fr:'Une tola courante ≈ 11,6638 g.'},
-  {ar:'المثقال اسم تقليدي تتفاوت دلالته بحسب السوق.',en:'The traditional mithqal may have different local definitions.',fr:'Le mithqal traditionnel varie selon les usages locaux.'},
+  {ar:'المثقال وحدة تقليدية قد يختلف وزنها حسب البلد والعرف.',en:'The traditional mithqal varies by country and local practice.',fr:'Le poids du mithqal traditionnel varie selon le pays et l’usage.'},
   {ar:'للمقارنة الدقيقة، اعتمد الوزن المكتوب بالجرام في الفاتورة.',en:'Use invoice weight in grams for reliable comparisons.',fr:'Comparez toujours le poids en grammes inscrit sur la facture.'}
  ]},
  {id:'net-gem',section:'weight',heading:{ar:'وزن الذهب دون الأحجار',en:'Gold-only metal weight',fr:'Poids du métal hors pierres'},points:[
@@ -139,8 +139,8 @@ export const guideCards:readonly GuideCard[]=[
   {ar:'المصنعية وهامش المتجر غالبًا لا يستردان بالكامل.',en:'Making fees and retail margins are often not recovered.',fr:'Fabrication et marge sont rarement récupérées intégralement.'},
   {ar:'الأحجار قد تُقيّم منفصلة أو لا تُشترى بالسعر الأصلي.',en:'Stones may be valued separately and below original retail price.',fr:'Les pierres peuvent être reprises séparément à un autre prix.'}
  ]},
- {id:'gold-vs-plate',section:'buying',heading:{ar:'ذهب صلب أم مطلي؟',en:'Gold alloy or plated jewellery?',fr:'Alliage d’or ou bijou plaqué ?'},points:[
-  {ar:'الذهب المصمت سبيكة ذهب بعيار معلن.',en:'Solid-gold jewellery is made of a stated gold alloy.',fr:'Un bijou en or massif est fait d’un alliage titré.'},
+ {id:'gold-vs-plate',section:'buying',heading:{ar:'ذهب عيار أم ذهب مطلي؟',en:'Gold alloy or plated jewellery?',fr:'Alliage d’or ou bijou plaqué ?'},points:[
+  {ar:'المشغول الذهبي يُصنع من سبيكة لها عيار محدد.',en:'Gold jewellery is made from an alloy of stated purity.',fr:'Un bijou en or est fabriqué dans un alliage de titre déclaré.'},
   {ar:'المطلي يحمل طبقة ذهب فوق معدن آخر؛ محتواه الذهبي أقل.',en:'Gold plating coats another metal and has much less gold.',fr:'Le plaqué recouvre un autre métal et contient moins d’or.'},
   {ar:'اسأل عن نوع المنتج والدمغة ولا تعتمد على اللون.',en:'Check description and markings, not colour alone.',fr:'Vérifiez description et poinçons, pas seulement la couleur.'}
  ]},
