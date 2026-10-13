@@ -16,7 +16,7 @@ assert(updater.includes("addEventListener('dhahabi:user-check-update'"),'Update 
 assert(updater.includes('version.json?t='),'Update check cache bypass missing');
 assert(updater.includes('loadedEntryPath() !== data.entry'),'Updater does not compare loaded bundle to release manifest');
 assert(typeof json.entry==='string' && /^\/gold-app-pwa\/full\/_expo\/static\/js\/web\/entry-[a-f0-9]+\.js$/.test(json.entry),'Release manifest does not identify bundle');
-const entryFile=path.join(root,'_render_preview',json.entry.replace(/^\/gold-app-pwa\//,''));
+const entryFile=path.join(root,'_render_preview',json.entry.replace(/^\//,''));
 assert(fs.existsSync(entryFile),'Announced compiled JS bundle missing');
 assert(fs.readFileSync(entryFile,'utf8').includes(semver),'Compiled JS does not contain the displayed app version');
 new vm.Script(updater);
