@@ -2,6 +2,14 @@ import React,{createContext,useContext,useEffect,useLayoutEffect,useMemo,useRef,
 import {LANGUAGE_KEY,LANGUAGE_META,Language,translateUiText} from './i18n-messages';
 import {deviceLanguage} from './auth-device-language';
 
+const AUTH_LANGUAGE_KEY='dhahabi:user:auth-language';
+function authLanguage():Language{
+ try{const stored=window.localStorage.getItem(AUTH_LANGUAGE_KEY);
+  if(stored==='ar'||stored==='en'||stored==='fr')return stored;
+ }catch{/* Storage can be unavailable on Safari. */}
+ return deviceLanguage();
+}
+
 type LocaleController={language:Language;setLanguage:(lang:Language)=>void;direction:'rtl'|'ltr'};
 const LocaleContext=createContext<LocaleController|null>(null);
 let runtimeLanguage:Language='ar';
@@ -60,14 +68,14 @@ function localizeRoot(root:Element,language:Language){
  }
 }
 
-export function LanguageProvider({children,mode='app'}:{children:React.ReactNode;mode?:'app'|'device'}){
- const [language,setLanguageState]=useState<Language>(()=>mode==='device'?deviceLanguage():storedLanguage());
+export function LanguageProvider({children,mode='app'}:{children:React.ReactNode;mode?:'app'|'device'|'auth'}){
+ const [language,setLanguageState]=useState<Language>(()=>mode==='device'?deviceLanguage():mode==='auth'?authLanguage():storedLanguage());
  runtimeLanguage=language;
  const setLanguage=(next:Language)=>{
   if(mode==='device'||(next!=='ar'&&next!=='en'&&next!=='fr'))return;
   runtimeLanguage=next;
   setLanguageState(next);
-  try{window.localStorage.setItem(LANGUAGE_KEY,next);}catch{/* iOS private mode may deny storage. */}
+  try{window.localStorage.setItem(mode==='auth'?AUTH_LANGUAGE_KEY:LANGUAGE_KEY,next);}catch{/* iOS private mode may deny storage. */}
   window.dispatchEvent(new Event('dhahabi:user-language-changed'));
  };
  const value=useMemo<LocaleController>(()=>({language,setLanguage,direction:LANGUAGE_META[language].dir}),[language]);
