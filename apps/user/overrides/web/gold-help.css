@@ -193,3 +193,94 @@
  .gold-web .dh-knowledge-tool-grid{grid-template-columns:minmax(0,1fr)}
 }
 @media(prefers-reduced-motion:reduce){.gold-web .dh-help-chevron{transition:none}}
+
+
+/* High-contrast educational cards — Dhahabi palette.
+ * Closed: navy on white. Open chapter: white on navy.
+ * Open topic: navy heading on ice blue, near-black bullets on ivory.
+ * Inline fallbacks in GoldHelp are deliberately overridden by these state rules. */
+.gold-web .dh-knowledge.dh-help-accordion{
+ color:#14263c!important;
+}
+.gold-web .dh-help-category{
+ border-color:#cdd8e5!important;
+ background:#ffffff!important;
+}
+.gold-web .dh-help-category>.dh-help-category-title{
+ color:#001f3f!important;
+ background:#ffffff!important;
+}
+.gold-web .dh-help-category[open]>.dh-help-category-title{
+ color:#ffffff!important;
+ background:#001f3f!important;
+ border-bottom:3px solid #c5a021!important;
+}
+.gold-web .dh-help-category[open]>.dh-help-category-title .dh-help-category-name{
+ color:#ffffff!important;
+}
+.gold-web .dh-help-category[open]>.dh-help-category-title .dh-help-category-icon{
+ background:#fff3cc!important;
+ border-color:#f2d882!important;
+ color:#563c05!important;
+}
+.gold-web .dh-help-category[open]>.dh-help-category-title .dh-help-chevron{
+ background:#f6e7b6!important;
+ color:#4b3509!important;
+}
+.gold-web .dh-help-category-body{
+ background:#f7f9fc!important;
+}
+.gold-web .dh-help-topic{
+ background:#ffffff!important;
+ border-color:#cdd8e5!important;
+}
+.gold-web .dh-help-topic>.dh-help-topic-title{
+ background:#ffffff!important;
+ color:#001f3f!important;
+}
+.gold-web .dh-help-topic[open]{
+ background:#fffaf0!important;
+ border-color:#b99535!important;
+}
+.gold-web .dh-help-topic[open]>.dh-help-topic-title{
+ background:#eef3f8!important;
+ border-bottom:1px solid #cdd8e5!important;
+ color:#001f3f!important;
+}
+.gold-web .dh-help-topic-body{
+ background:#fffaf0!important;
+ color:#152941!important;
+}
+.gold-web .dh-help-topic-body ul{
+ color:#152941!important;
+ font-size:14px!important;
+ line-height:1.85!important;
+}
+.gold-web .dh-help-topic-body li::marker{
+ color:#795609!important;
+}
+.gold-web .dh-knowledge-table{
+ color:#132b42!important;
+}
+.gold-web .dh-knowledge-table thead{
+ background:#e9eff6!important;
+}
+.gold-web .dh-knowledge-table tbody tr:nth-child(even){
+ background:#f0f4f8!important;
+}
+.gold-web .dh-knowledge-table th,
+.gold-web .dh-knowledge-table td{
+ color:#14273d!important;
+}
+.gold-web .dh-help-checklist li,
+.gold-web .dh-knowledge-fact li{
+ color:#172a42!important;
+}
+.gold-web .dh-knowledge-result dt,
+.gold-web .dh-knowledge-fact p,
+.gold-web .dh-knowledge-footnotes{
+ color:#314359!important;
+}
+@media(max-width:600px){
+ .gold-web .dh-help-topic-body ul{font-size:13.5px!important;line-height:1.8!important}
+}
