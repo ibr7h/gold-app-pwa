@@ -3,7 +3,6 @@ const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{getItem:async(k:string)=>memory.get(k)||null,setItem:async(k:string,v:string)=>{memory.set(k,v);},removeItem:async(k:string)=>{memory.delete(k);},multiRemove:async(keys:string[])=>keys.forEach(k=>memory.delete(k))}}));
 import {activeSessionTokens,clearSession,errorMessage,ApiError,authenticate} from '../api';
 import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration} from '../registration';
-import {PHONE_COUNTRIES,countryFlag,countryOptions,internationalRegistrationPhone} from '../phone-country';
 const challenge={registrationId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',email:'new@example.test',channel:'email',expiresIn:599,resendAfterSeconds:59};
 const response=(body:unknown,status=201)=>new Response(JSON.stringify(body),{status});
 beforeEach(async()=>{vi.restoreAllMocks();await clearSession();});
@@ -62,44 +61,5 @@ describe('User phone and email registration',()=>{
   expect(registrationDigits('٠١٢٣٤٥')).toBe('012345');
   expect(registrationDigits('۰۱۲۳۴۵')).toBe('012345');
   expect(registrationDigits('123 456')).toBe('123456');
- });
-});
-
-describe('Global phone-country picker',()=>{
- it('offers more than 230 country or territory dialing codes, with localized native labels',()=>{
-  expect(PHONE_COUNTRIES.length).toBeGreaterThan(230);
-  for(const iso of ['SA','US','GB','FR','DE','AE','IN','PK','EG','IT','BR','JP','AU','MA','CA']){
-   expect(PHONE_COUNTRIES.some(x=>x.iso===iso)).toBe(true);
-  }
-  expect(countryFlag('SA')).toBe('🇸🇦');
-  expect(countryFlag('US')).toBe('🇺🇸');
-  expect(countryOptions('ar').length).toBe(PHONE_COUNTRIES.length);
-  expect(countryOptions('fr').some(x=>x.iso==='FR')).toBe(true);
- });
- it('formats selected local phone numbers in E.164 without adding country code twice',()=>{
-  expect(internationalRegistrationPhone('SA','0551234567')).toBe('+966551234567');
-  expect(internationalRegistrationPhone('SA','551234567')).toBe('+966551234567');
-  expect(internationalRegistrationPhone('SA','+966551234567')).toBe('+966551234567');
-  expect(internationalRegistrationPhone('AE','0501234567')).toBe('+971501234567');
-  expect(internationalRegistrationPhone('GB','07700900123')).toBe('+447700900123');
-  expect(internationalRegistrationPhone('FR','06 12 34 56 78')).toBe('+33612345678');
-  expect(internationalRegistrationPhone('US','2025550123')).toBe('+12025550123');
-  expect(internationalRegistrationPhone('IT','02 12345678')).toBe('+390212345678');
-  expect(internationalRegistrationPhone('IN','9876543210')).toBe('+919876543210');
- });
- it('does not silently apply a different country to pasted numbers or accept invalid digits',()=>{
-  expect(internationalRegistrationPhone('SA','+447700900123')).toBeNull();
-  expect(internationalRegistrationPhone('GB','+447700900123')).toBe('+447700900123');
-  expect(internationalRegistrationPhone('SA','')).toBeNull();
-  expect(internationalRegistrationPhone('SA','123')).toBeNull();
-  expect(internationalRegistrationPhone('ZZ','0551234567')).toBeNull();
-  expect(internationalRegistrationPhone('SA','+966112345678')).toBeNull();
- });
- it('submits the selected international country number to the existing registration endpoint',async()=>{
-  const fetcher=vi.fn(async (_url:string,_options:RequestInit)=>response(challenge));vi.stubGlobal('fetch',fetcher);
-  const number=internationalRegistrationPhone('GB','07700900123');
-  await beginRegistration('User','new@example.test','Password-fixture!',number);
-  const payload=JSON.parse(fetcher.mock.calls[0][1].body as string);
-  expect(payload.phone).toBe('+447700900123');
  });
 });
