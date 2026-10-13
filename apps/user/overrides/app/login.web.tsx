@@ -2,7 +2,7 @@ import React from 'react';
 import AuthForm from '../web/AuthForm';
 import {LanguageProvider} from '../web/i18n';
 
-// Direct /login route must initialize from device, not the last signed-in preference.
+// Direct /login defaults to the device locale unless the user chose an auth language.
 export default function LoginWeb(){
- return <LanguageProvider mode="device"><AuthForm/></LanguageProvider>;
+ return <LanguageProvider mode="auth"><AuthForm/></LanguageProvider>;
 }

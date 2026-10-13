@@ -3,6 +3,9 @@ const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{getItem:async(k:string)=>memory.get(k)||null,setItem:async(k:string,v:string)=>{memory.set(k,v);},removeItem:async(k:string)=>{memory.delete(k);},multiRemove:async(keys:string[])=>keys.forEach(k=>memory.delete(k))}}));
 import {activeSessionTokens,clearSession,errorMessage,ApiError,authenticate} from '../api';
 import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration} from '../registration';
+import {countryFlag,countryDisplayName,internationalRegistrationPhone,PHONE_COUNTRIES} from '../phone-country';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 const challenge={registrationId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',email:'new@example.test',channel:'email',expiresIn:599,resendAfterSeconds:59};
 const response=(body:unknown,status=201)=>new Response(JSON.stringify(body),{status});
 beforeEach(async()=>{vi.restoreAllMocks();await clearSession();});
@@ -61,5 +64,42 @@ describe('User phone and email registration',()=>{
   expect(registrationDigits('٠١٢٣٤٥')).toBe('012345');
   expect(registrationDigits('۰۱۲۳۴۵')).toBe('012345');
   expect(registrationDigits('123 456')).toBe('123456');
+ });
+});
+
+
+describe('October 10 design restored with verified email activation',()=>{
+ it('places the country flag and dial left of the mobile field, retaining searchable international codes',()=>{
+  const phone=readFileSync(fileURLToPath(new URL('../RegistrationPhoneField.tsx',import.meta.url).href),'utf8');
+  const form=readFileSync(fileURLToPath(new URL('../AuthForm.tsx',import.meta.url).href),'utf8');
+  const css=readFileSync(fileURLToPath(new URL('../registration.css',import.meta.url).href),'utf8');
+  expect(phone).toContain('dh-intl-country-flag');
+  expect(phone).toContain('dh-intl-country-code');
+  expect(phone).toContain('dh-intl-country-search');
+  expect(phone).toContain('dh-intl-number');
+  expect(phone).toContain('aria-haspopup="listbox"');
+  expect(css).toContain('grid-template-columns:112px minmax(0,1fr)');
+  expect(form).toContain('internationalRegistrationPhone(countryIso,phone)');
+  expect(form).toContain("startRegistration(name,email,password,internationalPhone||undefined)");
+  expect(form).toContain('registerStep===\x27verify\x27');
+  expect(form).toContain('<AuthLanguageSwitcher/>');
+  expect(form).toContain('APP_DISPLAY_VERSION');
+ });
+ it('normalizes Saudi short, Saudi trunk, other international and pasted E.164 without double prefixes',()=>{
+  expect(internationalRegistrationPhone('SA','501234567')).toBe('+966501234567');
+  expect(internationalRegistrationPhone('SA','0501234567')).toBe('+966501234567');
+  expect(internationalRegistrationPhone('SA','+966501234567')).toBe('+966501234567');
+  expect(internationalRegistrationPhone('SA','٥٠١٢٣٤٥٦٧')).toBe('+966501234567');
+  expect(internationalRegistrationPhone('GB','07700900123')).toBe('+447700900123');
+  expect(internationalRegistrationPhone('FR','0612345678')).toBe('+33612345678');
+  expect(internationalRegistrationPhone('GB','+966501234567')).toBeNull();
+  expect(internationalRegistrationPhone('SA','0111234567')).toBeNull();
+  expect(internationalRegistrationPhone('SA','50123456')).toBeNull();
+ });
+ it('retains 200+ country choices and localizable names',()=>{
+  expect(PHONE_COUNTRIES.length).toBeGreaterThan(200);
+  expect(countryFlag('SA')).toBe('🇸🇦');
+  const france=PHONE_COUNTRIES.find(c=>c.iso==='FR')!;
+  expect(countryDisplayName(france,'fr')).toContain('France');
  });
 });

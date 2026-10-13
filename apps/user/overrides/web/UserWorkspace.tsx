@@ -97,7 +97,7 @@ function BootScreen(){
 }
 export default function UserWorkspace(){
  const {user,lockedAccount}=useUserLockAuth();
- const mode=user||lockedAccount?'app':'device';
+ const mode=user||lockedAccount?'app':'auth';
  return <LanguageProvider key={mode} mode={mode}><LocalizedUserWorkspace/></LanguageProvider>;
 }
 function LocalizedUserWorkspace(){

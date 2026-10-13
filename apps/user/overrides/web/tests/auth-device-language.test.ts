@@ -32,20 +32,27 @@ describe('iPhone sign-in and registration follow device language',()=>{
   const provider=file('../i18n.tsx');
   const ws=file('../UserWorkspace.tsx');
   expect(provider).toContain("mode='app'");
-  expect(provider).toContain("mode==='device'?deviceLanguage():storedLanguage()");
+  expect(provider).toContain("mode==='device'?deviceLanguage():mode==='auth'?authLanguage():storedLanguage()");
+  expect(provider).toContain("mode==='auth'?AUTH_LANGUAGE_KEY:LANGUAGE_KEY");
   expect(provider).toContain("if(mode==='device'||");
   expect(provider).toContain("if(mode!=='app')return;");
-  expect(ws).toContain("const mode=user||lockedAccount?'app':'device';");
+  expect(ws).toContain("const mode=user||lockedAccount?'app':'auth';");
   expect(ws).toContain('<LanguageProvider key={mode} mode={mode}><LocalizedUserWorkspace/></LanguageProvider>');
  });
  it('protects directly entered /login and /register routes',()=>{
-  expect(file('../../app/login.web.tsx')).toContain('<LanguageProvider mode="device"><AuthForm/></LanguageProvider>');
-  expect(file('../../app/register.web.tsx')).toContain('<LanguageProvider mode="device"><AuthForm register/></LanguageProvider>');
+  expect(file('../../app/login.web.tsx')).toContain('<LanguageProvider mode="auth"><AuthForm/></LanguageProvider>');
+  expect(file('../../app/register.web.tsx')).toContain('<LanguageProvider mode="auth"><AuthForm register/></LanguageProvider>');
  });
  it('honors correct locale and direction for login, registration and guest views',()=>{
   const form=file('../AuthForm.tsx');
   const css=file('../user.css');
   expect(form).toContain("import {useLanguage} from './i18n';");
+  expect(form).toContain('<AuthLanguageSwitcher/>');
+  const picker=file('../AuthLanguageSwitcher.tsx');
+  expect(picker).toContain("setLanguage(option.value)");
+  expect(picker).toContain("value:'ar'");
+  expect(picker).toContain("value:'en'");
+  expect(picker).toContain("value:'fr'");
   expect(form.match(/dir=\{direction\} lang=\{language\}/g)?.length).toBe(3);
   expect(form).not.toContain('dir="rtl" lang="ar"');
   expect(css).toContain('.gold-auth[dir="ltr"] .mockup-auth-card .form-label');

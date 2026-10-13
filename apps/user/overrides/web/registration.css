@@ -9,3 +9,102 @@
 .gold-auth .registration-verification .registration-timer{font-size:12px;color:#8B6B00}
 .gold-auth .registration-resend,.gold-auth .registration-back{display:block;width:100%;min-height:44px;background:transparent;color:#8B6B00;font-size:13px;margin-top:8px;border-radius:8px}
 .gold-auth .registration-back{color:#64748B;font-size:12px;margin-top:0}
+
+
+/* Oct 10 approved international number field restored inside the original auth card.
+ * The country flag and dial code remain physically left in RTL and LTR.
+ */
+.gold-auth .dh-intl-form-group{position:relative}
+.gold-auth .dh-intl-phone{position:relative;width:100%;max-width:100%}
+.gold-auth .dh-intl-phone-row{
+ display:grid;grid-template-columns:112px minmax(0,1fr);
+ width:100%;min-height:50px;direction:ltr;align-items:stretch;gap:0;
+ border:1.5px solid rgba(10,34,58,.16);border-radius:12px;background:#f8f9fa;
+ overflow:hidden;box-sizing:border-box;
+}
+.gold-auth .dh-intl-phone-row:focus-within{
+ border-color:#C5A021;box-shadow:0 0 0 3px rgba(197,160,33,.18)
+}
+.gold-auth .dh-intl-country-trigger{
+ appearance:none;display:flex;align-items:center;justify-content:center;gap:5px;
+ grid-column:1;grid-row:1;padding:4px 6px;
+ border:0;border-right:1px solid #d7dee8!important;background:#f8f9fa!important;
+ min-width:0;min-height:48px;width:100%;color:#132238;cursor:pointer;
+}
+.gold-auth .dh-intl-country-trigger:focus-visible{outline:2px solid #C5A021;outline-offset:-2px}
+.gold-auth .dh-intl-country-flag{font-size:20px;line-height:1.2;flex:none}
+.gold-auth .dh-intl-country-code{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gold-auth .dh-intl-chevron{font-size:17px;line-height:1;color:#52647a;flex:none}
+.gold-auth .dh-intl-phone-row .dh-intl-number{
+ appearance:none;box-sizing:border-box;grid-column:2;grid-row:1;
+ width:100%;min-width:0;min-height:48px;height:48px;margin:0!important;
+ border:0!important;outline:0!important;border-radius:0!important;
+ background:transparent!important;color:#132238!important;direction:ltr!important;
+ text-align:left!important;font-family:inherit!important;font-size:16px!important;font-weight:500!important;line-height:1.5!important;
+ padding:10px 13px!important;box-shadow:none!important;
+}
+.gold-auth .dh-intl-number::placeholder{opacity:1;color:#748092}
+.gold-auth .dh-intl-country-panel{
+ position:absolute;top:calc(50px + 5px);left:0;right:0;z-index:80;
+ max-width:100%;padding:9px;background:#fff;color:#132238;
+ border:1px solid #d7dee8;border-radius:13px;
+ box-shadow:0 15px 32px rgba(0,31,63,.22);
+}
+.gold-auth .dh-intl-country-search{
+ box-sizing:border-box;width:100%;min-width:0;height:44px;padding:10px 12px;
+ border:1px solid #d7dee8;border-radius:8px;background:#f8fafc;
+ font:inherit;font-size:16px;color:#132238;outline-color:#C5A021;
+}
+.gold-auth .dh-intl-country-options{margin-top:6px;max-height:min(260px,40dvh);overflow-y:auto;overscroll-behavior:contain}
+.gold-auth .dh-intl-country-option{
+ display:flex;align-items:center;gap:10px;width:100%;min-height:44px;
+ border:0;border-radius:7px;padding:8px 10px;background:transparent;
+ color:#132238;font:inherit;font-size:13px;text-align:start;cursor:pointer;
+}
+.gold-auth .dh-intl-country-option:hover,.gold-auth .dh-intl-country-option:focus-visible,
+.gold-auth .dh-intl-country-option.dh-intl-active{
+ background:#f8f2df;outline:none
+}
+.gold-auth .dh-intl-country-option[aria-selected="true"]{font-weight:700;color:#846700}
+.gold-auth .dh-intl-option-dial{margin-inline-start:auto;white-space:nowrap;font-weight:700}
+.gold-auth .dh-intl-no-results{font-size:13px;color:#64748b;text-align:center}
+.gold-auth .dh-intl-phone-feedback{
+ display:block;margin:5px 0 0;color:#64748b;font-size:11px;line-height:1.7;
+}
+.gold-auth .dh-intl-phone-feedback.valid{color:#176643}
+.gold-auth .dh-intl-phone-feedback.invalid{color:#b42318}
+@media(max-width:360px){
+ .gold-auth .dh-intl-phone-row{grid-template-columns:100px minmax(0,1fr)}
+ .gold-auth .dh-intl-country-flag{font-size:18px}
+ .gold-auth .dh-intl-country-code{font-size:13px}
+}
+
+/* Language choice is user-initiated; it never changes their signed-in preferences. */
+.gold-auth .mockup-login-container{position:relative}
+.gold-auth .dh-auth-language{
+ position:absolute;inset-block-start:max(5px,env(safe-area-inset-top));inset-inline-end:12px;
+ z-index:95;color:#D4AF37;
+}
+.gold-auth .dh-auth-language-trigger{
+ display:flex;align-items:center;justify-content:center;gap:4px;
+ height:42px;min-width:48px;max-width:90px;padding:0 9px;
+ border:1px solid rgba(212,175,55,.65);border-radius:12px;
+ background:#00172f;color:#f5d77c;cursor:pointer;
+}
+.gold-auth .dh-auth-language-trigger:focus-visible{outline:2px solid #D4AF37;outline-offset:3px}
+.gold-auth .dh-auth-language-code{font-size:10px;font-weight:700;letter-spacing:.03em}
+.gold-auth .dh-auth-language-menu{
+ position:absolute;top:calc(100% + 6px);inset-inline-end:0;
+ width:170px;max-width:80vw;padding:5px;border:1px solid #d7dee8;
+ border-radius:11px;background:white;box-shadow:0 14px 32px rgba(0,31,63,.24);
+}
+.gold-auth .dh-auth-language-menu button{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ width:100%;min-height:44px;background:white;border:0;border-radius:7px;
+ padding:10px 12px;text-align:start;color:#001F3F;font-size:14px;
+}
+.gold-auth .dh-auth-language-menu button[aria-checked="true"]{background:#fff6d9;font-weight:700}
+.gold-auth .dh-auth-reference-version{
+ margin:6px auto 12px;color:#D4AF37;font-size:12px;line-height:1.5;text-align:center;
+ font-variant-numeric:tabular-nums;
+}

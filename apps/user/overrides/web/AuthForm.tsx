@@ -7,7 +7,11 @@ import './user.css';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {useLanguage} from './i18n';
 import {localizeFeedback} from './i18n-feedback';
-import {normalizeRegistrationPhone,registrationAvailable,registrationDigits} from './registration';
+import {registrationAvailable,registrationDigits} from './registration';
+import {internationalRegistrationPhone} from './phone-country';
+import {RegistrationPhoneField} from './RegistrationPhoneField';
+import {AuthLanguageSwitcher} from './AuthLanguageSwitcher';
+import {APP_DISPLAY_VERSION} from './app-version';
 import './registration.css';
 
 type RegistrationAuth=ReturnType<typeof useAuth>&{
@@ -67,7 +71,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
  const t=(ar:string,en:string,fr:string)=>language==='en'?en:language==='fr'?fr:ar;
  const {user,isLoading,error,login,startRegistration,registerStep,registerEmail,verifyRegistration,resendRegisterCode,cancelRegistration,registrationExpiresAt,registrationResendAt,clearError,biometricAvailable,biometricEnrolled,biometricEnabled,loginWithBiometric}=useAuth() as RegistrationAuth;
  const showBiometricLogin=canShowBiometricLogin({biometricAvailable,biometricEnrolled,biometricEnabled});
- const [email,setEmail]=useState(''),[phone,setPhone]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[confirmVisible,setConfirmVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
+ const [email,setEmail]=useState(''),[phone,setPhone]=useState(''),[countryIso,setCountryIso]=useState('SA'),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[confirmVisible,setConfirmVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
  const [code,setCode]=useState(''),[clock,setClock]=useState(Date.now()),[registrationEnabled,setRegistrationEnabled]=useState<boolean|null>(null);
  useEffect(()=>{if(!register)return;let active=true;
   void registrationAvailable().then(available=>{if(active)setRegistrationEnabled(available);}).catch(()=>{if(active)setRegistrationEnabled(false);});
@@ -81,12 +85,13 @@ export default function AuthForm({register=false}:{register?:boolean}){
  useEffect(()=>{if(user)router.replace('/');},[user]);
  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(isLoading)return;clearError();setLocalError('');
   if(register&&password!==confirm){setLocalError('كلمتا المرور غير متطابقتين.');return;}
-  if(register&&!normalizeRegistrationPhone(phone)){setLocalError('أدخل رقم جوال صحيحًا، مثل 05xxxxxxxx أو رقمًا دوليًا يبدأ بعلامة +.');return;}
+  const internationalPhone=register?internationalRegistrationPhone(countryIso,phone):null;
+  if(register&&!internationalPhone){setLocalError('تحقق من رقم الجوال ورمز الدولة المحدد.');return;}
   if(new TextEncoder().encode(password).length>72){setLocalError('كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.');return;}
   try{
    if(register){
     if(registrationEnabled!==true)return;
-    if(await startRegistration(name,email,password,phone)){setPassword('');setConfirm('');setCode('');setClock(Date.now());}
+    if(await startRegistration(name,email,password,internationalPhone||undefined)){setPassword('');setConfirm('');setCode('');setClock(Date.now());}
    }else await login(email,password);
   }catch{}
  };
@@ -103,9 +108,11 @@ export default function AuthForm({register=false}:{register?:boolean}){
  if(guest&&!register)return <GuestPrices onBack={()=>setGuest(false)}/>;
  if(register)return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
+   <AuthLanguageSwitcher/>
    <div className="emblem-circle"><span className="emblem-text">ذ</span></div>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
    <p className="mockup-app-subtitle">{registerStep==='verify'?t('تأكيد البريد الإلكتروني','Verify your email','Vérifiez votre adresse e-mail'):t('إنشاء حساب مستخدم جديد','Create a new user account','Créer un compte utilisateur')}</p>
+   <p className="dh-auth-reference-version" dir="ltr">{APP_DISPLAY_VERSION}</p>
       <section className="mockup-auth-card">
     {registerStep==='verify'?<form onSubmit={submitCode} aria-busy={isLoading} className="registration-verification">
      <h2>{t('تحقق من بريدك الإلكتروني','Verify your email','Vérifiez votre adresse e-mail')}</h2>
@@ -121,7 +128,11 @@ export default function AuthForm({register=false}:{register?:boolean}){
     </form>:<form onSubmit={submit} aria-busy={isLoading}>
      <label className="form-group"><span className="form-label">الاسم الكامل</span><div className="mockup-input-wrap"><input className="form-input" value={name} autoComplete="name" maxLength={80} placeholder="الاسم الكامل" onChange={e=>setName(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="userPlus"/></span></div></label>
      <label className="form-group"><span className="form-label">البريد الإلكتروني</span><div className="mockup-input-wrap"><input className="form-input" type="email" dir="ltr" autoComplete="email" value={email} required placeholder="user@gold.app" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
-     <label className="form-group"><span className="form-label">رقم الجوال</span><div className="mockup-input-wrap"><input className="form-input" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" value={phone} required maxLength={40} placeholder={t('05xxxxxxxx أو 5xxxxxxxx أو +9665xxxxxxxx','05xxxxxxxx, 5xxxxxxxx or +9665xxxxxxxx','05xxxxxxxx, 5xxxxxxxx ou +9665xxxxxxxx')} onChange={e=>setPhone(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="phone"/></span></div><small className="registration-phone-hint">{t('رقم سعودي: 05xxxxxxxx أو 5xxxxxxxx أو +9665xxxxxxxx. سنؤكد الحساب عبر البريد الإلكتروني.','Saudi number: 05xxxxxxxx, 5xxxxxxxx or +9665xxxxxxxx. Your email will be verified.','Numéro saoudien : 05xxxxxxxx, 5xxxxxxxx ou +9665xxxxxxxx. La vérification se fait par e-mail.')}</small></label>
+     <div className="form-group dh-intl-form-group">
+      <label className="form-label" htmlFor="dh-register-phone">{t('رقم الجوال','Mobile number','Numéro de mobile')}</label>
+      <RegistrationPhoneField value={phone} countryIso={countryIso} language={language}
+       onChange={(next,iso)=>{setPhone(next);setCountryIso(iso);setLocalError('');}}/>
+     </div>
      <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={password} placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
      <label className="form-group"><span className="form-label">تأكيد كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={confirmVisible?'text':'password'} autoComplete="new-password" required minLength={8} value={confirm} placeholder="أعد كتابة كلمة المرور" onChange={e=>setConfirm(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setConfirmVisible(!confirmVisible)} aria-label={confirmVisible?t('إخفاء تأكيد كلمة المرور','Hide confirmation password','Masquer la confirmation du mot de passe'):t('إظهار تأكيد كلمة المرور','Show confirmation password','Afficher la confirmation du mot de passe')}><AuthIcon name={confirmVisible?'eyeOff':'eye'}/></button></div></label>
      {(localError||error)&&<p className="error-banner" role="alert">{localizeFeedback(localError||error,language)}</p>}
@@ -134,6 +145,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
  </main>;
  return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
+   <AuthLanguageSwitcher/>
    <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
    <h1 className="mockup-app-title">تطبيق ذهبي</h1>
    <p className="mockup-app-subtitle">دخول المستثمرين ومتابعي الأسعار</p>
