@@ -108,7 +108,7 @@ jobs:
           current=destination.read_text()
           if current != origin:
               raise RuntimeError('Copied User version differs from release source')
-          found=re.search(r"export const APP_VERSION = '(\\d+)\\.(\\d+)\\.(\\d+)';", current)
+          found=re.search(r"export const APP_VERSION = '([0-9]+)[.]([0-9]+)[.]([0-9]+)';", current)
           if not found:
               raise RuntimeError('No User semantic version in source')
           next_version=f"{found.group(1)}.{found.group(2)}.{int(found.group(3))+1}"
