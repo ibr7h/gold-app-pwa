@@ -48,7 +48,7 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     URL,Date,Promise,
     location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
-    fetch:async(url,fetchOptions)=>{calls.requests.push({url,options:fetchOptions});return {ok:true,json:async()=>options.legacyVersion?{version:options.legacyVersion,releaseVersion:remote}:{version:remote}};},
+    fetch:async(url,fetchOptions)=>{calls.requests.push({url,options:fetchOptions});return {ok:true,json:async()=>options.compatVersion?{version:options.compatVersion,releaseVersion:options.compatVersion,semanticReleaseVersion:remote}:options.legacyVersion?{version:options.legacyVersion,releaseVersion:remote}:{version:remote}};},
     localStorage: {getItem:key=>key==='dhahabi:user:language'?(options.language||null):null},
     sessionStorage: {
       getItem(){return null;},
@@ -91,10 +91,30 @@ test('modern client offers semantic release even when legacy SHA metadata has an
   assert.ok(prompt);
   assert.match(prompt.children[0].textContent,/1\.9\.62/);
 });
+test('v1.9.62 modern client recognizes a semantic release with a hex compatibility id',async()=>{
+  const app=appHarness('full-1.9.62-20261013',{compatVersion:'full-56c2627a'});
+  await app.load();
+  assert.equal(app.nodes.has('dhahabi-user-update'),true);
+  assert.equal(app.calls.requests[0].options.cache,'no-store');
+});
+test('updated modern client does not offer a ghost update when semantic version already matches',async()=>{
+  const app=appHarness('full-aaaaaaaa',{compatVersion:'full-56c2627a'});
+  await app.load();
+  assert.equal(app.nodes.has('dhahabi-user-update'),false);
+});
+test('compatibility hex rescues v1.9.62 installed updater with broken semantic matcher',()=>{
+  const legacyBroken=/^full-(?:[a-f0-9]{8,40}|\\\\d+\\\\.\\\\d+\\\\.\\\\d+-\\\\d{8})$/;
+  assert.equal(legacyBroken.test('full-1.9.63-20261013'),false);
+  assert.equal(legacyBroken.test('full-56c2627a'),true);
+  const manifest={version:'full-56c2627a',releaseVersion:'full-56c2627a',
+    semanticReleaseVersion:'full-1.9.63-20261013'};
+  assert.equal(legacyBroken.test(manifest.releaseVersion),true);
+});
 test('release generator preserves legacy parsability and independent modern release identity',()=>{
   const release=fs.readFileSync(path.join(__dirname,'../../../scripts/release-iphone-version.cjs'),'utf8');
   assert.match(release,/legacyVersion='full-'/);
-  assert.match(release,/releaseVersion:version/);
+  assert.match(release,/releaseVersion:legacyVersion/);
+  assert.match(release,/semanticReleaseVersion:version/);
   assert.match(release,/displayVersion:'v'/);
 });
 test('a newer version shows a mobile-safe prompt without automatic navigation',async()=>{
