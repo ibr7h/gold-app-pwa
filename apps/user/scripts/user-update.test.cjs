@@ -52,8 +52,8 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
     fetch:async(url,options)=>{calls.requests.push({url,options});return {ok:true,json:async()=>({
-      version:remote,entry:'/gold-app-pwa/full/_expo/static/js/web/entry-'+
-       (remote==='full-aaaaaaaa'?'aaaaaaaa':'bbbbbbbb')+'.js'
+      version:remote,entry:options.entryOverride||('/gold-app-pwa/full/_expo/static/js/web/entry-'+
+       (remote==='full-aaaaaaaa'?'aaaaaaaa':'bbbbbbbb')+'.js')
     })};},
     localStorage: {getItem:key=>key==='dhahabi:user:language'?(options.language||null):null},
     sessionStorage: {
@@ -79,7 +79,7 @@ test('a matching version causes no disruptive banner',async()=>{
   assert.equal(app.calls.registrationUpdates,1);
 });
 test('the same visible version with a stale Expo bundle still demands an update',async()=>{
-  const app=appHarness('full-cccccccc');
+  const app=appHarness('full-aaaaaaaa',{entryOverride:'/gold-app-pwa/full/_expo/static/js/web/entry-cccccccc.js'});
   await app.load();
   assert.ok(app.nodes.has('dhahabi-user-update'));
   assert.equal(app.calls.replaced.length,0);
