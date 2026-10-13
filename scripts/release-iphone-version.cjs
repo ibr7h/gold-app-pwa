@@ -40,8 +40,8 @@ const oldDecision="if (data.version !== CURRENT) {";
 const oldPrompt="showPrompt(data.version);";
 if(!client.includes(oldDecision)||!client.includes(oldPrompt))throw Error('Published updater is missing expected pre-migration markers');
 client=client.replace(oldDecision,
-  "const requested = data?.releaseVersion || data?.version;\\n"+
-  "      if (typeof requested !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\\\\d+\\\\.\\\\d+\\\\.\\\\d+-\\\\d{8})$/.test(requested)) throw new Error('version_invalid');\\n"+
+  "const requested = data?.releaseVersion || data?.version;\n"+
+  "      if (typeof requested !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\\\\d+\\\\.\\\\d+\\\\.\\\\d+-\\\\d{8})$/.test(requested)) throw new Error('version_invalid');\n"+
   "      if (requested !== CURRENT) {");
 client=client.replace(oldPrompt,'showPrompt(requested);');
 client=client.replace(/const CURRENT = 'full-[^']+';/,"const CURRENT = '"+version+"';");
