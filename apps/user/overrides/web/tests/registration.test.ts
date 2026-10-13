@@ -8,9 +8,15 @@ const response=(body:unknown,status=201)=>new Response(JSON.stringify(body),{sta
 beforeEach(async()=>{vi.restoreAllMocks();await clearSession();});
 describe('User phone and email registration',()=>{
  it('normalizes Saudi/international phones and Arabic/Persian digits without guessing missing countries',()=>{
-  for(const phone of ['0501234567','٠٥٠١٢٣٤٥٦٧','۰۵۰۱۲۳۴۵۶۷','+966 50 123 4567','00966501234567'])expect(normalizeRegistrationPhone(phone)).toBe('+966501234567');
+  for(const phone of ['0501234567','501234567','٥٠١٢٣٤٥٦٧','٠٥٠١٢٣٤٥٦٧','۰۵۰۱۲۳۴۵۶۷','+966 50 123 4567','00966501234567'])expect(normalizeRegistrationPhone(phone)).toBe('+966501234567');
   expect(normalizeRegistrationPhone('+44 (7700) 900-123')).toBe('+447700900123');
-  for(const phone of ['',undefined,'501234567','+966112345678','+0123456789','+9665012345678','x'.repeat(41)])expect(normalizeRegistrationPhone(phone)).toBeNull();
+  for(const phone of ['',undefined,'50123456','+966112345678','+0123456789','+9665012345678','x'.repeat(41)])expect(normalizeRegistrationPhone(phone)).toBeNull();
+ });
+ it('accepts nine-digit Saudi phone inputs and submits the correct international value',async()=>{
+  const fetcher=vi.fn(async()=>response(challenge));vi.stubGlobal('fetch',fetcher);
+  await beginRegistration('User','new@example.test','Password-fixture!','501234567');
+  const body=JSON.parse(fetcher.mock.calls[0][1].body as string);
+  expect(body.phone).toBe('+966501234567');
  });
  it('does not call the backend for a missing/invalid mobile number',async()=>{
   const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);
