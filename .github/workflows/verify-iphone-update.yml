@@ -6,6 +6,8 @@ on:
       - "apps/user/scripts/user-update-client.js"
       - "apps/user/scripts/user-service-worker.js"
       - "apps/user/scripts/user-update.test.cjs"
+      - "scripts/release-iphone-version.cjs"
+      - "scripts/check-iphone-release.cjs"
       - "_render_preview/gold-app-pwa/full/pwa-update.js"
       - "_render_preview/gold-app-pwa/full/sw.js"
       - ".github/workflows/verify-iphone-update.yml"
@@ -20,4 +22,6 @@ jobs:
         with:
           node-version: '22'
       - run: node --test apps/user/scripts/user-update.test.cjs
-      - run: node scripts/check-iphone-release.cjs
+      # Only the release builder can check newly exported bundles; PR carries the previous artifact.
+      - run: node --check scripts/release-iphone-version.cjs
+      - run: node --check scripts/check-iphone-release.cjs

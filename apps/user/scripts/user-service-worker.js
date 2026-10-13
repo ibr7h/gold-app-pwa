@@ -42,9 +42,23 @@ self.addEventListener('fetch', event => {
   // Update/bootstrap scripts and version metadata must bypass old SW caches.
   // This also permits recovery when the previous worker remains in control.
   const fresh = ['/version.json','/prices-live.json','/pwa-update.js','/sw.js',
-    '/standalone-install-gate.js','/iphone-preview-lock.js'];
+    '/standalone-install-gate.js','/iphone-preview-lock.js','/user-update-locales.js'];
   if (fresh.some(path => url.pathname.endsWith(path))) {
     event.respondWith(fetch(event.request, {cache:'no-store'}));
+    return;
+  }
+
+  // Compiled JS/CSS must be network-first. Cache-first here can preserve an
+  // old Expo runtime while version.json and the visible version are newer.
+  // Offline fallback is still allowed for a previously cached, exact asset URL.
+  if (url.pathname.includes('/_expo/static/')) {
+    event.respondWith(fetch(event.request, {cache:'no-store'}).then(response => {
+      if (response.ok) {
+        const copy=response.clone();
+        event.waitUntil(caches.open(CACHE).then(cache=>cache.put(event.request,copy)));
+      }
+      return response;
+    }).catch(()=>caches.match(event.request)));
     return;
   }
 

@@ -105,6 +105,8 @@ jobs:
           cd "$SRC"
           pnpm install --frozen-lockfile
           pnpm exec vitest run web/tests/gold-help.test.ts web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts web/tests/i18n.test.ts web/tests/auth-device-language.test.ts web/tests/calendar-preferences.test.ts
+          node "$GITHUB_WORKSPACE/scripts/release-iphone-version.cjs" --prepare
+          cp "$GITHUB_WORKSPACE/apps/user/overrides/web/app-version.ts" web/app-version.ts
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
       - name: Preserve preview PWA assets and replace compiled bundle
         run: |
@@ -161,11 +163,15 @@ jobs:
               raise RuntimeError(f'Localized updater only present on {injected} preview routes')
           print(f'Localized update messages enabled on {injected} preview routes')
           PY
+      - name: Copy actual reviewed PWA updater and service worker to published bundle
+        run: |
+          cp apps/user/scripts/user-update-client.js _render_preview/gold-app-pwa/full/pwa-update.js
+          cp apps/user/scripts/user-service-worker.js _render_preview/gold-app-pwa/full/sw.js
       - name: Verify PWA update activation and offline cache behavior
         run: node --test apps/user/scripts/user-update.test.cjs
       - name: Advance and verify iPhone release version
         run: |
-          node scripts/release-iphone-version.cjs
+          node scripts/release-iphone-version.cjs --finalize
           node scripts/check-iphone-release.cjs
           node apps/user/scripts/test-iphone-purchase.cjs
       - name: Keep build on isolated iPhone branch
