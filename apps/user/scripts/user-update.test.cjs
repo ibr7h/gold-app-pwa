@@ -51,7 +51,7 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     URL,Date,Promise,
     location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
-    fetch:async(url,options)=>{calls.requests.push({url,options});return {ok:true,json:async()=>({
+    fetch:async(url,requestOptions)=>{calls.requests.push({url,options:requestOptions});return {ok:true,json:async()=>({
       version:remote,entry:options.entryOverride||('/gold-app-pwa/full/_expo/static/js/web/entry-'+
        (remote==='full-aaaaaaaa'?'aaaaaaaa':'bbbbbbbb')+'.js')
     })};},
