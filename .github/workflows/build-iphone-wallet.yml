@@ -98,6 +98,23 @@ jobs:
           for route in chat admin new-order new-client admin-stats admin-users trader-home order-detail admin-invites trader-orders admin-settings trader-clients trader-reports trader-location trader-messages admin-permissions trader-notifications; do
             find app -type f \( -name "$route.tsx" -o -name "$route.web.tsx" -o -name "$route.jsx" -o -name "$route.js" \) -delete
           done
+      - name: Stamp upcoming User version in source before Expo compilation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,re
+          origin=Path('apps/user/overrides/web/app-version.ts').read_text()
+          destination=Path(os.environ['SRC'])/'web/app-version.ts'
+          current=destination.read_text()
+          if current != origin:
+              raise RuntimeError('Copied User version differs from release source')
+          found=re.search(r"export const APP_VERSION = '(\\d+)\\.(\\d+)\\.(\\d+)';", current)
+          if not found:
+              raise RuntimeError('No User semantic version in source')
+          next_version=f"{found.group(1)}.{found.group(2)}.{int(found.group(3))+1}"
+          destination.write_text(current[:found.start()] + f"export const APP_VERSION = '{next_version}';" + current[found.end():])
+          print('Compiling real UI for next iPhone release v'+next_version)
+          PY
       - name: Build current iPhone User
         env:
           EXPO_NO_TELEMETRY: "1"
@@ -127,18 +144,34 @@ jobs:
           if len(css_files)!=1:
               raise RuntimeError(f'Expected one User stylesheet, got {css_files}')
           user_css=css_files[0].name
+          help_styles=list((src/'_expo/static/css').glob('gold-help-*.css'))
+          if len(help_styles)!=1:
+              raise RuntimeError(f'Expected one GoldHelp stylesheet, got {help_styles}')
+          help_css=help_styles[0].name
+          if '.dh-help-category' not in help_styles[0].read_text():
+              raise RuntimeError('GoldHelp stylesheet is missing essential card styles')
+          help_href='/gold-app-pwa/full/_expo/static/css/'+help_css
           shutil.copytree(src/'_expo',dest/'_expo',dirs_exist_ok=True)
           updated=0
           for page in dest.rglob('*.html'):
               html=page.read_text()
               next_html,n=re.subn(r'(?<=/web/)entry-(?:[0-9a-f]+|dhahabi-v[0-9.]+)\.js',bundle.name,html)
               next_html=re.sub(r'user-[a-f0-9]+\.css',user_css,next_html)
+              # Expo exports GoldHelp as a separate CSS chunk; the User entry pages
+              # do not link it automatically. Include the active, hashed stylesheet.
+              next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/gold-help-[a-f0-9]+\.css"\s*/?>','',next_html)
               if n:
+                  if next_html.count('</head>')!=1:
+                      raise RuntimeError(f'HTML head missing on {page}')
+                  next_html=next_html.replace('</head>',f'<link rel="stylesheet" href="{help_href}"></head>',1)
                   page.write_text(next_html)
                   updated+=1
           if updated<25:
               raise RuntimeError(f'Only {updated} preview pages point to fresh wallet entry')
-          print(f'New User entry {bundle.name}, updated {updated} preview pages')
+          for target in (dest/'index.html',dest/'faq-support.html',dest/'home.html'):
+              if target.read_text().count(help_href)!=1:
+                  raise RuntimeError(f'GoldHelp CSS is not linked by {target}')
+          print(f'New User entry {bundle.name}, GoldHelp CSS {help_css}, updated {updated} preview pages')
           PY
       - name: Publish localized iPhone updater on every preview page
         run: |
