@@ -284,3 +284,54 @@
 @media(max-width:600px){
  .gold-web .dh-help-topic-body ul{font-size:13.5px!important;line-height:1.8!important}
 }
+
+
+/* iOS PWA contrast guard for opened educational chapters.
+   Prevent pale inherited text or Safari WebKit text-fill from washing out the
+   purity chart on white, including when the device uses dark appearance. */
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open]>.dh-help-category-body{
+  background:#f7f9fc!important;
+  color:#14273d!important;
+  -webkit-text-fill-color:#14273d;
+  opacity:1!important;
+  color-scheme:light;
+}
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-table-scroll{
+  background:#fff!important;
+  color:#14273d!important;
+  opacity:1!important;
+  color-scheme:light;
+}
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-table{
+  background:#fff!important;
+  color:#14273d!important;
+  opacity:1!important;
+}
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-table thead th{
+  background:#e9eff6!important;
+  color:#001f3f!important;
+  -webkit-text-fill-color:#001f3f!important;
+  opacity:1!important;
+}
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-table tbody th,
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-table tbody td,
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-table tbody [dir="ltr"]{
+  color:#14273d!important;
+  -webkit-text-fill-color:#14273d!important;
+  opacity:1!important;
+}
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-table tbody tr:nth-child(even){
+  background:#eef3f8!important;
+}
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-karat-button{
+  background:#fff8e1!important;
+  color:#5c450a!important;
+  -webkit-text-fill-color:#5c450a!important;
+  opacity:1!important;
+}
+.gold-web .dh-knowledge.dh-help-accordion .dh-help-category[open] .dh-knowledge-karat-button[aria-pressed="true"]{
+  background:#001f3f!important;
+  border-color:#001f3f!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
