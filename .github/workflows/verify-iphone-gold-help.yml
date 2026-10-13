@@ -5,6 +5,7 @@ on:
     paths:
       - "apps/user/overrides/web/GoldHelp.tsx"
       - "apps/user/overrides/web/gold-help-content.ts"
+      - "apps/user/overrides/web/gold-help-facts.ts"
       - "apps/user/overrides/web/gold-help.css"
       - "apps/user/overrides/web/UserWorkspace.tsx"
       - "apps/user/overrides/web/i18n-messages.ts"
