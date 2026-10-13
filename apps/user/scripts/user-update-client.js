@@ -19,7 +19,7 @@
     if (!banner) return;
     const title = banner.children[0], info = banner.children[1], actions = banner.children[2];
     if (!title || !info || !actions) return;
-    const newer = /^full-(\\d+\\.\\d+\\.\\d+)-\\d{8}$/.exec(remoteVersion);
+    const newer = /^full-(\d+\.\d+\.\d+)-\d{8}$/.exec(remoteVersion);
     title.textContent = trUpdate('available') + (newer ? ' v' + newer[1] : '');
     info.textContent = trUpdate('info');
     actions.children[0].textContent = trUpdate('updateNow');
