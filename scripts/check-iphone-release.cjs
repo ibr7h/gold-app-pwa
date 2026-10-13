@@ -4,12 +4,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const root=path.resolve(__dirname,'..'),base=path.join(root,'_render_preview/gold-app-pwa/full');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const json=JSON.parse(read('_render_preview/gold-app-pwa/full/version.json'));
-assert(/^full-\d+\.\d+\.\d+-\d{8}$/.test(json.version),'Release must have semver and date');
-const stamp=json.version.slice(5),semver=stamp.split('-')[0];
+assert(/^full-[a-f0-9]{8,40}$/.test(json.version),'Legacy version must remain compatible with old iPhone installs');
+const semanticRelease=json.releaseVersion||json.version;
+assert(/^full-\d+\.\d+\.\d+-\d{8}$/.test(semanticRelease),'Semantic release must have semver and date');
+const stamp=semanticRelease.slice(5),semver=stamp.split('-')[0];
 assert.equal(json.displayVersion,'v'+semver);
 assert(read('apps/user/overrides/web/app-version.ts').includes("APP_VERSION = '"+semver+"'"));
 const updater=read('_render_preview/gold-app-pwa/full/pwa-update.js');
-assert(updater.includes("const CURRENT = '"+json.version+"'"));
+assert(updater.includes("const CURRENT = '"+semanticRelease+"'"));
+assert(updater.includes('data?.releaseVersion || data?.version'), 'Modern updater must prefer semantic releaseVersion');
 assert(updater.includes('watchAccountVersion()'),'Profile version display is not dynamic');
 assert(updater.includes("addEventListener('dhahabi:user-check-update'"),'Update button event missing');
 assert(updater.includes('version.json?t='),'Update check cache bypass missing');
