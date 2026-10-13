@@ -9,6 +9,14 @@
   let applying = false;
   let dismissedVersion = '';
   let remoteVersion = '';
+  let remoteEntry = '';
+  // Actual Expo JS loaded by the standalone gate; the version label alone is not proof.
+  function loadedEntryPath() {
+    const gate = document.querySelector('script[data-entry]');
+    const url = gate?.getAttribute('data-entry');
+    if (!url) return '';
+    try { return new URL(url, location.href).pathname; } catch { return ''; }
+  }
   let banner = null;
 
   const online = () => typeof navigator.onLine !== 'boolean' || navigator.onLine;
@@ -41,8 +49,8 @@
     setTimeout(() => el.remove(), 4500);
   }
 
-  function showPrompt(version) {
-    if (!version || version === CURRENT || dismissedVersion === version) return;
+  function showPrompt(version, entryMismatch = false) {
+    if (!version || (!entryMismatch && version === CURRENT) || dismissedVersion === version + ':' + remoteEntry) return;
     remoteVersion = version;
     if (document.getElementById(PROMPT_ID)) return;
     banner = document.createElement('section');
@@ -68,7 +76,7 @@
     later.textContent = trUpdate('later');
     later.style.cssText = 'min-height:44px;padding:8px 14px;border:1px solid #C5A021;border-radius:12px;background:#fff;color:#001F3F;font:600 13px system-ui,sans-serif;cursor:pointer';
     later.addEventListener('click', () => {
-      dismissedVersion = remoteVersion;
+      dismissedVersion = remoteVersion + ':' + remoteEntry;
       banner?.remove();
       banner = null;
     });
@@ -114,14 +122,16 @@
 
   // Only records the intended version; never clears saved sign-in or user data.
   const ATTEMPT_KEY = 'dhahabi:user:pwa-update-target';
-  function recordAttempt(version) {
-    try { sessionStorage.setItem(ATTEMPT_KEY, version); } catch {}
+  function recordAttempt(version, entry) {
+    try { sessionStorage.setItem(ATTEMPT_KEY, JSON.stringify({version,entry})); } catch {}
   }
   function verifyAttempt() {
     let target = '';
     try { target = sessionStorage.getItem(ATTEMPT_KEY) || ''; sessionStorage.removeItem(ATTEMPT_KEY); } catch {}
-    if (target && target !== CURRENT) {
-      notice(trUpdate('previousIncomplete'));
+    if (target) {
+      let attempt; try { attempt = JSON.parse(target); } catch { attempt = {version:target}; }
+      if (attempt.version !== CURRENT || (attempt.entry && loadedEntryPath() !== attempt.entry))
+        notice(trUpdate('previousIncomplete'));
     }
   }
 
@@ -143,7 +153,7 @@
         }
       }
       // Application data, sessions, IndexedDB, and localStorage are never cleared.
-      recordAttempt(remoteVersion);
+      recordAttempt(remoteVersion,remoteEntry);
       reloadNewVersion();
     } catch {
       applying = false;
@@ -164,9 +174,13 @@
       const response = await fetch(BASE + 'version.json?t=' + Date.now(), {cache:'no-store'});
       if (!response.ok) throw new Error('version_unavailable');
       const data = await response.json();
-      if (!data || typeof data.version !== 'string' || !/^full-[a-f0-9]{8,40}$/.test(data.version)) throw new Error('version_invalid');
-      if (data.version !== CURRENT) {
-        showPrompt(data.version);
+      if (!data || typeof data.version !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\d+\.\d+\.\d+-\d{8})$/.test(data.version)
+        || typeof data.entry !== 'string' || !/^\/gold-app-pwa\/(?:full|iphone)\/_expo\/static\/js\/web\/entry-[a-f0-9]+\.js$/.test(data.entry))
+        throw new Error('release_integrity_metadata_missing');
+      remoteEntry = data.entry;
+      const entryMismatch = loadedEntryPath() !== data.entry;
+      if (data.version !== CURRENT || entryMismatch) {
+        showPrompt(data.version,entryMismatch);
         if (registration) await registration.update().catch(() => {});
       } else if (manual) notice(trUpdate('current') + '.');
     } catch {
