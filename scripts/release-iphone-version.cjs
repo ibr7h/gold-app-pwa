@@ -31,6 +31,9 @@ const bundlePath=path.join(base,'_expo/static/js/web',path.basename(entry));
 if(!fs.existsSync(bundlePath))throw Error('Compiled entry does not exist: '+entry);
 const compiled=read(bundlePath);
 if(!compiled.includes(semver))throw Error('Compiled User JS does not carry the announced app version v'+semver);
+for(const marker of ['dh-help-category','dh-help-topic','dh-knowledge-table']){
+ if(!compiled.includes(marker))throw Error('New card/table Help content absent from release bundle: '+marker);
+}
 let count=0;
 function stamp(folder){
  for(const e of fs.readdirSync(folder,{withFileTypes:true})){
