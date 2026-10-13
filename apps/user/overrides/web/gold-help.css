@@ -1,99 +1,83 @@
-/* Dhahabi User — Gold knowledge center. Independent styles: no Trader/Admin. */
-.gold-web .dh-knowledge{width:100%;max-width:1080px;margin-inline:auto;display:grid;gap:20px;min-width:0;color:#14253b}
+/* Dhahabi User — classic Help style from the approved iPhone UI.
+   One approved-card, native expandable questions, original dividers and typography.
+   The trilingual educational content and interactive examples remain unchanged. */
+.gold-web .dh-knowledge{display:block;max-width:1080px;width:100%;min-width:0;margin-inline:auto;overflow-wrap:break-word}
 .gold-web .dh-knowledge *{box-sizing:border-box}
-.gold-web .dh-knowledge-hero{position:relative;isolation:isolate;overflow:hidden;padding:clamp(23px,4vw,38px);border-radius:20px;min-height:178px;background:linear-gradient(135deg,#001f3f,#0c385c);border:1px solid #294969;color:#fff}
-.gold-web .dh-knowledge-hero h2{font-size:clamp(24px,3.6vw,33px);margin:8px 0 10px;color:#fff;position:relative;z-index:1}
-.gold-web .dh-knowledge-hero p{max-width:680px;line-height:1.85;font-size:14px;color:#e8eef5;margin:0;position:relative;z-index:1}
-.gold-web .dh-knowledge-eyebrow{display:inline-flex;gap:6px;align-items:center;color:#f0d889;font-weight:700;font-size:12px;position:relative;z-index:1}
-.gold-web .dh-knowledge-halo{position:absolute;inset-inline-end:-33px;top:-50px;display:grid;place-items:center;width:225px;height:225px;border-radius:50%;border:34px solid rgba(212,175,55,.09);font-weight:800;font-size:64px;color:rgba(245,206,110,.13);pointer-events:none;z-index:0}
-.gold-web .dh-knowledge-tools,.gold-web .dh-knowledge-karat,.gold-web .dh-knowledge-invoice,.gold-web .dh-knowledge-library,.gold-web .dh-knowledge-checklist,.gold-web .dh-knowledge-sources{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:clamp(15px,3vw,22px);box-shadow:0 6px 18px rgba(0,31,63,.045);min-width:0}
-.gold-web .dh-knowledge h3,.gold-web .dh-knowledge h4{color:#001f3f;margin:0}
-.gold-web .dh-knowledge h3{font-size:18px;line-height:1.5}
-.gold-web .dh-knowledge-tools-heading p,.gold-web .dh-knowledge-section-heading p{font-size:13px;line-height:1.7;color:#64748b;margin:3px 0 0}
-.gold-web .dh-knowledge-tools-heading{margin-bottom:14px}
-.gold-web .dh-knowledge-tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
-.gold-web .dh-knowledge-tool{background:#f8fafc;border:1px solid #e5ebf1;border-radius:14px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:11px}
-.gold-web .dh-knowledge-tool h4{font-size:15px}
-.gold-web .dh-knowledge-tool label{display:grid;gap:7px;min-width:0;font-size:12px;font-weight:650;color:#475569}
-.gold-web .dh-knowledge-tool input,.gold-web .dh-knowledge-tool select{width:100%;min-width:0;min-height:45px;padding:10px 12px;border-radius:10px;border:1px solid #cbd5e1;background:#fff;color:#152b43;font-size:16px;direction:ltr;text-align:start;appearance:auto}
-.gold-web .dh-knowledge-tool input:focus-visible,.gold-web .dh-knowledge-tool select:focus-visible,.gold-web .dh-knowledge-search input:focus-visible{outline:2px solid #b58b21;outline-offset:2px}
-.gold-web .dh-knowledge-form-row{display:grid;grid-template-columns:1.5fr 1fr;gap:10px}
-.gold-web .dh-knowledge-result{display:grid;gap:8px;margin-top:auto;background:#fff;padding:10px 12px;border:1px solid #e2e8f0;border-radius:12px}
-.gold-web .dh-knowledge-result>div{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font-size:12px;min-width:0}
-.gold-web .dh-knowledge-result span{color:#475569}
-.gold-web .dh-knowledge-result strong{color:#001f3f;font-size:16px;white-space:nowrap}
-.gold-web .dh-knowledge-caption{font-size:11px;color:#64748b;line-height:1.7;margin:0}
-.gold-web .dh-knowledge-section-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:15px}
-.gold-web .dh-knowledge-karat-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
-.gold-web .dh-karat-card{display:grid;justify-items:center;gap:7px;min-width:0;padding:13px 6px;border-radius:11px;border:1px solid #dee5ee;background:#fcfdff;color:#17314c;cursor:pointer;min-height:100px;box-shadow:none}
-.gold-web .dh-karat-card b{font-size:17px;color:#001f3f}
-.gold-web .dh-karat-card span{font-size:13px;font-weight:650}
-.gold-web .dh-karat-card small{font-size:11px;color:#63748a}
-.gold-web .dh-karat-card.is-selected{border:2px solid #c5a021;background:#fff8df}
-.gold-web .dh-karat-card:focus-visible,.gold-web .dh-knowledge-tabs button:focus-visible,.gold-web .dh-knowledge-article summary:focus-visible{outline:3px solid #c5a021;outline-offset:2px}
-.gold-web .dh-karat-bar{width:100%;height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden}
-.gold-web .dh-karat-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ac8217,#e9c75d)}
-.gold-web .dh-knowledge-invoice-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:16px}
-.gold-web .dh-knowledge-receipt{border:1px solid #e2e8f0;border-radius:12px;background:#fbfcff;padding:14px 16px;display:grid;gap:10px}
-.gold-web .dh-knowledge-receipt>div{display:flex;justify-content:space-between;gap:12px;align-items:baseline;font-size:13px}
-.gold-web .dh-knowledge-receipt b,.gold-web .dh-knowledge-receipt strong{font-variant-numeric:tabular-nums;white-space:nowrap}
-.gold-web .dh-knowledge-receipt .dh-knowledge-receipt-total{border-top:1px dashed #b7c5d3;padding-top:12px;color:#001f3f;font-weight:700}
-.gold-web .dh-knowledge-receipt strong{font-size:20px;color:#92701b}
-.gold-web .dh-knowledge-receipt small{text-align:center;color:#64748b;font-size:11px}
-.gold-web .dh-knowledge-invoice-side{border-inline-start:3px solid #c5a021;padding-inline-start:14px;align-self:center;color:#475569;line-height:1.85;font-size:13px}
-.gold-web .dh-knowledge-invoice-side p{margin:0 0 10px}
-.gold-web .dh-knowledge-count{font-size:12px;font-weight:600;color:#53657b;white-space:nowrap}
-.gold-web .dh-knowledge-search{position:relative;display:flex;align-items:center;gap:9px;border:1px solid #ccd6e2;border-radius:13px;background:#f8fafc;padding:0 13px;margin-bottom:12px;color:#64748b}
-.gold-web .dh-knowledge-search input{flex:1;min-width:0;min-height:48px;font-size:14px;color:#17314c;border:0;outline:0;box-shadow:none;background:transparent;direction:inherit}
-.gold-web .dh-knowledge-tabs{display:flex;gap:8px;overflow-x:auto;padding:3px 1px 10px;margin-bottom:9px;scrollbar-width:thin;overscroll-behavior-x:contain}
-.gold-web .dh-knowledge-tabs button{flex:none;border:1px solid #dce5ee;border-radius:999px;padding:10px 13px;min-height:42px;white-space:nowrap;background:#f8fafc;color:#263e56;font-size:12px;font-weight:700}
+.gold-web .dh-knowledge-intro{font-size:13px;line-height:1.85;color:#64748b;margin:0 0 17px}
+.gold-web .dh-knowledge-library{margin:0}
+.gold-web .dh-knowledge-section-heading{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;margin:0 0 12px}
+.gold-web .dh-knowledge-section-heading h3{font-size:14px;margin:0;color:#132238}
+.gold-web .dh-knowledge-section-heading p{font-size:12px;line-height:1.65;color:#64748b;margin:0}
+.gold-web .dh-knowledge-count{font-size:12px;font-weight:500;color:#64748b}
+.gold-web .dh-knowledge-search{display:flex;align-items:center;gap:9px;width:100%;min-width:0;padding:0 12px;margin:0 0 12px;border:1px solid #e2e8f0;border-radius:10px;color:#64748b;background:#fff}
+.gold-web .dh-knowledge-search input{flex:1;min-width:0;width:100%;min-height:45px;background:transparent;border:0;box-shadow:none;outline:none;color:#132238;font-size:14px;direction:inherit}
+.gold-web .dh-knowledge-search:focus-within{outline:2px solid #c5a021;outline-offset:2px}
+.gold-web .dh-knowledge-tabs{display:flex;gap:8px;overflow-x:auto;width:100%;padding:3px 1px 10px;margin-bottom:8px;overscroll-behavior-x:contain;scrollbar-width:thin}
+.gold-web .dh-knowledge-tabs button{flex:none;min-height:39px;max-width:none;padding:7px 12px;border-radius:9px;border:1px solid #e2e8f0;background:#fff;color:#334155;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:none}
 .gold-web .dh-knowledge-tabs button.active{background:#001f3f;color:#fff;border-color:#001f3f}
-.gold-web .dh-knowledge-chapter{margin-top:17px}
-.gold-web .dh-knowledge-chapter-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid #ebeff4;padding-bottom:9px;margin-bottom:8px}
-.gold-web .dh-knowledge-chapter-head h4{font-size:15px}
-.gold-web .dh-knowledge-chapter-head small{color:#64748b;font-size:11px}
-.gold-web .dh-knowledge-articles{display:grid;gap:8px}
-.gold-web .dh-knowledge-article{border:1px solid #e5ebf1;border-radius:12px;background:#fbfcfd;min-width:0;overflow:hidden}
-.gold-web .dh-knowledge-article[open]{border-color:#d8c58f;background:#fff}
-.gold-web .dh-knowledge-article summary{display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;list-style:none;padding:15px 14px;color:#132c45;font-weight:700;font-size:13px;line-height:1.7}
-.gold-web .dh-knowledge-article summary::-webkit-details-marker{display:none}
-.gold-web .dh-knowledge-plus{border-radius:50%;background:#f1ead5;color:#735719;min-width:25px;height:25px;display:grid;place-items:center;font-size:20px;font-weight:400;flex:none}
-.gold-web .dh-knowledge-article[open] .dh-knowledge-plus{transform:rotate(45deg)}
-.gold-web .dh-knowledge-answer{padding:0 15px 16px;color:#475569;font-size:13px;line-height:1.95}
-.gold-web .dh-knowledge-answer>p{margin:0;overflow-wrap:break-word}
-.gold-web .dh-knowledge-tip{margin-top:12px;border-inline-start:3px solid #c5a021;background:#fffbf0;padding:11px 12px;border-radius:6px}
-.gold-web .dh-knowledge-tip strong{display:block;color:#735719;font-size:12px}
-.gold-web .dh-knowledge-tip p{margin:5px 0 0}
-.gold-web .dh-knowledge-empty{text-align:center;padding:20px;color:#64748b}
-.gold-web .dh-knowledge-empty button{margin-top:10px;background:#001f3f;color:white;border-radius:10px;padding:9px 16px}
-.gold-web .dh-knowledge-checklist{background:#f9fbfd}
-.gold-web .dh-knowledge-checklist h3{margin-bottom:12px}
-.gold-web .dh-knowledge-checklist ol{padding-inline-start:23px;margin:0;display:grid;gap:11px;font-size:13px;line-height:1.8;color:#334155}
-.gold-web .dh-knowledge-checklist li::marker{color:#ad8318;font-weight:800}
-.gold-web .dh-knowledge-sources p{font-size:12px;line-height:1.8;color:#64748b}
-.gold-web .dh-knowledge-sources ul{list-style:none;padding:0;margin:10px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.gold-web .dh-knowledge-sources li{min-width:0}
-.gold-web .dh-knowledge-sources a{display:block;font-size:12px;line-height:1.6;color:#004e78;overflow-wrap:anywhere;padding:10px;background:#f7fafc;border-radius:8px;border:1px solid #e7edf2;text-decoration:underline;text-underline-offset:3px}
+.gold-web .dh-knowledge-tabs button:focus-visible,.gold-web .dh-knowledge summary:focus-visible,.gold-web .dh-karat-card:focus-visible,.gold-web .dh-knowledge-tool input:focus-visible,.gold-web .dh-knowledge-tool select:focus-visible{outline:2px solid #c5a021;outline-offset:2px}
+.gold-web .dh-knowledge-chapter{margin:0;padding:0}
+.gold-web .dh-knowledge-chapter-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:13px 0 0;border-bottom:1px solid #e2e8f0;padding:0 0 8px}
+.gold-web .dh-knowledge-chapter-head h4{font-size:13px;font-weight:700;color:#001f3f;margin:0}
+.gold-web .dh-knowledge-chapter-head small{font-size:11px;font-weight:400;color:#64748b}
+.gold-web .dh-knowledge-articles{display:block}
+.gold-web .dh-knowledge .dh-knowledge-article{border:0;border-bottom:1px solid #e2e8f0;border-radius:0;background:transparent;padding:0;margin:0}
+.gold-web .dh-knowledge .dh-knowledge-article>summary{display:list-item;list-style:disclosure-closed inside;cursor:pointer;min-height:51px;padding:15px 0;color:#132238;font-weight:600;font-size:14px;line-height:1.7}
+.gold-web .dh-knowledge .dh-knowledge-article[open]>summary{list-style-type:disclosure-open;color:#001f3f}
+.gold-web .dh-knowledge .dh-knowledge-answer{padding:0 0 16px;font-size:13px;line-height:1.85;color:#64748b}
+.gold-web .dh-knowledge .dh-knowledge-answer>p{margin:0;white-space:normal}
+.gold-web .dh-knowledge-tip{border-inline-start:3px solid #c5a021;margin-top:10px;padding:9px 12px;background:#fffaf0;color:#475569;border-radius:5px}
+.gold-web .dh-knowledge-tip strong{display:block;color:#866617;font-size:12px}
+.gold-web .dh-knowledge-tip p{margin:4px 0 0}
+.gold-web .dh-knowledge-empty{padding:20px 6px;text-align:center;color:#64748b;font-size:13px}
+.gold-web .dh-knowledge-empty button{min-height:39px;margin-top:9px;padding:7px 14px;border-radius:8px;background:#001f3f;color:#fff}
+.gold-web .dh-knowledge .dh-knowledge-utility{border:0;border-bottom:1px solid #e2e8f0;padding:0;margin:0;background:transparent}
+.gold-web .dh-knowledge .dh-knowledge-utility:first-of-type{border-top:1px solid #e2e8f0;margin-top:20px}
+.gold-web .dh-knowledge .dh-knowledge-utility>summary{display:list-item;list-style:disclosure-closed inside;cursor:pointer;font-size:14px;font-weight:600;color:#132238;line-height:1.7;min-height:55px;padding:16px 0}
+.gold-web .dh-knowledge .dh-knowledge-utility[open]>summary{list-style-type:disclosure-open;color:#001f3f}
+.gold-web .dh-knowledge-utility-body{padding:0 0 18px;min-width:0}
+.gold-web .dh-knowledge-utility-body h3{display:none}
+.gold-web .dh-knowledge-tools-heading p,.gold-web .dh-knowledge-utility .dh-knowledge-section-heading p{font-size:12px;color:#64748b;margin:0 0 12px;line-height:1.7}
+.gold-web .dh-knowledge-tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.gold-web .dh-knowledge-tool{display:grid;align-content:start;gap:11px;min-width:0;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:13px}
+.gold-web .dh-knowledge-tool h4{font-size:13px;color:#132238;margin:0}
+.gold-web .dh-knowledge-tool label{display:grid;gap:6px;font-size:12px;color:#475569;font-weight:600;min-width:0}
+.gold-web .dh-knowledge-form-row{display:grid;grid-template-columns:1.5fr 1fr;gap:8px}
+.gold-web .dh-knowledge-tool input,.gold-web .dh-knowledge-tool select{width:100%;min-width:0;min-height:42px;border:1px solid #cbd5e1;border-radius:8px;padding:9px 10px;background:white;color:#132238;font-size:16px;appearance:auto;direction:ltr;text-align:start}
+.gold-web .dh-knowledge-result{display:grid;gap:7px;padding:11px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0}
+.gold-web .dh-knowledge-result>div{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:12px}
+.gold-web .dh-knowledge-result span{color:#475569}
+.gold-web .dh-knowledge-result strong{color:#001f3f;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gold-web .dh-knowledge-caption{font-size:11px;line-height:1.7;color:#64748b;margin:0}
+.gold-web .dh-knowledge-karat-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.gold-web .dh-karat-card{display:grid;gap:6px;justify-items:center;min-height:87px;padding:10px 4px;min-width:0;border-radius:8px;background:#fff;color:#132238;border:1px solid #e2e8f0;box-shadow:none}
+.gold-web .dh-karat-card.is-selected{border:2px solid #c5a021;background:#fffaf0}
+.gold-web .dh-karat-card b{font-size:15px;color:#132238}
+.gold-web .dh-karat-card span,.gold-web .dh-karat-card small{font-size:11px;color:#53657b}
+.gold-web .dh-karat-bar{height:5px;width:100%;border-radius:7px;background:#e2e8f0;overflow:hidden}
+.gold-web .dh-karat-bar i{height:100%;display:block;background:#c5a021}
+.gold-web .dh-knowledge-invoice-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+.gold-web .dh-knowledge-receipt{display:grid;gap:10px;padding:12px;border-radius:9px;border:1px solid #e2e8f0;background:#fff}
+.gold-web .dh-knowledge-receipt>div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px}
+.gold-web .dh-knowledge-receipt b,.gold-web .dh-knowledge-receipt strong{white-space:nowrap}
+.gold-web .dh-knowledge-receipt-total{padding-top:10px;border-top:1px solid #e2e8f0;font-weight:700}
+.gold-web .dh-knowledge-receipt-total strong{color:#826315;font-size:17px}
+.gold-web .dh-knowledge-receipt small{text-align:center;font-size:11px;color:#64748b}
+.gold-web .dh-knowledge-invoice-side{font-size:12px;color:#64748b;line-height:1.8}
+.gold-web .dh-knowledge-invoice-side p{margin:0 0 10px}
+.gold-web .dh-knowledge-checklist ol{margin:0;padding-inline-start:24px;display:grid;gap:9px;font-size:13px;line-height:1.8;color:#475569}
+.gold-web .dh-knowledge-checklist li::marker{color:#a47d19}
+.gold-web .dh-knowledge-sources p{font-size:12px;color:#64748b;line-height:1.8;margin:0 0 9px}
+.gold-web .dh-knowledge-sources ul{list-style:none;display:grid;gap:8px;padding:0;margin:0}
+.gold-web .dh-knowledge-sources a{color:#004e78;display:inline-block;font-size:12px;line-height:1.7;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 .gold-web .dh-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:800px){
- .gold-web .dh-knowledge-karat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-}
+@media(max-width:800px){.gold-web .dh-knowledge-karat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:600px){
- .gold-web .dh-knowledge{gap:12px;padding-bottom:12px}
- .gold-web .dh-knowledge-hero{min-height:150px;padding:22px 18px;border-radius:15px}
- .gold-web .dh-knowledge-hero p{font-size:12px}
- .gold-web .dh-knowledge-halo{width:170px;height:170px;font-size:42px;top:-60px;inset-inline-end:-50px}
- .gold-web .dh-knowledge-tool-grid,.gold-web .dh-knowledge-invoice-grid,.gold-web .dh-knowledge-sources ul{grid-template-columns:minmax(0,1fr)}
- .gold-web .dh-knowledge-tool{padding:13px}
- .gold-web .dh-knowledge-karat-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
- .gold-web .dh-karat-card{min-height:93px;padding:9px 4px}
- .gold-web .dh-karat-card b{font-size:15px}
- .gold-web .dh-karat-card span{font-size:11px}
- .gold-web .dh-knowledge-invoice-side{font-size:12px}
- .gold-web .dh-knowledge-article summary{min-height:53px}
- .gold-web .dh-knowledge h3{font-size:16px}
+ .gold-web .dh-knowledge-intro{font-size:12px}
+ .gold-web .dh-knowledge-tool-grid,.gold-web .dh-knowledge-invoice-grid{grid-template-columns:minmax(0,1fr)}
+ .gold-web .dh-knowledge-form-row{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+ .gold-web .dh-knowledge-karat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .gold-web .dh-knowledge .dh-knowledge-article>summary{font-size:13px}
+ .gold-web .dh-knowledge-tool{padding:11px}
 }
-@media(max-width:350px){
- .gold-web .dh-knowledge-karat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
- .gold-web .dh-knowledge-form-row{grid-template-columns:1fr}
-}
+@media(max-width:340px){.gold-web .dh-knowledge-form-row{grid-template-columns:minmax(0,1fr)}.gold-web .dh-knowledge-karat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
