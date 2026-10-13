@@ -9,3 +9,19 @@
 .gold-auth .registration-verification .registration-timer{font-size:12px;color:#8B6B00}
 .gold-auth .registration-resend,.gold-auth .registration-back{display:block;width:100%;min-height:44px;background:transparent;color:#8B6B00;font-size:13px;margin-top:8px;border-radius:8px}
 .gold-auth .registration-back{color:#64748B;font-size:12px;margin-top:0}
+
+/* Global phone entry: separate international prefix, flag and local number.
+ * The transparent native select opens the iOS/Android country picker without
+ * extra network dependencies. RTL form labels remain independently localized.
+ */
+.gold-auth .registration-phone-entry{display:flex;align-items:stretch;gap:8px;width:100%;min-width:0;}
+.gold-auth .registration-country-picker{box-sizing:border-box;flex:0 0 126px;min-width:0;min-height:50px;border:1.5px solid rgba(10,34,58,.16);border-radius:12px;background:#f8f9fa;display:flex;align-items:center;justify-content:center;gap:5px;position:relative;color:#132238;font-weight:600;direction:ltr;}
+.gold-auth .registration-country-picker:focus-within{border-color:#C5A021;box-shadow:0 0 0 3px rgba(197,160,33,.2)}
+.gold-auth .registration-country-flag{font-size:20px;line-height:1.1;flex:none;}
+.gold-auth .registration-country-dial{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:15px;}
+.gold-auth .registration-country-arrow{font-size:16px;color:#52647A;line-height:1;}
+.gold-auth .registration-country-select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;z-index:1;font-size:16px;}
+.gold-auth .registration-phone-entry .registration-local-phone.form-input{box-sizing:border-box;width:100%;min-width:0;flex:1 1 auto;min-height:50px;height:50px;margin:0!important;background:#f8f9fa!important;color:#132238!important;border:1.5px solid rgba(10,34,58,.16)!important;border-radius:12px!important;padding:12px 14px!important;box-shadow:none!important;font-size:16px!important;direction:ltr;text-align:left;}
+.gold-auth .registration-phone-entry .registration-local-phone.form-input:focus{border-color:#C5A021!important;box-shadow:0 0 0 3px rgba(197,160,33,.2)!important;}
+.gold-auth .registration-phone-entry .registration-local-phone.form-input::placeholder{color:#748092;opacity:1}
+@media(max-width:375px){.gold-auth .registration-country-picker{flex-basis:112px}.gold-auth .registration-phone-entry{gap:6px}.gold-auth .registration-country-flag{font-size:18px}.gold-auth .registration-country-dial{font-size:14px}}
