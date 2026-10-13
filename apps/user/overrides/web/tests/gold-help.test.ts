@@ -2,144 +2,125 @@ import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath,URL} from 'node:url';
 import {
- helpArticles,helpCopy,helpNavMessages,helpReferences,helpSections,
- karatReference,localized,ounceGrams,gemCaratGrams,
- theoreticalFineGold,theoreticalGoldInvoice,theoreticalStoneCharge
+ ounceGrams,gemCaratGrams,karatReference,localized,
+ theoreticalFineGold,theoreticalGoldInvoice,theoreticalStoneCharge,
+ helpNavMessages,helpReferences
 } from '../gold-help-content';
+import {guideCards,guideChecklist,guideText} from '../gold-help-facts';
 import {translateUiText} from '../i18n-messages';
 
-const read=(relative:string)=>readFileSync(fileURLToPath(new URL(relative,import.meta.url)),'utf8');
-const guide=read('../GoldHelp.tsx');
+const read=(path:string)=>readFileSync(fileURLToPath(new URL(path,import.meta.url)),'utf8');
+const component=read('../GoldHelp.tsx');
+const styles=read('../gold-help.css');
 const workspace=read('../UserWorkspace.tsx');
-const css=read('../gold-help.css');
 
-describe('Gold guide — trustworthy calculations',()=>{
- it('matches recognized karats and published fineness stamps',()=>{
-  expect(karatReference.map(k=>k.karat)).toEqual([24,22,21,18,14,10,9]);
-  const stamps=new Map(karatReference.map(k=>[k.karat,k.perThousand]));
-  expect(stamps.get(22)).toBe('916');
-  expect(stamps.get(21)).toBe('875');
-  expect(stamps.get(18)).toBe('750');
-  expect(stamps.get(14)).toBe('585');
-  expect(theoreticalFineGold(10,24)).toBe(10);
-  expect(theoreticalFineGold(10,22)).toBeCloseTo(9.1666666,5);
-  expect(theoreticalFineGold(10,21)).toBe(8.75);
+describe('Gold knowledge — specialist accuracy',()=>{
+ it('uses standard fineness marks and keeps approximate 24K distinct from ideal 24/24 calculation',()=>{
+  expect(karatReference.map(x=>x.karat)).toEqual([24,22,21,18,14,10,9]);
+  const hallmark=Object.fromEntries(karatReference.map(x=>[x.karat,x.perThousand]));
+  expect(hallmark[24]).toBe('999 / 999.9');
+  expect(hallmark[22]).toBe('916');
+  expect(hallmark[21]).toBe('875');
+  expect(hallmark[18]).toBe('750');
   expect(theoreticalFineGold(10,18)).toBe(7.5);
-  expect(theoreticalFineGold(-10,18)).toBeNull();
-  expect(theoreticalFineGold(10,25)).toBeNull();
+  expect(theoreticalFineGold(10,22)).toBeCloseTo(9.166666,5);
+  expect(theoreticalFineGold(10,24)).toBe(10);
+  expect(theoreticalFineGold(-2,24)).toBeNull();
+  expect(theoreticalFineGold(Infinity,24)).toBeNull();
  });
- it('keeps troy-ounce and gemstone-carat distinct',()=>{
+ it('does not confuse troy ounces, gemstone carats or alloy-karat purity',()=>{
   expect(ounceGrams).toBe(31.1034768);
   expect(gemCaratGrams).toBe(.2);
-  expect(0.5*gemCaratGrams).toBeCloseTo(.1);
+  expect(.5*gemCaratGrams).toBeCloseTo(.1);
   expect(theoreticalStoneCharge(2,300)).toBe(600);
-  expect(theoreticalStoneCharge(2,-1)).toBeNull();
-  expect(theoreticalStoneCharge(NaN,300)).toBeNull();
+  expect(theoreticalStoneCharge(2,-300)).toBeNull();
  });
- it('calculates an illustrative bill without inventing a real gold price or tax',()=>{
+ it('uses illustrative line items and no fictional live quote or universal tax rate',()=>{
   expect(theoreticalGoldInvoice(10,300,250,400)).toEqual({gold:3000,subtotal:3650});
   expect(theoreticalGoldInvoice(10,300,-1,400)).toBeNull();
-  expect(theoreticalGoldInvoice(Infinity,300,250,400)).toBeNull();
-  expect(guide).toContain('t(helpCopy.equationSub)');
-  expect(guide).toContain('t(helpCopy.taxCaveat)');
-  expect(guide).toContain('t(helpCopy.exampleNet)');
-  expect(guide).toContain('t(helpCopy.gemRateNote)');
+  expect(component).toContain('t(guideText.fictional)');
+  expect(component).toContain('t(guideText.tax)');
+  expect(component).not.toContain('fetch(');
+  expect(component).not.toContain('/prices/latest');
  });
 });
 
-describe('Gold guide — multilingual editorial completeness',()=>{
- it('covers six coherent chapters and all educational areas',()=>{
-  expect(helpSections.map(s=>s.id)).toEqual(['purity','weight','gems','workmanship','buying','dhahabi']);
-  expect(helpArticles.length).toBeGreaterThanOrEqual(20);
-  const ids=new Set(helpArticles.map(a=>a.id));
-  expect(ids.size).toBe(helpArticles.length);
-  for(const section of helpSections)expect(helpArticles.some(a=>a.section===section.id),section.id).toBe(true);
-  for(const term of ['karat','marks','ounce','gem-carat','diamond-4cs','stone-pricing','gem-origin','labour','making-model','invoice','resell','taxes','app-tools']){
-   expect(ids.has(term),term).toBe(true);
-  }
+describe('Gold knowledge — editorial and language quality',()=>{
+ it('offers 22 short visible factual cards grouped by six shop-oriented sections',()=>{
+  expect(guideCards).toHaveLength(22);
+  expect(new Set(guideCards.map(c=>c.id)).size).toBe(22);
+  expect(new Set(guideCards.map(c=>c.section))).toEqual(new Set(['purity','weight','gems','workmanship','buying','dhahabi']));
+  expect(guideCards.every(c=>c.points.length>=2&&c.points.length<=3)).toBe(true);
+  expect(component).toContain('className="dh-knowledge-fact"');
+  expect(component).toContain('<ul>{card.points.map(');
+  expect(component).not.toContain('<details className="dh-knowledge-article"');
  });
- it('does not fall back to Arabic content for English or French',()=>{
+ it('provides proper Arabic, English and French for every card, table header, note and checklist point',()=>{
   for(const lang of ['ar','en','fr'] as const){
-   for(const [key,value]of Object.entries(helpCopy)){
-    if(Array.isArray(value)){
-     for(const item of value)expect(item[lang],key+'/'+lang).toBeTruthy();
-    }else{
-     expect((value as {ar:string;en:string;fr:string})[lang],key+'/'+lang).toBeTruthy();
+   for(const [name,value]of Object.entries(guideText)){
+    expect(value[lang],name+'/'+lang).toBeTruthy();
+    expect(value[lang].trim()).toBe(value[lang]);
+   }
+   for(const card of guideCards){
+    expect(card.heading[lang],card.id).toBeTruthy();
+    for(const point of card.points){
+     expect(point[lang],card.id).toBeTruthy();
+     expect(point[lang].length,card.id).toBeLessThan(225);
     }
    }
-   for(const section of helpSections){
-    expect(section.label[lang]).toBeTruthy();
-    expect(section.summary[lang]).toBeTruthy();
-   }
-   for(const a of helpArticles){
-    expect(a.title[lang],a.id+'/'+lang).toBeTruthy();
-    expect(a.body[lang].length,a.id+'/'+lang).toBeGreaterThan(80);
-    if(a.tip)expect(a.tip[lang].length).toBeGreaterThan(25);
-   }
-   for(const r of helpReferences)expect(r.name[lang]).toBeTruthy();
+   for(const point of guideChecklist)expect(point[lang]).toBeTruthy();
   }
-  expect(localized(helpSections[2].label,'fr')).toContain('Pierres');
+  expect(localized(guideText.purity,'fr')).toContain('or');
+  expect(localized(guideText.making,'ar')).toContain('الصياغة');
  });
- it('translates the entry in the More menu using the shared source catalog',()=>{
+ it('removes noisy labels and previous long narrative from the actual help interface',()=>{
+  expect(component).not.toContain('t(helpCopy.intro)');
+  expect(component).not.toContain('22 موضوع');
+  expect(component).not.toContain('dh-knowledge-search');
+  expect(component).not.toContain('dh-knowledge-tabs');
+  expect(component).not.toContain('dh-knowledge-count');
+  expect(component).not.toContain('معلومات موثوقة تساعدك');
+  expect(component).toContain('t(guideText.title)');
+  expect(component).toContain('t(guideText.subtitle)');
+  expect(component).toContain('<Table label={t(guideText.purity)}');
+ });
+ it('maintains the iPhone More help entry in the shared three-language catalog',()=>{
   expect(helpNavMessages).toHaveLength(1);
-  const source=helpNavMessages[0][0];
-  expect(translateUiText(source,'en')).toBe(helpNavMessages[0][1]);
-  expect(translateUiText(source,'fr')).toBe(helpNavMessages[0][2]);
-  expect(workspace).toContain("<GoldHelp language={language}/>");
-  expect(workspace).toContain("tr('دليل الذهب والعيارات والأحجار والمصنعية')");
+  expect(translateUiText(helpNavMessages[0][0],'en')).toBe(helpNavMessages[0][1]);
+  expect(translateUiText(helpNavMessages[0][0],'fr')).toBe(helpNavMessages[0][2]);
+  expect(workspace).toContain('<GoldHelp language={language}/>');
   expect(workspace).not.toContain('Merchant Location لم تُنفذ');
  });
- it('references established external education sources without embedding a network request',()=>{
-  expect(helpReferences.length).toBeGreaterThanOrEqual(4);
-  expect(helpReferences.some(s=>s.url.includes('gold.org'))).toBe(true);
-  expect(helpReferences.some(s=>s.url.includes('lbma.org.uk'))).toBe(true);
-  expect(helpReferences.some(s=>s.url.includes('gia.edu'))).toBe(true);
-  for(const r of helpReferences)expect(r.url.startsWith('https://')).toBe(true);
-  expect(guide).toContain('rel="noopener noreferrer"');
-  expect(guide).not.toContain('fetch(');
-  expect(guide).not.toContain('/prices/latest');
- });
-});
-
-describe('Gold guide — existing Help visual language',()=>{
- it('preserves the original approved-card help-panel and title rather than introducing a second landing page',()=>{
-  expect(guide).toContain('<section className="approved-card help-panel dh-knowledge"');
-  expect(guide).toContain('<div className="approved-card-title">{t(helpCopy.helpLabel)}</div>');
-  expect(guide).toContain('<summary>{t(row.title)}</summary>');
-  expect(guide).not.toContain('dh-knowledge-hero');
-  expect(guide).not.toContain('dh-knowledge-halo');
-  expect(css).not.toContain('linear-gradient(135deg,#001f3f,#0c385c)');
-  for(const lang of ['ar','en','fr'] as const)expect(helpCopy.helpLabel[lang]).toBeTruthy();
- });
- it('keeps all existing calculators and references in native, collapsible Help sections',()=>{
-  for(const name of ['dh-knowledge-tools','dh-knowledge-karat','dh-knowledge-invoice',
-                     'dh-knowledge-checklist','dh-knowledge-sources']){
-    expect(guide).toContain('<details className="dh-knowledge-utility '+name+'">');
+ it('links to domain specialists without external translation or price calculation requests',()=>{
+  expect(helpReferences.some(x=>x.url.includes('gold.org'))).toBe(true);
+  expect(helpReferences.some(x=>x.url.includes('lbma.org.uk'))).toBe(true);
+  expect(helpReferences.some(x=>x.url.includes('gia.edu'))).toBe(true);
+  for(const source of helpReferences){
+   expect(source.url.startsWith('https://')).toBe(true);
+   expect(source.name.ar).toBeTruthy();
+   expect(source.name.en).toBeTruthy();
+   expect(source.name.fr).toBeTruthy();
   }
-  expect(css).toContain('.gold-web .dh-knowledge .dh-knowledge-article>summary');
-  expect(css).toContain('.gold-web .dh-knowledge .dh-knowledge-utility>summary');
-  expect(css).toContain('border-bottom:1px solid #e2e8f0');
+  expect(component).toContain('rel="noopener noreferrer"');
  });
 });
 
-describe('Gold guide — accessible mobile UI',()=>{
- it('supports real search, chapter filters, native expandable articles and local language direction',()=>{
-  expect(guide).toContain('type="search"');
-  expect(guide).toContain('helpArticles.filter(');
-  expect(guide).toContain("section==='all'||a.section===section");
-  expect(guide).toContain('role="group"');
-  expect(guide).toContain('aria-pressed={section===s.id}');
-  expect(guide).toContain('<details className="dh-knowledge-article"');
-  expect(guide).toContain("dir={language==='ar'?'rtl':'ltr'}");
-  expect(guide).toContain('type="number" inputMode="decimal"');
-  expect(guide).toContain('aria-live="polite"');
+describe('Gold knowledge — responsive structured content',()=>{
+ it('renders actual HTML data tables with accessible headers and a scroll boundary',()=>{
+  expect(component).toContain('<table className="dh-knowledge-table"');
+  expect(component).toContain('<thead><tr>');
+  expect(component).toContain('scope="col"');
+  expect(component).toContain('scope="row"');
+  expect(component).toContain('className="dh-knowledge-table-scroll"');
+  expect(styles).toContain('overflow-x:auto');
+  expect(styles).toContain('table-layout:fixed');
  });
- it('prevents narrow French/Arabic screens from clipping filters or calculators',()=>{
-  expect(css).toContain('.gold-web .dh-knowledge-tabs{display:flex;gap:8px;overflow-x:auto;');
-  expect(css).toContain('@media(max-width:600px)');
-  expect(css).toContain('grid-template-columns:minmax(0,1fr)');
-  expect(css).toContain('.gold-web .dh-knowledge-tool input');
-  expect(css).toContain('.gold-web .dh-knowledge .dh-knowledge-article>summary');
-  expect(css).toContain(':focus-visible');
+ it('keeps price, metric values and input order safe across RTL and LTR',()=>{
+  expect(component).toContain("dir={language==='ar'?'rtl':'ltr'}");
+  expect(component).toContain('dir="ltr"');
+  expect(component).toContain('inputMode="decimal"');
+  expect(component).toContain('aria-pressed={karat===k.karat}');
+  expect(styles).toContain('@media(max-width:660px)');
+  expect(styles).toContain('grid-template-columns:minmax(0,1fr)');
  });
 });
