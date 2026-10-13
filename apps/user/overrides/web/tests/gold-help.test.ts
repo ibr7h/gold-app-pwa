@@ -46,14 +46,19 @@ describe('Gold knowledge — specialist accuracy',()=>{
 });
 
 describe('Gold knowledge — editorial and language quality',()=>{
- it('offers 22 short visible factual cards grouped by six shop-oriented sections',()=>{
+ it('keeps all 22 short factual topics in six closed-by-default expandable chapters',()=>{
   expect(guideCards).toHaveLength(22);
   expect(new Set(guideCards.map(c=>c.id)).size).toBe(22);
   expect(new Set(guideCards.map(c=>c.section))).toEqual(new Set(['purity','weight','gems','workmanship','buying','dhahabi']));
   expect(guideCards.every(c=>c.points.length>=2&&c.points.length<=3)).toBe(true);
-  expect(component).toContain('className="dh-knowledge-fact"');
+  expect(component).toContain('<details key={card.id} className="dh-help-topic"');
+  expect(component).toContain('<details className="dh-help-category" key={section}');
+  expect(component).toContain("{sections.map(section=><details");
+  expect(component).toContain('className="dh-help-topic-body"');
+  expect(component).toContain('className="dh-help-category-body"');
   expect(component).toContain('<ul>{card.points.map(');
-  expect(component).not.toContain('<details className="dh-knowledge-article"');
+  expect(component).not.toContain('defaultOpen');
+  expect(component).not.toContain(' open={');
  });
  it('provides proper Arabic, English and French for every card, table header, note and checklist point',()=>{
   for(const lang of ['ar','en','fr'] as const){
@@ -80,8 +85,9 @@ describe('Gold knowledge — editorial and language quality',()=>{
   expect(component).not.toContain('dh-knowledge-tabs');
   expect(component).not.toContain('dh-knowledge-count');
   expect(component).not.toContain('معلومات موثوقة تساعدك');
-  expect(component).toContain('t(guideText.title)');
-  expect(component).toContain('t(guideText.subtitle)');
+  expect(component).not.toContain('t(guideText.title)');
+  expect(component).not.toContain('dh-knowledge-header');
+  expect(component).not.toContain('t(guideText.subtitle)');
   expect(component).toContain('<Table label={t(guideText.purity)}');
  });
  it('maintains the iPhone More help entry in the shared three-language catalog',()=>{
@@ -115,12 +121,24 @@ describe('Gold knowledge — responsive structured content',()=>{
   expect(styles).toContain('overflow-x:auto');
   expect(styles).toContain('table-layout:fixed');
  });
+ it('keeps the chapter and inner topic surfaces visible as independent light cards',()=>{
+  expect(component).toContain("style={{background:'#fff',border:'1px solid #e1e8f0',borderRadius:15,overflow:'hidden'}}");
+  expect(component).toContain("style={{border:'1px solid #e3e9f1',background:'#fff',borderRadius:12,overflow:'hidden'}}");
+  expect(component).toContain('className="dh-help-category-title"');
+  expect(component).toContain('className="dh-help-topic-title"');
+  expect(styles).toContain('details[open]>summary>.dh-help-chevron');
+  expect(component).not.toContain('معلومات موثوقة تساعدك');
+  expect(component).not.toContain('dh-knowledge-search');
+  expect(component).not.toContain('dh-knowledge-tabs');
+ });
  it('keeps price, metric values and input order safe across RTL and LTR',()=>{
   expect(component).toContain("dir={language==='ar'?'rtl':'ltr'}");
   expect(component).toContain('dir="ltr"');
   expect(component).toContain('inputMode="decimal"');
   expect(component).toContain('aria-pressed={karat===k.karat}');
-  expect(styles).toContain('@media(max-width:660px)');
+  expect(styles).toContain('@media(max-width:600px)');
+  expect(styles).toContain('.gold-web .dh-help-category');
+  expect(styles).toContain('.gold-web .dh-help-topic[open]');
   expect(styles).toContain('grid-template-columns:minmax(0,1fr)');
  });
 });
