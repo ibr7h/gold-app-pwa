@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = '1.9.58-20261013';
+const VERSION = '1.9.59-20261013';
 const PREFIX = 'dhahabi-full-';
 const CACHE = PREFIX + VERSION;
 const BASE = '/gold-app-pwa/full/';
