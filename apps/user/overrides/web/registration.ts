@@ -4,6 +4,7 @@ export function normalizeRegistrationPhone(value:unknown):string|null{
  if(typeof value!=='string'||value.length>40)return null;
  let phone=value.trim().replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x660))
   .replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x6f0)).replace(/[\s()\-]/g,'');
+ if(/^5\d{8}$/.test(phone))phone='+966'+phone;
  if(/^05\d{8}$/.test(phone))phone='+966'+phone.slice(1);
  if(/^009665\d{8}$/.test(phone))phone='+'+phone.slice(2);
  if(!/^\+[1-9]\d{7,14}$/.test(phone))return null;
