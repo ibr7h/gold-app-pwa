@@ -131,6 +131,21 @@ describe('Gold knowledge — responsive structured content',()=>{
   expect(component).not.toContain('dh-knowledge-search');
   expect(component).not.toContain('dh-knowledge-tabs');
  });
+ it('contrasts open chapters and educational cards without grey text on grey panels',()=>{
+  expect(styles).toContain('.gold-web .dh-help-category[open]>.dh-help-category-title{');
+  expect(styles).toContain('background:#001f3f!important');
+  expect(styles).toContain('color:#ffffff!important');
+  expect(styles).toContain('.gold-web .dh-help-category[open]>.dh-help-category-title .dh-help-category-name{');
+  expect(styles).toContain('.gold-web .dh-help-topic[open]>.dh-help-topic-title{');
+  expect(styles).toContain('background:#eef3f8!important');
+  expect(styles).toContain('.gold-web .dh-help-topic-body{');
+  expect(styles).toContain('background:#fffaf0!important');
+  expect(styles).toContain('.gold-web .dh-help-topic-body ul{');
+  expect(styles).toContain('color:#152941!important');
+  expect(styles).toContain('.gold-web .dh-knowledge-table tbody tr:nth-child(even){');
+  expect(styles).toContain('background:#f0f4f8!important');
+  expect(styles).toContain('@media(max-width:600px)');
+ });
  it('keeps price, metric values and input order safe across RTL and LTR',()=>{
   expect(component).toContain("dir={language==='ar'?'rtl':'ltr'}");
   expect(component).toContain('dir="ltr"');
