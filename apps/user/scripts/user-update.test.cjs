@@ -25,6 +25,9 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     body, visibilityState:'visible', documentElement:{lang:'ar'},
     createElement:newElement,
     getElementById:id => nodes.get(id)||null,
+    querySelector:selector => selector==='script[data-entry]'?{
+      getAttribute:name=>name==='data-entry'?'/gold-app-pwa/full/_expo/static/js/web/entry-aaaaaaaa.js?v=previous':null
+    }:null,
     addEventListener:(type,fn)=>listeners.set('doc:'+type,fn)
   };
   const swListeners = new Map();
@@ -48,7 +51,10 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     URL,Date,Promise,
     location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
-    fetch:async(url,options)=>{calls.requests.push({url,options});return {ok:true,json:async()=>({version:remote})};},
+    fetch:async(url,options)=>{calls.requests.push({url,options});return {ok:true,json:async()=>({
+      version:remote,entry:'/gold-app-pwa/full/_expo/static/js/web/entry-'+
+       (remote==='full-aaaaaaaa'?'aaaaaaaa':'bbbbbbbb')+'.js'
+    })};},
     localStorage: {getItem:key=>key==='dhahabi:user:language'?(options.language||null):null},
     sessionStorage: {
       getItem(){return null;},
@@ -71,6 +77,16 @@ test('a matching version causes no disruptive banner',async()=>{
   assert.equal(app.nodes.has('dhahabi-user-update'),false);
   assert.equal(app.calls.requests[0].options.cache,'no-store');
   assert.equal(app.calls.registrationUpdates,1);
+});
+test('the same visible version with a stale Expo bundle still demands an update',async()=>{
+  const app=appHarness('full-cccccccc');
+  await app.load();
+  assert.ok(app.nodes.has('dhahabi-user-update'));
+  assert.equal(app.calls.replaced.length,0);
+});
+test('version metadata never rewrites the app account version text independently of compiled code',()=>{
+  assert.doesNotMatch(client,/MutationObserver\(syncAccountVersion\)|\.app-version-account/);
+  assert.match(client,/loadedEntryPath\(\) !== data.entry/);
 });
 test('a newer version shows a mobile-safe prompt without automatic navigation',async()=>{
   const app=appHarness();
@@ -169,6 +185,12 @@ test('new worker never activates in install and only clears its own old caches o
   assert.match(worker,/event\.data\?\.type === 'SKIP_WAITING'/);
   assert.match(worker,/key\.startsWith\(PREFIX\) && key !== CACHE/);
   assert.doesNotMatch(worker,/CLEAR_CACHES/);
+});
+test('the service worker fetches new compiled JavaScript and CSS over the network first',()=>{
+  const assets=worker.split("if (url.pathname.includes('/_expo/static/'))")[1];
+  assert.ok(assets);
+  assert.match(assets,/fetch\(event.request, \{cache:'no-store'\}\)/);
+  assert.match(assets,/\.catch\(\(\)=>caches.match\(event.request\)\)/);
 });
 test('new worker does not block install on optional icon failures or cache the update bootstrap',()=>{
   const install=worker.split("self.addEventListener('install'")[1].split("self.addEventListener('activate'")[0];
