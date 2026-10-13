@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const BASE = '/gold-app-pwa/full/';
-  const CURRENT = 'full-1.9.62-20261013';
+  const CURRENT = 'full-1.9.63-20261013';
   const RELEASE_MATCH = /^full-(\d+\.\d+\.\d+)-(\d{8})$/.exec(CURRENT);
   const DISPLAY_VERSION = RELEASE_MATCH ? 'v' + RELEASE_MATCH[1] : '';
   const CHECK_EVERY_MS = 15 * 60 * 1000;
@@ -168,8 +168,8 @@
       if (!response.ok) throw new Error('version_unavailable');
       const data = await response.json();
       if (!data || typeof data.version !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\d+\.\d+\.\d+-\d{8})$/.test(data.version)) throw new Error('version_invalid');
-      const requested = data?.releaseVersion || data?.version;
-      if (typeof requested !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\\d+\\.\\d+\\.\\d+-\\d{8})$/.test(requested)) throw new Error('version_invalid');
+      const requested = data?.semanticReleaseVersion || data?.releaseVersion || data?.version;
+      if (typeof requested !== 'string' || !/^full-(?:[a-f0-9]{8,40}|\d+\.\d+\.\d+-\d{8})$/.test(requested)) throw new Error('version_invalid');
       if (requested !== CURRENT) {
         showPrompt(requested);
         if (registration) await registration.update().catch(() => {});

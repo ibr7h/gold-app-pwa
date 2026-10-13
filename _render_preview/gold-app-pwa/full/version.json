@@ -1,7 +1,8 @@
 {
-  "version": "full-56c2627a",
-  "releaseVersion": "full-1.9.62-20261013",
-  "displayVersion": "v1.9.62",
+  "version": "full-36c295ac",
+  "releaseVersion": "full-36c295ac",
+  "semanticReleaseVersion": "full-1.9.63-20261013",
+  "displayVersion": "v1.9.63",
   "releasedAt": "20261013",
   "force": true
 }
