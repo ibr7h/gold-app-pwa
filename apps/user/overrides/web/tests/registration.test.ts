@@ -13,7 +13,7 @@ describe('User phone and email registration',()=>{
   for(const phone of ['',undefined,'50123456','+966112345678','+0123456789','+9665012345678','x'.repeat(41)])expect(normalizeRegistrationPhone(phone)).toBeNull();
  });
  it('accepts nine-digit Saudi phone inputs and submits the correct international value',async()=>{
-  const fetcher=vi.fn(async()=>response(challenge));vi.stubGlobal('fetch',fetcher);
+  const fetcher=vi.fn(async (_url:string,_options:RequestInit)=>response(challenge));vi.stubGlobal('fetch',fetcher);
   await beginRegistration('User','new@example.test','Password-fixture!','501234567');
   const body=JSON.parse(fetcher.mock.calls[0][1].body as string);
   expect(body.phone).toBe('+966501234567');
