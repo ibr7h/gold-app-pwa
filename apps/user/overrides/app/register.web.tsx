@@ -2,7 +2,7 @@ import React from 'react';
 import AuthForm from '../web/AuthForm';
 import {LanguageProvider} from '../web/i18n';
 
-// /register can be loaded directly; apply device locale regardless of app preference.
+// /register defaults to device locale but lets the user override it with the globe.
 export default function RegisterWeb(){
- return <LanguageProvider mode="device"><AuthForm register/></LanguageProvider>;
+ return <LanguageProvider mode="auth"><AuthForm register/></LanguageProvider>;
 }
