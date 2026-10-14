@@ -18,7 +18,7 @@ describe('iPhone language stability regressions',()=>{
   expect(locale).toContain('function localizeChanges(records:readonly MutationRecord[]');
   expect(locale).toContain('localizeChanges(changes.splice(0),language)');
   expect(locale).toContain('document.querySelectorAll(ROOTS).forEach(el=>localizeRoot(el,language))');
-  const observer=locale.split('const observer=new MutationObserver(records=>')[1];
+  const observer=locale.split('const observer=new MutationObserver(records=>')[1].split('observerRef.current=observer;')[0];
   expect(observer).not.toContain('refresh();');
   expect(locale).toContain("el.closest('[data-no-translate]')");
  });
