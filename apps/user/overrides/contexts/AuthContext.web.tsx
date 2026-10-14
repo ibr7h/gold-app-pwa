@@ -33,6 +33,7 @@ interface AuthContextType {
   error: string | null;
   login: (identifier: string, password: string) => Promise<void>;
   logout: () => void;
+  continueWithPassword: () => void;
   clearError: () => void;
   biometricType: BiometricType;
   biometricAvailable: boolean;
@@ -298,6 +299,12 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   document.addEventListener('visibilitychange',onVisibility);
   return()=>document.removeEventListener('visibilitychange',onVisibility);
  },[]);
+ // Do not erase the saved PIN/biometric envelopes when the user merely
+ // chooses password authentication from a stuck quick-lock screen.
+ const continueWithPassword=()=>{
+  begin();closeSessionVault();lockSession();
+  setLockedAccount(null);setUser(null);setError(null);setLoading(false);
+ };
  const logout=()=>{begin();setLockedAccount(null);setUser(null);enrollment.current=null;setQuickPinEnabled(false);setPinReconnectRequired(false);setBiometricEnrolled(false);setBiometricEnabled(false);setLoading(false);void clearSession();};
  const updateProfile=async(changes:{fullName:string;city:string})=>{
   const updated=await api<{id:string|number;fullName:string|null;city:string|null;phone:string|null;email:string}>('/auth/profile',{
@@ -322,7 +329,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   }catch(e){setError(errorMessage(e));return false;}
  };
  const unsupported=async()=>{setError('هذه الميزة غير متاحة من الخادم حاليًا.');return false;};
- const value:AuthContextType={user,lockedAccount,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,clearError:()=>setError(null),
+ const value:AuthContextType={user,lockedAccount,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,continueWithPassword,clearError:()=>setError(null),
  biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
  resetStep:'email',resetEmail:'',resetCode:'',sendResetCode:unsupported,verifyResetCode:unsupported,resetPassword:unsupported,resendResetCode:unsupported,cancelReset:()=>{},
  registerStep:registration?'verify':'form',registerEmail:registration?.email||'',registerCode:'',
