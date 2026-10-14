@@ -4,7 +4,7 @@ import {helpNavMessages} from './gold-help-content';
 import {followupUiMessages} from './i18n-followup';
 import {invoiceAndErrorMessages} from './i18n-invoice-errors';
 import {uncoveredUiMessages,secondaryUiMessages} from './i18n-coverage';
-/** Human-reviewed terminology for Dhahabi User interface. No network translation. */
+/** Human-reviewed terminology for Dhahabk User interface. No network translation. */
 export type Language='ar'|'en'|'fr';
 export const LANGUAGE_KEY='dhahabi:user:language';
 export const LANGUAGE_OPTIONS:readonly Language[]=['ar','en','fr'];
@@ -75,9 +75,9 @@ const entries:ReadonlyArray<readonly [string,string,string]>=[
   "Utilisateur"
  ],
  [
-  "ذهبي",
-  "Dhahabi",
-  "Dhahabi"
+  "ذهبك",
+  "Dhahabk",
+  "Dhahabk"
  ],
  [
   "تسجيل الدخول",
@@ -130,9 +130,9 @@ const entries:ReadonlyArray<readonly [string,string,string]>=[
   "Ajoutez votre nom"
  ],
  [
-  "نجهّز ذهبي لك…",
-  "Preparing Dhahabi…",
-  "Préparation de Dhahabi…"
+  "نجهّز ذهبك لك…",
+  "Preparing Dhahabk…",
+  "Préparation de Dhahabk…"
  ],
  [
   "قد يستغرق التشغيل الأول بضع ثوانٍ.",
@@ -580,9 +580,9 @@ const entries:ReadonlyArray<readonly [string,string,string]>=[
   "Sécurité et connexion"
  ],
  [
-  "اختر طريقة فتح ذهبي الآمنة على هذا الجهاز.",
-  "Choose how to unlock Dhahabi on this device.",
-  "Choisissez comment déverrouiller Dhahabi sur cet appareil."
+  "اختر طريقة فتح ذهبك الآمنة على هذا الجهاز.",
+  "Choose how to unlock Dhahabk on this device.",
+  "Choisissez comment déverrouiller Dhahabk sur cet appareil."
  ],
  [
   "رمز الدخول السريع",
@@ -615,9 +615,9 @@ const entries:ReadonlyArray<readonly [string,string,string]>=[
   "Authentification biométrique"
  ],
  [
-  "قفل ذهبي الآن",
-  "Lock Dhahabi now",
-  "Verrouiller Dhahabi"
+  "قفل ذهبك الآن",
+  "Lock Dhahabk now",
+  "Verrouiller Dhahabk"
  ],
  [
   "كيف يعمل الدخول السريع؟",
@@ -750,9 +750,9 @@ const entries:ReadonlyArray<readonly [string,string,string]>=[
   "Choisir la devise d'affichage"
  ],
  [
-  "حساب ذهبي",
-  "Dhahabi account",
-  "Compte Dhahabi"
+  "حساب ذهبك",
+  "Dhahabk account",
+  "Compte Dhahabk"
  ],
  [
   "عرض الملف الشخصي وتعديل بياناتي",
@@ -1467,9 +1467,9 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "Certains achats ne peuvent être évalués sans cours fiable."
  ],
  [
-  "عندما يصل السعر إلى هدفك، يرسل ذهبي إشعار Push إلى أجهزتك المسجلة، حتى إن كانت الصفحة مغلقة وفق دعم الجهاز.",
-  "Dhahabi sends a push notification to your registered devices when the target price is reached, even with the page closed when the device allows it.",
-  "Dhahabi envoie une notification Push à vos appareils enregistrés lorsque le prix cible est atteint, même si la page est fermée lorsque l'appareil le permet."
+  "عندما يصل السعر إلى هدفك، يرسل ذهبك إشعار Push إلى أجهزتك المسجلة، حتى إن كانت الصفحة مغلقة وفق دعم الجهاز.",
+  "Dhahabk sends a push notification to your registered devices when the target price is reached, even with the page closed when the device allows it.",
+  "Dhahabk envoie une notification Push à vos appareils enregistrés lorsque le prix cible est atteint, même si la page est fermée lorsque l'appareil le permet."
  ],
  [
   "القيمة تقديرية بحسب آخر سعر متاح للعيار والعملة. المبالغ معروضة بعملة التفضيلات عند توفر تحويل موثوق، دون تعديل الفواتير الأصلية. تحويل الريال والدولار استرشادي من أسعار الذهب وليس سعر صرف بنكي. الفرق لا يشمل رسوم أو فروقات إعادة البيع.",
@@ -1502,14 +1502,14 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "Code d'accès rapide désactivé sur cet appareil."
  ],
  [
-  "أُوقفت بصمة الجهاز في ذهبي.",
-  "Device biometrics disabled in Dhahabi.",
-  "Authentification biométrique désactivée dans Dhahabi."
+  "أُوقفت بصمة الجهاز في ذهبك.",
+  "Device biometrics disabled in Dhahabk.",
+  "Authentification biométrique désactivée dans Dhahabk."
  ],
  [
-  "تم تفعيل تحقق الجهاز. قد يطلب النظام بصمة أو رمز الجهاز؛ بعض المتصفحات تحتاج رمز ذهبي أو كلمة المرور بعد إعادة فتح التطبيق.",
-  "Device verification enabled. Your system may ask for biometrics or the device passcode. Some browsers still require your Dhahabi PIN or password after reopening.",
-  "Vérification de l'appareil activée. Le système peut demander votre biométrie ou votre code. Certains navigateurs exigent encore le code ou mot de passe Dhahabi après réouverture."
+  "تم تفعيل تحقق الجهاز. قد يطلب النظام بصمة أو رمز الجهاز؛ بعض المتصفحات تحتاج رمز ذهبك أو كلمة المرور بعد إعادة فتح التطبيق.",
+  "Device verification enabled. Your system may ask for biometrics or the device passcode. Some browsers still require your Dhahabk PIN or password after reopening.",
+  "Vérification de l'appareil activée. Le système peut demander votre biométrie ou votre code. Certains navigateurs exigent encore le code ou mot de passe Dhahabk après réouverture."
  ],
  [
   "تعذر قفل التطبيق. تحقق من جلسة الدخول.",
@@ -1527,9 +1527,9 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "Non pris en charge par ce navigateur"
  ],
  [
-  "يمكنك فتح ذهبي برمز من ٦ أرقام. تُحفظ الجلسة مشفّرة وتجزئة الرمز محليًا؛ ولا تُخزّن بيانات بصمتك. يظهر القفل عند إعادة فتح التطبيق بجلسة محفوظة أو بعد العودة من الخلفية بدقيقة. وقد يطلب النظام تحقق Face ID أو Touch ID بحسب دعم المتصفح.",
-  "Unlock Dhahabi with a six-digit PIN. Your encrypted session and a hashed PIN are stored locally; biometric details are never stored. The lock appears when reopening a saved session or returning from the background. Face ID or Touch ID may be required when supported.",
-  "Déverrouillez Dhahabi avec un code à six chiffres. La session chiffrée et l'empreinte numérique du code sont conservées localement ; les données biométriques ne le sont jamais. Le verrou apparaît après réouverture ou retour de l'arrière-plan. Face ID ou Touch ID peuvent être demandés."
+  "يمكنك فتح ذهبك برمز من ٦ أرقام. تُحفظ الجلسة مشفّرة وتجزئة الرمز محليًا؛ ولا تُخزّن بيانات بصمتك. يظهر القفل عند إعادة فتح التطبيق بجلسة محفوظة أو بعد العودة من الخلفية بدقيقة. وقد يطلب النظام تحقق Face ID أو Touch ID بحسب دعم المتصفح.",
+  "Unlock Dhahabk with a six-digit PIN. Your encrypted session and a hashed PIN are stored locally; biometric details are never stored. The lock appears when reopening a saved session or returning from the background. Face ID or Touch ID may be required when supported.",
+  "Déverrouillez Dhahabk avec un code à six chiffres. La session chiffrée et l'empreinte numérique du code sont conservées localement ; les données biométriques ne le sont jamais. Le verrou apparaît après réouverture ou retour de l'arrière-plan. Face ID ou Touch ID peuvent être demandés."
  ],
  [
   "سجّل الدخول بكلمة مرور حسابك لاستعادة الوصول، ثم أعد إعداد الدخول السريع. إذا انتهت الجلسة يلزم تسجيل الدخول الكامل.",
@@ -1572,19 +1572,19 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "Aucun test enregistré"
  ],
  [
-  "استخدم متصفحًا يدعم Web Push على اتصال HTTPS. ستبقى التنبيهات ظاهرة داخل ذهبي حتى دون دعم Push.",
+  "استخدم متصفحًا يدعم Web Push على اتصال HTTPS. ستبقى التنبيهات ظاهرة داخل ذهبك حتى دون دعم Push.",
   "Use an HTTPS browser that supports Web Push. In-app alerts remain visible even without Push support.",
   "Utilisez un navigateur HTTPS prenant en charge Web Push. Les alertes internes restent visibles même sans Push."
  ],
  [
-  "على iPhone: افتح ذهبي في Safari، اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية». افتح التطبيق من الأيقونة وارجع إلى إعدادات الإشعارات.",
-  "On iPhone, open Dhahabi in Safari, tap Share, then Add to Home Screen. Open the installed icon and return to notification settings.",
-  "Sur iPhone, ouvrez Dhahabi dans Safari, touchez Partager puis Ajouter à l'écran d'accueil. Lancez l'icône installée et revenez aux notifications."
+  "على iPhone: افتح ذهبك في Safari، اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية». افتح التطبيق من الأيقونة وارجع إلى إعدادات الإشعارات.",
+  "On iPhone, open Dhahabk in Safari, tap Share, then Add to Home Screen. Open the installed icon and return to notification settings.",
+  "Sur iPhone, ouvrez Dhahabk dans Safari, touchez Partager puis Ajouter à l'écran d'accueil. Lancez l'icône installée et revenez aux notifications."
  ],
  [
-  "أُوقف الإذن من خارج التطبيق. لا يمكن لذهبي تغييره نيابةً عنك؛ اتبع تعليمات جهازك أسفل الصفحة.",
-  "Notification permission was blocked outside the app. Dhahabi cannot change it for you; follow your device instructions below.",
-  "L'autorisation a été bloquée hors de l'application. Dhahabi ne peut pas la modifier ; suivez les instructions ci-dessous."
+  "أُوقف الإذن من خارج التطبيق. لا يمكن لذهبك تغييره نيابةً عنك؛ اتبع تعليمات جهازك أسفل الصفحة.",
+  "Notification permission was blocked outside the app. Dhahabk cannot change it for you; follow your device instructions below.",
+  "L'autorisation a été bloquée hors de l'application. Dhahabk ne peut pas la modifier ; suivez les instructions ci-dessous."
  ],
  [
   "لم تسمح بإشعارات هذا الموقع بعد. اختر «تفعيل الإشعارات» ووافق على طلب النظام.",
@@ -1612,7 +1612,7 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "Un abonnement existe dans le navigateur mais pas sur le serveur. Choisissez Réparer l'abonnement."
  ],
  [
-  "إذن المتصفح مسموح، واشتراك الجهاز مسجل لدى خادم ذهبي. يمكن اختبار إرسال رسالة فعلية.",
+  "إذن المتصفح مسموح، واشتراك الجهاز مسجل لدى خادم ذهبك. يمكن اختبار إرسال رسالة فعلية.",
   "Browser permission and server subscription are ready. You can test a real notification.",
   "L'autorisation et l'abonnement serveur sont actifs. Vous pouvez tester une véritable notification."
  ],
@@ -1637,9 +1637,9 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "L'acceptation par Push ne garantit pas la livraison ou l'affichage. L'application ne peut pas vérifier complètement les réglages Concentration ou Muet."
  ],
  [
-  "على الآيفون: فعّل «خدمات الموقع» واسمح لـ Safari أو لتطبيق ذهبي بالوصول إلى موقعك من إعدادات الجهاز.",
-  "On iPhone, enable Location Services and allow Safari or Dhahabi to access your location in device settings.",
-  "Sur iPhone, activez les services de localisation et autorisez Safari ou Dhahabi à accéder à votre position."
+  "على الآيفون: فعّل «خدمات الموقع» واسمح لـ Safari أو لتطبيق ذهبك بالوصول إلى موقعك من إعدادات الجهاز.",
+  "On iPhone, enable Location Services and allow Safari or Dhahabk to access your location in device settings.",
+  "Sur iPhone, activez les services de localisation et autorisez Safari ou Dhahabk à accéder à votre position."
  ],
  [
   "النطاق استرشادي؛ يتغير تقريب الخريطة وقد تظهر محلات أبعد.",
@@ -1657,9 +1657,9 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "Le service Push a accepté le test. Attendez la notification ; cela ne confirme pas sa livraison."
  ],
  [
-  "سُجل هذا الجهاز لدى خدمة إشعارات ذهبي.",
-  "This device has been registered for Dhahabi notifications.",
-  "Cet appareil est enregistré pour les notifications Dhahabi."
+  "سُجل هذا الجهاز لدى خدمة إشعارات ذهبك.",
+  "This device has been registered for Dhahabk notifications.",
+  "Cet appareil est enregistré pour les notifications Dhahabk."
  ],
  [
   "تم إلغاء اشتراك الإشعارات على هذا الجهاز.",
@@ -1667,9 +1667,9 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
   "Les notifications ont été désactivées sur cet appareil."
  ],
  [
-  "هل ظهر إشعار ذهبي على جهازك؟ قد يتأخر أو تمنعه إعدادات النظام.",
-  "Did Dhahabi's notification appear? It may be delayed or blocked by system settings.",
-  "La notification Dhahabi est-elle apparue ? Elle peut être retardée ou bloquée par le système."
+  "هل ظهر إشعار ذهبك على جهازك؟ قد يتأخر أو تمنعه إعدادات النظام.",
+  "Did Dhahabk's notification appear? It may be delayed or blocked by system settings.",
+  "La notification Dhahabk est-elle apparue ? Elle peut être retardée ou bloquée par le système."
  ],
  [
   "تم تأكيد ظهور الإشعار على هذا الجهاز.",
