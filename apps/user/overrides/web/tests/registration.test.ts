@@ -2,7 +2,7 @@ import {beforeEach,describe,it,expect,vi} from 'vitest';
 const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{getItem:async(k:string)=>memory.get(k)||null,setItem:async(k:string,v:string)=>{memory.set(k,v);},removeItem:async(k:string)=>{memory.delete(k);},multiRemove:async(keys:string[])=>keys.forEach(k=>memory.delete(k))}}));
 import {activeSessionTokens,clearSession,errorMessage,ApiError,authenticate} from '../api';
-import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration} from '../registration';
+import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration,registrationAvailable} from '../registration';
 import {countryFlag,countryDisplayName,internationalRegistrationPhone,PHONE_COUNTRIES} from '../phone-country';
 import {LEGAL_REVIEW_VERSION,LEGAL_TERMS_VERSION,LEGAL_PUBLICATION_APPROVED,LEGAL_DOMAIN,LEGAL_EMAILS,legalSectionCount,legalSectionTitles} from '../RegistrationLegalDocuments';
 import {readFileSync} from 'node:fs';
@@ -21,6 +21,13 @@ describe('User phone and email registration',()=>{
   await beginRegistration('User','new@example.test','Password-fixture!','501234567');
   const body=JSON.parse(fetcher.mock.calls[0][1].body as string);
   expect(body.phone).toBe('+966501234567');
+ });
+ it('does not enable legal acceptance against an older backend without version recording',async()=>{
+  const good={enabled:true,channel:'email',codeLength:6,legalTermsVersion:LEGAL_TERMS_VERSION};
+  vi.stubGlobal('fetch',vi.fn(async()=>response({...good,legalTermsVersion:undefined},200)));
+  expect(await registrationAvailable()).toBe(false);
+  vi.stubGlobal('fetch',vi.fn(async()=>response(good,200)));
+  expect(await registrationAvailable()).toBe(true);
  });
  it('does not call the backend for a missing/invalid mobile number',async()=>{
   const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);
