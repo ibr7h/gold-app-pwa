@@ -223,7 +223,7 @@ test('new worker does not block install on optional icon failures or cache the u
   assert.match(worker,/url\.pathname\.endsWith\('\/index\.html'\)/);
   assert.match(worker,/'\/pwa-update\.js'/);
   assert.match(worker,/'\/standalone-install-gate\.js'/);
-  assert.match(worker,/fetch\(event\.request, \{cache:'no-store'\}\)/);
+  assert.ok(worker.includes("fetch(event.request,{cache:'no-store'})"));
 });
 test('a temporary network outage resolves every worker FetchEvent to a response',async()=>{
  const handlers=new Map();
