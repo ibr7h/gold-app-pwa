@@ -77,6 +77,11 @@ async function prepare(accountId:string,tokens:SessionTokens):Promise<Vault>{
  const old=await read();
  assertCurrent(started);
  let current=opened?.accountId===accountId?opened:null;
+ // Never silently rotate the vault key: an old PIN or biometric envelope would
+ // continue to exist but could no longer decrypt the newly sealed session.
+ // Reconnect with an existing local factor before adding/changing another.
+ if(old?.accountId===accountId&&!current)
+  throw new Error('افتح الجلسة أولًا برمز الدخول أو البصمة المحفوظة، ثم أعد إعداد وسيلة الدخول.');
  const reused=!!current;
  if(!current){const rawKey=random(32);current={accountId,rawKey,key:await keyOf(rawKey)};}
  const session=await seal(current.key,new TextEncoder().encode(JSON.stringify(tokens)),accountId);
