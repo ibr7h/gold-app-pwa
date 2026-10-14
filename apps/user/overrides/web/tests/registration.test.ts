@@ -1,7 +1,7 @@
 import {beforeEach,describe,it,expect,vi} from 'vitest';
 const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{getItem:async(k:string)=>memory.get(k)||null,setItem:async(k:string,v:string)=>{memory.set(k,v);},removeItem:async(k:string)=>{memory.delete(k);},multiRemove:async(keys:string[])=>keys.forEach(k=>memory.delete(k))}}));
-import {activeSessionTokens,clearSession,errorMessage,ApiError,authenticate} from '../api';
+import {activeSessionTokens,clearSession,errorMessage,ApiError,authenticate,publicRecoveryRequest} from '../api';
 import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration,registrationAvailable} from '../registration';
 import {countryFlag,countryDisplayName,internationalRegistrationPhone,PHONE_COUNTRIES} from '../phone-country';
 import {LEGAL_REVIEW_VERSION,LEGAL_TERMS_VERSION,LEGAL_PUBLICATION_APPROVED,LEGAL_DOMAIN,LEGAL_EMAILS,legalSectionCount,legalSectionTitles} from '../RegistrationLegalDocuments';
@@ -10,6 +10,30 @@ import {fileURLToPath} from 'node:url';
 const challenge={registrationId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',email:'new@example.test',channel:'email',expiresIn:599,resendAfterSeconds:59};
 const response=(body:unknown,status=201)=>new Response(JSON.stringify(body),{status});
 beforeEach(async()=>{vi.restoreAllMocks();await clearSession();});
+describe('Public email-only password recovery',()=>{
+ it('requests a code without a session or bearer token',async()=>{
+  const fetcher=vi.fn(async()=>response({requestId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',expiresIn:600,resendAfterSeconds:60,message:'Check email'},200));
+  vi.stubGlobal('fetch',fetcher);
+  const result=await publicRecoveryRequest('/auth/password-reset/request',{email:'customer@example.test'});
+  const [url,options]=fetcher.mock.calls[0];
+  expect(url).toContain('/auth/password-reset/request');
+  expect(options.method).toBe('POST');
+  expect(new Headers(options.headers).get('Authorization')).toBeNull();
+  expect(JSON.parse(options.body as string)).toEqual({email:'customer@example.test'});
+  expect(result.requestId).toMatch(/^[0-9a-f-]{36}$/);
+  expect(()=>activeSessionTokens()).toThrow();
+ });
+ it('submits code and new password only to the reset-confirm endpoint',async()=>{
+  const fetcher=vi.fn(async()=>response({success:true},200));vi.stubGlobal('fetch',fetcher);
+  const data={requestId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',code:'123456',newPassword:'new-password-example'};
+  await publicRecoveryRequest('/auth/password-reset/confirm',data);
+  const [url,options]=fetcher.mock.calls[0];
+  expect(url).toContain('/auth/password-reset/confirm');
+  expect(JSON.parse(options.body as string)).toEqual(data);
+  expect(new Headers(options.headers).get('Authorization')).toBeNull();
+ });
+});
+
 describe('User phone and email registration',()=>{
  it('normalizes Saudi/international phones and Arabic/Persian digits without guessing missing countries',()=>{
   for(const phone of ['0501234567','501234567','٥٠١٢٣٤٥٦٧','٠٥٠١٢٣٤٥٦٧','۰۵۰۱۲۳۴۵۶۷','+966 50 123 4567','00966501234567'])expect(normalizeRegistrationPhone(phone)).toBe('+966501234567');
