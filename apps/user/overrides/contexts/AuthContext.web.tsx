@@ -1,8 +1,9 @@
 import React,{createContext,useContext,useEffect,useState,useRef} from 'react';
-import {localBiometricSupported,readLocalCredential,enrollLocalCredential,forgetLocalCredential,verifyLocalCredential,type LocalCredential} from '../web/local-biometric';
+import {localBiometricSupported,readLocalCredential,enrollLocalCredential,persistLocalCredential,forgetLocalCredential,verifyLocalCredential,type LocalCredential} from '../web/local-biometric';
 import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
-import {hasSessionVault,hasBiometricVault,hasOpenVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
+import {withBiometricUnlockDeadline,BiometricUnlockTimeoutError} from '../web/biometric-unlock-deadline';
+import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
 import {beginRegistration,resendRegistration,type RegistrationChallenge,type TermsAcceptance} from '../web/registration';
 export type UserRole = 'user' | 'admin' | 'trader';
@@ -188,9 +189,14 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   if(!user?.id||user.role!=='user')throw new Error('سجّل الدخول أولًا قبل تفعيل بصمة الجهاز.');
   const attempt=begin(),accountId=String(user.id),tokens=activeSessionTokens();
   // Keep platform credential creation first, within the user's explicit tap.
-  const c=await enrollLocalCredential(accountId,user.email,request.current!.signal);current(attempt);
+  const c=await enrollLocalCredential(accountId,user.email,request.current!.signal,false);current(attempt);
+  // A new public credential must not overwrite a working one until its vault
+  // envelope is safely written. Without PRF, do not replace an existing vault.
   if(c.unlockSecret)await protectSessionWithBiometric(accountId,c.unlockSecret,tokens);
+  else if(await hasSessionVault(accountId))
+   throw new Error('لا يمكن استبدال البصمة المحفوظة: هذا المتصفح لا يتيح مفتاح التشفير المطلوب.');
   current(attempt);
+  await persistLocalCredential(c);current(attempt);
   // Without PRF, WebAuthn can unlock only this open tab. A restart needs PIN/password.
   enrollment.current=c;setBiometricAvailable(true);setBiometricEnrolled(true);setBiometricEnabled(true);
  };
@@ -254,14 +260,30 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const loginWithBiometric=async():Promise<boolean>=>{
   const c=enrollment.current,account=lockedAccount;
   if(!c||!account||c.accountId!==String(account.id)||!biometricEnabled)return false;
-  const attempt=begin();setError(null);setLoading(true);
+  const attempt=begin(),controller=request.current!;setError(null);setLoading(true);
   try{
-   const secret=await verifyLocalCredential(c,request.current!.signal);current(attempt);
-   const tokens=await hasSessionVault(c.accountId)?await unlockSessionWithBiometric(c.accountId,secret):activeSessionTokens();
-   const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
-   current(attempt);setLockedAccount(null);setUser(me);return true;
+   // Deadline covers the native prompt, vault/lock acquisition, token rotation
+   // and server verification. A late completion must never reopen the workspace.
+   const unlock=(async()=>{
+    const secret=await verifyLocalCredential(c,controller.signal);current(attempt);
+    const tokens=await hasSessionVault(c.accountId)?await unlockSessionWithBiometric(c.accountId,secret):activeSessionTokens();
+    current(attempt);
+    const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
+    current(attempt);setLockedAccount(null);setUser(me);return true;
+   })();
+   return await withBiometricUnlockDeadline(unlock,controller);
   }catch(e){
-   if(attempt===version.current){lockSession();setError(e instanceof Error?e.message:'تعذر تأكيد هوية الجهاز.');}return false;
+   if(attempt===version.current){
+    if(e instanceof BiometricUnlockTimeoutError){
+     // Fence every late continuation, invalidate in-flight session work and
+     // keep the previously enrolled PIN and public credential untouched.
+     begin();closeSessionVault();lockSession();
+     setError(e.message);setLoading(false);
+    }else{
+     lockSession();setError(e instanceof Error?e.message:'تعذر تأكيد هوية الجهاز.');
+    }
+   }
+   return false;
   }finally{if(attempt===version.current)setLoading(false);}
  };
  const checkBiometricAvailability=async()=>setBiometricAvailable(await localBiometricSupported());
