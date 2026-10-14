@@ -6,6 +6,14 @@ import {amountToLocalizedWords} from '../amount-words-localized';
 import {localizeFeedback} from '../i18n-feedback';
 
 describe('Dhahabk offline three-language localization',()=>{
+ it('uses the approved commercial brand in Arabic, English and French without changing storage identity',()=>{
+  expect(translateUiText('ذهبك','ar')).toBe('ذهبك');
+  expect(translateUiText('ذهبك','en')).toBe('Dhahabk');
+  expect(translateUiText('ذهبك','fr')).toBe('Dhahabk');
+  expect(translateUiText('تطبيق ذهبك','en')).toBe('Dhahabk app');
+  expect(translateUiText('تطبيق ذهبك','fr')).toBe('Application Dhahabk');
+  expect(LANGUAGE_KEY).toBe('dhahabi:user:language');
+ });
  it('supports reversible language selection and correct display direction',()=>{
   expect(LANGUAGE_OPTIONS).toEqual(['ar','en','fr']);
   expect(LANGUAGE_META.ar.dir).toBe('rtl');
