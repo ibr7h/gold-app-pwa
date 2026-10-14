@@ -283,6 +283,64 @@ test('updater honors the auth locale on the login route without overriding app l
  assert.match(regular.nodes.get('dhahabi-user-update').children[0].textContent,/Dhahabi update/);
 });
 
+test('iPhone preview never overwrites EN/FR purchase labels after React translation',()=>{
+ const preview=fs.readFileSync(path.join(__dirname,'../../../_render_preview/gold-app-pwa/full/iphone-preview-lock.js'),'utf8');
+ const purchaseStart=preview.indexOf('/* Purchase form:');
+ const scriptStart=preview.indexOf('(function(){',purchaseStart);
+ const scriptEnd=preview.indexOf('/* Unified iPhone form handling:',scriptStart);
+ assert.ok(purchaseStart>=0&&scriptStart>=0&&scriptEnd>scriptStart,'purchase patch boundaries present');
+ const script=preview.slice(scriptStart,scriptEnd);
+ const events=new Map(),observers=[];
+ const labelText={nodeType:3,nodeValue:'Net weight (g)'};
+ const label={
+  childNodes:[labelText],dataset:{},
+  style:{getPropertyValue(){return ''},setProperty(){}},
+  querySelector(){return {name:'weightGrams'}}
+ };
+ const form={
+  querySelectorAll(selector){return selector==='label'?[label]:[]},
+  querySelector(){return null}
+ };
+ const sheet={querySelector(selector){return selector==='.gold-purchase-form'?form:null},closest(){return null}};
+ const document={
+  readyState:'loading',
+  documentElement:{lang:'en',classList:{contains(){return false}}},
+  body:{},
+  addEventListener:(name,fn)=>events.set(name,fn),
+  getElementById(){return {}},
+  querySelector(selector){return selector.includes('.gold-purchase-form')?sheet:null}
+ };
+ class MutationObserverStub{
+  constructor(fn){this.callback=fn;observers.push(this)}
+  observe(){}
+ }
+ const context={
+  document,window:{visualViewport:null},MutationObserver:MutationObserverStub,
+  requestAnimationFrame:fn=>{fn();return 1;},setTimeout(){},
+  encodeURIComponent,WeakSet,Math
+ };
+ vm.runInNewContext(script,context);
+ assert.equal(typeof events.get('DOMContentLoaded'),'function');
+ events.get('DOMContentLoaded')();
+ assert.equal(labelText.nodeValue,'Net weight (g)','English label unchanged');
+ assert.equal(label.dataset.dhPurchaseIcon,'weight','icon stays active');
+ document.documentElement.lang='fr';
+ labelText.nodeValue='Poids net (g)';
+ observers[0].callback([]);
+ assert.equal(labelText.nodeValue,'Poids net (g)','French label unchanged');
+ document.documentElement.lang='ar';
+ labelText.nodeValue='الوزن الأصلي';
+ observers[0].callback([]);
+ assert.equal(labelText.nodeValue,'الوزن الصافي (جم)','Arabic compact label retained');
+ document.documentElement.lang='en';
+ labelText.nodeValue='Net weight';
+ observers[0].callback([]);
+ assert.equal(labelText.nodeValue,'Net weight','no Arabic rewrite on return to English');
+ // The other legacy dialog patch must not rewrite localized labels or options.
+ assert.ok(preview.includes("document.documentElement.lang==='ar'&&!saved.has(label)"));
+ assert.ok(preview.includes("document.documentElement.lang==='ar'&&direction&&!saved.has(direction)"));
+});
+
 test('new worker is isolated to the User origin/scope and never caches fresh version metadata',()=>{
   assert.match(worker,/url\.origin !== self\.location\.origin/);
   assert.match(worker,/url\.pathname\.startsWith\(BASE\)/);
