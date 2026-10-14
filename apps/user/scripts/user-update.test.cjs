@@ -312,6 +312,9 @@ test('release generator upgrades both legacy and already-patched published updat
       fs.writeFileSync(path.join(src,'app-version.ts'),versionSource);
       fs.writeFileSync(path.join(base,'sw.js'),worker);
       fs.writeFileSync(path.join(base,'pwa-update.js'),input);
+       for(const manifest of ['manifest.webmanifest','manifest.json']){
+         fs.copyFileSync(path.join(repoRoot,'_render_preview/gold-app-pwa/full',manifest),path.join(base,manifest));
+       }
       for(let i=0;i<25;i++){
         const file=path.join(base,'route'+i+'.html');
         fs.writeFileSync(file,'<script src="/gold-app-pwa/full/pwa-update.js?v=seed"></script>');
@@ -320,6 +323,12 @@ test('release generator upgrades both legacy and already-patched published updat
         cwd:dir,encoding:'utf8',env:{...process.env,GITHUB_SHA:'aabbccddeeff0011223344556677889900aabbcc'}
       });
       assert.equal(result.status,0,label+' generator: '+result.stderr+' '+result.stdout);
+       for(const manifest of ['manifest.webmanifest','manifest.json']){
+         const installed=JSON.parse(fs.readFileSync(path.join(base,manifest),'utf8'));
+         assert.equal(installed.name,'ذهبك');
+         assert.equal(installed.short_name,'ذهبك');
+         assert.equal(installed.id,'/gold-app-pwa/full/');
+       }
       const released=JSON.parse(fs.readFileSync(path.join(base,'version.json'),'utf8'));
       assert.equal(released.releaseVersion,released.version);
       assert.match(released.semanticReleaseVersion,/^full-\d+\.\d+\.\d+-\d{8}$/);
