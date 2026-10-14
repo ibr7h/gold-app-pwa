@@ -9,7 +9,7 @@ export const guideText={
  gems:{ar:'الأحجار الكريمة والألماس',en:'Gemstones and diamonds',fr:'Pierres précieuses et diamants'},
  workmanship:{ar:'مصنعية الذهب ومكونات السعر',en:'Making charges and pricing',fr:'Fabrication et composition du prix'},
  buying:{ar:'شراء الذهب وإعادة بيعه',en:'Buying and resale',fr:'Achat et revente'},
- dhahabi:{ar:'استخدام تطبيق ذهبي',en:'Using Dhahabi',fr:'Utiliser Dhahabi'},
+ dhahabi:{ar:'استخدام تطبيق ذهبك',en:'Using Dhahabk',fr:'Utiliser Dhahabk'},
  karatCol:{ar:'العيار',en:'Karat',fr:'Titre'},
  purityCol:{ar:'نسبة الذهب',en:'Approx. gold content',fr:'Teneur approximative'},
  hallmarkCol:{ar:'علامة النقاوة الشائعة',en:'Common fineness mark',fr:'Poinçon de titre courant'},
@@ -149,7 +149,7 @@ export const guideCards:readonly GuideCard[]=[
   {ar:'لا تعتمد نسبة ضريبة موحدة على كل أنواع الذهب.',en:'Do not assume a single tax rule for every gold product.',fr:'Ne supposez pas un taux unique pour tous les produits en or.'},
   {ar:'راجع الفاتورة والأنظمة السارية في بلد الشراء.',en:'Check the itemized invoice and local regulations.',fr:'Vérifiez la facture détaillée et la réglementation locale.'}
  ]},
- {id:'app-prices',section:'dhahabi',heading:{ar:'ماذا يعني سعر الذهب في التطبيق؟',en:'What does the Dhahabi price show?',fr:'Que montre le cours Dhahabi ?'},points:[
+ {id:'app-prices',section:'dhahabi',heading:{ar:'ماذا يعني سعر الذهب في التطبيق؟',en:'What does the Dhahabk price show?',fr:'Que montre le cours Dhahabk ?'},points:[
   {ar:'سعر استرشادي للذهب بحسب العيار وعملة العرض المختارة.',en:'An indicative reference price by karat and display currency.',fr:'Un cours indicatif selon le titre et la devise.'},
   {ar:'لا يشمل بالضرورة المصنعية والأحجار وهامش المحل والضريبة.',en:'May exclude making fees, stones, margin and tax.',fr:'Peut exclure fabrication, pierres, marge et taxes.'},
   {ar:'عند إغلاق السوق لا تُولّد أسعار جديدة لمجرد مرور الوقت.',en:'Closed markets do not create new price observations.',fr:'Les fermetures ne produisent pas de nouvelles cotations.'}
