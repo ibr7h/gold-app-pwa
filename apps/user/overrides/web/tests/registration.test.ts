@@ -36,7 +36,7 @@ describe('User phone and email registration',()=>{
   expect(()=>activeSessionTokens()).toThrow();expect(memory.size).toBe(0);
  });
  it('sends the reviewed Terms revision only after an explicit user acknowledgement',async()=>{
-  const fetcher=vi.fn(async()=>response(challenge));vi.stubGlobal('fetch',fetcher);
+  const fetcher=vi.fn(async(_url:string,_options:RequestInit)=>response(challenge));vi.stubGlobal('fetch',fetcher);
   await beginRegistration('Test customer','new@example.test','Password-fixture!','0501234567',{version:LEGAL_TERMS_VERSION,noticesAcknowledged:true});
   const body=JSON.parse(fetcher.mock.calls[0][1].body as string);
   expect(body).toMatchObject({legalTermsVersion:'dhahabk-terms-2026-10-v1',legalNoticesAcknowledged:true});
