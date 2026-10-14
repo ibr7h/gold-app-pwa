@@ -7,6 +7,12 @@ import {Language,translateUiText} from './i18n-messages';
  */
 const backendEnglish:Record<string,readonly [string,string]>={
  'Invalid credentials':['Incorrect email or password.','Adresse e-mail ou mot de passe incorrect.'],
+ 'استعادة كلمة المرور غير متاحة الآن. حاول لاحقًا.':['Password recovery is unavailable. Try again later.','La récupération du mot de passe est indisponible. Réessayez plus tard.'],
+ 'رمز الاستعادة غير صحيح أو انتهت صلاحيته.':['The recovery code is incorrect or has expired.','Le code de récupération est incorrect ou a expiré.'],
+ 'استجابة الاستعادة غير مكتملة.':['The recovery response is incomplete.','La réponse de récupération est incomplète.'],
+ 'تعذر تغيير كلمة المرور.':['Could not change the password.','Impossible de modifier le mot de passe.'],
+ 'تم تغيير كلمة المرور. سجّل الدخول مجددًا.':['Password changed. Please sign in again.','Mot de passe modifié. Veuillez vous reconnecter.'],
+ 'انتهت الجلسة. سجّل الدخول مجددًا.':['Your session has expired. Please sign in again.','Votre session a expiré. Veuillez vous reconnecter.'],
  'البريد الإلكتروني أو رقم الجوال مسجل بالفعل. استخدم تسجيل الدخول.':['This email or mobile number is already registered. Please sign in.','Cet e-mail ou ce numéro de mobile est déjà enregistré. Connectez-vous.'],
  'أدخل رقم جوال صحيحًا.':['Enter a valid mobile number.','Saisissez un numéro de mobile valide.'],
  'تحقق من رقم الجوال ورمز الدولة المحدد.':['Check the mobile number and selected country calling code.','Vérifiez le numéro de mobile et l’indicatif du pays sélectionné.'],
