@@ -7,6 +7,8 @@ type LegalSection={heading:Localized;body:Localized};
 type LegalInfo={title:Localized;intro:Localized;sections:readonly LegalSection[]};
 /** Review revision, not an effective date: confirm retention, cross-border safeguards and legal approval first. */
 export const LEGAL_REVIEW_VERSION='2026-10-14-review.1';
+/** Server-recognized Terms version, to be activated after legal approval. */
+export const LEGAL_TERMS_VERSION='dhahabk-terms-2026-10-v1';
 export const LEGAL_PUBLICATION_APPROVED=false;
 export const LEGAL_DOMAIN='dhahabk.com';
 export const LEGAL_EMAILS={privacy:'privacy@dhahabk.com',support:'support@dhahabk.com',info:'info@dhahabk.com'} as const;
