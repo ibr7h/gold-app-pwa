@@ -1,4 +1,5 @@
 import {ApiError,registrationRequest} from './api';
+import {LEGAL_TERMS_VERSION} from './RegistrationLegalDocuments';
 
 export function normalizeRegistrationPhone(value:unknown):string|null{
  if(typeof value!=='string'||value.length>40)return null;
@@ -17,6 +18,8 @@ export function registrationDigits(value:string){
   .replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x6f0)).replace(/[^0-9]/g,'').slice(0,6);
 }
 
+export interface TermsAcceptance{version:string;noticesAcknowledged:true}
+
 export interface RegistrationChallenge{registrationId:string;email:string;expiresAt:number;resendAt:number}
 export function registrationChallenge(data:any,now=Date.now()):RegistrationChallenge{
  if(typeof data?.registrationId!=='string'||! /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.registrationId)
@@ -28,11 +31,12 @@ export function registrationChallenge(data:any,now=Date.now()):RegistrationChall
  return {registrationId:data.registrationId,email:data.email,expiresAt:now+data.expiresIn*1000,resendAt:now+data.resendAfterSeconds*1000};
 }
 
-export async function beginRegistration(name:string,email:string,password:string,phone:unknown){
+export async function beginRegistration(name:string,email:string,password:string,phone:unknown,legal?:TermsAcceptance){
  const normalized=normalizeRegistrationPhone(phone);
  if(!normalized)throw new ApiError('أدخل رقم جوال صحيحًا، مثل 05xxxxxxxx أو رقمًا دوليًا يبدأ بعلامة +.');
  return registrationChallenge(await registrationRequest('/auth/register',{
   email:email.trim(),password,phone:normalized,fullName:name.trim()||undefined,
+  ...(legal?{legalTermsVersion:legal.version,legalNoticesAcknowledged:legal.noticesAcknowledged}:{})
  }));
 }
 export async function resendRegistration(registrationId:string){
@@ -40,5 +44,7 @@ export async function resendRegistration(registrationId:string){
 }
 export async function registrationAvailable(){
  const config=await registrationRequest('/auth/registration/config');
- return config?.enabled===true&&config.channel==='email'&&config.codeLength===6;
+ // Fail closed when the old backend does not yet persist accepted Terms revisions.
+ return config?.enabled===true&&config.channel==='email'&&config.codeLength===6
+  &&config.legalTermsVersion===LEGAL_TERMS_VERSION;
 }

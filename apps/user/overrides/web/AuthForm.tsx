@@ -10,13 +10,13 @@ import {localizeFeedback} from './i18n-feedback';
 import {registrationAvailable,registrationDigits} from './registration';
 import {internationalRegistrationPhone} from './phone-country';
 import {RegistrationPhoneField} from './RegistrationPhoneField';
-import {RegistrationLegalDocuments,type RegistrationLegalKind} from './RegistrationLegalDocuments';
+import {RegistrationLegalDocuments,LEGAL_TERMS_VERSION,type RegistrationLegalKind} from './RegistrationLegalDocuments';
 import {AuthLanguageSwitcher} from './AuthLanguageSwitcher';
 import {APP_DISPLAY_VERSION} from './app-version';
 import './registration.css';
 
 type RegistrationAuth=ReturnType<typeof useAuth>&{
- startRegistration:(name:string,email:string,password:string,phone?:string)=>Promise<boolean>;
+ startRegistration:(name:string,email:string,password:string,phone?:string,legal?:{version:string;noticesAcknowledged:true})=>Promise<boolean>;
  registrationExpiresAt:number;registrationResendAt:number;
 };
 type AuthIconName='fingerprint'|'mail'|'phone'|'lock'|'eye'|'eyeOff'|'login'|'guest'|'userPlus'|'back';
@@ -88,14 +88,14 @@ export default function AuthForm({register=false}:{register?:boolean}){
  useEffect(()=>{if(user)router.replace('/');},[user]);
  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(isLoading)return;clearError();setLocalError('');
   if(register&&password!==confirm){setLocalError('كلمتا المرور غير متطابقتين.');return;}
-  if(register&&!consentAccepted){setLocalError(t('يجب الموافقة على شروط الاستخدام وسياسة الخصوصية وتنبيه مخاطر الاستخدام للمتابعة.','Please accept the Terms of Use, Privacy Policy and Usage Risk Notice to continue.',"Veuillez accepter les conditions d’utilisation, la politique de confidentialité et l’avis sur les risques pour continuer."));return;}
+  if(register&&!consentAccepted){setLocalError(t('يجب قبول شروط الاستخدام والإقرار بالاطلاع على سياسة الخصوصية وتنبيه المخاطر للمتابعة.','Please accept the Terms of Use and acknowledge the Privacy Policy and Usage Risk Notice to continue.',"Veuillez accepter les conditions d’utilisation et reconnaître avoir consulté la politique de confidentialité et l’avis sur les risques."));return;}
   const internationalPhone=register?internationalRegistrationPhone(countryIso,phone):null;
   if(register&&!internationalPhone){setLocalError('تحقق من رقم الجوال ورمز الدولة المحدد.');return;}
   if(new TextEncoder().encode(password).length>72){setLocalError('كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.');return;}
   try{
    if(register){
     if(registrationEnabled!==true)return;
-    if(await startRegistration(name,email,password,internationalPhone||undefined)){setPassword('');setConfirm('');setCode('');setClock(Date.now());}
+    if(await startRegistration(name,email,password,internationalPhone||undefined,{version:LEGAL_TERMS_VERSION,noticesAcknowledged:true})){setPassword('');setConfirm('');setCode('');setClock(Date.now());}
    }else await login(email,password);
   }catch{}
  };
@@ -146,13 +146,13 @@ export default function AuthForm({register=false}:{register?:boolean}){
       <div className="registration-consent-copy">
        <label htmlFor="dh-register-consent">{t('أوافق على ','I agree to the ','J’accepte les ')}</label>
        <button type="button" className="registration-legal-link" onClick={()=>setLegalKind('terms')}>{t('شروط الاستخدام','Terms of Use',"conditions d’utilisation")}</button>
-       {t(' و',' and the ',' ainsi que la ')}
+       {t('، وأقر بالاطلاع على ',' and acknowledge the ',' et reconnais avoir consulté la ')}
        <button type="button" className="registration-legal-link" onClick={()=>setLegalKind('privacy')}>{t('سياسة الخصوصية','Privacy Policy','politique de confidentialité')}</button>
-       {t(' و',' and the ',' et l’')}
+       {t(' و',' and the ',' ainsi que l’')}
        <button type="button" className="registration-legal-link" onClick={()=>setLegalKind('risks')}>{t('تنبيه مخاطر الاستخدام','Usage Risk Notice',"avis sur les risques d’utilisation")}</button>
       </div>
      </div>
-     <p id="dh-register-consent-note" className="registration-consent-note">{t('الموافقة مطلوبة قبل إرسال رمز التحقق بالبريد.','Consent is required before sending the verification email.',"Le consentement est requis avant l’envoi du code de vérification.")}</p>
+     <p id="dh-register-consent-note" className="registration-consent-note">{t('قبول الشروط والإقرار بالاطلاع مطلوبان قبل إرسال رمز التحقق بالبريد.','Terms acceptance and notice acknowledgement are required before email verification.',"L’acceptation des conditions et la prise de connaissance des documents sont requises avant la vérification par e-mail.")}</p>
      {(localError||error)&&<p className="error-banner" role="alert">{localizeFeedback(localError||error,language)}</p>}
      {registrationEnabled===false&&<p className="error-banner" role="status">{t('التحقق بالبريد غير متاح حاليًا. حاول لاحقًا.','Email verification is currently unavailable. Please try later.','La vérification par e-mail est actuellement indisponible. Réessayez plus tard.')}</p>}
      <button className="gold-btn mockup-primary-btn" disabled={isLoading||registrationEnabled!==true||!consentAccepted}><AuthIcon name="mail"/><span>{isLoading?t('جارٍ إرسال رمز التحقق…','Sending verification code…','Envoi du code de vérification…'):registrationEnabled===null?t('جارٍ التحقق من الخدمة…','Checking verification service…','Vérification du service…'):t('إرسال رمز التحقق بالبريد','Send email verification code','Envoyer le code par e-mail')}</span></button>

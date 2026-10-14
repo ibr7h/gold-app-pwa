@@ -4,7 +4,7 @@ import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerif
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {hasSessionVault,hasBiometricVault,hasOpenVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
-import {beginRegistration,resendRegistration,type RegistrationChallenge} from '../web/registration';
+import {beginRegistration,resendRegistration,type RegistrationChallenge,type TermsAcceptance} from '../web/registration';
 export type UserRole = 'user' | 'admin' | 'trader';
 export type BiometricType = 'face' | 'fingerprint' | 'none';
 export type ResetStep = 'email' | 'code' | 'newPassword' | 'success';
@@ -53,7 +53,7 @@ interface AuthContextType {
   registerStep: RegisterStep;
   registerEmail: string;
   registerCode: string;
-  startRegistration: (name: string, email: string, password: string, phone?:string) => Promise<boolean>;
+  startRegistration: (name: string, email: string, password: string, phone?:string,legal?:TermsAcceptance) => Promise<boolean>;
   registrationExpiresAt:number;
   registrationResendAt:number;
   verifyRegistration: (code: string) => Promise<boolean>;
@@ -165,9 +165,9 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   finally{if(attempt===version.current)setLoading(false);}
  };
  const login=(identifier:string,password:string)=>passwordSession('/auth/login',{identifier:identifier.trim(),password});
- const startRegistration=async(name:string,email:string,password:string,phone?:string)=>{
+ const startRegistration=async(name:string,email:string,password:string,phone?:string,legal?:TermsAcceptance)=>{
   const attempt=begin();setLoading(true);setError(null);
-  try{const next=await beginRegistration(name,email,password,phone);current(attempt);setRegistration(next);return true;}
+  try{const next=await beginRegistration(name,email,password,phone,legal);current(attempt);setRegistration(next);return true;}
   catch(e){if(attempt===version.current)setError(errorMessage(e));return false;}
   finally{if(attempt===version.current)setLoading(false);}
  };

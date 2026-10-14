@@ -2,8 +2,9 @@ import {beforeEach,describe,it,expect,vi} from 'vitest';
 const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{getItem:async(k:string)=>memory.get(k)||null,setItem:async(k:string,v:string)=>{memory.set(k,v);},removeItem:async(k:string)=>{memory.delete(k);},multiRemove:async(keys:string[])=>keys.forEach(k=>memory.delete(k))}}));
 import {activeSessionTokens,clearSession,errorMessage,ApiError,authenticate} from '../api';
-import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration} from '../registration';
+import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration,registrationAvailable} from '../registration';
 import {countryFlag,countryDisplayName,internationalRegistrationPhone,PHONE_COUNTRIES} from '../phone-country';
+import {LEGAL_REVIEW_VERSION,LEGAL_TERMS_VERSION,LEGAL_PUBLICATION_APPROVED,LEGAL_DOMAIN,LEGAL_EMAILS,legalSectionCount,legalSectionTitles} from '../RegistrationLegalDocuments';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 const challenge={registrationId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',email:'new@example.test',channel:'email',expiresIn:599,resendAfterSeconds:59};
@@ -21,6 +22,13 @@ describe('User phone and email registration',()=>{
   const body=JSON.parse(fetcher.mock.calls[0][1].body as string);
   expect(body.phone).toBe('+966501234567');
  });
+ it('does not enable legal acceptance against an older backend without version recording',async()=>{
+  const good={enabled:true,channel:'email',codeLength:6,legalTermsVersion:LEGAL_TERMS_VERSION};
+  vi.stubGlobal('fetch',vi.fn(async()=>response({...good,legalTermsVersion:undefined},200)));
+  expect(await registrationAvailable()).toBe(false);
+  vi.stubGlobal('fetch',vi.fn(async()=>response(good,200)));
+  expect(await registrationAvailable()).toBe(true);
+ });
  it('does not call the backend for a missing/invalid mobile number',async()=>{
   const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);
   await expect(beginRegistration('User','new@example.test','Password-fixture!',undefined)).rejects.toThrow('رقم جوال');
@@ -33,6 +41,13 @@ describe('User phone and email registration',()=>{
   expect(body).toEqual({email:'new@example.test',password:'Password-fixture!',fullName:'User',phone:'+966501234567'});
   expect(result.registrationId).toBe(challenge.registrationId);
   expect(()=>activeSessionTokens()).toThrow();expect(memory.size).toBe(0);
+ });
+ it('sends the reviewed Terms revision only after an explicit user acknowledgement',async()=>{
+  const fetcher=vi.fn(async(_url:string,_options:RequestInit)=>response(challenge));vi.stubGlobal('fetch',fetcher);
+  await beginRegistration('Test customer','new@example.test','Password-fixture!','0501234567',{version:LEGAL_TERMS_VERSION,noticesAcknowledged:true});
+  const body=JSON.parse(fetcher.mock.calls[0][1].body as string);
+  expect(body).toMatchObject({legalTermsVersion:'dhahabk-terms-2026-10-v1',legalNoticesAcknowledged:true});
+  expect(body).not.toHaveProperty('consentToMarketing');
  });
  it('rejects a token or plaintext code in the pre-verification response',()=>{
   for(const key of ['code','accessToken','refreshToken'])expect(()=>registrationChallenge({...challenge,[key]:'invalid-exposure'})).toThrow();
@@ -99,6 +114,52 @@ describe('Registration legal consent before email verification',()=>{
  });
 });
 
+describe('Saudi Dhahabi legal notice review package',()=>{
+ it('ships all three complete and localized review drafts without claiming legal approval',()=>{
+  expect(LEGAL_REVIEW_VERSION).toMatch(/^\d{4}-\d{2}-\d{2}-review\.\d+$/);
+  expect(LEGAL_PUBLICATION_APPROVED).toBe(false);
+  expect(LEGAL_DOMAIN).toBe('dhahabk.com');
+  expect(LEGAL_EMAILS).toEqual({
+   privacy:'privacy@dhahabk.com',support:'support@dhahabk.com',info:'info@dhahabk.com'
+  });
+  expect(legalSectionCount('terms')).toBeGreaterThanOrEqual(10);
+  expect(legalSectionCount('privacy')).toBeGreaterThanOrEqual(12);
+  expect(legalSectionCount('risks')).toBeGreaterThanOrEqual(8);
+  for(const kind of ['terms','privacy','risks'] as const){
+   const all=(['ar','en','fr'] as const).map(lang=>legalSectionTitles(kind,lang));
+   expect(all[0].length).toBeGreaterThan(7);
+   for(const titles of all){
+    expect(titles.length).toBe(all[0].length);
+    expect(titles.every(x=>x.length>8)).toBe(true);
+   }
+   for(const text of all[1].concat(all[2]))expect(text).not.toMatch(/[\u0600-\u06FF]/);
+  }
+ });
+ it('describes the actual processor, German hosting and data rights without pretending deletion is automatic',()=>{
+  const source=readFileSync(fileURLToPath(new URL('../RegistrationLegalDocuments.tsx',import.meta.url).href),'utf8');
+  for(const fact of ['Frankfurt','Germany','Resend','Render','privacy@dhahabk.com','support@dhahabk.com','dhahabk.com','Face ID','Push'])expect(source).toContain(fact);
+  expect(source).toContain('LEGAL_PUBLICATION_APPROVED=false');
+  expect(source).toContain('retention schedules must be approved');
+  expect(source).toContain('account closure or personal-data deletion requires a verified request');
+  expect(source).toContain('registration-legal-section');
+  expect(source).toContain('data-no-translate');
+ });
+ it('offers read-only access from registration, Help and Profile; does not replace the existing UI',()=>{
+  const help=readFileSync(fileURLToPath(new URL('../GoldHelp.tsx',import.meta.url).href),'utf8');
+  const workspace=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url).href),'utf8');
+  const registration=readFileSync(fileURLToPath(new URL('../AuthForm.tsx',import.meta.url).href),'utf8');
+  const css=readFileSync(fileURLToPath(new URL('../registration.css',import.meta.url).href),'utf8');
+  expect(help).toContain('<LegalDocumentLinks language={language}/>');
+  expect(workspace).toContain('<LegalDocumentLinks language={language}/>');
+  for(const k of ['terms','privacy','risks'])expect(registration).toContain("onClick={()=>setLegalKind('"+k+"')}");
+  expect(registration).toContain('if(register&&!consentAccepted)');
+  expect(registration).toContain('وأقر بالاطلاع');
+  expect(css).toContain('.gold-auth .registration-legal-backdrop');
+  expect(css).toContain('.gold-web.workspace .registration-legal-backdrop');
+  expect(css).toContain('max-height:min(83dvh,770px)');
+ });
+});
+
 describe('October 10 design restored with verified email activation',()=>{
  it('places the country flag and dial left of the mobile field, retaining searchable international codes',()=>{
   const phone=readFileSync(fileURLToPath(new URL('../RegistrationPhoneField.tsx',import.meta.url).href),'utf8');
@@ -111,7 +172,7 @@ describe('October 10 design restored with verified email activation',()=>{
   expect(phone).toContain('aria-haspopup="dialog"');
   expect(css).toContain('grid-template-columns:112px minmax(0,1fr)');
   expect(form).toContain('internationalRegistrationPhone(countryIso,phone)');
-  expect(form).toContain("startRegistration(name,email,password,internationalPhone||undefined)");
+  expect(form).toContain("startRegistration(name,email,password,internationalPhone||undefined,{version:LEGAL_TERMS_VERSION,noticesAcknowledged:true})");
   expect(form).toContain('registerStep===\x27verify\x27');
   expect(form).toContain('<AuthLanguageSwitcher/>');
   expect(form).toContain('APP_DISPLAY_VERSION');

@@ -5,6 +5,7 @@ import {
  type HelpLanguage,type HelpText,type HelpSection
 } from './gold-help-content';
 import {guideText,guideCards,guideChecklist} from './gold-help-facts';
+import {LegalDocumentLinks} from './RegistrationLegalDocuments';
 import './gold-help.css';
 
 const sections:readonly HelpSection[]=['purity','weight','gems','workmanship','buying','dhahabi'];
@@ -120,7 +121,8 @@ export default function GoldHelp({language}:{language:HelpLanguage}){
  };
  return <div className="dh-knowledge dh-help-accordion" dir={language==='ar'?'rtl':'ltr'} lang={language}
   style={{display:'grid',gap:12,minWidth:0,maxWidth:1080,marginInline:'auto',paddingBottom:25}}>
-  {sections.map(section=><details className="dh-help-category" key={section}
+  <LegalDocumentLinks language={language}/>
+   {sections.map(section=><details className="dh-help-category" key={section}
    style={{background:'#fff',border:'1px solid #e1e8f0',borderRadius:15,overflow:'hidden'}}>
    <summary className="dh-help-category-title" style={{
     display:'flex',alignItems:'center',gap:12,minHeight:70,padding:'14px 16px',

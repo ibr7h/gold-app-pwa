@@ -249,3 +249,72 @@
   border-radius:20px 20px 0 0!important;
  }
 }
+
+/* Share the approved registration legal reader with Help and Profile. */
+.gold-web.workspace .registration-legal-backdrop{
+ position:fixed!important;inset:0!important;z-index:1450!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:max(16px,env(safe-area-inset-top)) 12px max(16px,env(safe-area-inset-bottom))!important;
+ background:rgba(0,20,39,.7)!important;box-sizing:border-box!important;
+}
+.gold-web.workspace .registration-legal-dialog{
+ display:flex!important;flex-direction:column!important;
+ width:min(100%,520px)!important;max-width:520px!important;
+ max-height:min(83dvh,770px)!important;min-height:0!important;
+ background:#fff!important;color:#132238!important;
+ border:1px solid #d7dee8!important;border-radius:18px!important;
+ box-shadow:0 25px 70px rgba(0,20,39,.36)!important;overflow:hidden!important;
+}
+.gold-web.workspace .registration-legal-header{
+ display:flex!important;flex-direction:row!important;align-items:flex-start!important;
+ justify-content:space-between!important;gap:12px!important;
+ padding:18px 19px 12px!important;border-bottom:1px solid #edf0f4!important;
+}
+.gold-web.workspace .registration-legal-kicker{margin:0 0 7px!important;color:#916c08!important;font-size:11px!important;line-height:1.5!important}
+.gold-web.workspace .registration-legal-header h2{margin:0!important;color:#001f3f!important;font-size:20px!important;line-height:1.5!important}
+.gold-web.workspace .registration-legal-close{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 40px!important;width:40px!important;height:40px!important;
+ background:#edf1f5!important;color:#001f3f!important;border:0!important;
+ border-radius:10px!important;font-size:27px!important;cursor:pointer!important;
+}
+.gold-web.workspace .registration-legal-content{
+ padding:17px 20px 22px!important;min-height:0!important;flex:1!important;
+ overflow:auto!important;-webkit-overflow-scrolling:touch!important;
+ overscroll-behavior:contain!important;text-align:start!important;
+}
+.gold-web.workspace .registration-legal-intro{margin:0 0 14px!important;font-size:14px!important;line-height:1.85!important;color:#32445a!important}
+.gold-web.workspace .registration-legal-content ul{padding-inline-start:21px!important;margin:0!important;list-style:disc!important}
+.gold-web.workspace .registration-legal-content li{display:list-item!important;line-height:1.85!important;font-size:13px!important;margin-bottom:12px!important;color:#132238!important}
+.gold-web.workspace .registration-legal-footer{padding:12px 18px max(12px,env(safe-area-inset-bottom))!important;border-top:1px solid #edf0f4!important}
+.gold-web.workspace .registration-legal-done{
+ display:block!important;width:100%!important;min-height:46px!important;
+ padding:11px!important;border:0!important;border-radius:11px!important;
+ background:#001f3f!important;color:#fff!important;font-size:14px!important;
+ font-weight:700!important;cursor:pointer!important;
+}
+@media(max-width:520px){
+ .gold-web.workspace .registration-legal-backdrop{
+  align-items:flex-end!important;padding:10px 0 0!important;
+ }
+ .gold-web.workspace .registration-legal-dialog{
+  width:100%!important;max-width:none!important;max-height:85dvh!important;
+  border-radius:20px 20px 0 0!important;
+ }
+}
+
+
+/* Legal review: structure and reading comfort. Existing authentication layout stays unchanged. */
+.gold-web .registration-legal-section{margin:0 0 20px;padding:0 0 15px;border-bottom:1px solid #e8edf3}
+.gold-web .registration-legal-section h3{margin:0 0 7px!important;font-size:14px!important;font-weight:800!important;line-height:1.7!important;color:#001f3f!important}
+.gold-web .registration-legal-section p{margin:0!important;font-size:13px!important;line-height:1.95!important;color:#25364a!important;overflow-wrap:anywhere!important}
+.gold-web .registration-legal-contact{margin:12px 0 0!important;line-height:1.8!important;font-size:12px!important;color:#526278!important}
+.gold-web .registration-legal-contact a{color:#79601e!important;font-weight:700!important;overflow-wrap:anywhere}
+.gold-web.workspace .dh-legal-access{display:block;margin:10px 0 18px;padding:15px 16px;border:1px solid #e1e8ef;border-radius:15px;background:#fff;max-width:1080px}
+.gold-web.workspace .dh-legal-access h3{font-size:16px!important;margin:0 0 5px;color:#001f3f!important}
+.gold-web.workspace .dh-legal-access p{font-size:12px!important;line-height:1.75!important;color:#526278!important;margin:0 0 9px}
+.gold-web.workspace .dh-legal-access-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.gold-web.workspace .dh-legal-access-buttons button{min-height:43px!important;padding:9px 12px!important;border:1px solid #dbc88b!important;border-radius:9px!important;background:#fffaf0!important;color:#001f3f!important;font-size:13px!important;font-weight:700!important;cursor:pointer}
+.gold-web.workspace .dh-legal-access-buttons button:focus-visible{outline:2px solid #c5a021!important;outline-offset:2px}
+.gold-web.workspace .dh-legal-access .dh-legal-contact{margin-top:12px!important;overflow-wrap:anywhere!important}
+.gold-web.workspace .dh-legal-access a{color:#755800!important;font-weight:600}
