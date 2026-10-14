@@ -47,11 +47,19 @@
   }
 };
   const currentLanguage = () => {
-    let stored = '';
-    try { stored = localStorage.getItem('dhahabi:user:language') || ''; } catch {}
-    if (stored === 'ar' || stored === 'en' || stored === 'fr') return stored;
-    const html = (document.documentElement.lang || 'ar').slice(0,2).toLowerCase();
-    return html === 'en' || html === 'fr' ? html : 'ar';
+    // Sign-in may use a device-selected language. Match the visible auth
+    // screen rather than showing an update banner in a different language.
+    const path = location.pathname;
+    const isAuth = /\\/(?:login|register)(?:\\.html)?\\/?$/.test(path);
+    let stored = '', auth = '';
+    try {
+      stored = localStorage.getItem('dhahabi:user:language') || '';
+      auth = localStorage.getItem('dhahabi:user:auth-language') || '';
+    } catch {}
+    const html = (document.documentElement.lang || '').slice(0,2).toLowerCase();
+    const valid = lang => lang === 'ar' || lang === 'en' || lang === 'fr';
+    if (isAuth) return valid(auth) ? auth : valid(html) ? html : valid(stored) ? stored : 'ar';
+    return valid(stored) ? stored : valid(html) ? html : 'ar';
   };
   window.DhahabiUpdateLocale = Object.freeze({
     language: currentLanguage,
