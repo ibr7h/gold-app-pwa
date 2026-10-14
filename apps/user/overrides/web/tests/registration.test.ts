@@ -4,7 +4,7 @@ vi.mock('@react-native-async-storage/async-storage',()=>({default:{getItem:async
 import {activeSessionTokens,clearSession,errorMessage,ApiError,authenticate} from '../api';
 import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration} from '../registration';
 import {countryFlag,countryDisplayName,internationalRegistrationPhone,PHONE_COUNTRIES} from '../phone-country';
-import {LEGAL_REVIEW_VERSION,LEGAL_PUBLICATION_APPROVED,LEGAL_DOMAIN,LEGAL_EMAILS,legalSectionCount,legalSectionTitles} from '../RegistrationLegalDocuments';
+import {LEGAL_REVIEW_VERSION,LEGAL_TERMS_VERSION,LEGAL_PUBLICATION_APPROVED,LEGAL_DOMAIN,LEGAL_EMAILS,legalSectionCount,legalSectionTitles} from '../RegistrationLegalDocuments';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 const challenge={registrationId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',email:'new@example.test',channel:'email',expiresIn:599,resendAfterSeconds:59};
@@ -34,6 +34,13 @@ describe('User phone and email registration',()=>{
   expect(body).toEqual({email:'new@example.test',password:'Password-fixture!',fullName:'User',phone:'+966501234567'});
   expect(result.registrationId).toBe(challenge.registrationId);
   expect(()=>activeSessionTokens()).toThrow();expect(memory.size).toBe(0);
+ });
+ it('sends the reviewed Terms revision only after an explicit user acknowledgement',async()=>{
+  const fetcher=vi.fn(async()=>response(challenge));vi.stubGlobal('fetch',fetcher);
+  await beginRegistration('Test customer','new@example.test','Password-fixture!','0501234567',{version:LEGAL_TERMS_VERSION,noticesAcknowledged:true});
+  const body=JSON.parse(fetcher.mock.calls[0][1].body as string);
+  expect(body).toMatchObject({legalTermsVersion:'dhahabk-terms-2026-10-v1',legalNoticesAcknowledged:true});
+  expect(body).not.toHaveProperty('consentToMarketing');
  });
  it('rejects a token or plaintext code in the pre-verification response',()=>{
   for(const key of ['code','accessToken','refreshToken'])expect(()=>registrationChallenge({...challenge,[key]:'invalid-exposure'})).toThrow();
