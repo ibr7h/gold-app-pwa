@@ -55,6 +55,8 @@ function localizeRoot(root:Element,language:Language){
   textMemory.set(node,{original,rendered:translated});
  }
  for(const el of [root,...Array.from(root.querySelectorAll('*'))]){
+  // Country and language pickers provide their own translations.
+  if(el.closest('[data-no-translate]'))continue;
   for(const attr of attrs){
    const current=el.getAttribute(attr);
    if(current===null)continue;
@@ -94,10 +96,23 @@ export function LanguageProvider({children,mode='app'}:{children:React.ReactNode
    document.querySelectorAll('.gold-web, .dh-quick-lock, .dh-pin-setup').forEach(el=>localizeRoot(el,language));
    observe();
   };
-  const observer=new MutationObserver(refresh);
+  // Coalesce frequent DOM changes into one translation pass per paint.
+  let pendingFrame=0;
+  const observer=new MutationObserver(records=>{
+   const relevant=records.some(record=>{
+    const target=record.target instanceof Element?record.target:record.target.parentElement;
+    return !!target?.closest('.gold-web, .dh-quick-lock, .dh-pin-setup');
+   });
+   if(!relevant||pendingFrame)return;
+   pendingFrame=window.requestAnimationFrame(()=>{pendingFrame=0;refresh();});
+  });
   observerRef.current=observer;
   refresh();
-  return()=>{observer.disconnect();if(observerRef.current===observer)observerRef.current=null;};
+  return()=>{
+   if(pendingFrame)window.cancelAnimationFrame(pendingFrame);
+   observer.disconnect();
+   if(observerRef.current===observer)observerRef.current=null;
+  };
  },[language]);
  useEffect(()=>{
   if(mode!=='app')return;
