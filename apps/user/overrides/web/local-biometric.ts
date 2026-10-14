@@ -81,7 +81,12 @@ export async function readLocalCredential():Promise<LocalCredential|null> {
  }catch{return null;}
 }
 export async function forgetLocalCredential():Promise<void>{await AsyncStorage.removeItem(STORAGE);}
-export async function enrollLocalCredential(accountId:string,email:string,signal?:AbortSignal):Promise<LocalCredential> {
+/** Stage enrollment before committing its public credential. This keeps the
+ * previously working biometric record intact if vault wrapping fails. */
+export async function persistLocalCredential(c:LocalCredential):Promise<void>{
+ await AsyncStorage.setItem(STORAGE,JSON.stringify(c));
+}
+export async function enrollLocalCredential(accountId:string,email:string,signal?:AbortSignal,persist=true):Promise<LocalCredential> {
  // The platform chooser must be opened directly from the user's click (transient activation).
  if(typeof window==='undefined'||!window.isSecureContext||!navigator.credentials?.create||!crypto?.subtle)
   throw new Error('التحقق الحيوي غير مدعوم على هذا الجهاز أو المتصفح.');
@@ -110,7 +115,7 @@ export async function enrollLocalCredential(accountId:string,email:string,signal
   credentialId:b64(new Uint8Array(credential.rawId)),publicKeySpki:b64(new Uint8Array(key)),counter:0};
  if(secret)c.prfSalt=b64(prfSalt);
  if(signal?.aborted)throw new Error('أُلغي تفعيل بصمة الجهاز.');
- await AsyncStorage.setItem(STORAGE,JSON.stringify(c));
+ if(persist)await persistLocalCredential(c);
  if(secret)Object.defineProperty(c,'unlockSecret',{value:secret,enumerable:false});
  return c;
 }
