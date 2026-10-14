@@ -9,6 +9,9 @@ interface Box {iv:string;cipher:string}
 interface Vault {
  version:1;accountId:string;origin:string;session:Box;
  pin?:{salt:string;box:Box};biometric?:Box;
+ biometricCredentialId?:string;
+ /** Staged envelope retains the previous credential through interrupted enrollment. */
+ biometricPending?:{credentialId:string;box:Box};
 }
 const STORAGE='dhahabi_user_session_vault_v1';
 const ITERATIONS=210000;
@@ -53,15 +56,17 @@ async function read():Promise<Vault|null>{
   const value=await AsyncStorage.getItem(STORAGE);if(!value)return null;
   const v=JSON.parse(value) as Vault;
   return v.version===1&&typeof v.accountId==='string'&&v.origin===location.origin&&v.session&&
-   (v.pin||v.biometric)?v:null;
+   (v.pin||v.biometric||v.biometricPending)?v:null;
  }catch{return null;}
 }
 export async function hasSessionVault(accountId?:string):Promise<boolean>{
  if(!supported())return false;
  const v=await read();return !!v&&(!accountId||v.accountId===accountId);
 }
-export async function hasBiometricVault(accountId:string):Promise<boolean>{
- const v=await read();return !!v&&v.accountId===accountId&&!!v.biometric;
+export async function hasBiometricVault(accountId:string,credentialId?:string):Promise<boolean>{
+ const v=await read();if(!v||v.accountId!==accountId)return false;
+ if(credentialId&&v.biometricPending?.credentialId===credentialId)return true;
+ return !!v.biometric&&(!credentialId||!v.biometricCredentialId||v.biometricCredentialId===credentialId);
 }
 export function hasOpenVault(accountId:string){return opened?.accountId===accountId;}
 export function closeSessionVault(){generation++;opened=null;}
@@ -96,11 +101,25 @@ async function protectWithPin(accountId:string,pin:string,tokens:SessionTokens){
  assertCurrent(started);
  await AsyncStorage.setItem(STORAGE,JSON.stringify({...v,pin:{salt:hex(salt),box}}));
 }
-async function protectWithBiometric(accountId:string,secret:Uint8Array,tokens:SessionTokens){
+async function protectWithBiometric(accountId:string,secret:Uint8Array,tokens:SessionTokens,credentialId?:string){
  const started=generation,v=await prepare(accountId,tokens);
  const box=await seal(await keyOf(secret),opened!.rawKey,accountId);
  assertCurrent(started);
- await AsyncStorage.setItem(STORAGE,JSON.stringify({...v,biometric:box}));
+ // Stage under the new ID; never overwrite the previous biometric before
+ // its replacement public credential is saved in local storage.
+ const next=credentialId?{...v,biometricPending:{credentialId,box}}:{...v,biometric:box};
+ await AsyncStorage.setItem(STORAGE,JSON.stringify(next));
+}
+/** Commit after the public credential is durable. Unlock can use pending
+ * during an interrupted commit, so a second write failure is also recoverable.
+ */
+async function promoteBiometric(accountId:string,credentialId:string){
+ const started=generation,v=await read();
+ if(!v||v.accountId!==accountId||v.biometricPending?.credentialId!==credentialId)return;
+ assertCurrent(started);
+ const {biometricPending,...rest}=v;
+ await AsyncStorage.setItem(STORAGE,JSON.stringify({...rest,
+  biometric:biometricPending.box,biometricCredentialId:credentialId}));
 }
 async function open(accountId:string,rawKey:Uint8Array,v:Vault):Promise<SessionTokens>{
  const started=generation,key=await keyOf(rawKey);
@@ -114,10 +133,14 @@ async function unlockWithPin(accountId:string,pin:string):Promise<SessionTokens>
  const rawKey=await unseal(await pinKey(pin,bytes(v.pin.salt)),v.pin.box,accountId);
  assertCurrent(started);return open(accountId,rawKey,v);
 }
-async function unlockWithBiometric(accountId:string,secret:Uint8Array|null):Promise<SessionTokens>{
+async function unlockWithBiometric(accountId:string,secret:Uint8Array|null,credentialId?:string):Promise<SessionTokens>{
  const started=generation,v=await read();
  if(!v||v.accountId!==accountId)throw new Error('استخدم كلمة المرور لاستعادة الجلسة.');
- const rawKey=secret&&v.biometric?await unseal(await keyOf(secret),v.biometric,accountId):opened?.accountId===accountId?opened.rawKey:null;
+ const staged=credentialId&&v.biometricPending?.credentialId===credentialId?v.biometricPending.box:null;
+ const saved=v.biometric&&(!credentialId||!v.biometricCredentialId||v.biometricCredentialId===credentialId)
+  ?v.biometric:null;
+ const envelope=staged||saved;
+ const rawKey=secret&&envelope?await unseal(await keyOf(secret),envelope,accountId):opened?.accountId===accountId?opened.rawKey:null;
  if(!rawKey)throw new Error('متصفحك يحتاج رمز الدخول أو كلمة المرور بعد إعادة فتح التطبيق.');
  assertCurrent(started);return open(accountId,rawKey,v);
 }
@@ -131,12 +154,14 @@ async function persistSession(tokens:SessionTokens){
 async function removeMethod(accountId:string,method:'pin'|'biometric'){
  const v=await read();if(!v||v.accountId!==accountId)return;
  delete v[method];
- if(!v.pin&&!v.biometric){closeSessionVault();await AsyncStorage.removeItem(STORAGE);return;}
+ if(method==='biometric'){delete v.biometricPending;delete v.biometricCredentialId;}
+ if(!v.pin&&!v.biometric&&!v.biometricPending){closeSessionVault();await AsyncStorage.removeItem(STORAGE);return;}
  await AsyncStorage.setItem(STORAGE,JSON.stringify(v));
 }
 export const protectSessionWithPin=(accountId:string,pin:string,tokens:SessionTokens)=>exclusive(()=>protectWithPin(accountId,pin,tokens));
-export const protectSessionWithBiometric=(accountId:string,secret:Uint8Array,tokens:SessionTokens)=>exclusive(()=>protectWithBiometric(accountId,secret,tokens));
+export const protectSessionWithBiometric=(accountId:string,secret:Uint8Array,tokens:SessionTokens,credentialId?:string)=>exclusive(()=>protectWithBiometric(accountId,secret,tokens,credentialId));
+export const promoteSessionBiometric=(accountId:string,credentialId:string)=>exclusive(()=>promoteBiometric(accountId,credentialId));
 export const unlockSessionWithPin=(accountId:string,pin:string)=>exclusive(()=>unlockWithPin(accountId,pin));
-export const unlockSessionWithBiometric=(accountId:string,secret:Uint8Array|null)=>exclusive(()=>unlockWithBiometric(accountId,secret));
+export const unlockSessionWithBiometric=(accountId:string,secret:Uint8Array|null,credentialId?:string)=>exclusive(()=>unlockWithBiometric(accountId,secret,credentialId));
 export const persistVaultSession=(tokens:SessionTokens)=>exclusive(()=>persistSession(tokens));
 export const removeVaultMethod=(accountId:string,method:'pin'|'biometric')=>exclusive(()=>removeMethod(accountId,method));

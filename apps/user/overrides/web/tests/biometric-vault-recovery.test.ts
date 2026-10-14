@@ -1,25 +1,32 @@
 import {afterEach,beforeEach,describe,expect,it,vi} from 'vitest';
 import {webcrypto} from 'node:crypto';
 const memory=vi.hoisted(()=>new Map<string,string>());
+const faults=vi.hoisted(()=>({failNextKey:''}));
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{
  getItem:async(k:string)=>memory.get(k)||null,
- setItem:async(k:string,v:string)=>{memory.set(k,v);},
+ setItem:async(k:string,v:string)=>{if(faults.failNextKey===k){faults.failNextKey='';throw new Error('Simulated interrupted storage write');}memory.set(k,v);},
  removeItem:async(k:string)=>{memory.delete(k);}
 }}));
 import {
  clearSessionVault,closeSessionVault,hasBiometricVault,protectSessionWithPin,
- protectSessionWithBiometric,unlockSessionWithPin,unlockSessionWithBiometric
+ protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric
 } from '../session-vault';
 import {BiometricUnlockTimeoutError,withBiometricUnlockDeadline} from '../biometric-unlock-deadline';
+import {persistLocalCredential,type LocalCredential} from '../local-biometric';
 const tokens={accessToken:'access-fixture',refreshToken:'refresh-fixture'};
 const pin='492751',newPin='361804',bioSecret=new Uint8Array(32).fill(43);
 const key='dhahabi_user_session_vault_v1';
+const credentialKey='dhahabi_user_local_biometric_v1';
+const oldSecret=new Uint8Array(32).fill(55),nextSecret=new Uint8Array(32).fill(77);
+const localCredential=(credentialId:string):LocalCredential=>({version:1,accountId:'person',
+ email:'person@example.test',rpId:'app.dhahabk.com',credentialId,
+ publicKeySpki:'public-fixture',counter:0});
 
 beforeEach(async()=>{
  vi.stubGlobal('crypto',webcrypto);
  vi.stubGlobal('window',{isSecureContext:true});
  vi.stubGlobal('location',{origin:'https://app.dhahabk.com'});
- await clearSessionVault();memory.clear();
+ await clearSessionVault();memory.clear();faults.failNextKey='';
 });
 afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();});
 
@@ -58,6 +65,62 @@ describe('PIN and biometric must share one recoverable vault key',()=>{
   await expect(protectSessionWithPin('person',pin,tokens)).rejects.toThrow();
   expect(await hasBiometricVault('person')).toBe(true);
   expect(await unlockSessionWithBiometric('person',bioSecret)).toEqual(tokens);
+ });
+});
+
+describe('Interrupted biometric credential migration',()=>{
+ it('keeps the old biometric working when saving the replacement credential fails',async()=>{
+  await protectSessionWithPin('person',pin,tokens);
+  await protectSessionWithBiometric('person',oldSecret,tokens,'old-id');
+  await persistLocalCredential(localCredential('old-id'));
+  await promoteSessionBiometric('person','old-id');
+  const originalCredential=memory.get(credentialKey);
+  await protectSessionWithBiometric('person',nextSecret,tokens,'new-id');
+  faults.failNextKey=credentialKey;
+  await expect(persistLocalCredential(localCredential('new-id'))).rejects.toThrow(/interrupted/);
+  expect(memory.get(credentialKey)).toBe(originalCredential);
+  closeSessionVault();
+  expect(await hasBiometricVault('person','old-id')).toBe(true);
+  expect(await unlockSessionWithBiometric('person',oldSecret,'old-id')).toEqual(tokens);
+ });
+ it('allows new Face ID to unlock after restart before its pending envelope is promoted',async()=>{
+  await protectSessionWithPin('person',pin,tokens);
+  await protectSessionWithBiometric('person',oldSecret,tokens,'old-id');
+  await persistLocalCredential(localCredential('old-id'));
+  await promoteSessionBiometric('person','old-id');
+  await protectSessionWithBiometric('person',nextSecret,tokens,'new-id');
+  await persistLocalCredential(localCredential('new-id'));
+  closeSessionVault();
+  expect(await hasBiometricVault('person','new-id')).toBe(true);
+  expect(await unlockSessionWithBiometric('person',nextSecret,'new-id')).toEqual(tokens);
+  await promoteSessionBiometric('person','new-id');
+  closeSessionVault();
+  expect(await unlockSessionWithBiometric('person',nextSecret,'new-id')).toEqual(tokens);
+  expect(await hasBiometricVault('person','old-id')).toBe(false);
+ });
+ it('recovers from failure of the final promotion storage write',async()=>{
+  await protectSessionWithBiometric('person',oldSecret,tokens,'old-id');
+  await persistLocalCredential(localCredential('old-id'));
+  await promoteSessionBiometric('person','old-id');
+  await protectSessionWithBiometric('person',nextSecret,tokens,'new-id');
+  await persistLocalCredential(localCredential('new-id'));
+  faults.failNextKey=key;
+  await expect(promoteSessionBiometric('person','new-id')).rejects.toThrow(/interrupted/);
+  closeSessionVault();
+  expect(await unlockSessionWithBiometric('person',nextSecret,'new-id')).toEqual(tokens);
+ });
+ it('retains the active biometric when another re-enrollment is interrupted',async()=>{
+  await protectSessionWithBiometric('person',oldSecret,tokens,'old-id');
+  await persistLocalCredential(localCredential('old-id'));
+  await promoteSessionBiometric('person','old-id');
+  await protectSessionWithBiometric('person',nextSecret,tokens,'new-id');
+  await persistLocalCredential(localCredential('new-id'));
+  await promoteSessionBiometric('person','new-id');
+  await protectSessionWithBiometric('person',new Uint8Array(32).fill(88),tokens,'third-id');
+  faults.failNextKey=credentialKey;
+  await expect(persistLocalCredential(localCredential('third-id'))).rejects.toThrow();
+  closeSessionVault();
+  expect(await unlockSessionWithBiometric('person',nextSecret,'new-id')).toEqual(tokens);
  });
 });
 

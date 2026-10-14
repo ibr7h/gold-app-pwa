@@ -3,7 +3,7 @@ import {localBiometricSupported,readLocalCredential,enrollLocalCredential,persis
 import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {withBiometricUnlockDeadline,BiometricUnlockTimeoutError} from '../web/biometric-unlock-deadline';
-import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
+import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
 import {beginRegistration,resendRegistration,type RegistrationChallenge,type TermsAcceptance} from '../web/registration';
 export type UserRole = 'user' | 'admin' | 'trader';
@@ -102,7 +102,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const refreshBiometricState=async(me:User|null,attempt=version.current)=>{
   const c=await readLocalCredential(),supported=await localBiometricSupported();
   const matched=!!(c&&me&&c.accountId===String(me.id));
-  const recoverable=matched&&me&&(hasOpenVault(String(me.id))||await hasBiometricVault(String(me.id)));
+  const recoverable=matched&&me&&(hasOpenVault(String(me.id))||await hasBiometricVault(String(me.id),c!.credentialId));
   if(attempt!==version.current)return;
   enrollment.current=matched?c:null;setBiometricAvailable(supported);
   setBiometricEnrolled(matched);setBiometricEnabled(!!recoverable&&supported);
@@ -124,7 +124,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    const pinReady=cached?.id?await hasQuickPin(String(cached.id)):false;
    if(cached&&(pinReady||(c&&String(cached.id)===c.accountId))){
     const supported=await localBiometricSupported();
-    const encryptedBio=await hasBiometricVault(String(cached.id));
+    const encryptedBio=await hasBiometricVault(String(cached.id),c?.credentialId);
     // Cached identity can label the lock, but cannot authorize the workspace.
     if(active&&version.current===boot){
      const credential=!!c&&String(cached.id)===c.accountId;
@@ -193,11 +193,22 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const c=await enrollLocalCredential(accountId,user.email,request.current!.signal,false);current(attempt);
   // A new public credential must not overwrite a working one until its vault
   // envelope is safely written. Without PRF, do not replace an existing vault.
-  if(c.unlockSecret)await protectSessionWithBiometric(accountId,c.unlockSecret,tokens);
-  else if(await hasSessionVault(accountId))
+  if(c.unlockSecret){
+   // Recover prior interrupted promotion before replacing its pending record.
+   const previous=await readLocalCredential();current(attempt);
+   if(previous?.accountId===accountId)await promoteSessionBiometric(accountId,previous.credentialId);
+   current(attempt);
+   await protectSessionWithBiometric(accountId,c.unlockSecret,tokens,c.credentialId);
+  }else if(await hasSessionVault(accountId))
    throw new Error('لا يمكن استبدال البصمة المحفوظة: هذا المتصفح لا يتيح مفتاح التشفير المطلوب.');
   current(attempt);
   await persistLocalCredential(c);current(attempt);
+  if(c.unlockSecret){
+   // A promotion write can fail without invalidating the matching pending
+   // envelope; complete that cleanup on a future enrollment attempt.
+   try{await promoteSessionBiometric(accountId,c.credentialId);}catch{/* Pending is recoverable. */}
+   current(attempt);
+  }
   // Without PRF, WebAuthn can unlock only this open tab. A restart needs PIN/password.
   enrollment.current=c;setBiometricAvailable(true);setBiometricEnrolled(true);setBiometricEnabled(true);
  };
@@ -267,7 +278,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    // and server verification. A late completion must never reopen the workspace.
    const unlock=(async()=>{
     const secret=await verifyLocalCredential(c,request.current!.signal);current(attempt);
-    const tokens=await hasSessionVault(c.accountId)?await unlockSessionWithBiometric(c.accountId,secret):activeSessionTokens();
+    const tokens=await hasSessionVault(c.accountId)?await unlockSessionWithBiometric(c.accountId,secret,c.credentialId):activeSessionTokens();
     current(attempt);
     const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
     current(attempt);setLockedAccount(null);setUser(me);return true;
