@@ -1,4 +1,12 @@
 /* iPhone User signup: email verification only; existing login styles preserved. */
+.gold-auth .password-recovery h2{font-size:20px;color:#001F3F;margin:0 0 10px;line-height:1.5}
+.gold-auth .password-recovery p{font-size:13px;line-height:1.8;color:#44566b;margin:0 0 14px}
+.gold-auth .password-recovery .error-banner{color:#a02a20}
+.gold-auth .password-recovery .registration-timer{color:#8b6b00}
+.gold-auth .password-recovery-toggle{display:flex;align-items:center;gap:9px;min-height:44px;margin-bottom:14px;color:#44566b;font-size:13px}
+.gold-auth .password-recovery-toggle input{accent-color:#c5a021;width:18px;height:18px}
+.gold-auth .password-recovery .registration-email{font-weight:700;direction:ltr;text-align:center;overflow-wrap:anywhere}
+
 .gold-auth .registration-phone-hint{display:block;font-size:11px;color:#64748B;line-height:1.7;font-weight:400;margin-top:4px}
 .gold-auth .registration-verification h2{font-size:20px;color:#001F3F;text-align:center;margin:0 0 12px}
 .gold-auth .registration-verification>p{font-size:13px;color:#64748B;text-align:center;margin:0 0 8px;line-height:1.8}
