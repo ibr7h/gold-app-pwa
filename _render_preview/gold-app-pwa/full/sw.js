@@ -65,9 +65,9 @@ self.addEventListener('fetch', event => {
   // Preserve the specific login/register document during offline navigation;
   // a generic index shell can contain an unrelated authenticated route.
   if(event.request.mode==='navigate'||url.pathname.endsWith('/index.html')){
-    const route = url.pathname.replace(/\\/$/,'');
-    const fallback = /\\/(?:login)(?:\\.html)?$/.test(route) ? BASE+'login.html'
-      : /\\/(?:register)(?:\\.html)?$/.test(route) ? BASE+'register.html'
+    const route = url.pathname.endsWith('/') ? url.pathname.slice(0,-1) : url.pathname;
+    const fallback = route.endsWith('/login') || route.endsWith('/login.html') ? BASE+'login.html'
+      : route.endsWith('/register') || route.endsWith('/register.html') ? BASE+'register.html'
       : BASE+'index.html';
     event.respondWith(network().catch(async()=>{
       return await caches.match(fallback) || unavailable(true);
