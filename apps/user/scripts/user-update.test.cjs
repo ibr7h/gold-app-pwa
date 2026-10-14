@@ -266,11 +266,11 @@ test('a temporary network outage resolves every worker FetchEvent to a response'
 });
 
 test('worker only pre-caches user auth routes and never intercepts external services',()=>{
- assert.match(worker,/BASE \\+ 'login\\.html'/);
- assert.match(worker,/BASE \\+ 'register\\.html'/);
- assert.match(worker,/network\\(\\)\\.catch\\(\\(\\) => unavailable\\(\\)\\)/);
- assert.match(worker,/return await caches\\.match\\(fallback\\) \\|\\| unavailable\\(true\\)/);
- assert.match(worker,/url\\.origin !== self\\.location\\.origin/);
+ assert.ok(worker.includes("BASE + 'login.html'"));
+ assert.ok(worker.includes("BASE + 'register.html'"));
+ assert.ok(worker.includes("network().catch(() => unavailable())"));
+ assert.ok(worker.includes("return await caches.match(fallback) || unavailable(true)"));
+ assert.ok(worker.includes("url.origin !== self.location.origin"));
 });
 
 test('updater honors the auth locale on the login route without overriding app locale',async()=>{
