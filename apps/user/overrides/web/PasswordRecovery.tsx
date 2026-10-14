@@ -52,8 +52,8 @@ export function PasswordRecovery({onBack,initialEmail=''}:{onBack:()=>void;initi
  return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
    <AuthLanguageSwitcher/>
-   <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="ذهبي"/>
-   <h1 className="mockup-app-title">{t('تطبيق ذهبي','Dhahabi','Dhahabi')}</h1>
+   <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="ذهبك"/>
+   <h1 className="mockup-app-title">{t('تطبيق ذهبك','Dhahabk','Dhahabk')}</h1>
    <p className="mockup-app-subtitle">{t('استعادة كلمة المرور','Reset password','Récupérer le mot de passe')}</p>
    <section className="mockup-auth-card password-recovery">
     {step==='email'&&<form onSubmit={request} aria-busy={busy}>
