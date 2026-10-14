@@ -48,10 +48,10 @@ function appHarness(remote = 'full-bbbbbbbb', options = {}) {
     navigator:{onLine:true,serviceWorker},
     document,
     URL,Date,Promise,
-    location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
+    location:{href:'https://ibr7h.github.io/gold-app-pwa/full/',pathname:options.pathname||'/gold-app-pwa/full/',replace:href=>calls.replaced.push(href)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
     fetch:async(url,fetchOptions)=>{calls.requests.push({url,options:fetchOptions});return {ok:true,json:async()=>options.compatVersion?{version:options.compatVersion,releaseVersion:options.compatVersion,semanticReleaseVersion:remote}:options.legacyVersion?{version:options.legacyVersion,releaseVersion:remote}:{version:remote}};},
-    localStorage: {getItem:key=>key==='dhahabi:user:language'?(options.language||null):null},
+    localStorage: {getItem:key=>key==='dhahabi:user:language'?(options.language||null):key==='dhahabi:user:auth-language'?(options.authLanguage||null):null},
     sessionStorage: {
       getItem(){return null;},
       setItem(){calls.storageMutations++;},
@@ -223,8 +223,66 @@ test('new worker does not block install on optional icon failures or cache the u
   assert.match(worker,/url\.pathname\.endsWith\('\/index\.html'\)/);
   assert.match(worker,/'\/pwa-update\.js'/);
   assert.match(worker,/'\/standalone-install-gate\.js'/);
-  assert.match(worker,/fetch\(event\.request, \{cache:'no-store'\}\)/);
+  assert.ok(worker.includes("fetch(event.request,{cache:'no-store'})"));
 });
+test('a temporary network outage resolves every worker FetchEvent to a response',async()=>{
+ const handlers=new Map();
+ const cache={
+  async addAll(){},
+  async add(){},
+  async put(){}
+ };
+ const storedRoutes=new Map([['/gold-app-pwa/full/login.html',new Response('cached-login',{status:200})]]);
+ const context={
+  self:{
+   location:{origin:'https://dhahabi-user-iphone-preview.onrender.com'},
+   addEventListener:(name,callback)=>handlers.set(name,callback)
+  },
+  caches:{
+   async match(url){return storedRoutes.get(typeof url==='string'?url:url.url.replace('https://dhahabi-user-iphone-preview.onrender.com',''));},
+   async open(){return cache;},
+   async keys(){return []},
+   async delete(){return true}
+  },
+  Response,URL,Promise,
+  fetch:async()=>{throw new TypeError('Failed to fetch')}
+ };
+ vm.runInNewContext(worker.replace('__BUILD_VERSION__','test-offline'),context);
+ const dispatch=async(path,mode='cors')=>{
+  let pending;
+  const request={method:'GET',url:'https://dhahabi-user-iphone-preview.onrender.com'+path,mode};
+  handlers.get('fetch')({request,respondWith:promise=>{pending=Promise.resolve(promise);}});
+  assert.ok(pending,'a same-origin URL must be handled');
+  return pending;
+ };
+ const login=await dispatch('/gold-app-pwa/full/login','navigate');
+ assert.equal(await login.text(),'cached-login');
+ const uncachedRoute=await dispatch('/gold-app-pwa/full/register','navigate');
+ assert.equal(uncachedRoute.status,503);
+ const uncachedAsset=await dispatch('/gold-app-pwa/full/_expo/static/js/web/entry-deadbeef.js');
+ assert.equal(uncachedAsset.status,503);
+ const fresh=await dispatch('/gold-app-pwa/full/version.json');
+ assert.equal(fresh.status,503);
+});
+
+test('worker only pre-caches user auth routes and never intercepts external services',()=>{
+ assert.ok(worker.includes("BASE + 'login.html'"));
+ assert.ok(worker.includes("BASE + 'register.html'"));
+ assert.ok(worker.includes("network().catch(() => unavailable())"));
+ assert.ok(worker.includes("return await caches.match(fallback) || unavailable(true)"));
+ assert.ok(worker.includes("url.origin !== self.location.origin"));
+});
+
+test('updater honors the auth locale on the login route without overriding app locale',async()=>{
+ const app=appHarness('full-bbbbbbbb',{language:'ar',pathname:'/gold-app-pwa/full/login',authLanguage:'fr'});
+ await app.load();
+ const banner=app.nodes.get('dhahabi-user-update');
+ assert.match(banner.children[0].textContent,/mise à jour de Dhahabi/);
+ const regular=appHarness('full-bbbbbbbb',{language:'en',pathname:'/gold-app-pwa/full/'});
+ await regular.load();
+ assert.match(regular.nodes.get('dhahabi-user-update').children[0].textContent,/Dhahabi update/);
+});
+
 test('new worker is isolated to the User origin/scope and never caches fresh version metadata',()=>{
   assert.match(worker,/url\.origin !== self\.location\.origin/);
   assert.match(worker,/url\.pathname\.startsWith\(BASE\)/);
