@@ -87,7 +87,7 @@ export async function inspectPush():Promise<BrowserPushSnapshot>{
 }
 export async function enablePush(config:PushConfig|null,renew=false):Promise<void>{
  const {ios,standalone}=platform();
- if(ios&&!standalone)throw new Error('أضف ذهبي إلى الشاشة الرئيسية على iPhone أولًا، ثم افتحه من الأيقونة.');
+ if(ios&&!standalone)throw new Error('أضف ذهبك إلى الشاشة الرئيسية على iPhone أولًا، ثم افتحه من الأيقونة.');
  if(!browserSupport())throw new Error('هذا المتصفح لا يدعم إشعارات الويب المطلوبة.');
  if(!config?.configured||!config.publicKey)throw new Error('خدمة الإرسال غير مهيأة على الخادم.');
  // Request within the original button tap, before awaiting network or worker operations.
