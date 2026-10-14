@@ -12,7 +12,7 @@ const response=(body:unknown,status=201)=>new Response(JSON.stringify(body),{sta
 beforeEach(async()=>{vi.restoreAllMocks();await clearSession();});
 describe('Public email-only password recovery',()=>{
  it('requests a code without a session or bearer token',async()=>{
-  const fetcher=vi.fn(async()=>response({requestId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',expiresIn:600,resendAfterSeconds:60,message:'Check email'},200));
+  const fetcher=vi.fn(async (_url:string,_options:RequestInit)=>response({requestId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',expiresIn:600,resendAfterSeconds:60,message:'Check email'},200));
   vi.stubGlobal('fetch',fetcher);
   const result=await publicRecoveryRequest('/auth/password-reset/request',{email:'customer@example.test'});
   const [url,options]=fetcher.mock.calls[0];
@@ -24,7 +24,7 @@ describe('Public email-only password recovery',()=>{
   expect(()=>activeSessionTokens()).toThrow();
  });
  it('submits code and new password only to the reset-confirm endpoint',async()=>{
-  const fetcher=vi.fn(async()=>response({success:true},200));vi.stubGlobal('fetch',fetcher);
+  const fetcher=vi.fn(async (_url:string,_options:RequestInit)=>response({success:true},200));vi.stubGlobal('fetch',fetcher);
   const data={requestId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',code:'123456',newPassword:'new-password-example'};
   await publicRecoveryRequest('/auth/password-reset/confirm',data);
   const [url,options]=fetcher.mock.calls[0];
