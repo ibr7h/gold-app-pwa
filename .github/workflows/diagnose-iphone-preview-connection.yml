@@ -46,5 +46,18 @@ jobs:
               failed=true;
             }
           }
+          // Exercise the real browser-facing POST route with a deliberately
+          // nonexistent identity, without touching any user's account.
+          const origin='https://dhahabi-user-iphone-preview.onrender.com';
+          const login=await check('POST /auth/login (nonexistent test identity)',api+'/auth/login',{
+            method:'POST',
+            headers:{Origin:origin,'Content-Type':'application/json'},
+            body:JSON.stringify({identifier:'connectivity-probe-does-not-exist@example.invalid',password:'not-a-real-password'})
+          });
+          console.log('Login response CORS='+(login?.headers.get('access-control-allow-origin')||'(none)'));
+          if(!login||login.status!==401||login.headers.get('access-control-allow-origin')!==origin){
+            console.log('FAIL: Expected CORS-authorized HTTP 401 for nonexistent login identity');
+            failed=true;
+          }
           if(failed)process.exitCode=1;
           NODE
