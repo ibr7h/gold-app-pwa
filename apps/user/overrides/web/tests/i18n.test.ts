@@ -5,7 +5,7 @@ import {LANGUAGE_META,LANGUAGE_OPTIONS,LANGUAGE_KEY,translateUiText,translateExa
 import {amountToLocalizedWords} from '../amount-words-localized';
 import {localizeFeedback} from '../i18n-feedback';
 
-describe('Dhahabi offline three-language localization',()=>{
+describe('Dhahabk offline three-language localization',()=>{
  it('supports reversible language selection and correct display direction',()=>{
   expect(LANGUAGE_OPTIONS).toEqual(['ar','en','fr']);
   expect(LANGUAGE_META.ar.dir).toBe('rtl');
@@ -58,12 +58,12 @@ describe('Regression: no Arabic interface fragments in English or French',()=>{
   'محفظة','مستخدم','محلات الذهب القريبة','أهلًا بك','لوحة أرقام الدخول السريع',
   'المقارنة','حركة السوق (عيار','24 ساعة','7 أيام','30 يومًا','الفترة الزمنية للرسم',
   'لا توجد تحديثات سعرية كافية لرسم الاتجاه.','بانتظار تحديثات فعلية إضافية من الخادم.',
-  'أدخل رمز الدخول السريع لفتح ذهبي','تعذر التحقق بالبصمة. استخدم الرمز أو كلمة المرور.',
+  'أدخل رمز الدخول السريع لفتح ذهبك','تعذر التحقق بالبصمة. استخدم الرمز أو كلمة المرور.',
   'تحتاج التثبيت على الشاشة الرئيسية','خدمة الإرسال غير مهيأة بعد',
-  'اشتراك المتصفح غير مسجل لدى ذهبي','العودة لتسجيل الدخول','تعذر تحميل الأسعار الآن.',
+  'اشتراك المتصفح غير مسجل لدى ذهبك','العودة لتسجيل الدخول','تعذر تحميل الأسعار الآن.',
   'الاسم التجاري','النطاق استرشادي؛ يتغير تقريب الخريطة وقد تظهر محلات أبعد.',
   'الوزن الصافي (جم)','سعر الجرام المسجل (شامل)','جارٍ الفحص…',
-  'إشعارات ذهبي تعتمد على خدمة Push الخاصة بالمتصفح وتعمل عند إغلاق الصفحة عندما يسمح النظام بذلك. يلزم الاتصال بالإنترنت لتلقي الرسالة.'
+  'إشعارات ذهبك تعتمد على خدمة Push الخاصة بالمتصفح وتعمل عند إغلاق الصفحة عندما يسمح النظام بذلك. يلزم الاتصال بالإنترنت لتلقي الرسالة.'
  ];
  for(const language of ['en','fr'] as const){
   it(`has translated financial, chart, login, location, notification and PIN content in ${language}`,()=>{
@@ -241,8 +241,8 @@ describe('Concise gold-price disclaimer in all languages',()=>{
   const catalog=readFileSync(fileURLToPath(new URL('../i18n-messages.ts',import.meta.url).href),'utf8');
   expect(source).toContain("const priceNote=<p className=\"fine\">{tr('لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.')}</p>;");
   expect(source).not.toContain('جميع الأسعار في هذه النسخة تأتي من Backend');
-  expect(catalog).not.toContain('All prices come from Dhahabi');
-  expect(catalog).not.toContain('Tous les prix proviennent du serveur Dhahabi');
+  expect(catalog).not.toContain('All prices come from Dhahabk');
+  expect(catalog).not.toContain('Tous les prix proviennent du serveur Dhahabk');
  });
 });
 
