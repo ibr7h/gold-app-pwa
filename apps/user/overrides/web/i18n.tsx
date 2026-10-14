@@ -17,7 +17,7 @@ let runtimeLanguage:Language='ar';
 export function storedLanguage():Language{
  try{
   const stored=window.localStorage.getItem(LANGUAGE_KEY);
-  return stored==='en'||stored==='fr'?stored:'ar';
+  return stored==='ar'||stored==='en'||stored==='fr'?stored:'ar';
  }catch{return 'ar';}
 }
 export function activeLocale():string{return LANGUAGE_META[runtimeLanguage].intl;}
@@ -30,10 +30,40 @@ const attrMemory=new WeakMap<Element,Map<string,Original>>();
 const directionMemory=new WeakMap<Element,string|null>();
 const attrs=['placeholder','title','aria-label','aria-valuetext','aria-description','alt'] as const;
 
+const ROOTS='.gold-web, .dh-quick-lock, .dh-pin-setup';
+
+function localizeText(node:Text,language:Language){
+ if(!node.parentElement||node.parentElement.closest('script,style,textarea,[data-no-translate]'))return;
+ const current=node.nodeValue||'';
+ const entry=textMemory.get(node);
+ const original=entry&&current===entry.rendered?entry.original:current;
+ const translated=translateUiText(original,language);
+ if(current!==translated)node.nodeValue=translated;
+ textMemory.set(node,{original,rendered:translated});
+}
+function localizeAttributes(el:Element,language:Language){
+ if(el.closest('[data-no-translate]'))return;
+ for(const attr of attrs){
+  const current=el.getAttribute(attr);
+  if(current===null)continue;
+  const map=attrMemory.get(el)||new Map<string,Original>();
+  const prev=map.get(attr);
+  const original=prev&&current===prev.rendered?prev.original:current;
+  const translated=translateUiText(original,language);
+  if(current!==translated)el.setAttribute(attr,translated);
+  map.set(attr,{original,rendered:translated});attrMemory.set(el,map);
+ }
+}
+/** Translation only; must not set dir/lang on a nested React-owned element. */
+function localizeSubtree(root:Element,language:Language){
+ if(root.closest('[data-no-translate]'))return;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ while(walker.nextNode())localizeText(walker.currentNode as Text,language);
+ localizeAttributes(root,language);
+ root.querySelectorAll('*').forEach(el=>localizeAttributes(el,language));
+}
 function localizeRoot(root:Element,language:Language){
  const direction=LANGUAGE_META[language].dir;
- // Preserve explicit LTR fields (prices, passwords, account identifiers) while
- // restoring original RTL layout containers after switching back to Arabic.
  for(const el of [root,...Array.from(root.querySelectorAll('[dir],[data-language-root="true"]'))]){
   if(!directionMemory.has(el))directionMemory.set(el,el.getAttribute('dir'));
   const original=directionMemory.get(el);
@@ -42,31 +72,41 @@ function localizeRoot(root:Element,language:Language){
    if(el.getAttribute('dir')!==desired)el.setAttribute('dir',desired);
   }
  }
- root.setAttribute('lang',language);
- const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- while(walker.nextNode()){
-  const node=walker.currentNode as Text;
-  if(!node.parentElement||node.parentElement.closest('script,style,textarea,[data-no-translate]'))continue;
-  const current=node.nodeValue||'';
-  const entry=textMemory.get(node);
-  const original=entry&&current===entry.rendered?entry.original:current;
-  const translated=translateUiText(original,language);
-  if(current!==translated)node.nodeValue=translated;
-  textMemory.set(node,{original,rendered:translated});
- }
- for(const el of [root,...Array.from(root.querySelectorAll('*'))]){
-  // Country and language pickers provide their own translations.
-  if(el.closest('[data-no-translate]'))continue;
-  for(const attr of attrs){
-   const current=el.getAttribute(attr);
-   if(current===null)continue;
-   const map=attrMemory.get(el)||new Map<string,Original>();
-   const prev=map.get(attr);
-   const original=prev&&current===prev.rendered?prev.original:current;
-   const translated=translateUiText(original,language);
-   if(current!==translated)el.setAttribute(attr,translated);
-   map.set(attr,{original,rendered:translated});attrMemory.set(el,map);
+ if(root.getAttribute('lang')!==language)root.setAttribute('lang',language);
+ localizeSubtree(root,language);
+}
+/** Apply only the touched nodes instead of retranslating the entire screen per mutation. */
+function localizeChanges(records:readonly MutationRecord[],language:Language){
+ const changedElements=new Set<Element>();
+ const changedText=new Set<Text>();
+ for(const record of records){
+  if(record.type==='characterData'){
+   const node=record.target as Text;
+   if(node.parentElement?.closest(ROOTS))changedText.add(node);
+  }else if(record.type==='attributes'){
+   const el=record.target as Element;
+   if(el.closest(ROOTS))changedElements.add(el);
+  }else{
+   record.addedNodes.forEach(node=>{
+    if(node.nodeType===Node.TEXT_NODE){
+     const text=node as Text;
+     if(text.parentElement?.closest(ROOTS))changedText.add(text);
+    }else if(node.nodeType===Node.ELEMENT_NODE){
+     const el=node as Element;
+     if(el.matches(ROOTS))changedElements.add(el);
+     else if(el.closest(ROOTS)||el.querySelector(ROOTS))changedElements.add(el);
+    }
+   });
   }
+ }
+ for(const el of changedElements){
+  if(!el.isConnected)continue;
+  if(el.matches(ROOTS))localizeRoot(el,language);
+  else if(el.closest(ROOTS))localizeSubtree(el,language);
+  else el.querySelectorAll(ROOTS).forEach(root=>localizeRoot(root,language));
+ }
+ for(const node of changedText){
+  if(node.isConnected)localizeText(node,language);
  }
 }
 
@@ -75,9 +115,15 @@ export function LanguageProvider({children,mode='app'}:{children:React.ReactNode
  runtimeLanguage=language;
  const setLanguage=(next:Language)=>{
   if(mode==='device'||(next!=='ar'&&next!=='en'&&next!=='fr'))return;
+  if(language===next)return;
   runtimeLanguage=next;
   setLanguageState(next);
-  try{window.localStorage.setItem(mode==='auth'?AUTH_LANGUAGE_KEY:LANGUAGE_KEY,next);}catch{/* iOS private mode may deny storage. */}
+  // An explicit choice applies to sign-in, signed-in screens and the updater.
+  // Never let two storage keys pull the same PWA back to different locales.
+  try{
+   window.localStorage.setItem(LANGUAGE_KEY,next);
+   window.localStorage.setItem(AUTH_LANGUAGE_KEY,next);
+  }catch{/* iOS private mode may deny storage. */}
   window.dispatchEvent(new Event('dhahabi:user-language-changed'));
  };
  const value=useMemo<LocaleController>(()=>({language,setLanguage,direction:LANGUAGE_META[language].dir}),[language]);
@@ -91,25 +137,37 @@ export function LanguageProvider({children,mode='app'}:{children:React.ReactNode
    subtree:true,childList:true,characterData:true,attributes:true,
    attributeFilter:['placeholder','title','aria-label','aria-valuetext','aria-description','alt']
   });
+  // A full pass is justified when the locale changes, not for every clock
+  // update, new price or React re-render (a major iPhone performance issue).
   const refresh=()=>{
    observerRef.current?.disconnect();
-   document.querySelectorAll('.gold-web, .dh-quick-lock, .dh-pin-setup').forEach(el=>localizeRoot(el,language));
+   document.querySelectorAll(ROOTS).forEach(el=>localizeRoot(el,language));
    observe();
   };
-  // Coalesce frequent DOM changes into one translation pass per paint.
   let pendingFrame=0;
+  const changes:MutationRecord[]=[];
   const observer=new MutationObserver(records=>{
-   const relevant=records.some(record=>{
+   const relevant=records.filter(record=>{
     const target=record.target instanceof Element?record.target:record.target.parentElement;
-    return !!target?.closest('.gold-web, .dh-quick-lock, .dh-pin-setup');
+    if(target?.closest(ROOTS))return true;
+    return record.type==='childList'&&Array.from(record.addedNodes).some(node=>
+     node instanceof Element&&(node.matches(ROOTS)||!!node.querySelector(ROOTS)));
    });
-   if(!relevant||pendingFrame)return;
-   pendingFrame=window.requestAnimationFrame(()=>{pendingFrame=0;refresh();});
+   if(!relevant.length)return;
+   changes.push(...relevant);
+   if(pendingFrame)return;
+   pendingFrame=window.requestAnimationFrame(()=>{
+    pendingFrame=0;
+    observerRef.current?.disconnect();
+    localizeChanges(changes.splice(0),language);
+    observe();
+   });
   });
   observerRef.current=observer;
   refresh();
   return()=>{
    if(pendingFrame)window.cancelAnimationFrame(pendingFrame);
+   changes.length=0;
    observer.disconnect();
    if(observerRef.current===observer)observerRef.current=null;
   };
