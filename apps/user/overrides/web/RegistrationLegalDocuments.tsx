@@ -451,12 +451,14 @@ const source={
     ]
   }
 } as const;
-const COPY:Record<RegistrationLegalKind,LegalInfo>=Object.fromEntries(
- Object.entries(source).map(([key,doc])=>[key,{
-  title:doc.title,intro:doc.intro,
-  sections:doc.sections.map(([heading,body])=>({heading,body}))
- }])
-) as Record<RegistrationLegalKind,LegalInfo>;
+function normalize(kind:RegistrationLegalKind):LegalInfo{
+ const document=source[kind];
+ return {title:document.title,intro:document.intro,
+  sections:document.sections.map(([heading,body])=>({heading,body}))};
+}
+const COPY:Record<RegistrationLegalKind,LegalInfo>={
+ terms:normalize('terms'),privacy:normalize('privacy'),risks:normalize('risks')
+};
 
 function localized(value:Localized,language:Language){return value[language==='ar'?0:language==='en'?1:2];}
 export function legalSectionCount(kind:RegistrationLegalKind){return COPY[kind].sections.length;}
