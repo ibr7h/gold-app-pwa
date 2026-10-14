@@ -132,7 +132,7 @@ export function LanguageProvider({children,mode='app'}:{children:React.ReactNode
   const html=document.documentElement;
   html.setAttribute('lang',language);
   html.setAttribute('dir',LANGUAGE_META[language].dir);
-  document.title=language==='ar'?'ذهبي':language==='en'?'Dhahabi':'Dhahabi';
+  document.title=language==='ar'?'ذهبك':language==='en'?'Dhahabk':'Dhahabk';
   const observe=()=>observerRef.current?.observe(document.body,{
    subtree:true,childList:true,characterData:true,attributes:true,
    attributeFilter:['placeholder','title','aria-label','aria-valuetext','aria-description','alt']
