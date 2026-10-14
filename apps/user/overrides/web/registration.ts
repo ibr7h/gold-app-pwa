@@ -35,6 +35,7 @@ export async function beginRegistration(name:string,email:string,password:string
  if(!normalized)throw new ApiError('أدخل رقم جوال صحيحًا، مثل 05xxxxxxxx أو رقمًا دوليًا يبدأ بعلامة +.');
  return registrationChallenge(await registrationRequest('/auth/register',{
   email:email.trim(),password,phone:normalized,fullName:name.trim()||undefined,
+  ...(legal?{legalTermsVersion:legal.version,legalNoticesAcknowledged:legal.noticesAcknowledged}:{})
  }));
 }
 export async function resendRegistration(registrationId:string){
