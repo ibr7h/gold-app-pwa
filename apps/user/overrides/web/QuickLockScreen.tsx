@@ -65,11 +65,11 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
  });
  return <main className="dh-quick-lock" dir={direction} lang={language} aria-busy={busy||loading}>
   <div className="dh-quick-lock-inner">
-   <div className="dh-pin-brand"><img src="/gold-app-pwa/full/app_icon_user.jpg" alt="ذهبي"/><span>ذهبي</span></div>
+   <div className="dh-pin-brand"><img src="/gold-app-pwa/full/app_icon_user.jpg" alt={language==='ar'?'ذهبك':'Dhahabk'}/><span>{language==='ar'?'ذهبك':'Dhahabk'}</span></div>
    <div className="dh-pin-identity">
     <span className="dh-pin-avatar" aria-hidden="true">{nickname.slice(0,1).toUpperCase()}</span>
     <p>أهلًا بك</p><h1>{nickname}</h1>
-    <small>{quickPinEnabled?'أدخل رمز الدخول السريع لفتح ذهبي':'اضغط على زر البصمة أو استخدم كلمة المرور'}</small>
+    <small>{quickPinEnabled?'أدخل رمز الدخول السريع لفتح ذهبك':'اضغط على زر البصمة أو استخدم كلمة المرور'}</small>
    </div>
    {quickPinEnabled&&<PinDots length={digits.length}/>}
    <div className="dh-pin-feedback" role="alert">{localizeFeedback(localError||remoteError,language)||' '}</div>
@@ -78,7 +78,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
     biometric={biometricEnabled} onBiometric={biometric}/>
     :<div className="dh-pin-bio-only">{!biometricEnabled&&<p role="status">بصمة الجهاز غير متاحة حاليًا؛ استخدم كلمة المرور.</p>}</div>}
    {biometricEnabled&&<div className={'dh-pin-bio-only'+(quickPinEnabled?' dh-pin-bio-compact':'')}><button type="button" onClick={biometric} disabled={busy||loading}><FaceMark/> فتح ببصمة الجهاز</button></div>}
-   <small className="dh-pin-security-note">يعمل رمز الدخول على هذا الجهاز فقط. يتطلب فتح البيانات جلسة صالحة في خادم ذهبي.</small>
+   <small className="dh-pin-security-note">يعمل رمز الدخول على هذا الجهاز فقط. يتطلب فتح البيانات جلسة صالحة في خادم ذهبك.</small>
      </div>
  </main>;
 }
