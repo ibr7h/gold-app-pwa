@@ -1,4 +1,5 @@
 import {ApiError,registrationRequest} from './api';
+import {LEGAL_TERMS_VERSION} from './RegistrationLegalDocuments';
 
 export function normalizeRegistrationPhone(value:unknown):string|null{
  if(typeof value!=='string'||value.length>40)return null;
@@ -43,5 +44,7 @@ export async function resendRegistration(registrationId:string){
 }
 export async function registrationAvailable(){
  const config=await registrationRequest('/auth/registration/config');
- return config?.enabled===true&&config.channel==='email'&&config.codeLength===6;
+ // Fail closed when the old backend does not yet persist accepted Terms revisions.
+ return config?.enabled===true&&config.channel==='email'&&config.codeLength===6
+  &&config.legalTermsVersion===LEGAL_TERMS_VERSION;
 }
