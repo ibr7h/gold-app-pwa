@@ -11,15 +11,15 @@ import './user.css';
 const asDate=(value:string|null)=>value&&Number.isFinite(Date.parse(value))
  ?formatDisplayDate(value,activeLocale(),readDisplayCalendar(),{dateStyle:'medium',timeStyle:'short'}):'لا يوجد اختبار مسجل';
 const stateNote:Record<string,string>={
- 'unsupported':'استخدم متصفحًا يدعم Web Push على اتصال HTTPS. ستبقى التنبيهات ظاهرة داخل ذهبي حتى دون دعم Push.',
- 'install-required':'على iPhone: افتح ذهبي في Safari، اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية». افتح التطبيق من الأيقونة وارجع إلى إعدادات الإشعارات.',
- 'blocked':'أُوقف الإذن من خارج التطبيق. لا يمكن لذهبي تغييره نيابةً عنك؛ اتبع تعليمات جهازك أسفل الصفحة.',
+ 'unsupported':'استخدم متصفحًا يدعم Web Push على اتصال HTTPS. ستبقى التنبيهات ظاهرة داخل ذهبك حتى دون دعم Push.',
+ 'install-required':'على iPhone: افتح ذهبك في Safari، اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية». افتح التطبيق من الأيقونة وارجع إلى إعدادات الإشعارات.',
+ 'blocked':'أُوقف الإذن من خارج التطبيق. لا يمكن لذهبك تغييره نيابةً عنك؛ اتبع تعليمات جهازك أسفل الصفحة.',
  'permission-required':'لم تسمح بإشعارات هذا الموقع بعد. اختر «تفعيل الإشعارات» ووافق على طلب النظام.',
  'server-unavailable':'تعذر الاتصال بخدمة Push أو التحقق من الحساب. تحقق من اتصال الإنترنت ثم حدّث الحالة.',
  'not-configured':'لم يُفعّل مسؤول الخادم مفاتيح Web Push بعد. لا يتيح التطبيق اختبارًا مزيفًا في هذه الحالة.',
  'subscription-missing':'إذن الإشعارات متاح، لكن هذا المتصفح لم يسجّل اشتراكًا بعد.',
  'server-missing':'يوجد اشتراك في المتصفح لكنه غير معروف للخادم؛ اضغط «إصلاح الاشتراك».',
- 'ready':'إذن المتصفح مسموح، واشتراك الجهاز مسجل لدى خادم ذهبي. يمكن اختبار إرسال رسالة فعلية.'
+ 'ready':'إذن المتصفح مسموح، واشتراك الجهاز مسجل لدى خادم ذهبك. يمكن اختبار إرسال رسالة فعلية.'
 };
 
 export default function NotificationSettings(){
@@ -74,7 +74,7 @@ export default function NotificationSettings(){
    </dl>
    <div className="dh-push-actions">
     {recoverable&&<button type="button" className="primary" disabled={busy||loading}
-     onClick={()=>void run(()=>enablePush(state.config,info==='server-missing'), 'سُجل هذا الجهاز لدى خدمة إشعارات ذهبي.')}>
+     onClick={()=>void run(()=>enablePush(state.config,info==='server-missing'), 'سُجل هذا الجهاز لدى خدمة إشعارات ذهبك.')}>
      {busy?'جارٍ التنفيذ…':info==='server-missing'?'إصلاح الاشتراك':'تفعيل الإشعارات'}
     </button>}
     {enabled&&<div className="dh-market-session-settings" role="group" aria-label={tr('تنبيهات افتتاح وإغلاق سوق الذهب')}>
@@ -108,7 +108,7 @@ export default function NotificationSettings(){
    {error&&<p className="notice error" role="alert">{localizeFeedback(error,language)}</p>}
    {state?.message&&<p className="notice warning" role="status">{localizeFeedback(state.message,language)}</p>}
    {awaitingConfirmation&&<div className="dh-push-confirm">
-    <p>{userConfirmed?'أكدت أنت مشاهدة الإشعار على هذا الجهاز.':'هل ظهر إشعار ذهبي على جهازك؟ قد يتأخر أو تمنعه إعدادات النظام.'}</p>
+    <p>{userConfirmed?'أكدت أنت مشاهدة الإشعار على هذا الجهاز.':'هل ظهر إشعار ذهبك على جهازك؟ قد يتأخر أو تمنعه إعدادات النظام.'}</p>
     {!userConfirmed&&<button type="button" className="secondary" onClick={()=>setUserConfirmed(true)}>نعم، ظهر الإشعار</button>}
    </div>}
    <div className="dh-push-last"><span>آخر اختبار أُرسل:</span><strong>{asDate(state?.lastTestAt||null)}</strong></div>
@@ -119,12 +119,12 @@ export default function NotificationSettings(){
    <div className="approved-card-title">إرشادات جهازك</div>
    {state?.ios?<div>
     <h3>iPhone / iPad</h3>
-    <p>تتطلب إشعارات الويب في iOS 16.4 فأحدث إضافة ذهبي للشاشة الرئيسية. افتحه من الأيقونة، ثم اسمح بالإشعارات عند طلبها. إذا كانت محظورة: الإعدادات ← الإشعارات ← ذهبي، وتحقق من السماح بالإشعارات وأوضاع التركيز.</p>
+    <p>تتطلب إشعارات الويب في iOS 16.4 فأحدث إضافة ذهبك للشاشة الرئيسية. افتحه من الأيقونة، ثم اسمح بالإشعارات عند طلبها. إذا كانت محظورة: الإعدادات ← الإشعارات ← ذهبك، وتحقق من السماح بالإشعارات وأوضاع التركيز.</p>
    </div>:<div>
     <h3>Android والكمبيوتر</h3>
     <p>في Chrome: إعدادات الموقع ← الإشعارات ← السماح. وتحقق أيضًا من إعدادات إشعارات النظام. على Android يمكن الاستقبال من Chrome الداعم دون اشتراط تثبيت PWA، وقد تؤثر قيود البطارية والاتصال.</p>
    </div>}
-   <p className="fine">إشعارات ذهبي تعتمد على خدمة Push الخاصة بالمتصفح وتعمل عند إغلاق الصفحة عندما يسمح النظام بذلك. يلزم الاتصال بالإنترنت لتلقي الرسالة.</p>
+   <p className="fine">إشعارات ذهبك تعتمد على خدمة Push الخاصة بالمتصفح وتعمل عند إغلاق الصفحة عندما يسمح النظام بذلك. يلزم الاتصال بالإنترنت لتلقي الرسالة.</p>
   </section>
  </div>;
 }
