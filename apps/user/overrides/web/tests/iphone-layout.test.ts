@@ -355,7 +355,9 @@ describe('iPhone bilingual and French support',()=>{
   expect(intl).toContain("window.localStorage.setItem(mode==='auth'?AUTH_LANGUAGE_KEY:LANGUAGE_KEY,next)");
   expect(intl).toContain("window.localStorage.setItem(LANGUAGE_KEY,language)");
   expect(intl).toContain("html.setAttribute('dir',LANGUAGE_META[language].dir)");
-  expect(intl).toContain('MutationObserver(refresh)');
+  expect(intl).toContain('MutationObserver(records=>');
+  expect(intl).toContain('window.requestAnimationFrame');
+  expect(intl).toContain("el.closest('[data-no-translate]')");
  });
  it('keeps the layout, currency and the Arabic baseline intact',()=>{
   const css=source('../user.css');
