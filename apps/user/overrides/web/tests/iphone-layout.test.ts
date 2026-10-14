@@ -372,7 +372,8 @@ describe('iPhone bilingual and French support',()=>{
   expect(ws).toContain("onClick={()=>setLanguage('fr')}");
   expect(ws).toContain("dir={direction} lang={language}");
   expect(ws).toContain('<LanguageProvider key={mode} mode={mode}><LocalizedUserWorkspace/></LanguageProvider>');
-  expect(intl).toContain("window.localStorage.setItem(mode==='auth'?AUTH_LANGUAGE_KEY:LANGUAGE_KEY,next)");
+  expect(intl).toContain('window.localStorage.setItem(LANGUAGE_KEY,next)');
+  expect(intl).toContain('window.localStorage.setItem(AUTH_LANGUAGE_KEY,next)');
   expect(intl).toContain("window.localStorage.setItem(LANGUAGE_KEY,language)");
   expect(intl).toContain("html.setAttribute('dir',LANGUAGE_META[language].dir)");
   expect(intl).toContain('MutationObserver(records=>');
