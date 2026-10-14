@@ -108,3 +108,58 @@
  margin:6px auto 12px;color:#D4AF37;font-size:12px;line-height:1.5;text-align:center;
  font-variant-numeric:tabular-nums;
 }
+
+
+/* iPhone UX: a single-language pill, never a split icon and label. */
+.gold-auth .dh-auth-language{inset-block-start:max(10px,env(safe-area-inset-top));inset-inline-end:14px}
+.gold-auth .dh-auth-language-trigger{
+ display:inline-flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:center!important;gap:7px!important;
+ min-width:105px!important;max-width:none!important;height:40px!important;
+ padding:0 11px!important;border:1px solid rgba(212,175,55,.65)!important;
+ border-radius:999px!important;background:rgba(0,23,47,.95)!important;color:#f5d77c!important;
+ white-space:nowrap!important;line-height:1!important;
+}
+.gold-auth .dh-auth-language-trigger svg{display:block!important;width:19px!important;height:19px!important;flex-shrink:0}
+.gold-auth .dh-auth-language-label{display:block;white-space:nowrap;font-size:13px;font-weight:650}
+.gold-auth .dh-auth-language-chevron{font-size:14px;line-height:1}
+.gold-auth .dh-auth-language-menu{z-index:1100;min-width:175px;width:max-content;max-width:min(240px,80vw);padding:6px!important}
+.gold-auth .dh-auth-language-menu button{display:flex!important;gap:20px;min-width:170px;align-items:center!important;justify-content:space-between!important}
+
+/* The country picker is a constrained, accessible sheet. Never insert 200+ unstyled
+   country rows directly into the registration form, even at narrow viewport widths. */
+.gold-auth .dh-country-backdrop{
+ position:fixed!important;inset:0!important;z-index:1200!important;
+ display:flex!important;justify-content:center!important;align-items:center!important;
+ padding:max(18px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom))!important;
+ background:rgba(0,20,39,.6)!important;box-sizing:border-box!important;
+ overscroll-behavior:contain;touch-action:pan-y;
+}
+.gold-auth .dh-intl-country-panel{
+ position:relative!important;top:auto!important;left:auto!important;right:auto!important;
+ width:min(100%,440px)!important;max-width:440px!important;
+ max-height:min(75dvh,680px)!important;min-height:0!important;
+ display:flex!important;flex-direction:column!important;
+ background:#fff!important;color:#132238!important;border:1px solid #e0e6ed!important;
+ padding:15px!important;border-radius:18px!important;box-sizing:border-box!important;
+ overflow:hidden!important;box-shadow:0 22px 60px rgba(0,20,39,.32)!important;
+}
+.gold-auth .dh-intl-country-header{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin-bottom:12px}
+.gold-auth .dh-intl-country-header strong{font-size:15px!important;font-weight:750!important;color:#001F3F!important;line-height:1.5!important}
+.gold-auth .dh-intl-country-close{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 40px!important;width:40px!important;height:40px!important;border:0!important;border-radius:10px!important;background:#edf1f5!important;color:#001F3F!important;font-size:28px!important;cursor:pointer!important}
+.gold-auth .dh-intl-country-search{flex:none!important;width:100%!important;height:48px!important;font-size:16px!important;margin:0 0 8px!important}
+.gold-auth .dh-intl-country-options{display:block!important;flex:1!important;min-height:0!important;max-height:none!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain!important;padding-bottom:3px}
+.gold-auth .dh-intl-country-option{display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:48px!important;white-space:normal!important;text-align:start!important;padding:8px 10px!important;border:0!important;border-radius:9px!important;background:transparent!important;color:#132238!important}
+.gold-auth .dh-intl-option-flag{font-size:21px!important;flex:0 0 28px!important;text-align:center!important;line-height:1.3!important}
+.gold-auth .dh-intl-option-name{flex:1 1 auto!important;min-width:0!important;font-size:14px!important;line-height:1.4!important;overflow-wrap:anywhere}
+.gold-auth .dh-intl-option-dial{font-size:13px!important;font-weight:700!important;white-space:nowrap!important;flex-shrink:0!important;margin-inline-start:4px!important}
+.gold-auth .dh-intl-option-check{font-size:15px!important;color:#8B6B00!important;font-weight:800!important;flex-shrink:0}
+.gold-auth .dh-intl-country-more{display:block!important;width:100%!important;min-height:46px!important;margin:5px 0!important;padding:10px!important;color:#8B6B00!important;background:#fff8e6!important;border:1px solid #eedcaa!important;border-radius:10px!important;font-size:13px!important;font-weight:700!important;cursor:pointer!important}
+.gold-auth .dh-intl-country-option[aria-selected="true"]{background:#fff6df!important}
+@media(max-width:520px){
+ .gold-auth .dh-country-backdrop{align-items:flex-end!important;padding:12px 0 0!important}
+ .gold-auth .dh-intl-country-panel{
+  width:100%!important;max-width:100%!important;max-height:min(78dvh,680px)!important;
+  border-radius:19px 19px 0 0!important;padding:18px 15px max(16px,env(safe-area-inset-bottom))!important
+ }
+}
