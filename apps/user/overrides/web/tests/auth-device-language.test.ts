@@ -33,7 +33,8 @@ describe('iPhone sign-in and registration follow device language',()=>{
   const ws=file('../UserWorkspace.tsx');
   expect(provider).toContain("mode='app'");
   expect(provider).toContain("mode==='device'?deviceLanguage():mode==='auth'?authLanguage():storedLanguage()");
-  expect(provider).toContain("mode==='auth'?AUTH_LANGUAGE_KEY:LANGUAGE_KEY");
+  expect(provider).toContain('window.localStorage.setItem(LANGUAGE_KEY,next)');
+  expect(provider).toContain('window.localStorage.setItem(AUTH_LANGUAGE_KEY,next)');
   expect(provider).toContain("if(mode==='device'||");
   expect(provider).toContain("if(mode!=='app')return;");
   expect(ws).toContain("const mode=user||lockedAccount?'app':'auth';");
