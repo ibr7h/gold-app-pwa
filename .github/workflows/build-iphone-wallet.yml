@@ -19,6 +19,10 @@ on:
       - "apps/user/overrides/web/tests/gold-help.test.ts"
       - "apps/user/overrides/web/auth-device-language.ts"
       - "apps/user/overrides/web/AuthForm.tsx"
+      - "apps/user/overrides/web/RegistrationPhoneField.tsx"
+      - "apps/user/overrides/web/AuthLanguageSwitcher.tsx"
+      - "apps/user/overrides/web/registration.css"
+      - "apps/user/overrides/web/tests/registration.test.ts"
       - "apps/user/overrides/web/tests/auth-device-language.test.ts"
       - "apps/user/overrides/app/login.web.tsx"
       - "apps/user/overrides/app/register.web.tsx"
@@ -150,6 +154,17 @@ jobs:
           help_css=help_styles[0].name
           if '.dh-help-category' not in help_styles[0].read_text():
               raise RuntimeError('GoldHelp stylesheet is missing essential card styles')
+          # Expo emits registration.css as a separate chunk that the generated
+          # HTML does NOT link automatically. Missing link caused the broken
+          # globe and hundreds of overlapping country rows on iPhone.
+          signup_styles=list((src/'_expo/static/css').glob('registration-*.css'))
+          if len(signup_styles)!=1:
+              raise RuntimeError(f'Expected one registration stylesheet, got {signup_styles}')
+          signup_css=signup_styles[0].name
+          for marker in ('.dh-intl-country-option','.dh-auth-language-trigger','.dh-country-backdrop'):
+              if marker not in signup_styles[0].read_text():
+                  raise RuntimeError(f'Missing signup stylesheet rule: {marker}')
+          signup_href='/gold-app-pwa/full/_expo/static/css/'+signup_css
           help_href='/gold-app-pwa/full/_expo/static/css/'+help_css
           shutil.copytree(src/'_expo',dest/'_expo',dirs_exist_ok=True)
           updated=0
@@ -160,10 +175,11 @@ jobs:
               # Expo exports GoldHelp as a separate CSS chunk; the User entry pages
               # do not link it automatically. Include the active, hashed stylesheet.
               next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/gold-help-[a-f0-9]+\.css"\s*/?>','',next_html)
+              next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/registration-[a-f0-9]+\.css"\s*/?>','',next_html)
               if n:
                   if next_html.count('</head>')!=1:
                       raise RuntimeError(f'HTML head missing on {page}')
-                  next_html=next_html.replace('</head>',f'<link rel="stylesheet" href="{help_href}"></head>',1)
+                  next_html=next_html.replace('</head>',f'<link rel="stylesheet" href="{signup_href}"><link rel="stylesheet" href="{help_href}"></head>',1)
                   page.write_text(next_html)
                   updated+=1
           if updated<25:
@@ -171,6 +187,9 @@ jobs:
           for target in (dest/'index.html',dest/'faq-support.html',dest/'home.html'):
               if target.read_text().count(help_href)!=1:
                   raise RuntimeError(f'GoldHelp CSS is not linked by {target}')
+          for target in (dest/'index.html',dest/'login.html',dest/'register.html'):
+              if target.read_text().count(signup_href)!=1:
+                  raise RuntimeError(f'Registration CSS is not linked by {target}')
           print(f'New User entry {bundle.name}, GoldHelp CSS {help_css}, updated {updated} preview pages')
           PY
       - name: Publish localized iPhone updater on every preview page

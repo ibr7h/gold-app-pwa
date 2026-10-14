@@ -77,7 +77,7 @@ describe('October 10 design restored with verified email activation',()=>{
   expect(phone).toContain('dh-intl-country-code');
   expect(phone).toContain('dh-intl-country-search');
   expect(phone).toContain('dh-intl-number');
-  expect(phone).toContain('aria-haspopup="listbox"');
+  expect(phone).toContain('aria-haspopup="dialog"');
   expect(css).toContain('grid-template-columns:112px minmax(0,1fr)');
   expect(form).toContain('internationalRegistrationPhone(countryIso,phone)');
   expect(form).toContain("startRegistration(name,email,password,internationalPhone||undefined)");
@@ -102,4 +102,20 @@ describe('October 10 design restored with verified email activation',()=>{
   const france=PHONE_COUNTRIES.find(c=>c.iso==='FR')!;
   expect(countryDisplayName(france,'fr')).toContain('France');
  });
+ it('limits initial country rows, searches localized names and exposes a bounded iPhone sheet',()=>{
+  const field=readFileSync(fileURLToPath(new URL('../RegistrationPhoneField.tsx',import.meta.url).href),'utf8');
+  const css=readFileSync(fileURLToPath(new URL('../registration.css',import.meta.url).href),'utf8');
+  const selector=readFileSync(fileURLToPath(new URL('../AuthLanguageSwitcher.tsx',import.meta.url).href),'utf8');
+  expect(field).toContain('COUNTRY_PAGE_SIZE=24');
+  expect(field).toContain('filtered.slice(0,visibleCount)');
+  expect(field).toContain('PREFERRED_COUNTRIES');
+  expect(field).toContain('Intl.DisplayNames is computed once per locale');
+  expect(field).toContain('className="dh-country-backdrop"');
+  expect(field).toContain('aria-modal="true"');
+  expect(css).toContain('position:fixed!important');
+  expect(css).toContain('max-height:min(75dvh,680px)');
+  expect(selector).toContain('dh-auth-language-label');
+  expect(selector).toContain('aria-haspopup="menu"');
+ });
+
 });
