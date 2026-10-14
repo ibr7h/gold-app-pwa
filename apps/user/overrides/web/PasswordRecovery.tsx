@@ -3,6 +3,7 @@ import {useLanguage} from './i18n';
 import {AuthLanguageSwitcher} from './AuthLanguageSwitcher';
 import {registrationDigits} from './registration';
 import {ApiError,errorMessage,publicRecoveryRequest} from './api';
+import {localizeFeedback} from './i18n-feedback';
 import './registration.css';
 
 type Step='email'|'code'|'complete';
@@ -34,7 +35,7 @@ export function PasswordRecovery({onBack,initialEmail=''}:{onBack:()=>void;initi
     throw new ApiError('استجابة الاستعادة غير مكتملة.');
    setRequestId(data.requestId);setExpiresAt(Date.now()+data.expiresIn*1000);
    setResendAt(Date.now()+data.resendAfterSeconds*1000);setClock(Date.now());setCode('');setStep('code');
-  }catch(e){setError(errorMessage(e));}finally{setBusy(false);}
+  }catch(e){setError(localizeFeedback(errorMessage(e),language));}finally{setBusy(false);}
  };
  const complete=async(event:React.FormEvent)=>{
   event.preventDefault();if(busy||remaining<=0)return;setError('');
@@ -46,7 +47,7 @@ export function PasswordRecovery({onBack,initialEmail=''}:{onBack:()=>void;initi
    const result=await publicRecoveryRequest('/auth/password-reset/confirm',{requestId,code,newPassword:password});
    if(result?.success!==true)throw new ApiError('تعذر تغيير كلمة المرور.');
    setStep('complete');setPassword('');setConfirm('');setCode('');setRequestId('');
-  }catch(e){setError(errorMessage(e));}finally{setBusy(false);}
+  }catch(e){setError(localizeFeedback(errorMessage(e),language));}finally{setBusy(false);}
  };
  return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
