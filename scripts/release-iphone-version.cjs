@@ -6,6 +6,8 @@ const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),base=path.join(root,'_render_preview/gold-app-pwa/full');
 const src=path.join(root,'apps/user/overrides/web/app-version.ts');
 const read=p=>fs.readFileSync(p,'utf8'),write=(p,s)=>fs.writeFileSync(p,s,'utf8');
+// Brand text only: preserve historic storage keys, URLs and the Arabic adjective «الذهبي».
+const updateBrand=s=>s.replace(/Dhahabi/g,'Dhahabk').replace(/(?<!ال)ذهبي/g,'ذهبك');
 const current=read(src),m=current.match(/export const APP_VERSION = '(\d+)\.(\d+)\.(\d+)';/);
 if(!m)throw Error('Source semantic version missing');
 const next=[+m[1],+m[2],+m[3]+1].join('.');
@@ -27,12 +29,21 @@ function stamp(folder){
   if(e.isDirectory()){if(['_expo','assets','node_modules'].includes(e.name))continue;stamp(path.join(folder,e.name));continue;}
   if(!e.name.endsWith('.html'))continue;
   const f=path.join(folder,e.name),old=read(f);
-  const fresh=old.replace(/((?:iphone-preview-lock\.(?:css|js)|user-update-locales\.js|pwa-update\.js)\?v=)[A-Za-z0-9.-]+/g,'$1'+token);
+  const fresh=updateBrand(old.replace(/((?:iphone-preview-lock\.(?:css|js)|user-update-locales\.js|pwa-update\.js)\?v=)[A-Za-z0-9.-]+/g,'$1'+token));
   if(fresh!==old){write(f,fresh);count++;}
  }
 }
 stamp(base);
 if(count<20)throw Error('Not all preview HTML entrypoints stamped: '+count);
+// The installed Home Screen name must match the reviewed User brand.
+// Keep manifest id/start_url/scope/icons intact, preventing duplicate PWA installs.
+for(const filename of ['manifest.webmanifest','manifest.json']){
+ const filepath=path.join(base,filename);
+ const manifest=JSON.parse(read(filepath));
+ manifest.name='ذهبك';
+ manifest.short_name='ذهبك';
+ write(filepath,JSON.stringify(manifest,null,2)+'\n');
+}
 // The iPhone preview preserves its historic, version-patched updater script.
  // Patch that *published script*, not only apps/user/scripts/user-update-client.js,
  // so older iPhones can migrate through legacy hex metadata to semantic releases.
@@ -59,8 +70,8 @@ client=client.replace(validatorLine,versionValidator);
 client=client.replace(/const CURRENT = 'full-[^']+';/,"const CURRENT = '"+version+"';");
 sw=sw.replace(/const VERSION = '[^']+';/,"const VERSION = '"+token+"';");
 write(src,current.replace(m[0],"export const APP_VERSION = '"+next+"';"));
-write(clientPath,client);
-write(swPath,sw);
+write(clientPath,updateBrand(client));
+write(swPath,updateBrand(sw));
 // Legacy iPhones have a broken double-escaped semantic regex; supplying the
 // hex compatibility id here deliberately recovers their update dialog.
 // New iPhones read semanticReleaseVersion first and compare true semantic ids.
