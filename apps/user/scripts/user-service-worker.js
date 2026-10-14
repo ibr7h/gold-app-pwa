@@ -6,6 +6,8 @@ const BASE = '/gold-app-pwa/full/';
 const CORE = [
   BASE,
   BASE + 'index.html',
+  BASE + 'login.html',
+  BASE + 'register.html',
   BASE + 'manifest.webmanifest',
   BASE + 'pwa-icon.png',
   BASE + 'app_icon_user.jpg'
@@ -39,30 +41,52 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || !url.pathname.startsWith(BASE)) return;
 
-  // Update/bootstrap scripts and version metadata must bypass old SW caches.
-  // This also permits recovery when the previous worker remains in control.
-  const fresh = ['/version.json','/prices-live.json','/pwa-update.js','/sw.js',
-    '/standalone-install-gate.js','/iphone-preview-lock.js'];
-  if (fresh.some(path => url.pathname.endsWith(path))) {
-    event.respondWith(fetch(event.request, {cache:'no-store'}));
-    return;
-  }
-
-  // Never return a stale HTML shell while online, including direct index.html.
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('/index.html')) {
-    event.respondWith(fetch(event.request, {cache:'no-store'})
-      .catch(() => caches.match(BASE + 'index.html')));
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      if (!response.ok) return response;
-      const copy = response.clone();
-      caches.open(CACHE).then(cache => cache.put(event.request, copy)).catch(() => {});
-      return response;
-    }))
+  // A rejected fetch must never escape respondWith: Safari treats that as a
+  // failed FetchEvent, even when the server is temporarily unreachable.
+  const unavailable = (html=false) => new Response(
+    html
+      ? '<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ذهبي — دون اتصال</title><body style="font:16px system-ui;text-align:center;padding:32px;color:#001F3F"><h1>لا يوجد اتصال بالإنترنت</h1><p>تحقق من الاتصال وحاول فتح ذهبي مجددًا.</p></body></html>'
+      : 'Service temporarily unavailable',
+    {status:503,headers:{'Content-Type':html?'text/html; charset=utf-8':'text/plain; charset=utf-8','Cache-Control':'no-store'}}
   );
+  const network = () => fetch(event.request,{cache:'no-store'});
+
+  // No stale update metadata. Never reject a fetch event when offline.
+  const fresh = ['/version.json','/prices-live.json','/pwa-update.js','/sw.js',
+    '/standalone-install-gate.js','/iphone-preview-lock.js','/user-update-locales.js'];
+  if(fresh.some(path => url.pathname.endsWith(path))){
+    event.respondWith(network().catch(() => unavailable()));
+    return;
+  }
+
+  // Preserve the specific login/register document during offline navigation;
+  // a generic index shell can contain an unrelated authenticated route.
+  if(event.request.mode==='navigate'||url.pathname.endsWith('/index.html')){
+    const route = url.pathname.replace(/\\/$/,'');
+    const fallback = /\\/(?:login)(?:\\.html)?$/.test(route) ? BASE+'login.html'
+      : /\\/(?:register)(?:\\.html)?$/.test(route) ? BASE+'register.html'
+      : BASE+'index.html';
+    event.respondWith(network().catch(async()=>{
+      return await caches.match(fallback) || unavailable(true);
+    }));
+    return;
+  }
+
+  // Content-hashed JS/CSS/assets can be served from cache when offline, but
+  // an uncached resource must produce a controlled 503 instead of a rejection.
+  event.respondWith((async()=>{
+    const cached=await caches.match(event.request).catch(()=>undefined);
+    if(cached)return cached;
+    try{
+      const response=await fetch(event.request);
+      if(response.ok){
+        const copy=response.clone();
+        void caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{});
+      }
+      return response;
+    }catch{return unavailable();}
+  })());
+
 });
 
 /* Real remote Web Push; a push event is distinct from local in-page notices. */
