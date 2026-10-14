@@ -369,7 +369,7 @@
   const original=firstTextNode(label);
   if(!original)return;
   if(!label.dataset.dhPurchaseFieldOriginal)label.dataset.dhPurchaseFieldOriginal=original.nodeValue.trim();
-  if(original.nodeValue.trim()!==short)original.nodeValue=short;
+  if(document.documentElement.lang==='ar'&&original.nodeValue.trim()!==short)original.nodeValue=short;
   label.dataset.dhPurchaseIcon=icon;
   if(label.style.getPropertyValue('--dh-purchase-icon')!==iconURL[icon])
    label.style.setProperty('--dh-purchase-icon',iconURL[icon]);
@@ -379,6 +379,8 @@
   if(!sheet)return;
   const form=sheet.querySelector('.gold-purchase-form');
   if(!form)return;
+  // The preview must not compete with React's English/French text nodes.
+  const arabic=document.documentElement.lang==='ar';
   for(const label of form.querySelectorAll('label')){
    const input=label.querySelector('input[name],select[name],textarea[name]');
    if(!input || !Object.prototype.hasOwnProperty.call(names,input.name))continue;
@@ -389,10 +391,10 @@
   for(let i=0;i<radios.length;i++){
    const node=firstTextNode(radios[i]);
    const short=i===0?'شامل التكاليف':'تفصيل السعر';
-   if(node && node.nodeValue.trim()!==short)node.nodeValue=' '+short;
+   if(arabic&&node&&node.nodeValue.trim()!==short)node.nodeValue=' '+short;
   }
   const info=form.querySelector('.gold-purchase-details');
-  if(info&&!seen.has(info)){
+  if(arabic&&info&&!seen.has(info)){
    seen.add(info);
    const title=sheet.querySelector('#dialog-title')?.textContent||'';
    if(title.includes('تسجيل شراء'))info.open=false;
@@ -404,7 +406,7 @@
    }
   }
   const stones=form.querySelector('.gold-stones-more > summary');
-  if(stones && !seen.has(stones)){seen.add(stones);const node=firstTextNode(stones);if(node)node.nodeValue='تفاصيل الأحجار';}
+  if(arabic&&stones&&!seen.has(stones)){seen.add(stones);const node=firstTextNode(stones);if(node)node.nodeValue='تفاصيل الأحجار';}
   const backdrop=sheet.closest('.dialog-backdrop');
   if(backdrop && window.visualViewport && document.documentElement.classList.contains('dh-iphone-page-lock')){
    const vv=window.visualViewport;
@@ -486,14 +488,14 @@
     const name=field.name;
     const icon=name==='karat'?'gem':name==='name'?'wallet':name==='currency'?'price':name==='direction'?'arrow':'target';
     if(label.dataset.dhFormIcon!==icon)label.dataset.dhFormIcon=icon;
-    if(!saved.has(label)){
+    if(document.documentElement.lang==='ar'&&!saved.has(label)){
      saved.add(label);
      const node=Array.from(label.childNodes).find(n=>n.nodeType===3&&n.nodeValue.trim());
      if(node&&nameText[name])node.nodeValue=nameText[name];
     }
    }
    const direction=dialog.querySelector('select[name="direction"]');
-   if(direction&&!saved.has(direction)){
+   if(document.documentElement.lang==='ar'&&direction&&!saved.has(direction)){
     saved.add(direction);
     for(const option of direction.options){
      if(option.value==='above')option.text='ارتفاع إلى السعر المستهدف أو أكثر';
