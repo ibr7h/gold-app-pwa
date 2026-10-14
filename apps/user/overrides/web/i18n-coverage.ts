@@ -104,9 +104,9 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Comparaison au premier relevé du jour (heure saoudienne)"
  ],
  [
-  "تحديث أسعار الذهب من خادم ذهبي",
-  "Refresh gold prices from Dhahabi server",
-  "Actualiser les cours de l'or depuis Dhahabi"
+  "تحديث أسعار الذهب من خادم ذهبك",
+  "Refresh gold prices from Dhahabk server",
+  "Actualiser les cours de l'or depuis Dhahabk"
  ],
  [
   "ملخص المحفظة بعملة العرض",
@@ -244,9 +244,9 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Comment est calculée la valeur du portefeuille ?"
  ],
  [
-  "تعتمد على أسعار Backend ذهبي الحالية، مع إبقاء العملات منفصلة.",
-  "Based on current Dhahabi server prices, keeping currencies separate.",
-  "Elle se base sur les cours actuels de Dhahabi, sans mélanger les devises."
+  "تعتمد على أسعار Backend ذهبك الحالية، مع إبقاء العملات منفصلة.",
+  "Based on current Dhahabk server prices, keeping currencies separate.",
+  "Elle se base sur les cours actuels de Dhahabk, sans mélanger les devises."
  ],
  [
   "كيف أقرأ الرسم؟",
@@ -269,9 +269,9 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Les emplacements des commerçants ne sont pas encore disponibles sur le serveur ; aucune donnée fictive n'est affichée."
  ],
  [
-  "ذهبي · حساب المستخدم",
-  "Dhahabi · User account",
-  "Dhahabi · Compte utilisateur"
+  "ذهبك · حساب المستخدم",
+  "Dhahabk · User account",
+  "Dhahabk · Compte utilisateur"
  ],
  [
   "مثال: ادخار الأسرة",
@@ -289,14 +289,14 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Retour à la connexion"
  ],
  [
-  "أيقونة تطبيق ذهبي",
-  "Dhahabi app icon",
-  "Icône de l'application Dhahabi"
+  "أيقونة تطبيق ذهبك",
+  "Dhahabk app icon",
+  "Icône de l'application Dhahabk"
  ],
  [
-  "تطبيق ذهبي",
-  "Dhahabi app",
-  "Application Dhahabi"
+  "تطبيق ذهبك",
+  "Dhahabk app",
+  "Application Dhahabk"
  ],
  [
   "كلمتا المرور غير متطابقتين.",
@@ -474,9 +474,9 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Vous avez confirmé avoir vu la notification sur cet appareil."
  ],
  [
-  "تتطلب إشعارات الويب في iOS 16.4 فأحدث إضافة ذهبي للشاشة الرئيسية. افتحه من الأيقونة، ثم اسمح بالإشعارات عند طلبها. إذا كانت محظورة: الإعدادات ← الإشعارات ← ذهبي، وتحقق من السماح بالإشعارات وأوضاع التركيز.",
-  "On iOS 16.4 or later, add Dhahabi to your Home Screen, open it from its icon and allow notifications. If blocked, check Settings → Notifications → Dhahabi and Focus modes.",
-  "Sur iOS 16.4 ou version ultérieure, ajoutez Dhahabi à l'écran d'accueil, ouvrez-le depuis son icône et autorisez les notifications. Si elles sont bloquées, consultez Réglages → Notifications → Dhahabi et les modes Concentration."
+  "تتطلب إشعارات الويب في iOS 16.4 فأحدث إضافة ذهبك للشاشة الرئيسية. افتحه من الأيقونة، ثم اسمح بالإشعارات عند طلبها. إذا كانت محظورة: الإعدادات ← الإشعارات ← ذهبك، وتحقق من السماح بالإشعارات وأوضاع التركيز.",
+  "On iOS 16.4 or later, add Dhahabk to your Home Screen, open it from its icon and allow notifications. If blocked, check Settings → Notifications → Dhahabk and Focus modes.",
+  "Sur iOS 16.4 ou version ultérieure, ajoutez Dhahabk à l'écran d'accueil, ouvrez-le depuis son icône et autorisez les notifications. Si elles sont bloquées, consultez Réglages → Notifications → Dhahabk et les modes Concentration."
  ],
  [
   "Android والكمبيوتر",
@@ -489,9 +489,9 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Dans Chrome, autorisez les notifications dans les paramètres du site et vérifiez le système. Sur Android, Chrome compatible peut les recevoir sans installer la PWA ; les restrictions de batterie et de connexion peuvent s'appliquer."
  ],
  [
-  "إشعارات ذهبي تعتمد على خدمة Push الخاصة بالمتصفح وتعمل عند إغلاق الصفحة عندما يسمح النظام بذلك. يلزم الاتصال بالإنترنت لتلقي الرسالة.",
-  "Dhahabi uses your browser's Push service, which may receive notifications with the page closed if supported by your device. Internet access is required.",
-  "Dhahabi utilise le service Push du navigateur, qui peut recevoir des notifications lorsque la page est fermée si l'appareil le permet. Une connexion Internet est nécessaire."
+  "إشعارات ذهبك تعتمد على خدمة Push الخاصة بالمتصفح وتعمل عند إغلاق الصفحة عندما يسمح النظام بذلك. يلزم الاتصال بالإنترنت لتلقي الرسالة.",
+  "Dhahabk uses your browser's Push service, which may receive notifications with the page closed if supported by your device. Internet access is required.",
+  "Dhahabk utilise le service Push du navigateur, qui peut recevoir des notifications lorsque la page est fermée si l'appareil le permet. Une connexion Internet est nécessaire."
  ],
  [
   "إحداثيات الموقع غير صالحة.",
@@ -699,14 +699,14 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Abonnement de l'appareil requis"
  ],
  [
-  "اشتراك المتصفح غير مسجل لدى ذهبي",
-  "Browser subscription not registered on Dhahabi",
-  "Abonnement du navigateur non enregistré sur Dhahabi"
+  "اشتراك المتصفح غير مسجل لدى ذهبك",
+  "Browser subscription not registered on Dhahabk",
+  "Abonnement du navigateur non enregistré sur Dhahabk"
  ],
  [
-  "مفعّلة ومشتركة في خادم ذهبي",
-  "Enabled and registered with Dhahabi",
-  "Activées et enregistrées auprès de Dhahabi"
+  "مفعّلة ومشتركة في خادم ذهبك",
+  "Enabled and registered with Dhahabk",
+  "Activées et enregistrées auprès de Dhahabk"
  ],
  [
   "تحديث منذ أقل من دقيقة",
@@ -779,9 +779,9 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Bienvenue"
  ],
  [
-  "أدخل رمز الدخول السريع لفتح ذهبي",
-  "Enter your quick PIN to unlock Dhahabi",
-  "Saisissez votre code rapide pour ouvrir Dhahabi"
+  "أدخل رمز الدخول السريع لفتح ذهبك",
+  "Enter your quick PIN to unlock Dhahabk",
+  "Saisissez votre code rapide pour ouvrir Dhahabk"
  ],
  [
   "اضغط على زر البصمة أو استخدم كلمة المرور",
@@ -799,9 +799,9 @@ export const uncoveredUiMessages:ReadonlyArray<readonly [string,string,string]>=
   "Biométrie indisponible. Utilisez votre mot de passe."
  ],
  [
-  "يعمل رمز الدخول على هذا الجهاز فقط. يتطلب فتح البيانات جلسة صالحة في خادم ذهبي.",
-  "Your PIN works on this device only. Access requires a valid Dhahabi server session.",
-  "Votre code fonctionne uniquement sur cet appareil. L'accès exige une session valide sur Dhahabi."
+  "يعمل رمز الدخول على هذا الجهاز فقط. يتطلب فتح البيانات جلسة صالحة في خادم ذهبك.",
+  "Your PIN works on this device only. Access requires a valid Dhahabk server session.",
+  "Votre code fonctionne uniquement sur cet appareil. L'accès exige une session valide sur Dhahabk."
  ],
  [
   "الرمزان غير متطابقين؛ أدخل رمزًا جديدًا.",
