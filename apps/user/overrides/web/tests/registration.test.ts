@@ -68,6 +68,37 @@ describe('User phone and email registration',()=>{
 });
 
 
+describe('Registration legal consent before email verification',()=>{
+ it('does not enable sending the registration OTP without affirmative consent',()=>{
+  const form=readFileSync(fileURLToPath(new URL('../AuthForm.tsx',import.meta.url).href),'utf8');
+  expect(form).toContain('const [consentAccepted,setConsentAccepted]=useState(false)');
+  expect(form).toContain('if(register&&!consentAccepted)');
+  expect(form).toContain('disabled={isLoading||registrationEnabled!==true||!consentAccepted}');
+  expect(form).toContain('id="dh-register-consent"');
+  expect(form).toContain('type="checkbox"');
+  expect(form).toContain('required aria-describedby="dh-register-consent-note"');
+  expect(form).toContain("setConsentAccepted(event.target.checked)");
+  expect(form.indexOf('if(register&&!consentAccepted)')).toBeLessThan(form.indexOf('await startRegistration('));
+ });
+ it('opens individual terms, privacy and risk notices without changing language or triggering submit',()=>{
+  const form=readFileSync(fileURLToPath(new URL('../AuthForm.tsx',import.meta.url).href),'utf8');
+  const legal=readFileSync(fileURLToPath(new URL('../RegistrationLegalDocuments.tsx',import.meta.url).href),'utf8');
+  const css=readFileSync(fileURLToPath(new URL('../registration.css',import.meta.url).href),'utf8');
+  for(const key of ['terms','privacy','risks'])expect(form).toContain("onClick={()=>setLegalKind('"+key+"')}");
+  expect(form).toContain('onClose={closeLegal}');
+  expect(legal).toContain("role=\"dialog\" aria-modal=\"true\"");
+  expect(legal).toContain('data-no-translate');
+  expect(legal).not.toContain('J’accepte');
+  expect(legal).toContain("تنبيه مخاطر الاستخدام");
+  expect(legal).toContain("Privacy policy");
+  expect(legal).toContain("Conditions d’utilisation");
+  expect(legal).toContain('event.key===\'Escape\'');
+  expect(css).toContain('.gold-auth .registration-consent');
+  expect(css).toContain('.gold-auth .registration-legal-backdrop');
+  expect(css).toContain('max-height:min(83dvh,770px)');
+ });
+});
+
 describe('October 10 design restored with verified email activation',()=>{
  it('places the country flag and dial left of the mobile field, retaining searchable international codes',()=>{
   const phone=readFileSync(fileURLToPath(new URL('../RegistrationPhoneField.tsx',import.meta.url).href),'utf8');

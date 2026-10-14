@@ -22,6 +22,7 @@ on:
       - "apps/user/overrides/web/RegistrationPhoneField.tsx"
       - "apps/user/overrides/web/AuthLanguageSwitcher.tsx"
       - "apps/user/overrides/web/registration.css"
+      - "apps/user/overrides/web/RegistrationLegalDocuments.tsx"
       - "apps/user/overrides/web/tests/registration.test.ts"
       - "apps/user/overrides/web/tests/auth-device-language.test.ts"
       - "apps/user/overrides/app/login.web.tsx"
@@ -161,7 +162,7 @@ jobs:
           if len(signup_styles)!=1:
               raise RuntimeError(f'Expected one registration stylesheet, got {signup_styles}')
           signup_css=signup_styles[0].name
-          for marker in ('.dh-intl-country-option','.dh-auth-language-trigger','.dh-country-backdrop'):
+          for marker in ('.dh-intl-country-option','.dh-auth-language-trigger','.dh-country-backdrop','.registration-consent','.registration-legal-dialog'):
               if marker not in signup_styles[0].read_text():
                   raise RuntimeError(f'Missing signup stylesheet rule: {marker}')
           signup_href='/gold-app-pwa/full/_expo/static/css/'+signup_css

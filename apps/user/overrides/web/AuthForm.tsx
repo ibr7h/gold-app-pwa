@@ -10,6 +10,7 @@ import {localizeFeedback} from './i18n-feedback';
 import {registrationAvailable,registrationDigits} from './registration';
 import {internationalRegistrationPhone} from './phone-country';
 import {RegistrationPhoneField} from './RegistrationPhoneField';
+import {RegistrationLegalDocuments,type RegistrationLegalKind} from './RegistrationLegalDocuments';
 import {AuthLanguageSwitcher} from './AuthLanguageSwitcher';
 import {APP_DISPLAY_VERSION} from './app-version';
 import './registration.css';
@@ -73,6 +74,8 @@ export default function AuthForm({register=false}:{register?:boolean}){
  const showBiometricLogin=canShowBiometricLogin({biometricAvailable,biometricEnrolled,biometricEnabled});
  const [email,setEmail]=useState(''),[phone,setPhone]=useState(''),[countryIso,setCountryIso]=useState('SA'),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[confirmVisible,setConfirmVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
  const [code,setCode]=useState(''),[clock,setClock]=useState(Date.now()),[registrationEnabled,setRegistrationEnabled]=useState<boolean|null>(null);
+ const [consentAccepted,setConsentAccepted]=useState(false),[legalKind,setLegalKind]=useState<RegistrationLegalKind|null>(null);
+ const closeLegal=React.useCallback(()=>setLegalKind(null),[]);
  useEffect(()=>{if(!register)return;let active=true;
   void registrationAvailable().then(available=>{if(active)setRegistrationEnabled(available);}).catch(()=>{if(active)setRegistrationEnabled(false);});
   return()=>{active=false;};
@@ -85,6 +88,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
  useEffect(()=>{if(user)router.replace('/');},[user]);
  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(isLoading)return;clearError();setLocalError('');
   if(register&&password!==confirm){setLocalError('كلمتا المرور غير متطابقتين.');return;}
+  if(register&&!consentAccepted){setLocalError(t('يجب الموافقة على شروط الاستخدام وسياسة الخصوصية وتنبيه مخاطر الاستخدام للمتابعة.','Please accept the Terms of Use, Privacy Policy and Usage Risk Notice to continue.',"Veuillez accepter les conditions d’utilisation, la politique de confidentialité et l’avis sur les risques pour continuer."));return;}
   const internationalPhone=register?internationalRegistrationPhone(countryIso,phone):null;
   if(register&&!internationalPhone){setLocalError('تحقق من رقم الجوال ورمز الدولة المحدد.');return;}
   if(new TextEncoder().encode(password).length>72){setLocalError('كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.');return;}
@@ -135,13 +139,28 @@ export default function AuthForm({register=false}:{register?:boolean}){
      </div>
      <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="new-password" required minLength={8} value={password} placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
      <label className="form-group"><span className="form-label">تأكيد كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={confirmVisible?'text':'password'} autoComplete="new-password" required minLength={8} value={confirm} placeholder="أعد كتابة كلمة المرور" onChange={e=>setConfirm(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setConfirmVisible(!confirmVisible)} aria-label={confirmVisible?t('إخفاء تأكيد كلمة المرور','Hide confirmation password','Masquer la confirmation du mot de passe'):t('إظهار تأكيد كلمة المرور','Show confirmation password','Afficher la confirmation du mot de passe')}><AuthIcon name={confirmVisible?'eyeOff':'eye'}/></button></div></label>
+     <div className="registration-consent" role="group" aria-label={t('الموافقة على شروط التسجيل','Registration consent','Consentement à l’inscription')}>
+      <input type="checkbox" id="dh-register-consent" checked={consentAccepted}
+       onChange={event=>{setConsentAccepted(event.target.checked);setLocalError('');}}
+       required aria-describedby="dh-register-consent-note"/>
+      <div className="registration-consent-copy">
+       <label htmlFor="dh-register-consent">{t('أوافق على ','I agree to the ','J’accepte les ')}</label>
+       <button type="button" className="registration-legal-link" onClick={()=>setLegalKind('terms')}>{t('شروط الاستخدام','Terms of Use',"conditions d’utilisation")}</button>
+       {t(' و',' and the ',' ainsi que la ')}
+       <button type="button" className="registration-legal-link" onClick={()=>setLegalKind('privacy')}>{t('سياسة الخصوصية','Privacy Policy','politique de confidentialité')}</button>
+       {t(' و',' and the ',' et l’')}
+       <button type="button" className="registration-legal-link" onClick={()=>setLegalKind('risks')}>{t('تنبيه مخاطر الاستخدام','Usage Risk Notice',"avis sur les risques d’utilisation")}</button>
+      </div>
+     </div>
+     <p id="dh-register-consent-note" className="registration-consent-note">{t('الموافقة مطلوبة قبل إرسال رمز التحقق بالبريد.','Consent is required before sending the verification email.',"Le consentement est requis avant l’envoi du code de vérification.")}</p>
      {(localError||error)&&<p className="error-banner" role="alert">{localizeFeedback(localError||error,language)}</p>}
      {registrationEnabled===false&&<p className="error-banner" role="status">{t('التحقق بالبريد غير متاح حاليًا. حاول لاحقًا.','Email verification is currently unavailable. Please try later.','La vérification par e-mail est actuellement indisponible. Réessayez plus tard.')}</p>}
-     <button className="gold-btn mockup-primary-btn" disabled={isLoading||registrationEnabled!==true}><AuthIcon name="mail"/><span>{isLoading?t('جارٍ إرسال رمز التحقق…','Sending verification code…','Envoi du code de vérification…'):registrationEnabled===null?t('جارٍ التحقق من الخدمة…','Checking verification service…','Vérification du service…'):t('إرسال رمز التحقق بالبريد','Send email verification code','Envoyer le code par e-mail')}</span></button>
+     <button className="gold-btn mockup-primary-btn" disabled={isLoading||registrationEnabled!==true||!consentAccepted}><AuthIcon name="mail"/><span>{isLoading?t('جارٍ إرسال رمز التحقق…','Sending verification code…','Envoi du code de vérification…'):registrationEnabled===null?t('جارٍ التحقق من الخدمة…','Checking verification service…','Vérification du service…'):t('إرسال رمز التحقق بالبريد','Send email verification code','Envoyer le code par e-mail')}</span></button>
      <div className="mockup-register-link">لديك حساب؟ <button type="button" onClick={()=>{cancelRegistration();clearError();router.replace('/login');}}>تسجيل الدخول</button></div>
     </form>}
    </section>
   </section>
+  {legalKind&&<RegistrationLegalDocuments kind={legalKind} language={language} onClose={closeLegal}/>}
  </main>;
  return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
