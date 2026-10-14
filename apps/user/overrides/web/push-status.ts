@@ -17,7 +17,7 @@ export function humanStatus(s:PushHealth):string{
   'blocked':'محظورة من إعدادات الجهاز أو المتصفح','permission-required':'تحتاج السماح بالإشعارات',
   'server-unavailable':'تعذر التحقق من الخادم','not-configured':'خدمة الإرسال غير مهيأة بعد',
   'subscription-missing':'تحتاج تسجيل اشتراك هذا الجهاز',
-  'server-missing':'اشتراك المتصفح غير مسجل لدى ذهبي',
-  'ready':'مفعّلة ومشتركة في خادم ذهبي'
+  'server-missing':'اشتراك المتصفح غير مسجل لدى ذهبك',
+  'ready':'مفعّلة ومشتركة في خادم ذهبك'
  }[s];
 }
