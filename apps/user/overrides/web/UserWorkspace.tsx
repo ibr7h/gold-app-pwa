@@ -9,6 +9,7 @@ import {Money,formatTwo,CurrencyMark} from './price-display';
 import NotificationSettings from './NotificationSettings';
 import NearbyMarkets from './NearbyMarkets';
 import GoldHelp from './GoldHelp';
+import {LegalDocumentLinks} from './RegistrationLegalDocuments';
 import UserPersonalDetails from './UserPersonalDetails';
 import {revokePushBeforeLogout,syncMarketPushPreferences} from './push-client';
 import {api,jsonRequest,errorMessage} from './api';
@@ -464,6 +465,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     </div>
    </section>
    <button type="button" className="dh-ux-logout" onClick={signOut}><Icon name="logout"/>تسجيل الخروج</button>
+   <LegalDocumentLinks language={language}/>
    <footer className="dh-ux-profile-footer"><span className="app-version-account" dir="ltr">{APP_DISPLAY_VERSION}</span><span className="dh-profile-copyright">© 2026 Ibrahim Alneami — All Rights Reserved</span></footer>
   </div>;
 
