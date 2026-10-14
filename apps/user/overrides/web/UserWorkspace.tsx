@@ -40,6 +40,7 @@ type UserLockAuth=ReturnType<typeof useAuth> & {
  enableQuickPin:(pin:string,currentPin?:string)=>Promise<void>;
  disableQuickPin:(currentPin:string)=>Promise<void>;
  lockWithBiometric:()=>Promise<boolean>;
+ continueWithPassword:()=>void;
 };
 const useUserLockAuth=()=>useAuth() as UserLockAuth;
 type Page='home'|'prices'|'calculator'|'portfolio'|'more'|'purchases'|'alerts'|'notification-settings'|'map'|'account'|'help';
@@ -103,12 +104,12 @@ export default function UserWorkspace(){
  return <LanguageProvider key={mode} mode={mode}><LocalizedUserWorkspace/></LanguageProvider>;
 }
 function LocalizedUserWorkspace(){
- const {user,lockedAccount,isLoading,error,logout,quickPinEnabled,biometricEnabled,unlockWithPin,loginWithBiometric}=useUserLockAuth();
+ const {user,lockedAccount,isLoading,error,logout,continueWithPassword,quickPinEnabled,biometricEnabled,unlockWithPin,loginWithBiometric}=useUserLockAuth();
  if(isLoading&&!user&&!lockedAccount)return <BootScreen/>;
  if(lockedAccount)return <QuickLockScreen key={String(lockedAccount.id)}
   account={lockedAccount} quickPinEnabled={quickPinEnabled} biometricEnabled={biometricEnabled}
   loading={isLoading} error={error} onPin={unlockWithPin}
-  onBiometric={loginWithBiometric} onForgot={logout}/>;
+  onBiometric={loginWithBiometric} onForgot={continueWithPassword}/>;
  if(!user)return <AuthForm/>;
  return <Workspace key={String(user.id)} email={user.email} role={user.role} logout={logout}/>;
 }
