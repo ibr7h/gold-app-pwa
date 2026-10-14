@@ -29,7 +29,7 @@ describe('User-only backend price refresh integration',()=>{
   expect(source).not.toContain('api.gold-api.com');
  });
  it('offers manual refresh without granting clients access to the admin refresh route',()=>{
-  expect(source).toContain('aria-label="تحديث أسعار الذهب من خادم ذهبي"');
+  expect(source).toContain('aria-label="تحديث أسعار الذهب من خادم ذهبك"');
   expect(source).toContain('onClick={()=>void loadMarket()}');
   expect(source).toContain('disabled={marketLoading}');
   expect(source).not.toContain("api('/prices/refresh'");
