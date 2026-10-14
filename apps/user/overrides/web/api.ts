@@ -67,6 +67,10 @@ export function errorMessage(e:unknown){
  'Password exceeds 72 bytes':'كلمة المرور طويلة جدًا؛ الحد الأقصى 72 بايت.',
  'Email verification is unavailable':'التحقق بالبريد غير متاح حاليًا. حاول لاحقًا.',
  'Verification email could not be sent':'تعذر إرسال رمز التحقق. حاول لاحقًا.',
+ 'Email recovery is unavailable':'استعادة كلمة المرور غير متاحة الآن. حاول لاحقًا.',
+ 'Invalid or expired recovery code':'رمز الاستعادة غير صحيح أو انتهت صلاحيته.',
+ 'Password changed. Sign in with your new password.':'تم تغيير كلمة المرور. سجّل الدخول مجددًا.',
+ 'Session has expired':'انتهت الجلسة. سجّل الدخول مجددًا.',
  'Invalid or expired verification code':'رمز التحقق غير صحيح أو انتهت صلاحيته.',
  'Registration has expired; start again':'انتهت جلسة التسجيل. أعد إدخال بياناتك لطلب رمز جديد.',
  'Too many verification requests; try again later':'محاولات كثيرة. انتظر قبل طلب رمز جديد.',
@@ -87,6 +91,10 @@ async function raw(path:string,options:RequestInit={},token?:string){
   }
   return data;
  }catch(e){if(e instanceof ApiError)throw e;throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.');}finally{clearTimeout(timer);}
+}
+/** Public only: no session token, refresh, or access to authenticated user endpoints. */
+export async function publicRecoveryRequest(path:'/auth/password-reset/config'|'/auth/password-reset/request'|'/auth/password-reset/confirm',data?:object){
+ return raw(path,data?{method:'POST',body:JSON.stringify(data)}:{});
 }
 export async function registrationRequest(path:'/auth/register'|'/auth/register/resend'|'/auth/registration/config',data?:object){
  return raw(path,data?{method:'POST',body:JSON.stringify(data)}:{});
