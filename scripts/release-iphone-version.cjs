@@ -70,7 +70,8 @@ client=client.replace(validatorLine,versionValidator);
 client=client.replace(/const CURRENT = 'full-[^']+';/,"const CURRENT = '"+version+"';");
 sw=sw.replace(/const VERSION = '[^']+';/,"const VERSION = '"+token+"';");
 write(src,current.replace(m[0],"export const APP_VERSION = '"+next+"';"));
-write(clientPath,updateBrand(client));
+// Preserve DhahabiUpdateLocale as the compatibility API consumed by old installed clients.
+write(clientPath,client);
 write(swPath,updateBrand(sw));
 // Legacy iPhones have a broken double-escaped semantic regex; supplying the
 // hex compatibility id here deliberately recovers their update dialog.
