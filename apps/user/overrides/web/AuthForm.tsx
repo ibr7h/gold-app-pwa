@@ -12,6 +12,7 @@ import {internationalRegistrationPhone} from './phone-country';
 import {RegistrationPhoneField} from './RegistrationPhoneField';
 import {RegistrationLegalDocuments,LEGAL_TERMS_VERSION,type RegistrationLegalKind} from './RegistrationLegalDocuments';
 import {AuthLanguageSwitcher} from './AuthLanguageSwitcher';
+import {PasswordRecovery} from './PasswordRecovery';
 import {APP_DISPLAY_VERSION} from './app-version';
 import './registration.css';
 
@@ -72,7 +73,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
  const t=(ar:string,en:string,fr:string)=>language==='en'?en:language==='fr'?fr:ar;
  const {user,isLoading,error,login,startRegistration,registerStep,registerEmail,verifyRegistration,resendRegisterCode,cancelRegistration,registrationExpiresAt,registrationResendAt,clearError,biometricAvailable,biometricEnrolled,biometricEnabled,loginWithBiometric}=useAuth() as RegistrationAuth;
  const showBiometricLogin=canShowBiometricLogin({biometricAvailable,biometricEnrolled,biometricEnabled});
- const [email,setEmail]=useState(''),[phone,setPhone]=useState(''),[countryIso,setCountryIso]=useState('SA'),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[confirmVisible,setConfirmVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false);
+ const [email,setEmail]=useState(''),[phone,setPhone]=useState(''),[countryIso,setCountryIso]=useState('SA'),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[name,setName]=useState(''),[visible,setVisible]=useState(false),[confirmVisible,setConfirmVisible]=useState(false),[localError,setLocalError]=useState(''),[guest,setGuest]=useState(false),[recovery,setRecovery]=useState(false);
  const [code,setCode]=useState(''),[clock,setClock]=useState(Date.now()),[registrationEnabled,setRegistrationEnabled]=useState<boolean|null>(null);
  const [consentAccepted,setConsentAccepted]=useState(false),[legalKind,setLegalKind]=useState<RegistrationLegalKind|null>(null);
  const closeLegal=React.useCallback(()=>setLegalKind(null),[]);
@@ -110,6 +111,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
  // Browser and iOS own the passkey sheet. Never request it before an explicit tap.
  // WebAuthn authenticates the previously enrolled device; this does not enroll passkeys automatically.
  if(guest&&!register)return <GuestPrices onBack={()=>setGuest(false)}/>;
+  if(recovery&&!register)return <PasswordRecovery initialEmail={email} onBack={()=>{setRecovery(false);setLocalError('');clearError();}}/>;
  if(register)return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
    <AuthLanguageSwitcher/>
@@ -179,7 +181,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
     <form onSubmit={submit} aria-busy={isLoading}>
      <label className="form-group"><span className="form-label">البريد الإلكتروني أو رقم الجوال</span><div className="mockup-input-wrap"><input className="form-input" type="text" dir="ltr" autoComplete="username" value={email} required placeholder="البريد الإلكتروني أو 05xxxxxxxx" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
      <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="current-password" value={password} required placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
-     <div className="mockup-login-options"><label className="mockup-remember"><input type="checkbox" disabled/><span>الدخول السريع من إعدادات الحساب</span></label><button type="button" className="mockup-forgot" onClick={()=>setLocalError('استعادة كلمة المرور لم تُفعّل في الخادم بعد.')}>نسيت كلمة المرور؟</button></div>
+     <div className="mockup-login-options"><label className="mockup-remember"><input type="checkbox" disabled/><span>الدخول السريع من إعدادات الحساب</span></label><button type="button" className="mockup-forgot" onClick={()=>{setRecovery(true);setLocalError('');clearError();}}>{t('نسيت كلمة المرور؟','Forgot password?','Mot de passe oublié ?')}</button></div>
      <button className="gold-btn mockup-primary-btn" disabled={isLoading}><AuthIcon name="login"/><span>{isLoading?'جارٍ تسجيل الدخول…':'تسجيل الدخول'}</span></button>
      <button type="button" className="gold-btn-outline mockup-guest-btn" onClick={()=>setGuest(true)}><AuthIcon name="guest"/><span>المتابعة كزائر (تصفح الأسعار فقط)</span></button>
      <div className="mockup-register-link">ليس لديك حساب؟ <button type="button" onClick={()=>{clearError();router.replace('/register');}}>إنشاء حساب مستخدم جديد</button></div>
