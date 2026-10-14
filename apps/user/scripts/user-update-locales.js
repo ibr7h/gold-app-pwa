@@ -49,8 +49,8 @@
   const currentLanguage = () => {
     // Sign-in may use a device-selected language. Match the visible auth
     // screen rather than showing an update banner in a different language.
-    const path = location.pathname;
-    const isAuth = /\\/(?:login|register)(?:\\.html)?\\/?$/.test(path);
+    const path = location.pathname.endsWith('/') ? location.pathname.slice(0,-1) : location.pathname;
+    const isAuth = ['/login','/register','/login.html','/register.html'].some(suffix=>path.endsWith(suffix));
     let stored = '', auth = '';
     try {
       stored = localStorage.getItem('dhahabi:user:language') || '';
