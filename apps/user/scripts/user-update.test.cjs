@@ -183,16 +183,16 @@ test('update prompt and actions use selected English translations',async()=>{
   const app=appHarness('full-bbbbbbbb',{language:'en'});
   await app.load();
   const banner=app.nodes.get('dhahabi-user-update');
-  assert.match(banner.children[0].textContent,/Dhahabi update/);
+  assert.match(banner.children[0].textContent,/Dhahabk update/);
   assert.equal(banner.children[2].children[0].textContent,'Update now');
   assert.equal(banner.children[2].children[1].textContent,'Later');
-  assert.equal(banner.attributes['aria-label'],'Update Dhahabi app');
+  assert.equal(banner.attributes['aria-label'],'Update Dhahabk app');
 });
 test('the selected French language is used for update prompt and feedback',async()=>{
   const app=appHarness('full-bbbbbbbb',{language:'fr'});
   await app.load();
   const banner=app.nodes.get('dhahabi-user-update');
-  assert.match(banner.children[0].textContent,/mise à jour de Dhahabi/);
+  assert.match(banner.children[0].textContent,/mise à jour de Dhahabk/);
   assert.equal(banner.children[2].children[0].textContent,'Mettre à jour');
   assert.equal(banner.children[2].children[1].textContent,'Plus tard');
   assert.match(banner.style.cssText,/direction:ltr/);
@@ -277,10 +277,10 @@ test('updater honors the auth locale on the login route without overriding app l
  const app=appHarness('full-bbbbbbbb',{language:'ar',pathname:'/gold-app-pwa/full/login',authLanguage:'fr'});
  await app.load();
  const banner=app.nodes.get('dhahabi-user-update');
- assert.match(banner.children[0].textContent,/mise à jour de Dhahabi/);
+ assert.match(banner.children[0].textContent,/mise à jour de Dhahabk/);
  const regular=appHarness('full-bbbbbbbb',{language:'en',pathname:'/gold-app-pwa/full/'});
  await regular.load();
- assert.match(regular.nodes.get('dhahabi-user-update').children[0].textContent,/Dhahabi update/);
+ assert.match(regular.nodes.get('dhahabi-user-update').children[0].textContent,/Dhahabk update/);
 });
 
 test('new worker is isolated to the User origin/scope and never caches fresh version metadata',()=>{
