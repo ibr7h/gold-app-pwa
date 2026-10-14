@@ -22,7 +22,7 @@ describe('biometric entry requires an explicit secure opt-in',()=>{
   expect(auth).toContain("showBiometricLogin?'أو بالبريد الإلكتروني أو رقم الجوال':'الدخول بالبريد الإلكتروني أو رقم الجوال'");
   expect(workspace).toContain('const biometricActive=canShowBiometricLogin(');
   expect(workspace).toContain('الأمان والدخول');
-  expect(workspace).toContain('قفل ذهبي الآن');
+  expect(workspace).toContain('قفل ذهبك الآن');
   expect(workspace).toContain('خدمة بصمة الوجه/الإصبع');
   expect(context).toContain('await verifyLocalCredential(c,request.current!.signal)');
   expect(context).toContain('setLockedAccount(cached)');
