@@ -10,13 +10,13 @@ import {localizeFeedback} from './i18n-feedback';
 import {registrationAvailable,registrationDigits} from './registration';
 import {internationalRegistrationPhone} from './phone-country';
 import {RegistrationPhoneField} from './RegistrationPhoneField';
-import {RegistrationLegalDocuments,type RegistrationLegalKind} from './RegistrationLegalDocuments';
+import {RegistrationLegalDocuments,LEGAL_TERMS_VERSION,type RegistrationLegalKind} from './RegistrationLegalDocuments';
 import {AuthLanguageSwitcher} from './AuthLanguageSwitcher';
 import {APP_DISPLAY_VERSION} from './app-version';
 import './registration.css';
 
 type RegistrationAuth=ReturnType<typeof useAuth>&{
- startRegistration:(name:string,email:string,password:string,phone?:string)=>Promise<boolean>;
+ startRegistration:(name:string,email:string,password:string,phone?:string,legal?:{version:string;noticesAcknowledged:true})=>Promise<boolean>;
  registrationExpiresAt:number;registrationResendAt:number;
 };
 type AuthIconName='fingerprint'|'mail'|'phone'|'lock'|'eye'|'eyeOff'|'login'|'guest'|'userPlus'|'back';
@@ -95,7 +95,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
   try{
    if(register){
     if(registrationEnabled!==true)return;
-    if(await startRegistration(name,email,password,internationalPhone||undefined)){setPassword('');setConfirm('');setCode('');setClock(Date.now());}
+    if(await startRegistration(name,email,password,internationalPhone||undefined,{version:LEGAL_TERMS_VERSION,noticesAcknowledged:true})){setPassword('');setConfirm('');setCode('');setClock(Date.now());}
    }else await login(email,password);
   }catch{}
  };
