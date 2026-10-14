@@ -1,0 +1,50 @@
+name: Diagnose iPhone preview API connectivity
+on:
+  push:
+    branches:
+      - diagnostics/iphone-preview-cors-20261015
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check API reachability and browser CORS preflight
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const api='https://gold-app-api-u8dl.onrender.com';
+          let failed=false;
+          async function check(label,url,init={}){
+            const started=Date.now();
+            try{
+              const response=await fetch(url,{...init,signal:AbortSignal.timeout(40000)});
+              const allow=response.headers.get('access-control-allow-origin')||'(none)';
+              const status=response.status;
+              console.log(label+': HTTP '+status+', '+(Date.now()-started)+'ms, Access-Control-Allow-Origin='+allow);
+              return response;
+            }catch(error){
+              console.log(label+': '+error.name+': '+error.message+' after '+(Date.now()-started)+'ms');
+              failed=true;return null;
+            }
+          }
+          const ready=await check('Public API config',api+'/auth/registration/config');
+          if(!ready?.ok)failed=true;
+          for(const origin of ['https://dhahabi-user-iphone-preview.onrender.com','https://app.dhahabk.com','https://ibr7h.github.io']){
+            const response=await check('CORS '+origin,api+'/auth/login',{
+              method:'OPTIONS',headers:{
+                Origin:origin,
+                'Access-Control-Request-Method':'POST',
+                'Access-Control-Request-Headers':'content-type'
+              }
+            });
+            if(!response?.ok||response.headers.get('access-control-allow-origin')!==origin){
+              console.log('FAIL: Browser would block cross-origin POST /auth/login from '+origin);
+              failed=true;
+            }
+          }
+          if(failed)process.exitCode=1;
+          NODE
