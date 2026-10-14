@@ -102,7 +102,7 @@ describe('Registration legal consent before email verification',()=>{
 
 describe('Saudi Dhahabi legal notice review package',()=>{
  it('ships all three complete and localized review drafts without claiming legal approval',()=>{
-  expect(LEGAL_REVIEW_VERSION).toMatch(/^\\d{4}-\\d{2}-\\d{2}-review\\.\\d+$/);
+  expect(LEGAL_REVIEW_VERSION).toMatch(/^\d{4}-\d{2}-\d{2}-review\.\d+$/);
   expect(LEGAL_PUBLICATION_APPROVED).toBe(false);
   expect(LEGAL_DOMAIN).toBe('dhahabk.com');
   expect(LEGAL_EMAILS).toEqual({
@@ -118,7 +118,7 @@ describe('Saudi Dhahabi legal notice review package',()=>{
     expect(titles.length).toBe(all[0].length);
     expect(titles.every(x=>x.length>8)).toBe(true);
    }
-   for(const text of all[1].concat(all[2]))expect(text).not.toMatch(/[\\u0600-\\u06FF]/);
+   for(const text of all[1].concat(all[2]))expect(text).not.toMatch(/[\u0600-\u06FF]/);
   }
  });
  it('describes the actual processor, German hosting and data rights without pretending deletion is automatic',()=>{
