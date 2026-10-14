@@ -17,6 +17,8 @@ export function registrationDigits(value:string){
   .replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x6f0)).replace(/[^0-9]/g,'').slice(0,6);
 }
 
+export interface TermsAcceptance{version:string;noticesAcknowledged:true}
+
 export interface RegistrationChallenge{registrationId:string;email:string;expiresAt:number;resendAt:number}
 export function registrationChallenge(data:any,now=Date.now()):RegistrationChallenge{
  if(typeof data?.registrationId!=='string'||! /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.registrationId)
