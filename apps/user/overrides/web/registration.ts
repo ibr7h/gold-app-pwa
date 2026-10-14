@@ -30,7 +30,7 @@ export function registrationChallenge(data:any,now=Date.now()):RegistrationChall
  return {registrationId:data.registrationId,email:data.email,expiresAt:now+data.expiresIn*1000,resendAt:now+data.resendAfterSeconds*1000};
 }
 
-export async function beginRegistration(name:string,email:string,password:string,phone:unknown){
+export async function beginRegistration(name:string,email:string,password:string,phone:unknown,legal?:TermsAcceptance){
  const normalized=normalizeRegistrationPhone(phone);
  if(!normalized)throw new ApiError('أدخل رقم جوال صحيحًا، مثل 05xxxxxxxx أو رقمًا دوليًا يبدأ بعلامة +.');
  return registrationChallenge(await registrationRequest('/auth/register',{
