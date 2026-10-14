@@ -4,6 +4,7 @@ vi.mock('@react-native-async-storage/async-storage',()=>({default:{getItem:async
 import {activeSessionTokens,clearSession,errorMessage,ApiError,authenticate} from '../api';
 import {beginRegistration,normalizeRegistrationPhone,registrationChallenge,registrationDigits,resendRegistration} from '../registration';
 import {countryFlag,countryDisplayName,internationalRegistrationPhone,PHONE_COUNTRIES} from '../phone-country';
+import {LEGAL_REVIEW_VERSION,LEGAL_PUBLICATION_APPROVED,LEGAL_DOMAIN,LEGAL_EMAILS,legalSectionCount,legalSectionTitles} from '../RegistrationLegalDocuments';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 const challenge={registrationId:'8dea93b5-aa3e-4481-b81f-2fd688a70a8f',email:'new@example.test',channel:'email',expiresIn:599,resendAfterSeconds:59};
@@ -95,6 +96,52 @@ describe('Registration legal consent before email verification',()=>{
   expect(legal).toContain('event.key===\'Escape\'');
   expect(css).toContain('.gold-auth .registration-consent');
   expect(css).toContain('.gold-auth .registration-legal-backdrop');
+  expect(css).toContain('max-height:min(83dvh,770px)');
+ });
+});
+
+describe('Saudi Dhahabi legal notice review package',()=>{
+ it('ships all three complete and localized review drafts without claiming legal approval',()=>{
+  expect(LEGAL_REVIEW_VERSION).toMatch(/^\\d{4}-\\d{2}-\\d{2}-review\\.\\d+$/);
+  expect(LEGAL_PUBLICATION_APPROVED).toBe(false);
+  expect(LEGAL_DOMAIN).toBe('dhahabk.com');
+  expect(LEGAL_EMAILS).toEqual({
+   privacy:'privacy@dhahabk.com',support:'support@dhahabk.com',info:'info@dhahabk.com'
+  });
+  expect(legalSectionCount('terms')).toBeGreaterThanOrEqual(10);
+  expect(legalSectionCount('privacy')).toBeGreaterThanOrEqual(12);
+  expect(legalSectionCount('risks')).toBeGreaterThanOrEqual(8);
+  for(const kind of ['terms','privacy','risks'] as const){
+   const all=(['ar','en','fr'] as const).map(lang=>legalSectionTitles(kind,lang));
+   expect(all[0].length).toBeGreaterThan(7);
+   for(const titles of all){
+    expect(titles.length).toBe(all[0].length);
+    expect(titles.every(x=>x.length>8)).toBe(true);
+   }
+   for(const text of all[1].concat(all[2]))expect(text).not.toMatch(/[\\u0600-\\u06FF]/);
+  }
+ });
+ it('describes the actual processor, German hosting and data rights without pretending deletion is automatic',()=>{
+  const source=readFileSync(fileURLToPath(new URL('../RegistrationLegalDocuments.tsx',import.meta.url).href),'utf8');
+  for(const fact of ['Frankfurt','Germany','Resend','Render','privacy@dhahabk.com','support@dhahabk.com','dhahabk.com','Face ID','Push'])expect(source).toContain(fact);
+  expect(source).toContain('LEGAL_PUBLICATION_APPROVED=false');
+  expect(source).toContain('retention schedules must be approved');
+  expect(source).toContain('account closure or personal-data deletion requires a verified request');
+  expect(source).toContain('registration-legal-section');
+  expect(source).toContain('data-no-translate');
+ });
+ it('offers read-only access from registration, Help and Profile; does not replace the existing UI',()=>{
+  const help=readFileSync(fileURLToPath(new URL('../GoldHelp.tsx',import.meta.url).href),'utf8');
+  const workspace=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url).href),'utf8');
+  const registration=readFileSync(fileURLToPath(new URL('../AuthForm.tsx',import.meta.url).href),'utf8');
+  const css=readFileSync(fileURLToPath(new URL('../registration.css',import.meta.url).href),'utf8');
+  expect(help).toContain('<LegalDocumentLinks language={language}/>');
+  expect(workspace).toContain('<LegalDocumentLinks language={language}/>');
+  for(const k of ['terms','privacy','risks'])expect(registration).toContain("onClick={()=>setLegalKind('"+k+"')}");
+  expect(registration).toContain('if(register&&!consentAccepted)');
+  expect(registration).toContain('وأقر بالاطلاع');
+  expect(css).toContain('.gold-auth .registration-legal-backdrop');
+  expect(css).toContain('.gold-web.workspace .registration-legal-backdrop');
   expect(css).toContain('max-height:min(83dvh,770px)');
  });
 });
