@@ -45,6 +45,7 @@ function AuthIcon({name,size=20}:{name:AuthIconName;size?:number}){
 interface GuestPrice{karat:number;buyPrice:string;currency:string}
 function GuestPrices({onBack}:{onBack:()=>void}){
  const {language,direction}=useLanguage();
+ const t=(ar:string,en:string,fr:string)=>language==='en'?en:language==='fr'?fr:ar;
  const [rows,setRows]=useState<GuestPrice[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
  useEffect(()=>{let active=true;(async()=>{try{
   const data=await Promise.all([24,22,21,18].map(async karat=>{const r=await fetch(API_BASE+'/prices/latest?currency=SAR&karat='+karat,{cache:'no-store'});if(!r.ok)throw new Error();return r.json();}));
