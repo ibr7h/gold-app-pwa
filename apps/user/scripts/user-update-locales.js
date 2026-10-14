@@ -4,8 +4,8 @@
   'use strict';
   const messages = {
   "ar": {
-    "updateAria": "تحديث تطبيق ذهبي",
-    "available": "يتوفر تحديث جديد لذهبي",
+    "updateAria": "تحديث تطبيق ذهبك",
+    "available": "يتوفر تحديث جديد لذهبك",
     "info": "يمكن تثبيت الإصدار الجديد مع الاحتفاظ بحسابك وبياناتك.",
     "updateNow": "تحديث الآن",
     "later": "لاحقًا",
@@ -14,12 +14,12 @@
     "previousIncomplete": "لم يكتمل التحديث السابق. تحقق من الاتصال وأعد المحاولة.",
     "installFailed": "تعذر تثبيت التحديث الآن. حاول مرة أخرى عند توفر الاتصال.",
     "offline": "لا يوجد اتصال بالإنترنت للتحقق من التحديثات.",
-    "current": "تطبيق ذهبي محدّث إلى آخر إصدار",
+    "current": "تطبيق ذهبك محدّث إلى آخر إصدار",
     "verifyFailed": "تعذر التحقق من التحديثات. حاول مرة أخرى."
   },
   "en": {
-    "updateAria": "Update Dhahabi app",
-    "available": "A new Dhahabi update is available",
+    "updateAria": "Update Dhahabk app",
+    "available": "A new Dhahabk update is available",
     "info": "Install the new version without losing your account or data.",
     "updateNow": "Update now",
     "later": "Later",
@@ -28,12 +28,12 @@
     "previousIncomplete": "The previous update did not complete. Check your connection and try again.",
     "installFailed": "Could not install the update. Try again when you have an internet connection.",
     "offline": "No internet connection to check for updates.",
-    "current": "Dhahabi is up to date",
+    "current": "Dhahabk is up to date",
     "verifyFailed": "Could not check for updates. Please try again."
   },
   "fr": {
-    "updateAria": "Mettre à jour Dhahabi",
-    "available": "Une mise à jour de Dhahabi est disponible",
+    "updateAria": "Mettre à jour Dhahabk",
+    "available": "Une mise à jour de Dhahabk est disponible",
     "info": "Installez la nouvelle version sans perdre votre compte ni vos données.",
     "updateNow": "Mettre à jour",
     "later": "Plus tard",
@@ -42,7 +42,7 @@
     "previousIncomplete": "La mise à jour précédente n’a pas abouti. Vérifiez votre connexion et réessayez.",
     "installFailed": "Impossible d’installer la mise à jour. Réessayez avec une connexion Internet.",
     "offline": "Aucune connexion Internet pour rechercher des mises à jour.",
-    "current": "Dhahabi est à jour",
+    "current": "Dhahabk est à jour",
     "verifyFailed": "Impossible de rechercher des mises à jour. Réessayez."
   }
 };

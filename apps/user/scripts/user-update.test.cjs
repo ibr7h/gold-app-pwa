@@ -183,16 +183,16 @@ test('update prompt and actions use selected English translations',async()=>{
   const app=appHarness('full-bbbbbbbb',{language:'en'});
   await app.load();
   const banner=app.nodes.get('dhahabi-user-update');
-  assert.match(banner.children[0].textContent,/Dhahabi update/);
+  assert.match(banner.children[0].textContent,/Dhahabk update/);
   assert.equal(banner.children[2].children[0].textContent,'Update now');
   assert.equal(banner.children[2].children[1].textContent,'Later');
-  assert.equal(banner.attributes['aria-label'],'Update Dhahabi app');
+  assert.equal(banner.attributes['aria-label'],'Update Dhahabk app');
 });
 test('the selected French language is used for update prompt and feedback',async()=>{
   const app=appHarness('full-bbbbbbbb',{language:'fr'});
   await app.load();
   const banner=app.nodes.get('dhahabi-user-update');
-  assert.match(banner.children[0].textContent,/mise à jour de Dhahabi/);
+  assert.match(banner.children[0].textContent,/mise à jour de Dhahabk/);
   assert.equal(banner.children[2].children[0].textContent,'Mettre à jour');
   assert.equal(banner.children[2].children[1].textContent,'Plus tard');
   assert.match(banner.style.cssText,/direction:ltr/);
@@ -277,10 +277,10 @@ test('updater honors the auth locale on the login route without overriding app l
  const app=appHarness('full-bbbbbbbb',{language:'ar',pathname:'/gold-app-pwa/full/login',authLanguage:'fr'});
  await app.load();
  const banner=app.nodes.get('dhahabi-user-update');
- assert.match(banner.children[0].textContent,/mise à jour de Dhahabi/);
+ assert.match(banner.children[0].textContent,/mise à jour de Dhahabk/);
  const regular=appHarness('full-bbbbbbbb',{language:'en',pathname:'/gold-app-pwa/full/'});
  await regular.load();
- assert.match(regular.nodes.get('dhahabi-user-update').children[0].textContent,/Dhahabi update/);
+ assert.match(regular.nodes.get('dhahabi-user-update').children[0].textContent,/Dhahabk update/);
 });
 
 test('new worker is isolated to the User origin/scope and never caches fresh version metadata',()=>{
@@ -312,6 +312,9 @@ test('release generator upgrades both legacy and already-patched published updat
       fs.writeFileSync(path.join(src,'app-version.ts'),versionSource);
       fs.writeFileSync(path.join(base,'sw.js'),worker);
       fs.writeFileSync(path.join(base,'pwa-update.js'),input);
+       for(const manifest of ['manifest.webmanifest','manifest.json']){
+         fs.copyFileSync(path.join(repoRoot,'_render_preview/gold-app-pwa/full',manifest),path.join(base,manifest));
+       }
       for(let i=0;i<25;i++){
         const file=path.join(base,'route'+i+'.html');
         fs.writeFileSync(file,'<script src="/gold-app-pwa/full/pwa-update.js?v=seed"></script>');
@@ -320,6 +323,12 @@ test('release generator upgrades both legacy and already-patched published updat
         cwd:dir,encoding:'utf8',env:{...process.env,GITHUB_SHA:'aabbccddeeff0011223344556677889900aabbcc'}
       });
       assert.equal(result.status,0,label+' generator: '+result.stderr+' '+result.stdout);
+       for(const manifest of ['manifest.webmanifest','manifest.json']){
+         const installed=JSON.parse(fs.readFileSync(path.join(base,manifest),'utf8'));
+         assert.equal(installed.name,'ذهبك');
+         assert.equal(installed.short_name,'ذهبك');
+         assert.equal(installed.id,'/gold-app-pwa/full/');
+       }
       const released=JSON.parse(fs.readFileSync(path.join(base,'version.json'),'utf8'));
       assert.equal(released.releaseVersion,released.version);
       assert.match(released.semanticReleaseVersion,/^full-\d+\.\d+\.\d+-\d{8}$/);

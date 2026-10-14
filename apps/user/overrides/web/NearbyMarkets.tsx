@@ -73,7 +73,7 @@ export default function NearbyMarkets(){
    {!loading&&failure&&<div className="dh-nearby-permission-error" role="alert">
     <p className="notice warning">{localizeFeedback(failure,language)}</p>
     <button type="button" className="dh-nearby-retry" onClick={()=>setAttempt(value=>value+1)}>إعادة المحاولة</button>
-    <p className="dh-nearby-help">على الآيفون: فعّل «خدمات الموقع» واسمح لـ Safari أو لتطبيق ذهبي بالوصول إلى موقعك من إعدادات الجهاز.</p>
+    <p className="dh-nearby-help">على الآيفون: فعّل «خدمات الموقع» واسمح لـ Safari أو لتطبيق ذهبك بالوصول إلى موقعك من إعدادات الجهاز.</p>
    </div>}
    {!loading&&point&&<div className="dh-location-links">
     <a target="_blank" rel="noopener noreferrer" href={googleUrl}>خرائط Google</a>

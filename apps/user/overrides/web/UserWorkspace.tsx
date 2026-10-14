@@ -85,12 +85,13 @@ function CurrencySelect({value='SAR'}:{value?:string}){return <select name="curr
 function KaratSelect({value=24}:{value?:number}){return <select name="karat" defaultValue={value}>{(KARATS.includes(value)?KARATS:[value,...KARATS]).map(k=><option key={k} value={k}>عيار {k}</option>)}</select>;}
 interface PriceHistoryRow{id:string;source:string;currency:string;karat:number;buyPrice:string;sellPrice?:string;timestamp?:string;createdAt?:string;kind?:'spot'|'daily-average';day?:string}
 function BootScreen(){
+ const {language,direction}=useLanguage();
  const [slow,setSlow]=useState(false);
  useEffect(()=>{const timer=setTimeout(()=>setSlow(true),6500);return()=>clearTimeout(timer);},[]);
- return <div className="gold-web boot" dir="rtl" role="status" aria-live="polite">
+ return <div className="gold-web boot" dir={direction} role="status" aria-live="polite">
   <div className="boot-shell">
    <img className="boot-photo-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="" aria-hidden="true"/>
-   <div className="boot-copy"><h1>ذهبي</h1><p>نجهّز ذهبي لك…</p></div>
+   <div className="boot-copy"><h1>{translateUiText('ذهبك',language)}</h1><p>{translateUiText('نجهّز ذهبك لك…',language)}</p></div>
    <span className="boot-loader" aria-hidden="true"><i/><i/><i/></span>
        {slow&&<p className="boot-slow">قد يستغرق التشغيل الأول بضع ثوانٍ.</p>}
   </div>
@@ -248,7 +249,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   <div className="row"><div><p className="mock-supporting">{marketClosed?'آخر سعر مسجل':'سعر الذهب الآن'}</p><strong className="mock-gold-number">{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</strong><p className="mock-supporting">عيار 24 · سعر الجرام</p></div><span className={'pill '+(!stale?'good':'warn')}>{marketLabel}</span></div>
   <p className="market-update">آخر تحديث: {marketTime(homeMarket)}</p>
  </section>;
- const nav=<><div className="nav-brand"><span className="brand-mark small">ذ</span><div><strong>ذهبي</strong><small>حساب المستخدم</small></div></div><nav aria-label="القائمة الرئيسية">{primaryPages.map(p=><button key={p.id} className={'nav-item '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav><div className="nav-account"><span className="avatar">{email[0].toUpperCase()}</span><span className="email" dir="ltr">{email}</span><button className="icon-button" title="تسجيل الخروج" aria-label="تسجيل الخروج" onClick={signOut}><Icon name="logout"/></button></div></>;
+ const nav=<><div className="nav-brand"><span className="brand-mark small">ذ</span><div><strong>{tr("ذهبك")}</strong><small>حساب المستخدم</small></div></div><nav aria-label="القائمة الرئيسية">{primaryPages.map(p=><button key={p.id} className={'nav-item '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav><div className="nav-account"><span className="avatar">{email[0].toUpperCase()}</span><span className="email" dir="ltr">{email}</span><button className="icon-button" title="تسجيل الخروج" aria-label="تسجيل الخروج" onClick={signOut}><Icon name="logout"/></button></div></>;
  const calcMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===calcKarat);
  const calcUnit=calcMarket?Number(calcMarket.buyPrice):null;
  const calcWeightN=Math.max(0,Number(calcWeight)||0),calcFeeN=Math.max(0,Number(calcFee)||0);
@@ -270,7 +271,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
      <p className={'home-market-change '+(homeMovement===null?'neutral':homeMovement.difference>=0?'positive':'negative')} title="مقارنة بأول تحديث متاح اليوم بتوقيت السعودية">
       {marketClosed?'لا تداول حاليًا':homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),priceCurrency)} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:'لا توجد مقارنة كافية اليوم'}
      </p></div><div className="buy-sell-mini"><span className="dh-buy-sell-row"><span>{tr('سعر الشراء:')}</span><b>{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</b></span><span className="dh-buy-sell-row"><span>{tr('سعر البيع:')}</span><b>{money(homeMarket?Number(homeMarket.sellPrice):null,priceCurrency)}</b></span></div></div>
-    <div className="live-card-footer"><span>السعر العالمي الاسترشادي</span><button className="home-price-refresh" title={marketTime(homeMarket)} aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}>{marketClosed?'آخر تحديث: '+marketTime(homeMarket):marketLoading?'جارٍ التحديث…':homeUpdateAge(homeMarket?.timestamp,clock)}</button></div>
+    <div className="live-card-footer"><span>السعر العالمي الاسترشادي</span><button className="home-price-refresh" title={marketTime(homeMarket)} aria-label="تحديث أسعار الذهب من خادم ذهبك" disabled={marketLoading} onClick={()=>void loadMarket()}>{marketClosed?'آخر تحديث: '+marketTime(homeMarket):marketLoading?'جارٍ التحديث…':homeUpdateAge(homeMarket?.timestamp,clock)}</button></div>
    </section>
    <div className="approved-section-title"><h3>الخدمات السريعة</h3></div>
    <section className="approved-services-grid">{[
@@ -403,20 +404,20 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  {p.invoiceDetails?.sellerName&&<div><dt>التاجر</dt><dd data-no-translate>{p.invoiceDetails.sellerName}</dd></div>}<div className="actions"><button className="secondary" disabled={busy} onClick={()=>openDialog('purchase',p)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/portfolio/purchase/'+p.id,label:'سجل الشراء'});}}>حذف</button></div></dl></article>)}</div>}</section>;
 
   if(page==='notification-settings')return <NotificationSettings/>;
-  if(page==='alerts')return <section className="approved-card"><div className="approved-card-title"><span>تنبيهات الأسعار</span><button className="primary compact-primary" disabled={busy||!loaded} onClick={()=>openAlertDialog()}><Icon name="plus"/>{tr('تنبيه جديد')}</button></div><div className="dh-push-alert-entry"><p>عندما يصل السعر إلى هدفك، يرسل ذهبي إشعار Push إلى أجهزتك المسجلة، حتى إن كانت الصفحة مغلقة وفق دعم الجهاز.</p><button type="button" className="secondary" onClick={()=>navigate('notification-settings')}><Icon name="bell"/>إعدادات إشعارات الجهاز</button></div>{!loaded?<Empty>لم يتم تحميل التنبيهات بعد.</Empty>:!alerts.length?<Empty>لا توجد تنبيهات. أضف السعر الذي تريد متابعته.</Empty>:<div className="approved-alert-list">{alerts.map(a=><article key={a.id}><div><span className={'pill '+(a.status==='active'?'good':a.status==='triggered'?'warn':'')}>{statusLabels[a.status]}</span><h3>عيار {a.karat} · <span className="dh-currency-label"><CurrencyMark currency={a.currency}/></span></h3><p>{a.direction==='above'?'عند وصول السعر إلى أو أعلى من':'عند وصول السعر إلى أو أقل من'} <b>{showMoney(Number(a.targetPrice),a.currency)}</b></p></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>void mutate('/alerts/'+a.id+(a.status==='active'?'/pause':'/activate'),'POST')}>{a.status==='active'?'إيقاف':a.status==='triggered'?'إعادة تفعيل':'تفعيل'}</button><button className="secondary" disabled={busy} onClick={()=>openAlertDialog(a)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/alerts/'+a.id,label:'التنبيه'});}}>حذف</button></div></article>)}</div>}</section>;
+  if(page==='alerts')return <section className="approved-card"><div className="approved-card-title"><span>تنبيهات الأسعار</span><button className="primary compact-primary" disabled={busy||!loaded} onClick={()=>openAlertDialog()}><Icon name="plus"/>{tr('تنبيه جديد')}</button></div><div className="dh-push-alert-entry"><p>عندما يصل السعر إلى هدفك، يرسل ذهبك إشعار Push إلى أجهزتك المسجلة، حتى إن كانت الصفحة مغلقة وفق دعم الجهاز.</p><button type="button" className="secondary" onClick={()=>navigate('notification-settings')}><Icon name="bell"/>إعدادات إشعارات الجهاز</button></div>{!loaded?<Empty>لم يتم تحميل التنبيهات بعد.</Empty>:!alerts.length?<Empty>لا توجد تنبيهات. أضف السعر الذي تريد متابعته.</Empty>:<div className="approved-alert-list">{alerts.map(a=><article key={a.id}><div><span className={'pill '+(a.status==='active'?'good':a.status==='triggered'?'warn':'')}>{statusLabels[a.status]}</span><h3>عيار {a.karat} · <span className="dh-currency-label"><CurrencyMark currency={a.currency}/></span></h3><p>{a.direction==='above'?'عند وصول السعر إلى أو أعلى من':'عند وصول السعر إلى أو أقل من'} <b>{showMoney(Number(a.targetPrice),a.currency)}</b></p></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>void mutate('/alerts/'+a.id+(a.status==='active'?'/pause':'/activate'),'POST')}>{a.status==='active'?'إيقاف':a.status==='triggered'?'إعادة تفعيل':'تفعيل'}</button><button className="secondary" disabled={busy} onClick={()=>openAlertDialog(a)}>تعديل</button><button className="danger text-button" disabled={busy} onClick={()=>{setFormError('');setConfirm({path:'/alerts/'+a.id,label:'التنبيه'});}}>حذف</button></div></article>)}</div>}</section>;
 
   if(page==='map')return <NearbyMarkets/>;
 
   if(page==='account')return <div className="dh-ux-profile">
    <section className="approved-card dh-ux-profile-hero" aria-label="ملخص حسابك">
     <span className="avatar large dh-ux-avatar" aria-hidden="true">{accountName.trim().charAt(0).toUpperCase()||'ذ'}</span>
-    <div className="dh-ux-identity"><span className="dh-ux-kicker">حساب ذهبي</span><h2 dir="auto" data-no-translate>{accountName}</h2><p dir="ltr">{email}</p></div>
+    <div className="dh-ux-identity"><span className="dh-ux-kicker">حساب ذهبك</span><h2 dir="auto" data-no-translate>{accountName}</h2><p dir="ltr">{email}</p></div>
     <span className="dh-ux-role">{role==='admin'?'مسؤول':role==='trader'?'تاجر':'مستخدم'}</span>
    </section>
    <UserPersonalDetails/>
    <section className="approved-card dh-quick-settings">
  <h3 className="dh-section-label">الأمان والدخول</h3>
- <p className="dh-security-intro">اختر طريقة فتح ذهبي الآمنة على هذا الجهاز.</p>
+ <p className="dh-security-intro">اختر طريقة فتح ذهبك الآمنة على هذا الجهاز.</p>
  <div className="dh-quick-setting-row">
   <span><strong>رمز الدخول السريع</strong><small>شاشة قفل ولوحة أرقام على هذا الجهاز</small></span>
   <button type="button" role="switch" aria-label="تفعيل رمز الدخول السريع" aria-checked={quickPinEnabled}
@@ -440,8 +441,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    onClick={()=>void (async()=>{
     setBiometricNotice('');
     try{
-     if(biometricActive){await disableBiometric();setBiometricNotice('أُوقفت بصمة الجهاز في ذهبي.');}
-     else{await enableBiometric();setBiometricNotice('تم تفعيل تحقق الجهاز. قد يطلب النظام بصمة أو رمز الجهاز؛ بعض المتصفحات تحتاج رمز ذهبي أو كلمة المرور بعد إعادة فتح التطبيق.');}
+     if(biometricActive){await disableBiometric();setBiometricNotice('أُوقفت بصمة الجهاز في ذهبك.');}
+     else{await enableBiometric();setBiometricNotice('تم تفعيل تحقق الجهاز. قد يطلب النظام بصمة أو رمز الجهاز؛ بعض المتصفحات تحتاج رمز ذهبك أو كلمة المرور بعد إعادة فتح التطبيق.');}
     }catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر تغيير إعداد بصمة الجهاز.');}
    })()}><span/></button>
  </div>
@@ -449,9 +450,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  <div className="dh-quick-row-actions">
   {!pinReconnectRequired&&(quickPinEnabled||biometricActive)&&<button type="button" className="primary" onClick={()=>void (async()=>{
    if(!await lockWithBiometric())setBiometricNotice('تعذر قفل التطبيق. تحقق من جلسة الدخول.');
-  })()}>قفل ذهبي الآن</button>}
+  })()}>قفل ذهبك الآن</button>}
  </div>
- <details className="dh-security-help"><summary>كيف يعمل الدخول السريع؟</summary><p>يمكنك فتح ذهبي برمز من ٦ أرقام. تُحفظ الجلسة مشفّرة وتجزئة الرمز محليًا؛ ولا تُخزّن بيانات بصمتك. يظهر القفل عند إعادة فتح التطبيق بجلسة محفوظة أو بعد العودة من الخلفية بدقيقة. وقد يطلب النظام تحقق Face ID أو Touch ID بحسب دعم المتصفح.</p></details>
+ <details className="dh-security-help"><summary>كيف يعمل الدخول السريع؟</summary><p>يمكنك فتح ذهبك برمز من ٦ أرقام. تُحفظ الجلسة مشفّرة وتجزئة الرمز محليًا؛ ولا تُخزّن بيانات بصمتك. يظهر القفل عند إعادة فتح التطبيق بجلسة محفوظة أو بعد العودة من الخلفية بدقيقة. وقد يطلب النظام تحقق Face ID أو Touch ID بحسب دعم المتصفح.</p></details>
  <details className="dh-security-help"><summary>نسيت رمز الدخول؟</summary><p>سجّل الدخول بكلمة مرور حسابك لاستعادة الوصول، ثم أعد إعداد الدخول السريع. إذا انتهت الجلسة يلزم تسجيل الدخول الكامل.</p></details>
  </section>
    <section className="dh-ux-group dh-ux-profile-tools" aria-labelledby="dh-profile-tools-title">
@@ -525,9 +526,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   </div>;
  };
  return <div className={'gold-web workspace '+(page==='home'?'reference-home':'')} dir={direction} lang={language}><aside className="desktop-nav">{nav}</aside><div className="workspace-main">{page==='home'?<header className="topbar home-topbar">
-  <div className="home-identity"><span className="home-brand-emblem" aria-label="ذهبي"><Icon name="gem"/></span><div><p>مرحبًا بعودتك</p><h1 tabIndex={-1} ref={headingRef} title={accountName}><button type="button" className="home-name-link" onClick={()=>navigate('account')} aria-label="فتح الملف الشخصي"><span dir="auto">{accountName}</span><span aria-hidden="true">👋</span></button></h1></div></div>
+  <div className="home-identity"><span className="home-brand-emblem" aria-label="ذهبك"><Icon name="gem"/></span><div><p>مرحبًا بعودتك</p><h1 tabIndex={-1} ref={headingRef} title={accountName}><button type="button" className="home-name-link" onClick={()=>navigate('account')} aria-label="فتح الملف الشخصي"><span dir="auto">{accountName}</span><span aria-hidden="true">👋</span></button></h1></div></div>
   <div className="home-head-actions"><button className="icon-button" aria-label="فتح التنبيهات" onClick={()=>navigate('alerts')}><Icon name="bell"/>{alerts.some(a=>a.status==='active')&&<i className="notification-dot"/>}</button><button className="icon-button home-menu-button" aria-label="فتح قائمة التنقل" onClick={()=>setMenu(true)}><Icon name="menu"/></button></div>
- </header>:<header className="topbar"><button className="icon-button menu-trigger" aria-label="العودة للرئيسية" onClick={()=>navigate('home')}><Icon name="chevron"/></button><div><p className="eyebrow"><span className="role-dot"/>ذهبي · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{page==='prices'&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبي" disabled={marketLoading} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketLoading?'جارٍ التحديث…':'تحديث الأسعار'}</span></button>}</header>}<main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{localizeFeedback(error,language)} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{localizeFeedback(marketError,language)}</p>}{message&&<p className="notice success" role="status">{localizeFeedback(message,language)}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}</main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===mobilePage?'selected':'')} aria-current={p.id===mobilePage?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
+ </header>:<header className="topbar"><button className="icon-button menu-trigger" aria-label="العودة للرئيسية" onClick={()=>navigate('home')}><Icon name="chevron"/></button><div><p className="eyebrow"><span className="role-dot"/>ذهبك · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{page==='prices'&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبك" disabled={marketLoading} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketLoading?'جارٍ التحديث…':'تحديث الأسعار'}</span></button>}</header>}<main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{localizeFeedback(error,language)} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{localizeFeedback(marketError,language)}</p>}{message&&<p className="notice success" role="status">{localizeFeedback(message,language)}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}</main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===mobilePage?'selected':'')} aria-current={p.id===mobilePage?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
  {menu&&<div className="mobile-nav-backdrop" onClick={()=>setMenu(false)}><div className="mobile-nav" ref={modalRef} role="dialog" aria-modal="true" aria-label="قائمة التنقل" onClick={e=>e.stopPropagation()}><button className="icon-button close-menu" aria-label="إغلاق القائمة" onClick={()=>setMenu(false)}><Icon name="close"/></button>{nav}</div></div>}
  {pinSetup&&<QuickPinSetup mode={pinSetup} onClose={()=>setPinSetup(null)}
   onSave={async(pin,currentPin)=>{

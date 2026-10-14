@@ -45,6 +45,7 @@ function AuthIcon({name,size=20}:{name:AuthIconName;size?:number}){
 interface GuestPrice{karat:number;buyPrice:string;currency:string}
 function GuestPrices({onBack}:{onBack:()=>void}){
  const {language,direction}=useLanguage();
+ const t=(ar:string,en:string,fr:string)=>language==='en'?en:language==='fr'?fr:ar;
  const [rows,setRows]=useState<GuestPrice[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
  useEffect(()=>{let active=true;(async()=>{try{
   const data=await Promise.all([24,22,21,18].map(async karat=>{const r=await fetch(API_BASE+'/prices/latest?currency=SAR&karat='+karat,{cache:'no-store'});if(!r.ok)throw new Error();return r.json();}));
@@ -54,8 +55,8 @@ function GuestPrices({onBack}:{onBack:()=>void}){
  return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container guest-price-view">
    <button className="guest-back" type="button" onClick={onBack}><AuthIcon name="back"/>العودة لتسجيل الدخول</button>
-   <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
-   <h1 className="mockup-app-title">تطبيق ذهبي</h1>
+   <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt={t('أيقونة تطبيق ذهبك','Dhahabk app icon',"Icône de l’application Dhahabk")}/>
+   <h1 className="mockup-app-title">{t('تطبيق ذهبك','Dhahabk','Dhahabk')}</h1>
    <p className="mockup-app-subtitle">تصفح أسعار الذهب كزائر</p>
       <section className="mockup-auth-card guest-card">
     <h2>أسعار الجرام الحالية</h2>
@@ -116,7 +117,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
   <section className="mockup-login-container">
    <AuthLanguageSwitcher/>
    <div className="emblem-circle"><span className="emblem-text">ذ</span></div>
-   <h1 className="mockup-app-title">تطبيق ذهبي</h1>
+   <h1 className="mockup-app-title">{t('تطبيق ذهبك','Dhahabk','Dhahabk')}</h1>
    <p className="mockup-app-subtitle">{registerStep==='verify'?t('تأكيد البريد الإلكتروني','Verify your email','Vérifiez votre adresse e-mail'):t('إنشاء حساب مستخدم جديد','Create a new user account','Créer un compte utilisateur')}</p>
    <p className="dh-auth-reference-version" dir="ltr">{APP_DISPLAY_VERSION}</p>
       <section className="mockup-auth-card">
@@ -167,8 +168,8 @@ export default function AuthForm({register=false}:{register?:boolean}){
  return <main className="gold-web gold-auth approved-auth auth-mockup" dir={direction} lang={language}>
   <section className="mockup-login-container">
    <AuthLanguageSwitcher/>
-   <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt="أيقونة تطبيق ذهبي"/>
-   <h1 className="mockup-app-title">تطبيق ذهبي</h1>
+   <img className="mockup-app-icon" src="/gold-app-pwa/full/app_icon_user.jpg" alt={t('أيقونة تطبيق ذهبك','Dhahabk app icon',"Icône de l’application Dhahabk")}/>
+   <h1 className="mockup-app-title">{t('تطبيق ذهبك','Dhahabk','Dhahabk')}</h1>
    <p className="mockup-app-subtitle">دخول المستثمرين ومتابعي الأسعار</p>
       <section className="mockup-auth-card">
     {showBiometricLogin&&<button className="mockup-biometric" type="button" onClick={()=>void biometric()} aria-label="الدخول بالبصمة الحيوية">

@@ -21,9 +21,9 @@ const source={
       "Conditions d’utilisation"
     ],
     "intro": [
-      "تنظّم هذه الشروط استخدام ذهبي (Dhahabi)، وهو تطبيق تقني للمعلومات والحسابات التقديرية المتعلقة بالذهب. اقرأها قبل إنشاء حسابك.",
-      "These terms govern Dhahabi, a technology service for gold information and estimates. Please read them before creating an account.",
-      "Ces conditions régissent Dhahabi, service numérique d’information et d’estimation de l’or. Veuillez les consulter avant de créer un compte."
+      "تنظّم هذه الشروط استخدام ذهبك (Dhahabk)، وهو تطبيق تقني للمعلومات والحسابات التقديرية المتعلقة بالذهب. اقرأها قبل إنشاء حسابك.",
+      "These terms govern Dhahabk, a technology service for gold information and estimates. Please read them before creating an account.",
+      "Ces conditions régissent Dhahabk, service numérique d’information et d’estimation de l’or. Veuillez les consulter avant de créer un compte."
     ],
     "sections": [
       [
@@ -33,9 +33,9 @@ const source={
           "Exploitant et périmètre"
         ],
         [
-          "يطوّر ويشغّل ذهبي إبراهيم بن حمود بن علي النعمي، بصفته ممارس عمل حر في المملكة العربية السعودية في مجال برمجيات الحاسب الآلي وبرمجة وتطوير المواقع الإلكترونية. النطاق الرسمي: dhahabk.com. لا تمثل وثائق العمل الحر في البرمجة ترخيصًا لتجارة الذهب أو الوساطة المالية أو تقديم استشارات استثمارية منظمة.",
-          "Dhahabi is developed and operated by Ibrahim bin Hamoud bin Ali Alneami, an independent software and website developer in Saudi Arabia. Official domain: dhahabk.com. Software freelancing credentials are not licences for gold trading, financial intermediation or regulated investment advice.",
-          "Dhahabi est développé et exploité par Ibrahim bin Hamoud bin Ali Alneami, professionnel indépendant du logiciel et du développement web en Arabie saoudite. Domaine : dhahabk.com. Les autorisations de travail indépendant en informatique ne constituent pas une licence de négoce d’or, d’intermédiation financière ou de conseil en investissement réglementé."
+          "يطوّر ويشغّل ذهبك إبراهيم بن حمود بن علي النعمي، بصفته ممارس عمل حر في المملكة العربية السعودية في مجال برمجيات الحاسب الآلي وبرمجة وتطوير المواقع الإلكترونية. النطاق الرسمي: dhahabk.com. لا تمثل وثائق العمل الحر في البرمجة ترخيصًا لتجارة الذهب أو الوساطة المالية أو تقديم استشارات استثمارية منظمة.",
+          "Dhahabk is developed and operated by Ibrahim bin Hamoud bin Ali Alneami, an independent software and website developer in Saudi Arabia. Official domain: dhahabk.com. Software freelancing credentials are not licences for gold trading, financial intermediation or regulated investment advice.",
+          "Dhahabk est développé et exploité par Ibrahim bin Hamoud bin Ali Alneami, professionnel indépendant du logiciel et du développement web en Arabie saoudite. Domaine : dhahabk.com. Les autorisations de travail indépendant en informatique ne constituent pas une licence de négoce d’or, d’intermédiation financière ou de conseil en investissement réglementé."
         ]
       ],
       [
@@ -57,9 +57,9 @@ const source={
           "Fonctionnalités"
         ],
         [
-          "يعرض ذهبي أسعارًا استرشادية للذهب ورسومًا تاريخية، وحاسبة للسعر التقديري، ومحافظ ومشتريات يسجلها المستخدم، وتنبيهات أسعار، وخدمة للتعرف على التجار القريبين. تسجيل قطعة أو فاتورة لا يُنشئ ملكية قانونية ولا يثبت صحتها. الخدمات والميزات قد تتغير بحسب الإصدار.",
-          "Dhahabi provides indicative gold prices and history charts, an estimate calculator, user-entered portfolios and purchases, price alerts, and nearby-dealer discovery. Recording an item or invoice does not establish legal ownership or authenticate the document. Features may change between releases.",
-          "Dhahabi propose des cours indicatifs et historiques, une calculatrice estimative, des portefeuilles et achats saisis par l’utilisateur, des alertes et la recherche de bijoutiers proches. Saisir un objet ou une facture ne prouve ni la propriété ni l’authenticité du document. Les fonctionnalités peuvent évoluer."
+          "يعرض ذهبك أسعارًا استرشادية للذهب ورسومًا تاريخية، وحاسبة للسعر التقديري، ومحافظ ومشتريات يسجلها المستخدم، وتنبيهات أسعار، وخدمة للتعرف على التجار القريبين. تسجيل قطعة أو فاتورة لا يُنشئ ملكية قانونية ولا يثبت صحتها. الخدمات والميزات قد تتغير بحسب الإصدار.",
+          "Dhahabk provides indicative gold prices and history charts, an estimate calculator, user-entered portfolios and purchases, price alerts, and nearby-dealer discovery. Recording an item or invoice does not establish legal ownership or authenticate the document. Features may change between releases.",
+          "Dhahabk propose des cours indicatifs et historiques, une calculatrice estimative, des portefeuilles et achats saisis par l’utilisateur, des alertes et la recherche de bijoutiers proches. Saisir un objet ou une facture ne prouve ni la propriété ni l’authenticité du document. Les fonctionnalités peuvent évoluer."
         ]
       ],
       [
@@ -167,9 +167,9 @@ const source={
       "Politique de confidentialité"
     ],
     "intro": [
-      "توضح هذه السياسة كيفية معالجة البيانات الشخصية في تطبيق ذهبي، بما فيها البيانات المحفوظة على خوادم خارج المملكة. تُراجع تفاصيل التشغيل والاحتفاظ قبل اعتماد النسخة النهائية.",
-      "This policy explains personal-data processing in Dhahabi, including hosting outside Saudi Arabia. Operational retention details must be approved before final publication.",
-      "Cette politique explique les traitements de données personnelles dans Dhahabi, y compris l’hébergement hors d’Arabie saoudite. Les durées de conservation doivent être validées avant la publication définitive."
+      "توضح هذه السياسة كيفية معالجة البيانات الشخصية في تطبيق ذهبك، بما فيها البيانات المحفوظة على خوادم خارج المملكة. تُراجع تفاصيل التشغيل والاحتفاظ قبل اعتماد النسخة النهائية.",
+      "This policy explains personal-data processing in Dhahabk, including hosting outside Saudi Arabia. Operational retention details must be approved before final publication.",
+      "Cette politique explique les traitements de données personnelles dans Dhahabk, y compris l’hébergement hors d’Arabie saoudite. Les durées de conservation doivent être validées avant la publication définitive."
     ],
     "sections": [
       [
@@ -179,9 +179,9 @@ const source={
           "Responsable du traitement"
         ],
         [
-          "جهة التحكم: إبراهيم بن حمود بن علي النعمي، مقدم خدمة تقني مستقل في المملكة العربية السعودية، ومشغّل ذهبي (dhahabk.com). للاستفسارات والطلبات المتعلقة بالبيانات: privacy@dhahabk.com. للدعم الفني: support@dhahabk.com. العنوان البريدي النظامي: يُستكمل قبل الاعتماد.",
-          "Controller: Ibrahim bin Hamoud bin Ali Alneami, independent technology-service operator in Saudi Arabia, operating Dhahabi (dhahabk.com). Data-rights requests: privacy@dhahabk.com; technical support: support@dhahabk.com. The registered postal contact address must be confirmed before approval.",
-          "Responsable : Ibrahim bin Hamoud bin Ali Alneami, prestataire informatique indépendant en Arabie saoudite, exploitant Dhahabi (dhahabk.com). Droits sur les données : privacy@dhahabk.com ; assistance : support@dhahabk.com. L’adresse postale officielle doit être confirmée avant validation."
+          "جهة التحكم: إبراهيم بن حمود بن علي النعمي، مقدم خدمة تقني مستقل في المملكة العربية السعودية، ومشغّل ذهبك (dhahabk.com). للاستفسارات والطلبات المتعلقة بالبيانات: privacy@dhahabk.com. للدعم الفني: support@dhahabk.com. العنوان البريدي النظامي: يُستكمل قبل الاعتماد.",
+          "Controller: Ibrahim bin Hamoud bin Ali Alneami, independent technology-service operator in Saudi Arabia, operating Dhahabk (dhahabk.com). Data-rights requests: privacy@dhahabk.com; technical support: support@dhahabk.com. The registered postal contact address must be confirmed before approval.",
+          "Responsable : Ibrahim bin Hamoud bin Ali Alneami, prestataire informatique indépendant en Arabie saoudite, exploitant Dhahabk (dhahabk.com). Droits sur les données : privacy@dhahabk.com ; assistance : support@dhahabk.com. L’adresse postale officielle doit être confirmée avant validation."
         ]
       ],
       [
@@ -275,9 +275,9 @@ const source={
           "Traitement hors d’Arabie saoudite"
         ],
         [
-          "قاعدة بيانات ذهبي الحالية مستضافة لدى Render في منطقة فرانكفورت، ألمانيا. وقد تُعالج بيانات فنية لدى مزودين آخرين في دول إضافية وفق إعداداتهم. يجب إتمام تقييم النقل الدولي والضمانات النظامية اللازمة والتحقق من بلدان بقية الجهات قبل اعتماد هذه السياسة.",
-          "Dhahabi's current database is hosted by Render in Frankfurt, Germany. Technical data may also be processed in other countries by providers according to their configurations. Any required cross-border transfer assessment, safeguards and verification of other providers' processing locations must be completed before this policy is approved.",
-          "La base de données actuelle de Dhahabi est hébergée par Render à Francfort, en Allemagne. D’autres prestataires peuvent traiter des données techniques dans d’autres pays selon leur configuration. L’évaluation des transferts internationaux, les garanties requises et les lieux des autres prestataires doivent être vérifiés avant validation."
+          "قاعدة بيانات ذهبك الحالية مستضافة لدى Render في منطقة فرانكفورت، ألمانيا. وقد تُعالج بيانات فنية لدى مزودين آخرين في دول إضافية وفق إعداداتهم. يجب إتمام تقييم النقل الدولي والضمانات النظامية اللازمة والتحقق من بلدان بقية الجهات قبل اعتماد هذه السياسة.",
+          "Dhahabk's current database is hosted by Render in Frankfurt, Germany. Technical data may also be processed in other countries by providers according to their configurations. Any required cross-border transfer assessment, safeguards and verification of other providers' processing locations must be completed before this policy is approved.",
+          "La base de données actuelle de Dhahabk est hébergée par Render à Francfort, en Allemagne. D’autres prestataires peuvent traiter des données techniques dans d’autres pays selon leur configuration. L’évaluation des transferts internationaux, les garanties requises et les lieux des autres prestataires doivent être vérifiés avant validation."
         ]
       ],
       [
@@ -323,9 +323,9 @@ const source={
           "Modifications et mineurs"
         ],
         [
-          "لا تُوجَّه خدمات ذهبي المالية المعلوماتية للأطفال. ينبغي استخدام القُصّر لها تحت إشراف الولي وحسب المتطلبات النظامية. قد نُحدّث السياسة عند تغير وظائف التطبيق أو طرق المعالجة؛ سنوضح الإصدار وتاريخ النفاذ ونطلب موافقات إضافية حيث يلزم.",
-          "Dhahabi's financial-information tools are not intended for children. Minors should use the service only under appropriate guardian supervision and applicable law. Updates to processing practices may require a revised policy, effective date and additional permissions where legally necessary.",
-          "Les outils d’information financière de Dhahabi ne s’adressent pas aux enfants. Leur utilisation par des mineurs doit respecter les règles et la supervision appropriées. Les changements de traitement peuvent entraîner une nouvelle politique, date d’effet ou autorisation supplémentaire."
+          "لا تُوجَّه خدمات ذهبك المالية المعلوماتية للأطفال. ينبغي استخدام القُصّر لها تحت إشراف الولي وحسب المتطلبات النظامية. قد نُحدّث السياسة عند تغير وظائف التطبيق أو طرق المعالجة؛ سنوضح الإصدار وتاريخ النفاذ ونطلب موافقات إضافية حيث يلزم.",
+          "Dhahabk's financial-information tools are not intended for children. Minors should use the service only under appropriate guardian supervision and applicable law. Updates to processing practices may require a revised policy, effective date and additional permissions where legally necessary.",
+          "Les outils d’information financière de Dhahabk ne s’adressent pas aux enfants. Leur utilisation par des mineurs doit respecter les règles et la supervision appropriées. Les changements de traitement peuvent entraîner une nouvelle politique, date d’effet ou autorisation supplémentaire."
         ]
       ]
     ]
@@ -337,9 +337,9 @@ const source={
       "Avis sur les risques d’utilisation"
     ],
     "intro": [
-      "أسعار الذهب والحاسبة والمحافظ والتنبيهات في ذهبي أدوات معلوماتية مساعدة؛ وليست نصيحة استثمارية أو عرضًا ملزمًا أو ضمانًا لعائد.",
-      "Dhahabi quotes, estimates, portfolios and alerts are informational tools, not investment advice, binding offers or guaranteed returns.",
-      "Les cours, estimations, portefeuilles et alertes de Dhahabi sont informatifs : ils ne constituent ni conseil en investissement, ni offre ferme, ni garantie de rendement."
+      "أسعار الذهب والحاسبة والمحافظ والتنبيهات في ذهبك أدوات معلوماتية مساعدة؛ وليست نصيحة استثمارية أو عرضًا ملزمًا أو ضمانًا لعائد.",
+      "Dhahabk quotes, estimates, portfolios and alerts are informational tools, not investment advice, binding offers or guaranteed returns.",
+      "Les cours, estimations, portefeuilles et alertes de Dhahabk sont informatifs : ils ne constituent ni conseil en investissement, ni offre ferme, ni garantie de rendement."
     ],
     "sections": [
       [
@@ -472,7 +472,7 @@ export function LegalDocumentLinks({language}:{language:Language}){
  const [kind,setKind]=useState<RegistrationLegalKind|null>(null);
  const close=React.useCallback(()=>setKind(null),[]);
  const header=localized(['الشروط والخصوصية والمخاطر','Legal information and privacy','Informations légales et confidentialité'],language);
- const subtitle=localized(['اطّلع على وثائق ذهبي الثلاث ووسائل التواصل الرسمية.','Review all three Dhahabi notices and official contacts.','Consultez les trois documents et les contacts officiels de Dhahabi.'],language);
+ const subtitle=localized(['اطّلع على وثائق ذهبك الثلاث ووسائل التواصل الرسمية.','Review all three Dhahabk notices and official contacts.','Consultez les trois documents et les contacts officiels de Dhahabk.'],language);
  return <section className="dh-legal-access" data-no-translate lang={language} dir={language==='ar'?'rtl':'ltr'} aria-label={header}>
   <h3>{header}</h3><p>{subtitle}</p>
   <div className="dh-legal-access-buttons">

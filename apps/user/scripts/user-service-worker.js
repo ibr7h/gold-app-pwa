@@ -45,7 +45,7 @@ self.addEventListener('fetch', event => {
   // failed FetchEvent, even when the server is temporarily unreachable.
   const unavailable = (html=false) => new Response(
     html
-      ? '<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ذهبي — دون اتصال</title><body style="font:16px system-ui;text-align:center;padding:32px;color:#001F3F"><h1>لا يوجد اتصال بالإنترنت</h1><p>تحقق من الاتصال وحاول فتح ذهبي مجددًا.</p></body></html>'
+      ? '<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ذهبك — دون اتصال</title><body style="font:16px system-ui;text-align:center;padding:32px;color:#001F3F"><h1>لا يوجد اتصال بالإنترنت</h1><p>تحقق من الاتصال وحاول فتح ذهبك مجددًا.</p></body></html>'
       : 'Service temporarily unavailable',
     {status:503,headers:{'Content-Type':html?'text/html; charset=utf-8':'text/plain; charset=utf-8','Cache-Control':'no-store'}}
   );
@@ -94,8 +94,8 @@ self.addEventListener('push', event => {
   event.waitUntil((async () => {
     let payload={};
     try { payload=event.data ? event.data.json() : {}; } catch { payload={}; }
-    const title=typeof payload.title==='string' ? payload.title.slice(0,90) : 'ذهبي';
-    const body=typeof payload.body==='string' ? payload.body.slice(0,230) : 'لديك تنبيه جديد من ذهبي';
+    const title=typeof payload.title==='string' ? payload.title.slice(0,90) : 'ذهبك';
+    const body=typeof payload.body==='string' ? payload.body.slice(0,230) : 'لديك تنبيه جديد من ذهبك';
     const requested=typeof payload.url==='string' ? payload.url : BASE;
     // Relative hashes follow each installed PWA scope, whether GitHub /iphone/
     // or Render /full/; absolute destinations remain same-origin and in-scope.
