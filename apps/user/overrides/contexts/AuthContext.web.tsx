@@ -265,7 +265,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    // Deadline covers the native prompt, vault/lock acquisition, token rotation
    // and server verification. A late completion must never reopen the workspace.
    const unlock=(async()=>{
-    const secret=await verifyLocalCredential(c,controller.signal);current(attempt);
+    const secret=await verifyLocalCredential(c,request.current!.signal);current(attempt);
     const tokens=await hasSessionVault(c.accountId)?await unlockSessionWithBiometric(c.accountId,secret):activeSessionTokens();
     current(attempt);
     const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
