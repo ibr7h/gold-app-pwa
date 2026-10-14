@@ -165,7 +165,7 @@ describe('October 10 design restored with verified email activation',()=>{
   expect(phone).toContain('aria-haspopup="dialog"');
   expect(css).toContain('grid-template-columns:112px minmax(0,1fr)');
   expect(form).toContain('internationalRegistrationPhone(countryIso,phone)');
-  expect(form).toContain("startRegistration(name,email,password,internationalPhone||undefined)");
+  expect(form).toContain("startRegistration(name,email,password,internationalPhone||undefined,{version:LEGAL_TERMS_VERSION,noticesAcknowledged:true})");
   expect(form).toContain('registerStep===\x27verify\x27');
   expect(form).toContain('<AuthLanguageSwitcher/>');
   expect(form).toContain('APP_DISPLAY_VERSION');
