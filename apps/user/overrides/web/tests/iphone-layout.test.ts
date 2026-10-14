@@ -4,6 +4,26 @@ import {describe,it,expect} from 'vitest';
 
 const source=(relative:string)=>readFileSync(fileURLToPath(new URL(relative,import.meta.url)),'utf8');
 
+describe('iPhone language stability regressions',()=>{
+ it('persists an explicit choice for both auth and app without a second language override',()=>{
+  const locale=source('../i18n.tsx');
+  expect(locale).toContain("if(language===next)return;");
+  expect(locale).toContain("window.localStorage.setItem(LANGUAGE_KEY,next)");
+  expect(locale).toContain("window.localStorage.setItem(AUTH_LANGUAGE_KEY,next)");
+  expect(locale).toContain("setLanguageState(next)");
+  expect(locale).toContain("mode==='auth'?authLanguage():storedLanguage()");
+ });
+ it('does not retranslate the entire page on every React text mutation',()=>{
+  const locale=source('../i18n.tsx');
+  expect(locale).toContain('function localizeChanges(records:readonly MutationRecord[]');
+  expect(locale).toContain('localizeChanges(changes.splice(0),language)');
+  expect(locale).toContain('document.querySelectorAll(ROOTS).forEach(el=>localizeRoot(el,language))');
+  const observer=locale.split('const observer=new MutationObserver(records=>')[1];
+  expect(observer).not.toContain('refresh();');
+  expect(locale).toContain("el.closest('[data-no-translate]')");
+ });
+});
+
 describe('User app identity',()=>{
   it('keeps the canonical JPEG for app and boot, and the approved mockup fingerprint for biometric entry',()=>{
     const auth=source('../AuthForm.tsx');
