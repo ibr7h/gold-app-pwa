@@ -12,7 +12,8 @@
   const otpNotice=byId('otp-notice'),otpSubmit=byId('otp-submit'),otpMessage=byId('otp-message');
   let challengeId='';
   let accessToken='',refreshToken='',page=1,pages=0,activePanel='overview';
-  let busyUsers=false;
+  let busyUsers=false,busyAudit=false,auditPage=1,auditPages=0,statusTarget=null;
+  const statusDialog=byId('status-dialog'),statusForm=byId('status-form');
   const formatNumber=n=>new Intl.NumberFormat('ar-SA',{maximumFractionDigits:0}).format(n);
   const formatDate=s=>{
     if(!s)return '—';
@@ -27,6 +28,10 @@
   function setStatus(text){byId('connection-state').textContent=text;}
   function otpAlert(text){otpNotice.textContent=text;otpNotice.className=text?'notice error':'notice';}
   function clearAuth(){
+    if(statusDialog.open)statusDialog.close();
+    statusTarget=null;
+    byId('status-admin-password').value='';
+    byId('status-reason').value='';
     accessToken='';refreshToken='';challengeId='';
     otpView.hidden=true;otpCode.value='';otpAlert('');
     byId('session-email').textContent='';
@@ -98,7 +103,7 @@
     document.querySelectorAll('[data-view]').forEach(el=>{
       el.hidden=el.dataset.view!==panel;
     });
-    if(panel==='users'){page=1;loadUsers();}
+    if(panel==='users'){page=1;auditPage=1;loadUsers();loadAudit();}
     window.scrollTo({top:0,behavior:'instant'});
     if(panel==='overview')loadPrice();
   }
@@ -166,7 +171,17 @@
         const meta=document.createElement('div');meta.className='user-meta';
         const state=document.createElement('span');state.textContent='الحالة: '+(statuses[item.status]||item.status||'—');
         const date=document.createElement('span');date.textContent=formatDate(item.createdAt);
-        meta.append(state,date);card.append(top,meta);cards.appendChild(card);
+        meta.append(state,date);card.append(top,meta);
+        if(['user','merchant'].includes(item.role)&&['active','suspended'].includes(item.status)){
+          const control=document.createElement('button');
+          control.type='button';
+          control.className=item.status==='active'?'account-action suspend-action':'account-action activate-action';
+          control.textContent=item.status==='active'?'إيقاف الحساب':'إعادة تنشيط الحساب';
+          control.setAttribute('aria-label',control.textContent+' '+(item.fullName||item.email));
+          control.addEventListener('click',()=>openStatusDialog(item));
+          card.appendChild(control);
+        }
+        cards.appendChild(card);
         const tr=document.createElement('tr');
         cell(tr,item.fullName||'—');
         cell(tr,item.email||'—');
@@ -183,6 +198,96 @@
     }catch(e){if(accessToken)byId('users-note').textContent=e.message;}
     finally{busyUsers=false;body.setAttribute('aria-busy','false');cards.setAttribute('aria-busy','false');}
   }
+  function openStatusDialog(item){
+    if(!accessToken||!item?.id||!['user','merchant'].includes(item.role)||
+       !['active','suspended'].includes(item.status))return;
+    statusTarget={id:item.id,email:item.email,role:item.role,status:item.status};
+    const suspension=item.status==='active';
+    byId('status-title').textContent=suspension?'إيقاف حساب':'إعادة تنشيط حساب';
+    byId('status-description').textContent=suspension?
+      'سيُمنع هذا الحساب من الدخول وتُلغى جلساته الحالية، مع الاحتفاظ ببياناته.':
+      'سيعود الحساب إلى الحالة النشطة، لكنه سيحتاج إلى تسجيل دخول جديد.';
+    byId('status-target').textContent=(item.fullName||'—')+' — '+item.email;
+    byId('status-submit').textContent=suspension?'تأكيد إيقاف الحساب':'تأكيد إعادة التنشيط';
+    byId('status-submit').classList.toggle('danger-action',suspension);
+    byId('status-reason').value='';
+    byId('status-admin-password').value='';
+    byId('status-confirm').checked=false;
+    byId('status-feedback').textContent='';
+    statusDialog.showModal();
+    byId('status-reason').focus();
+  }
+  async function loadAudit(){
+    if(busyAudit||!accessToken)return;
+    busyAudit=true;
+    const list=byId('audit-list');
+    list.replaceChildren();
+    byId('audit-note').textContent='جارٍ تحميل سجل الإجراءات...';
+    byId('audit-prev').disabled=true;byId('audit-next').disabled=true;
+    try{
+      const result=await secure('/admin/audit?page='+auditPage+'&limit=20');
+      if(!accessToken)return;
+      const items=Array.isArray(result?.items)?result.items:[];
+      auditPages=Number.isInteger(result?.pages)?result.pages:0;
+      for(const item of items){
+        const entry=document.createElement('article');entry.className='audit-entry';
+        const heading=document.createElement('strong');
+        heading.textContent=item.action==='account.suspend'?'إيقاف حساب':'إعادة تنشيط حساب';
+        const target=document.createElement('span');target.className='audit-target';
+        target.textContent=item.targetEmail||item.targetUserId||'—';
+        const reason=document.createElement('p');reason.textContent='السبب: '+(item.reason||'—');
+        const time=document.createElement('small');time.textContent=formatDate(item.createdAt);
+        entry.append(heading,target,reason,time);list.appendChild(entry);
+      }
+      byId('audit-note').textContent=items.length?
+        'إجمالي الإجراءات: '+formatNumber(Number(result.total)||0)+' — الصفحة '+auditPage+' من '+auditPages:
+        'لم تُسجّل إجراءات إدارية حتى الآن.';
+      byId('audit-prev').disabled=auditPage<=1;
+      byId('audit-next').disabled=auditPage>=auditPages;
+    }catch(e){if(accessToken)byId('audit-note').textContent=e.message;}
+    finally{busyAudit=false;}
+  }
+  statusForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(!statusTarget||!accessToken||byId('status-submit').disabled)return;
+    const target=statusTarget;
+    const reason=byId('status-reason').value.trim();
+    if(reason.length<12||reason.length>300||!byId('status-confirm').checked){
+      byId('status-feedback').textContent='اكتب سببًا واضحًا وأكّد فهمك للإجراء.';return;
+    }
+    const submitAction=byId('status-submit');submitAction.disabled=true;
+    byId('status-feedback').textContent='جارٍ تطبيق الإجراء وتسجيله...';
+    try{
+      const next=target.status==='active'?'suspended':'active';
+      const pending=request('/admin/users/'+encodeURIComponent(target.id)+'/status',{
+        method:'PATCH',authorized:true,
+        body:{expectedStatus:target.status,status:next,reason,
+          adminPassword:byId('status-admin-password').value},
+      });
+      byId('status-admin-password').value='';
+      const result=await pending;
+      if(result?.status!==next)throw new Error('لم يؤكد الخادم تغيير حالة الحساب.');
+      statusDialog.close();statusTarget=null;
+      byId('users-note').textContent='تم تحديث حالة الحساب وتسجيل الإجراء بنجاح.';
+      auditPage=1;
+      await Promise.all([loadUsers(),loadAudit(),loadSummary()]);
+    }catch(e){
+      byId('status-admin-password').value='';
+      if(e.status===401||e.status===403){clearAuth();msg(e.message);return;}
+      byId('status-feedback').textContent=e.message||'تعذر تنفيذ الإجراء.';
+    }finally{submitAction.disabled=false;}
+  });
+  byId('status-cancel').addEventListener('click',()=>statusDialog.close());
+  statusDialog.addEventListener('close',()=>{
+    byId('status-admin-password').value='';
+    byId('status-reason').value='';
+    byId('status-confirm').checked=false;
+    statusTarget=null;
+  });
+  byId('audit-retry').addEventListener('click',loadAudit);
+  byId('audit-prev').addEventListener('click',()=>{if(auditPage>1){auditPage--;loadAudit();}});
+  byId('audit-next').addEventListener('click',()=>{if(auditPage<auditPages){auditPage++;loadAudit();}});
+
   async function enter(user){
     if(!user||user.role!=='admin')throw new Error('هذا الحساب لا يملك صلاحية الدخول إلى بوابة الإدارة.');
     byId('session-email').textContent=user.email||'';
