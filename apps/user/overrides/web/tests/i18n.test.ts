@@ -5,6 +5,26 @@ import {LANGUAGE_META,LANGUAGE_OPTIONS,LANGUAGE_KEY,translateUiText,translateExa
 import {amountToLocalizedWords} from '../amount-words-localized';
 import {localizeFeedback} from '../i18n-feedback';
 
+describe('Customer-facing connection messages in all supported languages',()=>{
+ const messages=[
+  'تعذر الاتصال حاليًا. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.',
+  'يستغرق الاتصال وقتًا أطول من المعتاد. يرجى المحاولة بعد قليل.',
+  'الخدمة غير متاحة مؤقتًا. يرجى المحاولة لاحقًا.',
+  'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.',
+  'انتهت جلسة الدخول. يرجى تسجيل الدخول مجددًا.',
+  'تعذر إكمال العملية. يرجى المحاولة مرة أخرى.',
+  'تعذر إكمال الطلب. يرجى مراجعة البيانات والمحاولة مجددًا.'
+ ];
+ for(const language of ['en','fr'] as const){
+  it('shows human-readable messages without Arabic or developer jargon in '+language,()=>{
+   for(const message of messages){
+    const output=localizeFeedback(message,language);
+    expect(output).not.toMatch(/[\u0600-\u06FF]/);
+    expect(output).not.toMatch(/API|HTTP|JSON|server|backend|CORS|token/i);
+   }
+  });
+ }
+});
 describe('Dhahabk offline three-language localization',()=>{
  it('uses the approved commercial brand in Arabic, English and French without changing storage identity',()=>{
   expect(translateUiText('ذهبك','ar')).toBe('ذهبك');

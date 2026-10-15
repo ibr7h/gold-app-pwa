@@ -1,7 +1,7 @@
 import {beforeEach,describe,it,expect,vi} from 'vitest';
 const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{removeItem:async(k:string)=>{memory.delete(k);},getItem:async(k:string)=>memory.get(k)||null,setItem:async(k:string,v:string)=>{memory.set(k,v);},multiSet:async(pairs:string[][])=>pairs.forEach(([k,v])=>memory.set(k,v)),multiRemove:async(keys:string[])=>keys.forEach(k=>memory.delete(k))}}));
-import {api,saveSession,clearSession,getVerifiedCachedUser,saveVerifiedUser,activeSessionTokens,authenticate,lockSession} from '../api';
+import {api,saveSession,clearSession,getVerifiedCachedUser,saveVerifiedUser,activeSessionTokens,authenticate,lockSession,errorMessage,ApiError} from '../api';
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status});
 beforeEach(async()=>{await clearSession();vi.restoreAllMocks();await saveSession({accessToken:'expired',refreshToken:'refresh-fixture'});});
 describe('sessions',()=>{
@@ -36,6 +36,67 @@ describe('sessions',()=>{
   await saveVerifiedUser({id:'new-account',email:'new@example.test',role:'user'});
   await clearSession(false);expect(()=>activeSessionTokens()).toThrow();
   expect(await getVerifiedCachedUser()).toEqual({id:'new-account',email:'new@example.test',role:'user'});
+ });
+});
+ it('recovers a GET identity lookup after one transient network failure',async()=>{
+  let calls=0;
+  const fetch=vi.fn(async()=>{calls++;if(calls===1)throw new TypeError('network dropped');return json({userId:'account',email:'user@example.test',role:'user'});});
+  vi.stubGlobal('fetch',fetch);
+  expect(await api('/auth/me')).toEqual({userId:'account',email:'user@example.test',role:'user'});
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(activeSessionTokens().refreshToken).toBe('refresh-fixture');
+ });
+ it('does not retry a failed password login POST or discard the prior token',async()=>{
+  const fetch=vi.fn(async()=>{throw new TypeError('no connection');});
+  vi.stubGlobal('fetch',fetch);
+  await expect(authenticate('/auth/login',{identifier:'person@example.test',password:'not-real'}))
+    .rejects.toMatchObject({connectionFailure:'network',status:0});
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(activeSessionTokens().refreshToken).toBe('refresh-fixture');
+ });
+ it('does not retry a GET after logout while its first network attempt is in flight',async()=>{
+  let fail!:(err:Error)=>void;
+  const fetch=vi.fn(()=>new Promise<Response>((_resolve,reject)=>{fail=reject;}));
+  vi.stubGlobal('fetch',fetch);
+  const pending=api('/auth/me');
+  await new Promise(resolve=>setTimeout(resolve,0));
+  await clearSession();
+  fail(new TypeError('network offline'));
+  await expect(pending).rejects.toThrow('تغيرت الجلسة.');
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(()=>activeSessionTokens()).toThrow();
+ });
+ it('does not retry a malformed successful response or HTTP 500 as a network problem',async()=>{
+  const fetch=vi.fn(async()=>new Response('not-json',{status:200}));
+  vi.stubGlobal('fetch',fetch);
+  await expect(api('/auth/me')).rejects.toThrow('تعذر إكمال العملية. يرجى المحاولة مرة أخرى.');
+  expect(fetch).toHaveBeenCalledTimes(1);
+  fetch.mockImplementation(async()=>json({message:'Internal server error'},500));
+  await expect(api('/auth/me')).rejects.toMatchObject({status:500});
+  expect(fetch).toHaveBeenCalledTimes(2);
+ });
+ it('reports browser aborts as a timeout without logging credentials',async()=>{
+  const fetch=vi.fn(async()=>{const e=new Error('Request aborted');e.name='AbortError';throw e;});
+  vi.stubGlobal('fetch',fetch);
+  await expect(authenticate('/auth/login',{identifier:'account@example.test',password:'private-secret'}))
+    .rejects.toMatchObject({connectionFailure:'timeout',status:0});
+  expect(fetch).toHaveBeenCalledTimes(1);
+ });
+describe('customer-facing errors',()=>{
+ it('never exposes framework errors, status codes or unknown backend text',()=>{
+  expect(errorMessage(new ApiError('ECONNRESET https://private.example/trace',500))).toBe('الخدمة غير متاحة مؤقتًا. يرجى المحاولة لاحقًا.');
+  expect(errorMessage(new ApiError('SQLSTATE 23505 internal_user_id=99',400))).toBe('تعذر إكمال الطلب. يرجى مراجعة البيانات والمحاولة مجددًا.');
+  expect(errorMessage(new Error('TypeError: network failed'))).toBe('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+ });
+ it('uses clear, specific wording for credentials, session, permissions and rate limits',()=>{
+  expect(errorMessage(new ApiError('Invalid credentials',401))).toBe('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+  expect(errorMessage(new ApiError('expired',401))).toBe('انتهت جلسة الدخول. يرجى تسجيل الدخول مجددًا.');
+  expect(errorMessage(new ApiError('forbidden',403))).toBe('ليست لديك صلاحية لإجراء هذه العملية.');
+  expect(errorMessage(new ApiError('too many',429))).toBe('محاولات كثيرة. يرجى الانتظار قليلًا ثم المحاولة مجددًا.');
+ });
+ it('keeps timeout and network errors distinct and does not claim the password is wrong',()=>{
+  expect(errorMessage(new ApiError('يستغرق الاتصال وقتًا أطول من المعتاد. يرجى المحاولة بعد قليل.',0,'timeout'))).toContain('وقتًا أطول');
+  expect(errorMessage(new ApiError('تعذر الاتصال حاليًا. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.',0,'network'))).toContain('الاتصال حاليًا');
  });
 });
 describe('startup identity cache',()=>{

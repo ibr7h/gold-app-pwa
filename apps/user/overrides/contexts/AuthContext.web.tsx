@@ -247,7 +247,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    setLockedAccount(null);setUser(me);await refreshBiometricState(me,attempt);
    return {ok:true,waitSeconds:0,remaining:5};
   }catch(e){
-   if(attempt===version.current){lockSession();setError(e instanceof Error?e.message:'تعذر فتح الجلسة.');}
+   if(attempt===version.current){lockSession();setError(errorMessage(e));}
    return {ok:false,waitSeconds:0,remaining:0};
   }finally{if(attempt===version.current)setLoading(false);}
  };
@@ -261,7 +261,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
    current(attempt);setLockedAccount(null);setUser(me);return true;
   }catch(e){
-   if(attempt===version.current){lockSession();setError(e instanceof Error?e.message:'تعذر تأكيد هوية الجهاز.');}return false;
+   if(attempt===version.current){lockSession();setError(errorMessage(e));}return false;
   }finally{if(attempt===version.current)setLoading(false);}
  };
  const checkBiometricAvailability=async()=>setBiometricAvailable(await localBiometricSupported());
@@ -299,7 +299,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    return true;
   }catch(e){setError(errorMessage(e));return false;}
  };
- const unsupported=async()=>{setError('هذه الميزة غير متاحة من الخادم حاليًا.');return false;};
+ const unsupported=async()=>{setError('هذه الميزة غير متاحة حاليًا. يرجى المحاولة لاحقًا.');return false;};
  const value:AuthContextType={user,lockedAccount,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,clearError:()=>setError(null),
  biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
  resetStep:'email',resetEmail:'',resetCode:'',sendResetCode:unsupported,verifyResetCode:unsupported,resetPassword:unsupported,resendResetCode:unsupported,cancelReset:()=>{},
