@@ -59,6 +59,19 @@ jobs:
             console.log('FAIL: Expected CORS-authorized HTTP 401 for nonexistent login identity');
             failed=true;
           }
+          // Verify the flag is active using a structurally valid, never-issued
+          // refresh token; this does not create, use or revoke any real account.
+          const refresh=await check('Single-device activation probe',api+'/auth/refresh',{
+            method:'POST',headers:{Origin:'https://app.dhahabk.com','Content-Type':'application/json'},
+            body:JSON.stringify({refreshToken:'v0.'+'0'.repeat(64)})
+          });
+          const responseBody=refresh?await refresh.json().catch(()=>({})):{};
+          console.log('Single-device activation probe response='+JSON.stringify(responseBody).slice(0,500));
+          if(refresh?.status!==401||
+             responseBody?.error?.message!=='Session replaced by a sign-in on another device'){
+            console.log('FAIL: Server did not confirm device-replacement policy is active');
+            failed=true;
+          }
           // Inspect the home-screen application's possible custom domain
           // without credentials or mutations; iOS PWA storage is origin-bound.
           for(const host of ['https://app.dhahabk.com','https://dhahabi-user-iphone-preview.onrender.com']){
