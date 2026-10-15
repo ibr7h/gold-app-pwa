@@ -166,21 +166,59 @@
         const info=document.createElement('div');
         const name=document.createElement('div');name.className='user-name';name.textContent=item.fullName||'—';
         const mail=document.createElement('div');mail.className='user-email';mail.textContent=item.email||'—';
-        const role=document.createElement('span');role.className='role-pill '+(item.role||'');role.textContent=roles[item.role]||item.role||'—';
+        const normalizedRole=String(item.role||'').trim().toLowerCase();
+        const normalizedStatus=String(item.status||'').trim().toLowerCase();
+        const role=document.createElement('span');
+        role.className='role-pill '+(roles[normalizedRole]?normalizedRole:'unknown');
+        role.textContent=roles[normalizedRole]||item.role||'—';
         info.append(name,mail);top.append(info,role);
         const meta=document.createElement('div');meta.className='user-meta';
-        const state=document.createElement('span');state.textContent='الحالة: '+(statuses[item.status]||item.status||'—');
+        const state=document.createElement('span');
+        state.textContent='الحالة: '+(statuses[normalizedStatus]||item.status||'—');
         const date=document.createElement('span');date.textContent=formatDate(item.createdAt);
         meta.append(state,date);card.append(top,meta);
-        if(['user','merchant'].includes(item.role)&&['active','suspended'].includes(item.status)){
-          const control=document.createElement('button');
-          control.type='button';
-          control.className=item.status==='active'?'account-action suspend-action':'account-action activate-action';
-          control.textContent=item.status==='active'?'إيقاف الحساب':'إعادة تنشيط الحساب';
-          control.setAttribute('aria-label',control.textContent+' '+(item.fullName||item.email));
-          control.addEventListener('click',()=>openStatusDialog(item));
-          card.appendChild(control);
+
+        const canManage=['user','merchant'].includes(normalizedRole) &&
+          ['active','suspended'].includes(normalizedStatus) && Boolean(item.id);
+        const actions=document.createElement('div');actions.className='account-controls';
+        const caption=document.createElement('div');caption.className='account-controls-label';
+        caption.textContent='إجراءات الحساب';
+        actions.appendChild(caption);
+        const actionRow=document.createElement('div');actionRow.className='account-controls-row';
+        for(const action of [
+          {label:'إيقاف',status:'active',className:'suspend-action'},
+          {label:'تنشيط',status:'suspended',className:'activate-action'},
+        ]){
+          const button=document.createElement('button');
+          button.type='button';
+          button.className='account-action '+action.className;
+          button.textContent=action.label;
+          button.disabled=!canManage || normalizedStatus!==action.status;
+          button.setAttribute('aria-label',action.label+' الحساب: '+(item.fullName||item.email||'—'));
+          if(!button.disabled){
+            button.addEventListener('click',()=>openStatusDialog({
+              id:item.id,email:item.email,fullName:item.fullName,
+              role:normalizedRole,status:normalizedStatus,
+            }));
+          }
+          actionRow.appendChild(button);
         }
+        actions.appendChild(actionRow);
+        const reason=document.createElement('p');reason.className='account-controls-hint';
+        reason.textContent=normalizedRole==='admin'?
+          'حساب إداري محمي: لا يمكن إيقافه أو تنشيطه من هذه الشاشة.':
+          normalizedStatus==='deleted'?
+          'حساب محذوف: لا يمكن تعديل حالته من هذه الشاشة.':
+          !canManage?
+          'إجراءات هذا الحساب غير متاحة؛ تحقّق من نوع الحساب وحالته.':
+          normalizedStatus==='active'?
+          'الحساب نشط؛ يمكن إيقافه مع توثيق السبب وتأكيد كلمة مرور المدير.':
+          'الحساب موقوف؛ يمكن إعادة تنشيطه مع توثيق السبب وتأكيد كلمة مرور المدير.';
+        actions.appendChild(reason);
+        const deletion=document.createElement('p');deletion.className='account-delete-note';
+        deletion.textContent='الحذف النهائي غير متاح حفاظًا على بيانات الحساب وسجل التدقيق.';
+        actions.appendChild(deletion);
+        card.appendChild(actions);
         cards.appendChild(card);
         const tr=document.createElement('tr');
         cell(tr,item.fullName||'—');
