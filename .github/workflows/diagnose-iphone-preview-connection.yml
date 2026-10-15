@@ -64,7 +64,8 @@ jobs:
           for(const host of ['https://app.dhahabk.com','https://dhahabi-user-iphone-preview.onrender.com']){
             for(const path of ['/','/gold-app-pwa/full/','/gold-app-pwa/full/version.json','/gold-app-pwa/full/manifest.webmanifest']){
               const label='App host '+host+path;
-              const response=await check(label,host+path,{redirect:'follow'});
+              const requestUrl=path.endsWith('version.json')?host+path+'?t='+Date.now() : host+path;
+              const response=await check(label,requestUrl,{redirect:'follow',headers:{'Cache-Control':'no-cache'}});
               if(response){
                 console.log(label+' finalURL='+response.url+' type='+(response.headers.get('content-type')||'(none)'));
                 if(path.endsWith('version.json')&&response.ok){
