@@ -1,22 +1,64 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#001F3F"><title>ذهبي للإدارة</title><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="assets/icon.svg"><link rel="stylesheet" href="styles.css"></head><body data-app="admin" data-role="admin">
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#001F3F"><title>ذهبك للإدارة</title><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="assets/icon.svg"><link rel="stylesheet" href="styles.css"></head><body data-app="admin" data-role="admin">
  <main class="app"><div class="shell">
   <section class="login" id="login-view">
-   <div class="brand"><img class="brand-icon" src="assets/icon.svg" alt=""><h1>ذهبي للإدارة</h1><p>بوابة الإدارة</p><span class="role-badge">ADMIN ONLY</span></div>
+   <div class="brand"><img class="brand-icon" src="assets/icon.svg" alt=""><h1>ذهبك للإدارة</h1><p>إدارة منصة الذهب</p><span class="role-badge">دخول المدير فقط</span></div>
    <div class="card">
     <div id="notice" class="notice" role="alert"></div>
     <form id="login-form">
-     <label>البريد الإلكتروني<div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6"/></svg><input id="email" type="email" dir="ltr" autocomplete="username" placeholder="admin@gold.app" required></div></label>
+     <label>البريد الإلكتروني<div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6"/></svg><input id="email" type="email" dir="ltr" autocomplete="username" placeholder="البريد الإداري" required></div></label>
      <label>كلمة المرور<div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11h10v9H7z M9 11V8a3 3 0 0 1 6 0v3"/></svg><input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required></div></label>
+     <button id="toggle-password" class="password-toggle" type="button" aria-label="إظهار أو إخفاء كلمة المرور">إظهار</button>
      <button id="submit" class="primary" type="submit">دخول لوحة الإدارة</button>
     </form>
     <p class="security">هذه البوابة مخصصة لحسابات الإدارة فقط. لا يتوفر تسجيل إداري ذاتي.</p>
    </div>
   </section>
-  <section class="dash" id="dash-view">
-   <header class="dash-head"><img src="assets/icon.svg" alt=""><div><h2>ذهبي للإدارة</h2><p id="session-email" dir="ltr"></p></div><button id="logout" class="logout" aria-label="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4"/></svg></button></header>
-   <div class="stats"><div class="stat"><span>سعر عيار 24 الآن</span><strong id="market-price">—</strong></div><div class="stat"><span>حالة الاتصال</span><strong id="connection-state">متصل</strong></div></div>
-   <div class="modules"><article class="module"><span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><div><h3>المستخدمون</h3><p>إدارة المستخدمين والحالات والصلاحيات</p></div><span class="pending">قيد الربط</span></article><article class="module"><span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6"/></svg></span><div><h3>الدعوات</h3><p>دعوات اعتماد التجار وإدارتها</p></div><span class="pending">قيد الربط</span></article><article class="module"><span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 4v5c0 5-3 8-7 10-4-2-7-5-7-10V7z"/></svg></span><div><h3>الصلاحيات</h3><p>إدارة الأدوار والسياسات</p></div><span class="pending">قيد الربط</span></article><article class="module"><span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7 M19 12h2 M3 12h2 M12 3v2 M12 19v2"/></svg></span><div><h3>الإعدادات</h3><p>إعدادات النظام العامة والتشغيلية</p></div><span class="pending">قيد الربط</span></article></div>
-   <p class="security">تم التحقق من صلاحية ADMIN. وظائف الإدارة ستُفعّل عند إضافة وحدات Users/Invites/Permissions/Audit إلى الـBackend.</p>
+  <section class="dash" id="dash-view" aria-label="لوحة إدارة ذهبك">
+   <header class="dash-head"><img src="assets/icon.svg" alt=""><div><h2>ذهبك للإدارة</h2><p id="session-email" dir="ltr"></p></div><div id="connection-state" class="connection-state" role="status">جارٍ التحقق...</div><button id="logout" class="logout" type="button" aria-label="تسجيل الخروج" title="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4"/></svg></button></header>
+   <nav class="admin-nav" aria-label="أقسام لوحة الإدارة">
+    <button type="button" data-panel="overview" class="selected">نظرة عامة</button>
+    <button type="button" data-panel="users">المستخدمون</button>
+    <button type="button" data-panel="prices">الأسعار</button>
+    <button type="button" data-panel="roadmap">الخدمات القادمة</button>
+   </nav>
+   <section data-view="overview" class="workspace">
+    <div class="section-heading"><div><h3>نظرة عامة</h3><p>حالة الحسابات المسجلة في المنصة</p></div><button id="summary-retry" class="small-action" type="button">تحديث البيانات</button></div>
+    <div class="stats">
+     <div class="stat"><span>المستخدمون</span><strong id="count-users">—</strong></div>
+     <div class="stat"><span>التجار</span><strong id="count-merchants">—</strong></div>
+     <div class="stat"><span>حسابات الإدارة</span><strong id="count-admins">—</strong></div>
+     <div class="stat"><span>الحسابات الموقوفة</span><strong id="count-suspended">—</strong></div>
+    </div>
+    <p class="info-note" id="summary-note" role="status">جارٍ تحميل الإحصاءات...</p>
+    <div class="info-note">لا تمثل أعداد التجار طلبات اعتماد معلّقة؛ خدمة اعتماد التجار لم تُفعّل بعد.</div>
+   </section>
+   <section data-view="users" class="workspace" hidden>
+    <div class="section-heading"><div><h3>دليل المستخدمين</h3><p>استعراض الحسابات دون تعديلها</p></div></div>
+    <form id="users-filter" class="filters" aria-label="تصفية حسابات المستخدمين">
+     <label>بحث <input id="users-search" type="search" maxlength="80" autocomplete="off" placeholder="الاسم أو البريد"></label>
+     <label>النوع <select id="users-role"><option value="">الكل</option><option value="user">مستخدم</option><option value="merchant">تاجر</option><option value="admin">مدير</option></select></label>
+     <label>الحالة <select id="users-status"><option value="">الكل</option><option value="active">نشط</option><option value="suspended">موقوف</option><option value="deleted">محذوف</option></select></label>
+     <button class="small-action" type="submit">بحث</button>
+    </form>
+    <div class="table-scroll"><table><thead><tr><th scope="col">الاسم</th><th scope="col">البريد</th><th scope="col">النوع</th><th scope="col">الحالة</th><th scope="col">تاريخ التسجيل</th></tr></thead><tbody id="users-body"></tbody></table></div>
+    <div class="pagination"><p id="users-note" role="status">لا توجد بيانات محمّلة.</p><div><button id="users-prev" type="button" disabled>السابق</button><button id="users-next" type="button" disabled>التالي</button></div></div>
+    <p class="info-note">البيانات لا تعرض كلمات المرور أو الموقع الجغرافي. التفعيل والإيقاف غير متاحين في هذه المرحلة.</p>
+   </section>
+   <section data-view="prices" class="workspace" hidden>
+    <div class="section-heading"><div><h3>مراقبة أسعار الذهب</h3><p>آخر سعر محفوظ، وليس بالضرورة سعرًا مباشرًا</p></div><button id="prices-retry" class="small-action" type="button">تحديث القراءة</button></div>
+    <div class="price-card"><span>آخر سعر رصد محفوظ لجرام عيار 24 بالريال السعودي</span><strong id="market-price">—</strong><p id="market-updated" role="status">لم تُحمّل البيانات بعد</p><p>مصدر الرصد: <span id="market-source">—</span></p></div>
+    <p class="info-note">تحديث القراءة لا يُنشئ رصدًا جديدًا، ولا يغيّر أسعار المستخدمين.</p>
+   </section>
+   <section data-view="roadmap" class="workspace" hidden>
+    <div class="section-heading"><div><h3>خدمات الإدارة القادمة</h3><p>وحدات مخططة؛ لا تعرض بيانات افتراضية أو أزرارًا تنفيذية وهمية</p></div></div>
+    <div class="modules">
+     <article class="module"><div><h3>اعتماد التجار</h3><p>طلبات الاعتماد والمستندات وقرارات القبول والرفض الموثّقة</p></div><span class="pending">بانتظار الخادم</span></article>
+     <article class="module"><div><h3>رموز الدعوة والمسوقون</h3><p>الرموز وتخصيصها وتتبع الإحالات</p></div><span class="pending">بانتظار الخادم</span></article>
+     <article class="module"><div><h3>الاشتراكات والعمولات</h3><p>تتبع الدفع والتجديد والاسترداد وتسجيل أثره المالي</p></div><span class="pending">بانتظار الخادم</span></article>
+     <article class="module"><div><h3>التقارير وسجل التدقيق</h3><p>سجل من قام بالإجراء ومتى وما الذي تغيّر</p></div><span class="pending">بانتظار الخادم</span></article>
+    </div>
+   </section>
+   <p class="security dash-security">حسابات الإدارة فقط. التحقق من الصلاحيات يُطبّق في الخادم وليس في الواجهة وحدها.</p>
   </section>
   <footer class="footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer>
  </div></main>
