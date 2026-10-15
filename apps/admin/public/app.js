@@ -1,6 +1,9 @@
 (()=>{
   'use strict';
   const API='https://gold-app-api-u8dl.onrender.com';
+  // Session isolation is intentionally memory-only for privileged accounts.
+  const SESSION_NAMESPACE='dhahabi_admin_';
+  document.body.dataset.sessionNamespace=SESSION_NAMESPACE;
   const byId=id=>document.getElementById(id);
   const loginView=byId('login-view'),dash=byId('dash-view');
   const form=byId('login-form'),notice=byId('notice'),submit=byId('submit');
@@ -11,17 +14,19 @@
   const formatDate=s=>{
     if(!s)return '—';
     const d=new Date(s);
-    return Number.isFinite(d.getTime())?new Intl.DateTimeFormat('ar-SA',{dateStyle:'medium',timeStyle:'short'}).format(d):'—';
+    return Number.isFinite(d.getTime())?new Intl.DateTimeFormat('ar-SA-u-ca-gregory',{dateStyle:'medium',timeStyle:'short'}).format(d):'—';
   };
   function msg(text,type='error'){
     notice.textContent=text;
     notice.className=text?'notice '+type:'notice';
+    notice.setAttribute('aria-live',text?'assertive':'off');
   }
   function setStatus(text){byId('connection-state').textContent=text;}
   function clearAuth(){
     accessToken='';refreshToken='';
     byId('session-email').textContent='';
     dash.classList.remove('active');
+    document.body.classList.remove('admin-authenticated');
     loginView.classList.remove('hidden');
     password.value='';
   }
@@ -69,6 +74,7 @@
       el.hidden=el.dataset.view!==panel;
     });
     if(panel==='users'){page=1;loadUsers();}
+    window.scrollTo({top:0,behavior:'instant'});
     if(panel==='prices')loadPrice();
   }
   async function loadSummary(){
@@ -111,6 +117,7 @@
     const body=byId('users-body');
     body.replaceChildren();
     byId('users-note').textContent='جارٍ تحميل المستخدمين...';
+    body.setAttribute('aria-busy','true');
     byId('users-prev').disabled=true;byId('users-next').disabled=true;
     const q=new URLSearchParams({page:String(page),limit:'20'});
     for(const id of ['role','status','search']){
@@ -137,11 +144,12 @@
       byId('users-prev').disabled=page<=1;
       byId('users-next').disabled=page>=pages;
     }catch(e){if(accessToken)byId('users-note').textContent=e.message;}
-    finally{busyUsers=false;}
+    finally{busyUsers=false;body.setAttribute('aria-busy','false');}
   }
   async function enter(user){
     if(!user||user.role!=='admin')throw new Error('هذا الحساب لا يملك صلاحية الدخول إلى بوابة الإدارة.');
     byId('session-email').textContent=user.email||'';
+    document.body.classList.add('admin-authenticated');
     loginView.classList.add('hidden');dash.classList.add('active');
     msg('');selectPanel('overview');setStatus('جارٍ التحقق...');
     await Promise.all([loadSummary(),loadPrice()]);
@@ -149,6 +157,7 @@
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(submit.disabled)return;
     msg('');submit.disabled=true;
+    submit.setAttribute('aria-busy','true');
     const old=submit.textContent;submit.textContent='جارٍ التحقق...';
     try{
       const tokens=await request('/auth/login',{method:'POST',
@@ -158,12 +167,14 @@
       const user=await secure('/auth/me');
       if(accessToken)await enter(user);
     }catch(e){clearAuth();msg(e.message||'تعذر تسجيل الدخول.');}
-    finally{submit.disabled=false;submit.textContent=old;}
+    finally{submit.disabled=false;submit.textContent=old;submit.removeAttribute('aria-busy');}
   });
-  byId('logout').addEventListener('click',()=>{clearAuth();msg('تم تسجيل الخروج من الواجهة.','ok');});
+  byId('logout').addEventListener('click',()=>{clearAuth();msg('تم تسجيل الخروج من الواجهة.','ok');email.focus();});
   byId('toggle-password').addEventListener('click',()=>{
     password.type=password.type==='password'?'text':'password';
     byId('toggle-password').textContent=password.type==='password'?'إظهار':'إخفاء';
+    byId('toggle-password').setAttribute('aria-pressed',String(password.type==='text'));
+    byId('toggle-password').setAttribute('aria-label',password.type==='password'?'إظهار كلمة المرور':'إخفاء كلمة المرور');
   });
   document.querySelectorAll('[data-panel]').forEach(b=>b.addEventListener('click',()=>selectPanel(b.dataset.panel)));
   byId('summary-retry').addEventListener('click',loadSummary);
