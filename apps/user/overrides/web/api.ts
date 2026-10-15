@@ -60,7 +60,7 @@ export async function saveSession(tokens:any){
 }
 export function resumeSession(tokens:SessionTokens){session={...tokens};blocked=false;epoch++;}
 export function errorMessage(e:unknown){
- if(!(e instanceof ApiError))return 'تعذر إكمال العملية. حاول مرة أخرى.';
+ if(!(e instanceof ApiError))return 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
  const messages:Record<string,string>={'Invalid credentials':'البريد الإلكتروني أو كلمة المرور غير صحيحة.','Email already exists':'هذا البريد مسجل بالفعل. استخدم تسجيل الدخول.',
  'Email or mobile number already exists':'البريد الإلكتروني أو رقم الجوال مسجل بالفعل. استخدم تسجيل الدخول.',
  'A valid mobile number is required':'أدخل رقم جوال صحيحًا.',
@@ -75,14 +75,23 @@ export function errorMessage(e:unknown){
  'Registration has expired; start again':'انتهت جلسة التسجيل. أعد إدخال بياناتك لطلب رمز جديد.',
  'Too many verification requests; try again later':'محاولات كثيرة. انتظر قبل طلب رمز جديد.',
  'Wait before requesting another verification email':'انتظر دقيقة قبل طلب رمز تحقق آخر.','Cannot delete a portfolio that has purchases':'احذف سجلات المشتريات المرتبطة أولًا، ثم احذف المحفظة.','User app role mismatch':'هذا التطبيق مخصص لحساب المستخدم فقط.'};
- return messages[e.message]||(e.status===401?'انتهت الجلسة. سجّل الدخول مجددًا.':e.status===403?'ليست لديك صلاحية لهذه العملية.':e.status>=500?'الخادم غير متاح حاليًا. حاول لاحقًا.':e.message);
+ if(e.connectionFailure)return e.message;
+ // Never expose unknown server error details, framework exceptions, or identifiers.
+ return messages[e.message]||(
+  e.status===401?'انتهت جلسة الدخول. يرجى تسجيل الدخول مجددًا.':
+  e.status===403?'ليست لديك صلاحية لإجراء هذه العملية.':
+  e.status===429?'محاولات كثيرة. يرجى الانتظار قليلًا ثم المحاولة مجددًا.':
+  e.status>=500?'الخدمة غير متاحة مؤقتًا. يرجى المحاولة لاحقًا.':
+  e.status>=400?'تعذر إكمال الطلب. يرجى مراجعة البيانات والمحاولة مجددًا.':
+  'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'
+ );
 }
 async function raw(path:string,options:RequestInit={},token?:string,timeoutMs=45000){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
  try{
   const headers=new Headers(options.headers);if(options.body)headers.set('Content-Type','application/json');if(token)headers.set('Authorization','Bearer '+token);
   const response=await fetch(API_BASE+path,{...options,headers,signal:controller.signal,cache:'no-store'});
-  const body=await response.text();let data:any=null;try{data=body?JSON.parse(body):null;}catch{if(response.ok)throw new ApiError('استجابة الخادم غير صالحة.');}
+  const body=await response.text();let data:any=null;try{data=body?JSON.parse(body):null;}catch{if(response.ok)throw new ApiError('تعذر إكمال العملية. يرجى المحاولة مرة أخرى.');}
   if(!response.ok){
    const details=data?.error?.details;
    const message=Array.isArray(data?.message)?data.message.join('، '):data?.message||
@@ -95,8 +104,8 @@ async function raw(path:string,options:RequestInit={},token?:string,timeoutMs=45
   // Distinguish cold-start/network timeout from a rejected HTTP credential;
   // do not log the URL, user identifier, credentials, headers, or tokens.
   if(controller.signal.aborted||e instanceof Error&&e.name==='AbortError')
-   throw new ApiError('انتهت مهلة الاتصال بالخادم. حاول مجددًا بعد قليل.',0,'timeout');
-  throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.',0,'network');
+   throw new ApiError('يستغرق الاتصال وقتًا أطول من المعتاد. يرجى المحاولة بعد قليل.',0,'timeout');
+  throw new ApiError('تعذر الاتصال حاليًا. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.',0,'network');
  }finally{clearTimeout(timer);}
 }
 /** Public only: no session token, refresh, or access to authenticated user endpoints. */
