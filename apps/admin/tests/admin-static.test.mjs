@@ -23,7 +23,7 @@ test('admin bundle parses and every referenced element exists once', () => {
 test('admin scope and UI are isolated from customer and trader', () => {
   assert.equal(manifest.scope, '/gold-app-pwa/admin/');
   assert.equal(manifest.start_url, '/gold-app-pwa/admin/');
-  assert.match(sw, /dhahabk-admin-otp-diagnostics-v5/);
+  assert.match(sw, /dhahabk-admin-accounts-v6/);
   assert.match(html, /ذهبك للإدارة/);
   assert.match(css, /#001F3F/);
 });
@@ -75,4 +75,11 @@ test('admin OTP errors preserve the backend error envelope instead of generic fa
   assert.match(js,/رمز الحالة/);
   assert.match(js,/\/auth\/admin\/verify/);
   assert.doesNotMatch(js,/localStorage|sessionStorage|innerHTML/);
+});
+
+test('real account metrics identify user accounts rather than claiming all roles',()=>{
+  assert.match(html,/حسابات المستخدمين/);
+  assert.doesNotMatch(html,/إجمالي المستخدمين/);
+  assert.match(js,/\/admin\/summary/);
+  assert.match(js,/\/admin\/users\?/);
 });
