@@ -139,3 +139,32 @@ body.admin-authenticated .footer{display:none}
 .otp-actions{display:flex;gap:10px;margin-top:15px}
 .otp-actions .gold-btn-outline{flex:1;font-size:12px;line-height:1.55}
 @media(max-width:380px){.otp-actions{flex-direction:column}.otp-input{font-size:24px}}
+
+/* Admin account controls and audit — original royal-theme surface. */
+.account-action{width:100%;margin-top:11px;min-height:40px;padding:8px 12px;border-radius:9px;font-weight:800;font-size:12px;border:1px solid #cbd5e1;background:#f8fafc;color:#334155}
+.suspend-action{color:#b91c1c;border-color:#fecaca;background:#fff5f5}
+.suspend-action:hover{background:#fee2e2}
+.activate-action{color:#166534;border-color:#bbf7d0;background:#f0fdf4}
+.activate-action:hover{background:#dcfce7}
+.audit-section{margin-top:16px}
+.audit-list{display:grid;gap:10px}
+.audit-entry{border:1px solid #e2e8f0;border-right:3px solid #d4af37;border-radius:9px;padding:10px 12px}
+.audit-entry strong{display:block;color:#1e293b;font-size:13px}
+.audit-target{display:block;color:#475569;direction:ltr;text-align:right;font-size:12px;overflow-wrap:anywhere}
+.audit-entry p{margin:6px 0;font-size:12px;color:#475569;overflow-wrap:anywhere;white-space:pre-wrap}
+.audit-entry small{font-size:11px;color:#64748b}
+.audit-actions{display:flex;gap:7px;flex-wrap:wrap}
+.audit-actions button{flex:1;font-size:11px;padding:7px 6px;min-height:40px}
+.status-dialog{border:0;border-radius:16px;padding:0;width:min(92vw,435px);max-height:calc(100dvh - 28px);overflow-y:auto;background:#fff;color:#1e293b;box-shadow:0 20px 50px #0007}
+.status-dialog::backdrop{background:rgba(2,8,18,.80)}
+.status-form{padding:22px}
+.status-form .gold-card-title{margin-bottom:9px}
+.target-identity{font-size:13px;font-weight:700;color:#0c1626;overflow-wrap:anywhere;direction:ltr;text-align:right;background:#f8fafc;padding:10px;border-radius:9px;border:1px solid #e2e8f0}
+.status-reason{resize:vertical;min-height:85px}
+.confirm-row{display:flex;align-items:flex-start;gap:9px;margin:15px 0;color:#334155;font-size:12px;line-height:1.8}
+.confirm-row input{height:18px;width:18px;flex-shrink:0;margin-top:4px;accent-color:#a88319}
+.form-feedback{min-height:22px;font-size:12px;color:#b91c1c;line-height:1.7}
+.status-buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.status-buttons button{font-size:12px;padding:10px;min-height:48px}
+.status-buttons .danger-action{background:#b91c1c;color:#fff}
+.status-buttons .danger-action:hover{background:#991b1b}

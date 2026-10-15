@@ -23,7 +23,7 @@ test('admin bundle parses and every referenced element exists once', () => {
 test('admin scope and UI are isolated from customer and trader', () => {
   assert.equal(manifest.scope, '/gold-app-pwa/admin/');
   assert.equal(manifest.start_url, '/gold-app-pwa/admin/');
-  assert.match(sw, /dhahabk-admin-accounts-v6/);
+  assert.match(sw, /dhahabk-admin-controls-v7/);
   assert.match(html, /ذهبك للإدارة/);
   assert.match(css, /#001F3F/);
 });
@@ -34,7 +34,7 @@ test('admin bearer tokens remain in memory and user-supplied rows use textConten
   assert.match(js, /td\.textContent/);
 });
 
-test('no fabricated admin metrics or write controls in stage one', () => {
+test('no fabricated admin metrics or unrelated merchant/price controls', () => {
   assert.match(js, /\/admin\/summary/);
   assert.match(js, /\/admin\/users/);
   assert.doesNotMatch(js, /\/admin\/(?:approve|suspend|delete|invite)/);
@@ -82,4 +82,17 @@ test('real account metrics identify user accounts rather than claiming all roles
   assert.doesNotMatch(html,/إجمالي المستخدمين/);
   assert.match(js,/\/admin\/summary/);
   assert.match(js,/\/admin\/users\?/);
+});
+
+test('status action and audit are limited to Admin and require explicit confirmation',()=>{
+ assert.match(js,/\/admin\/users\/'\+encodeURIComponent\(target\.id\)\+'\/status'/);
+ assert.match(js,/\/admin\/audit\?page=/);
+ assert.match(js,/\['user','merchant'\]\.includes\(item\.role\)/);
+ assert.match(js,/adminPassword:/);
+ assert.match(html,/id="status-dialog"/);
+ assert.match(html,/id="status-reason"/);
+ assert.match(html,/id="status-admin-password"/);
+ assert.match(html,/id="status-confirm"/);
+ assert.match(html,/id="audit-list"/);
+ assert.doesNotMatch(js,/localStorage|sessionStorage|innerHTML|insertAdjacentHTML/);
 });
