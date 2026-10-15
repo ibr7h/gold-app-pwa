@@ -121,11 +121,11 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   };
   window.addEventListener('storage',onStorage);
   (async()=>{try{
-   await restoreLegacySession();
    if(await pendingSessionReplacement()){
     if(active&&version.current===boot)setError(SESSION_REPLACED_MESSAGE);
     return;
    }
+   await restoreLegacySession();
    const session=await hasSession();
    if(!session){if(active&&version.current===boot)await refreshBiometricState(null);return;}
    const cached=await getVerifiedCachedUser(),c=await readLocalCredential();
@@ -315,7 +315,11 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    if(document.visibilityState==='hidden'){hiddenAt=Date.now();return;}
    if(hiddenAt!==null&&Date.now()-hiddenAt>=60000&&latestUser.current&&(quickLockState.current||biometricLockState.current)){
     begin();lockSession();setLockedAccount(latestUser.current);setUser(null);setLoading(false);
-   }hiddenAt=null;
+   }
+   // Refresh authorization when returning to a foreground User session.
+   // A replaced device must not keep showing stale account content.
+   if(hiddenAt!==null&&latestUser.current)void api('/auth/me').catch(()=>{});
+   hiddenAt=null;
   };
   document.addEventListener('visibilitychange',onVisibility);
   return()=>document.removeEventListener('visibilitychange',onVisibility);
@@ -330,8 +334,10 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   begin();setLockedAccount(null);setUser(null);enrollment.current=null;
   setQuickPinEnabled(false);setPinReconnectRequired(false);setBiometricEnrolled(false);
   setBiometricEnabled(false);setLoading(false);
-  // Revoke this session only, never a replacement session on another device.
-  void revokeServerSession().catch(()=>{}).finally(()=>{void clearSession();});
+  // Capture and send revocation before clearing the local token. Clear
+  // immediately: a slow/offline logout must never erase a newer login.
+  void revokeServerSession().catch(()=>{});
+  void clearSession();
  };
  const updateProfile=async(changes:{fullName:string;city:string})=>{
   const updated=await api<{id:string|number;fullName:string|null;city:string|null;phone:string|null;email:string}>('/auth/profile',{
