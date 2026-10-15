@@ -182,3 +182,18 @@ body.admin-authenticated .footer{display:none}
 .account-controls-hint{font-size:11px;line-height:1.8;color:#475569;margin:9px 0 0}
 .account-delete-note{font-size:11px;line-height:1.8;color:#9a3412;margin:6px 0 0}
 .admin-build{font-size:11px;color:#94a3b8;margin:-9px 0 14px}
+
+/* Original UI.zip screens/01_splash.html, adapted for the independent Admin app.
+   CSS-only dismissal never relies on API calls, JavaScript, or a successful admin login. */
+.admin-splash{position:fixed;inset:0;z-index:1000;overflow:hidden;background:radial-gradient(circle at center,#072e5c 0%,#0c1626 100%);color:#d4af37;animation:admin-splash-dismiss 1.65s ease-out forwards}
+.admin-splash-inner{width:min(100%,440px);height:100%;min-height:100dvh;margin:auto;padding:calc(55px + env(safe-area-inset-top,0px)) 24px calc(42px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:20px;text-align:center}
+.admin-splash-edition{display:flex;align-items:center;justify-content:center;gap:9px;border:1px solid rgba(197,160,33,.3);border-radius:99px;background:rgba(197,160,33,.15);padding:7px 17px;color:#d4af37;font-size:13px;font-weight:800}
+.admin-splash-center{display:flex;flex-direction:column;align-items:center;max-width:320px}
+.admin-splash-icon{width:120px;height:120px;margin-bottom:20px;border-radius:29px;background:linear-gradient(135deg,#e6c86e,#d4af37,#b89726);display:grid;place-items:center;box-shadow:0 4px 24px rgba(212,175,55,.35)}
+.admin-splash-icon img{width:108px;height:108px;border-radius:25px;object-fit:contain;display:block}
+.admin-splash-brand{font-size:38px;line-height:1.4;font-weight:900;letter-spacing:-.5px;color:#d4af37}
+.admin-splash-subtitle{font-size:17px;color:#f8fafc;font-weight:800;margin:3px 0}
+.admin-splash-detail{font-size:13px;color:#cbd5e1;margin:0}
+.admin-splash-footnote{font-size:12px;color:#d4af37;display:flex;align-items:center;gap:7px;opacity:.9}
+@keyframes admin-splash-dismiss{0%,77%{opacity:1;visibility:visible}100%{opacity:0;visibility:hidden;pointer-events:none}}
+@media(prefers-reduced-motion:reduce){.admin-splash{animation:none;display:none}}
