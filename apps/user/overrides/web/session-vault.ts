@@ -8,13 +8,16 @@ export interface SessionTokens {accessToken:string;refreshToken:string}
 interface Box {iv:string;cipher:string}
 interface Vault {
  version:1;accountId:string;origin:string;session:Box;
- pin?:{salt:string;box:Box};biometric?:Box;
+ pin?:{salt:string;box:Box;iterations?:number};biometric?:Box;
  biometricCredentialId?:string;
  /** Staged envelope retains the previous credential through interrupted enrollment. */
  biometricPending?:{credentialId:string;box:Box};
 }
 const STORAGE='dhahabi_user_session_vault_v1';
-const ITERATIONS=210000;
+const LEGACY_PIN_ITERATIONS=210000;
+// OWASP's PBKDF2-HMAC-SHA-256 work factor. A six-digit PIN still has a finite
+// search space; this is defense in depth until quick unlock becomes server-bound.
+const PIN_ITERATIONS=600000;
 let opened:{accountId:string;key:CryptoKey;rawKey:Uint8Array}|null=null;
 let generation=0;
 let writes:Promise<unknown>=Promise.resolve();
@@ -38,10 +41,16 @@ const random=(length:number)=>crypto.getRandomValues(new Uint8Array(length));
 const supported=()=>typeof window!=='undefined'&&window.isSecureContext&&typeof crypto!=='undefined'&&!!crypto.subtle;
 const aad=(accountId:string)=>new TextEncoder().encode('dhahabi-user-v1:'+location.origin+':'+accountId);
 async function keyOf(raw:Uint8Array){return crypto.subtle.importKey('raw',buffer(raw),'AES-GCM',false,['encrypt','decrypt']);}
-async function pinKey(pin:string,salt:Uint8Array){
+function safeIterations(value:unknown){
+ if(value===undefined)return LEGACY_PIN_ITERATIONS;
+ if(!Number.isInteger(value)||Number(value)<LEGACY_PIN_ITERATIONS||Number(value)>1000000)
+  throw new Error('إعدادات حماية رمز الدخول غير صالحة.');
+ return Number(value);
+}
+async function pinKey(pin:string,salt:Uint8Array,iterations=PIN_ITERATIONS){
  if(!/^[0-9]{6}$/.test(pin))throw new Error('أدخل رمزًا من ٦ أرقام.');
  const material=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
- return crypto.subtle.deriveKey({name:'PBKDF2',salt:buffer(salt),iterations:ITERATIONS,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+ return crypto.subtle.deriveKey({name:'PBKDF2',salt:buffer(salt),iterations,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 }
 async function seal(key:CryptoKey,value:Uint8Array,accountId:string):Promise<Box>{
  const iv=random(12);
@@ -99,7 +108,7 @@ async function protectWithPin(accountId:string,pin:string,tokens:SessionTokens){
  const rawKey=opened!.rawKey;
  const box=await seal(await pinKey(pin,salt),rawKey,accountId);
  assertCurrent(started);
- await AsyncStorage.setItem(STORAGE,JSON.stringify({...v,pin:{salt:hex(salt),box}}));
+ await AsyncStorage.setItem(STORAGE,JSON.stringify({...v,pin:{salt:hex(salt),box,iterations:PIN_ITERATIONS}}));
 }
 async function protectWithBiometric(accountId:string,secret:Uint8Array,tokens:SessionTokens,credentialId?:string){
  const started=generation,v=await prepare(accountId,tokens);
@@ -130,8 +139,16 @@ async function open(accountId:string,rawKey:Uint8Array,v:Vault):Promise<SessionT
 async function unlockWithPin(accountId:string,pin:string):Promise<SessionTokens>{
  const started=generation,v=await read();
  if(!v?.pin||v.accountId!==accountId)throw new Error('استخدم كلمة المرور لاستعادة الجلسة وإعداد رمز جديد.');
- const rawKey=await unseal(await pinKey(pin,bytes(v.pin.salt)),v.pin.box,accountId);
- assertCurrent(started);return open(accountId,rawKey,v);
+ const iterations=safeIterations(v.pin.iterations);
+ const rawKey=await unseal(await pinKey(pin,bytes(v.pin.salt),iterations),v.pin.box,accountId);
+ assertCurrent(started);
+ // Upgrade pre-v1.9.78 PIN envelopes only after the old PIN has authenticated.
+ if(iterations<PIN_ITERATIONS){
+  const salt=random(16),box=await seal(await pinKey(pin,salt),rawKey,accountId);
+  assertCurrent(started);v.pin={salt:hex(salt),box,iterations:PIN_ITERATIONS};
+  await AsyncStorage.setItem(STORAGE,JSON.stringify(v));
+ }
+ return open(accountId,rawKey,v);
 }
 async function unlockWithBiometric(accountId:string,secret:Uint8Array|null,credentialId?:string):Promise<SessionTokens>{
  const started=generation,v=await read();

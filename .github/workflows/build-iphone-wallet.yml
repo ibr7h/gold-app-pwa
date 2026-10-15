@@ -4,6 +4,8 @@ on:
     branches: ["preview/iphone-render"]
     paths:
       - ".github/workflows/build-iphone-wallet.yml"
+      - "gold-app 17 apr 15-19 adimin icon.zip"
+      - "scripts/security-audit-iphone.cjs"
       - "apps/user/scripts/user-update-client.js"
       - "apps/user/scripts/user-update-locales.js"
       - "apps/user/scripts/user-service-worker.js"
@@ -23,9 +25,12 @@ on:
       - "apps/user/overrides/contexts/AuthContext.web.tsx"
       - "apps/user/overrides/web/push-client.ts"
       - "apps/user/overrides/web/session-vault.ts"
+      - "apps/user/overrides/contexts/ApiKeyContext.tsx"
+      - "apps/user/overrides/services/GoldApiService.ts"
       - "apps/user/overrides/web/local-biometric.ts"
       - "apps/user/overrides/web/tests/single-session-compatibility.test.ts"
       - "apps/user/overrides/web/tests/biometric-vault-recovery.test.ts"
+      - "apps/user/overrides/web/tests/frontend-security.test.ts"
       - "apps/user/overrides/web/RegistrationPhoneField.tsx"
       - "apps/user/overrides/web/AuthLanguageSwitcher.tsx"
       - "apps/user/overrides/web/registration.css"
@@ -110,6 +115,20 @@ jobs:
           for route in chat admin new-order new-client admin-stats admin-users trader-home order-detail admin-invites trader-orders admin-settings trader-clients trader-reports trader-location trader-messages admin-permissions trader-notifications; do
             find app -type f \( -name "$route.tsx" -o -name "$route.web.tsx" -o -name "$route.jsx" -o -name "$route.js" \) -delete
           done
+          # Password/email authentication replaced this URL-token callback.
+          # Dev-only pages must never be part of the User production export.
+          rm -f app/oauth/callback.tsx app/oauth/callback.web.tsx \
+            app/forgot-password.tsx app/forgot-password.web.tsx \
+            app/dev/theme-lab.tsx app/dev/theme-lab.web.tsx
+      - name: Sanitize the archived User source
+        run: |
+          rm -f "$SRC/tests/goldapi-key.test.ts" \
+            "$SRC/tests/goldapi-public-key.test.ts" \
+            "$SRC/goldapi-notes.txt"
+          rm -f "$GITHUB_WORKSPACE/gold-app 17 apr 15-19 adimin icon.zip"
+          cd /tmp
+          zip -qr "$GITHUB_WORKSPACE/gold-app 17 apr 15-19 adimin icon.zip" \
+            "$(basename "$SRC")"
       - name: Stamp upcoming User version in source before Expo compilation
         run: |
           python3 - <<'PY'
@@ -134,7 +153,7 @@ jobs:
         run: |
           cd "$SRC"
           pnpm install --frozen-lockfile
-          pnpm exec vitest run web/tests/registration.test.ts web/tests/gold-help.test.ts web/tests/single-session-compatibility.test.ts web/tests/biometric-vault-recovery.test.ts web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts web/tests/i18n.test.ts web/tests/auth-device-language.test.ts web/tests/calendar-preferences.test.ts
+          pnpm exec vitest run web/tests/registration.test.ts web/tests/gold-help.test.ts web/tests/single-session-compatibility.test.ts web/tests/biometric-vault-recovery.test.ts web/tests/frontend-security.test.ts web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts web/tests/i18n.test.ts web/tests/auth-device-language.test.ts web/tests/calendar-preferences.test.ts
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
       - name: Preserve preview PWA assets and replace compiled bundle
         run: |
@@ -174,7 +193,24 @@ jobs:
                   raise RuntimeError(f'Missing signup stylesheet rule: {marker}')
           signup_href='/gold-app-pwa/full/_expo/static/css/'+signup_css
           help_href='/gold-app-pwa/full/_expo/static/css/'+help_css
+          # Each deployment must contain only the new export. Historical bundles
+          # previously left revoked secrets and outdated code publicly reachable.
+          shutil.rmtree(dest/'_expo/static/js/web',ignore_errors=True)
+          shutil.rmtree(dest/'_expo/static/css',ignore_errors=True)
           shutil.copytree(src/'_expo',dest/'_expo',dirs_exist_ok=True)
+          for obsolete in ('oauth/callback.html','forgot-password.html','dev/theme-lab.html'):
+              target=dest/obsolete
+              if target.exists():
+                  target.unlink()
+          security_meta=(
+              '<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; '
+              'script-src \'self\' \'sha256-67fhrP0+BkBqmgGGXTtgiVO/9EQs3QruYNU/7fnRkI8=\'; '
+              'style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; '
+              'font-src \'self\' data:; connect-src \'self\' https://gold-app-api-u8dl.onrender.com; '
+              'worker-src \'self\' blob:; manifest-src \'self\'; object-src \'none\'; '
+              'base-uri \'self\'; form-action \'self\'; upgrade-insecure-requests">'
+              '<meta name="referrer" content="no-referrer">'
+          )
           updated=0
           for page in dest.rglob('*.html'):
               html=page.read_text()
@@ -184,6 +220,11 @@ jobs:
               # do not link it automatically. Include the active, hashed stylesheet.
               next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/gold-help-[a-f0-9]+\.css"\s*/?>','',next_html)
               next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/registration-[a-f0-9]+\.css"\s*/?>','',next_html)
+              next_html=re.sub(r'<meta http-equiv="Content-Security-Policy"[^>]*>','',next_html)
+              next_html=re.sub(r'<meta name="referrer"[^>]*>','',next_html)
+              if next_html.count('<head>')!=1:
+                  raise RuntimeError(f'HTML head missing on {page}')
+              next_html=next_html.replace('<head>','<head>'+security_meta,1)
               if n:
                   if next_html.count('</head>')!=1:
                       raise RuntimeError(f'HTML head missing on {page}')
@@ -200,6 +241,8 @@ jobs:
                   raise RuntimeError(f'Registration CSS is not linked by {target}')
           print(f'New User entry {bundle.name}, GoldHelp CSS {help_css}, updated {updated} preview pages')
           PY
+      - name: Block frontend secret leakage and unsafe legacy artifacts
+        run: node scripts/security-audit-iphone.cjs
       - name: Publish localized iPhone updater on every preview page
         run: |
           python3 - <<'PY'
@@ -233,7 +276,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add _render_preview/gold-app-pwa/full apps/user/overrides/web/app-version.ts
+          git add _render_preview/gold-app-pwa/full apps/user/overrides/web/app-version.ts \
+            "gold-app 17 apr 15-19 adimin icon.zip"
           git diff --cached --quiet && { echo "No compiled changes"; exit 1; }
           git commit -m "build(user-iphone): wallet-card Expo bundle"
           git push origin HEAD:preview/iphone-render
