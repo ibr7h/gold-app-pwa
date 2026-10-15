@@ -8,7 +8,7 @@ let blocked=false;
 let legacyFlight:Promise<void>|null=null;
 let cleanupFlight:Promise<void>=Promise.resolve();
 const listeners=new Set<()=>void>();
-export class ApiError extends Error{constructor(message:string,public status=0){super(message);}}
+export class ApiError extends Error{constructor(message:string,public status=0,public connectionFailure:'network'|'timeout'|null=null){super(message);}}
 export function onSessionEnded(fn:()=>void){listeners.add(fn);return()=>{listeners.delete(fn);};}
 function announceSessionEnded(){
  if(typeof window==='undefined')return;
@@ -77,8 +77,8 @@ export function errorMessage(e:unknown){
  'Wait before requesting another verification email':'انتظر دقيقة قبل طلب رمز تحقق آخر.','Cannot delete a portfolio that has purchases':'احذف سجلات المشتريات المرتبطة أولًا، ثم احذف المحفظة.','User app role mismatch':'هذا التطبيق مخصص لحساب المستخدم فقط.'};
  return messages[e.message]||(e.status===401?'انتهت الجلسة. سجّل الدخول مجددًا.':e.status===403?'ليست لديك صلاحية لهذه العملية.':e.status>=500?'الخادم غير متاح حاليًا. حاول لاحقًا.':e.message);
 }
-async function raw(path:string,options:RequestInit={},token?:string){
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+async function raw(path:string,options:RequestInit={},token?:string,timeoutMs=45000){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
  try{
   const headers=new Headers(options.headers);if(options.body)headers.set('Content-Type','application/json');if(token)headers.set('Authorization','Bearer '+token);
   const response=await fetch(API_BASE+path,{...options,headers,signal:controller.signal,cache:'no-store'});
@@ -90,7 +90,14 @@ async function raw(path:string,options:RequestInit={},token?:string){
    throw new ApiError(message,response.status);
   }
   return data;
- }catch(e){if(e instanceof ApiError)throw e;throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.');}finally{clearTimeout(timer);}
+ }catch(e){
+  if(e instanceof ApiError)throw e;
+  // Distinguish cold-start/network timeout from a rejected HTTP credential;
+  // do not log the URL, user identifier, credentials, headers, or tokens.
+  if(controller.signal.aborted||e instanceof Error&&e.name==='AbortError')
+   throw new ApiError('انتهت مهلة الاتصال بالخادم. حاول مجددًا بعد قليل.',0,'timeout');
+  throw new ApiError('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.',0,'network');
+ }finally{clearTimeout(timer);}
 }
 /** Public only: no session token, refresh, or access to authenticated user endpoints. */
 export async function publicRecoveryRequest(path:'/auth/password-reset/config'|'/auth/password-reset/request'|'/auth/password-reset/confirm',data?:object){
@@ -123,14 +130,27 @@ async function refreshAccess(expiredToken:string|null):Promise<string>{
   refreshFlight=tracked;
  }return refreshFlight!;
 }
+/** Only authenticated/public GET reads are retried on a transport failure.
+ * Never repeat login, registration, refresh, password-reset, or other writes.
+ * A second request is capped to avoid trapping the iPhone's login screen.
+ */
+async function readWithRecovery(path:string,options:RequestInit,token:string|undefined,started:number){
+ try{return await raw(path,options,token);}
+ catch(error){
+  if((options.method||'GET').toUpperCase()!=='GET'||
+    !(error instanceof ApiError)||!error.connectionFailure)throw error;
+  if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
+  return raw(path,options,token,20000);
+ }
+}
 export async function api<T=any>(path:string,options:RequestInit={}):Promise<T>{
  const started=epoch,token=session?.accessToken||null;
  if(blocked||!token&&!path.startsWith('/prices/'))throw new ApiError('الجلسة مقفلة. استخدم رمز الدخول أو كلمة المرور.',401);
- try{const result=await raw(path,options,token||undefined);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
+ try{const result=await readWithRecovery(path,options,token||undefined,started);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
  catch(e){
   if(!(e instanceof ApiError)||e.status!==401||started!==epoch)throw e;
   const current=session?.accessToken,next=current&&current!==token?current:await refreshAccess(token);
-  try{const result=await raw(path,options,next);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
+  try{const result=await readWithRecovery(path,options,next,started);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
   catch(retry){if(retry instanceof ApiError&&retry.status===401&&started===epoch)await clearSession();throw retry;}
  }
 }
