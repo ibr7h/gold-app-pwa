@@ -108,7 +108,9 @@ export default function AuthForm({register=false}:{register?:boolean}){
  const resendCode=async()=>{if(isLoading||resendWait>0)return;clearError();setLocalError('');
   if(await resendRegisterCode()){setCode('');setClock(Date.now());}
  };
- const biometric=async()=>{clearError();setLocalError('');if(!showBiometricLogin){return;}const ok=await loginWithBiometric();if(!ok)setLocalError('تعذر تسجيل الدخول بالبصمة الحيوية.');};
+ const biometric=async()=>{clearError();setLocalError('');if(!showBiometricLogin)return;
+  try{await loginWithBiometric();}catch{setLocalError('تعذر التحقق بالبصمة. استخدم الرمز أو كلمة المرور.');}
+ };
  // Browser and iOS own the passkey sheet. Never request it before an explicit tap.
  // WebAuthn authenticates the previously enrolled device; this does not enroll passkeys automatically.
  if(guest&&!register)return <GuestPrices onBack={()=>setGuest(false)}/>;
@@ -183,7 +185,10 @@ export default function AuthForm({register=false}:{register?:boolean}){
      <label className="form-group"><span className="form-label">البريد الإلكتروني أو رقم الجوال</span><div className="mockup-input-wrap"><input className="form-input" type="text" dir="ltr" autoComplete="username" value={email} required placeholder="البريد الإلكتروني أو 05xxxxxxxx" onChange={e=>setEmail(e.target.value)}/><span className="mockup-field-icon"><AuthIcon name="mail"/></span></div></label>
      <label className="form-group"><span className="form-label">كلمة المرور</span><div className="mockup-input-wrap"><input className="form-input" type={visible?'text':'password'} autoComplete="current-password" value={password} required placeholder="••••••••" onChange={e=>setPassword(e.target.value)}/><button type="button" className="mockup-eye-btn" onClick={()=>setVisible(!visible)} aria-label={visible?'إخفاء كلمة المرور':'إظهار كلمة المرور'}><AuthIcon name={visible?'eyeOff':'eye'}/></button></div></label>
      <div className="mockup-login-options"><label className="mockup-remember"><input type="checkbox" disabled/><span>الدخول السريع من إعدادات الحساب</span></label><button type="button" className="mockup-forgot" onClick={()=>{setRecovery(true);setLocalError('');clearError();}}>{t('نسيت كلمة المرور؟','Forgot password?','Mot de passe oublié ?')}</button></div>
-     <button className="gold-btn mockup-primary-btn" disabled={isLoading}><AuthIcon name="login"/><span>{isLoading?'جارٍ تسجيل الدخول…':'تسجيل الدخول'}</span></button>
+     <button className="gold-btn mockup-primary-btn" disabled={isLoading}><AuthIcon name="login"/><span>{isLoading?'جارٍ تسجيل الدخول…':(
+      error==='تعذر الاتصال حاليًا. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.'||
+      error==='يستغرق الاتصال وقتًا أطول من المعتاد. يرجى المحاولة بعد قليل.'
+       ?t('إعادة المحاولة','Try again','Réessayer'):'تسجيل الدخول')}</span></button>
      <button type="button" className="gold-btn-outline mockup-guest-btn" onClick={()=>setGuest(true)}><AuthIcon name="guest"/><span>المتابعة كزائر (تصفح الأسعار فقط)</span></button>
      <div className="mockup-register-link">ليس لديك حساب؟ <button type="button" onClick={()=>{clearError();router.replace('/register');}}>إنشاء حساب مستخدم جديد</button></div>
     </form>
