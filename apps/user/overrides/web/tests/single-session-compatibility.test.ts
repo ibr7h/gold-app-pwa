@@ -12,6 +12,7 @@ vi.mock('../session-vault',()=>({
  hasSessionVault:vi.fn(async()=>memory.has('dhahabi_user_session_vault_v1')),
  persistVaultSession:vi.fn(async()=>{}),
 }));
+import {localizeFeedback} from '../i18n-feedback';
 import {clearSession,pendingSessionReplacement,saveSession,wasSessionReplaced,
  SESSION_REPLACED_MESSAGE,isSessionReplaced,ApiError} from '../api';
 describe('single session device replacement preserves local biometric and PIN',()=>{
@@ -33,6 +34,11 @@ describe('single session device replacement preserves local biometric and PIN',(
   await saveSession({accessToken:'new-access',refreshToken:'new-refresh'});
   expect(await pendingSessionReplacement()).toBe(false);
   expect(wasSessionReplaced()).toBe(false);
+ });
+ it('provides reviewed Arabic, English, and French replacement notices',()=>{
+  expect(localizeFeedback(SESSION_REPLACED_MESSAGE,'ar')).toContain('جهاز');
+  expect(localizeFeedback(SESSION_REPLACED_MESSAGE,'en')).toContain('another device');
+  expect(localizeFeedback(SESSION_REPLACED_MESSAGE,'fr')).toContain('autre appareil');
  });
  it('distinguishes server-side replacement from offline and unrelated 401',()=>{
   expect(isSessionReplaced(new ApiError('Session replaced by a sign-in on another device',401))).toBe(true);
