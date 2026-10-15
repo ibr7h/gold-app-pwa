@@ -36,8 +36,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .form-input:focus{border-color:var(--app-gold);box-shadow:0 0 0 3px rgba(212,175,55,.2)}
 .form-input::placeholder{color:#94a3b8}
 .input-with-icon{position:relative}
-.input-with-icon>i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8}
-.input-with-icon>.form-input{padding-inline-end:42px}
+.input-with-icon>i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#94a3b8;width:20px;text-align:center;pointer-events:none}
+ /* Login icons stay on the physical left in RTL; reserve that same side for input text.
+    The previous padding-inline-end moved to the RIGHT for email's dir=ltr and overlapped the icon. */
+.input-with-icon>.form-input{padding-left:50px;padding-right:16px}
+#email{direction:ltr;text-align:left}
+#password{text-align:right}
 .password-toggle{border:0;background:transparent;color:#8a690d;padding:9px 2px 2px;font-size:12px;font-weight:700}
 .gold-btn,.gold-btn-outline{font-weight:700;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:46px;transition:background-color .15s}
 .gold-btn{border:0;background:var(--app-gold);color:var(--app-navy);padding:12px 16px;width:100%;box-shadow:0 4px 14px rgba(212,175,55,.25)}
