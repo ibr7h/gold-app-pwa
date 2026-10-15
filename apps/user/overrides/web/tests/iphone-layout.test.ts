@@ -184,7 +184,12 @@ describe('Screenshot-inspired quick lock screen and explicit biometric options',
   const provider=source('../../contexts/AuthContext.web.tsx');
   expect(workspace).toContain('if(lockedAccount)return <QuickLockScreen');
   expect(workspace).toContain('onPin={unlockWithPin}');
-  expect(workspace).toContain('onForgot={logout}');
+  expect(workspace).toContain('onForgot={continueWithPassword}');
+  expect(provider).toContain('const continueWithPassword=()=>{');
+  expect(provider).toContain('begin();closeSessionVault();lockSession();');
+  // The password fallback must not call clearSession/erase the user's PIN vault.
+  const fallback=provider.slice(provider.indexOf('const continueWithPassword=()=>{'),provider.indexOf('const logout=()=>{'));
+  expect(fallback).not.toContain('clearSession(');
   expect(provider).toContain('const pinReady=cached?.id?await hasQuickPin(String(cached.id)):false');
   expect(provider).toContain('const result=await checkQuickPin(String(account.id),pin);');
   expect(provider).toContain('const me=await verifyQuickUnlock(String(account.id),tokens,()=>attempt===version.current)');

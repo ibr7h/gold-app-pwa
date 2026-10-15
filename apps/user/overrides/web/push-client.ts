@@ -85,6 +85,20 @@ export async function inspectPush():Promise<BrowserPushSnapshot>{
   lastFailureAt:server?.lastFailureAt||null,config,message,
   marketSessionEnabled:!!server?.marketSessionEnabled};
 }
+/** Re-bind an existing, permission-granted Push subscription to the new login.
+ * Do not request permission, subscribe, or modify Push preferences silently.
+ */
+export async function bindExistingPushToSession():Promise<void>{
+ if(!browserSupport()||Notification.permission!=='granted')return;
+ const reg=await registration(false);
+ const sub=await reg?.pushManager.getSubscription();
+ if(!sub)return;
+ const keys=sub.toJSON().keys;
+ if(!keys?.p256dh||!keys?.auth)return;
+ await api('/push/subscriptions',jsonRequest('POST',{
+  endpoint:sub.endpoint,keys:{p256dh:keys.p256dh,auth:keys.auth},...savedPrefs()
+ }));
+}
 export async function enablePush(config:PushConfig|null,renew=false):Promise<void>{
  const {ios,standalone}=platform();
  if(ios&&!standalone)throw new Error('أضف ذهبك إلى الشاشة الرئيسية على iPhone أولًا، ثم افتحه من الأيقونة.');

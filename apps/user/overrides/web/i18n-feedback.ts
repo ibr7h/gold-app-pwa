@@ -7,6 +7,8 @@ import {Language,translateUiText} from './i18n-messages';
  */
 const backendEnglish:Record<string,readonly [string,string]>={
  'Invalid credentials':['Incorrect email or password.','Adresse e-mail ou mot de passe incorrect.'],
+ 'تم تسجيل الدخول إلى حسابك من جهاز أو تطبيق آخر. انتهت الجلسة هنا؛ سجّل الدخول بكلمة المرور لاستعادة الوصول.':['Your account was signed in on another device or app. This session has ended. Sign in with your password to regain access.','Votre compte a été connecté sur un autre appareil ou une autre application. Cette session est terminée. Reconnectez-vous avec votre mot de passe.'],
+ 'Session replaced by a sign-in on another device':['Your session ended because the account was signed in on another device. Please sign in again.','Votre session a pris fin suite à une connexion sur un autre appareil. Veuillez vous reconnecter.'],
  'استعادة كلمة المرور غير متاحة الآن. حاول لاحقًا.':['Password recovery is unavailable. Try again later.','La récupération du mot de passe est indisponible. Réessayez plus tard.'],
  'رمز الاستعادة غير صحيح أو انتهت صلاحيته.':['The recovery code is incorrect or has expired.','Le code de récupération est incorrect ou a expiré.'],
  'استجابة الاستعادة غير مكتملة.':['The recovery response is incomplete.','La réponse de récupération est incomplète.'],

@@ -26,7 +26,8 @@ describe('biometric entry requires an explicit secure opt-in',()=>{
   expect(workspace).toContain('خدمة بصمة الوجه/الإصبع');
   expect(context).toContain('await verifyLocalCredential(c,request.current!.signal)');
   expect(context).toContain('setLockedAccount(cached)');
-  expect(context).toContain('enrollLocalCredential(accountId,user.email,request.current!.signal)');
+  expect(context).toContain('enrollLocalCredential(accountId,user.email,request.current!.signal,false)');
+  expect(context).toContain('await persistLocalCredential(c);current(attempt)');
   expect(context).toContain('await loadMe(attempt)');
  });
 });
