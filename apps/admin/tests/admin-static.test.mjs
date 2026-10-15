@@ -23,7 +23,7 @@ test('admin bundle parses and every referenced element exists once', () => {
 test('admin scope and UI are isolated from customer and trader', () => {
   assert.equal(manifest.scope, '/gold-app-pwa/admin/');
   assert.equal(manifest.start_url, '/gold-app-pwa/admin/');
-  assert.match(sw, /dhahabk-admin-controls-v7/);
+  assert.match(sw, /dhahabk-admin-controls-v8/);
   assert.match(html, /ذهبك للإدارة/);
   assert.match(css, /#001F3F/);
 });
@@ -95,4 +95,23 @@ test('status action and audit are limited to Admin and require explicit confirma
  assert.match(html,/id="status-confirm"/);
  assert.match(html,/id="audit-list"/);
  assert.doesNotMatch(js,/localStorage|sessionStorage|innerHTML|insertAdjacentHTML/);
+});
+
+test('all accounts expose explicit action visibility and protected statuses',()=>{
+ assert.match(js,/account-controls-row/);
+ assert.match(js,/button\.disabled=!canManage/);
+ assert.match(js,/\['user','merchant'\]\.includes\(normalizedRole\)/);
+ assert.match(js,/normalizedRole==='admin'/);
+ assert.match(js,/normalizedStatus==='deleted'/);
+ assert.match(js,/إيقاف/);
+ assert.match(js,/تنشيط/);
+ assert.match(js,/الحذف النهائي غير متاح/);
+ assert.match(html,/واجهة المدير · تحديث 8/);
+});
+test('iPhone cannot be stuck on stale cache-first admin.js after update',()=>{
+ assert.match(html,/app\.js\?admin-v8/);
+ assert.match(html,/styles\.css\?admin-v8/);
+ assert.match(sw,/dhahabk-admin-controls-v8/);
+ assert.match(sw,/cache:'no-store'/);
+ assert.match(sw,/app\\\.js/);
 });
