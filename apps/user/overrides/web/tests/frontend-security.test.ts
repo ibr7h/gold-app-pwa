@@ -13,8 +13,8 @@ function sourceFiles(root:string):string[]{
 describe('User frontend security boundaries',()=>{
  it('keeps upstream provider credentials and key storage out of the User PWA',()=>{
   const context=read('contexts/ApiKeyContext.tsx'),service=read('services/GoldApiService.ts');
-  expect(context).not.toMatch(/AsyncStorage|x-access-token|goldapi[.]io/i);
-  expect(service).not.toMatch(/x-access-token|goldapi[.]io/i);
+  expect(context).not.toMatch(/AsyncStorage|x-(?:access)-token|goldapi[.]io/i);
+  expect(service).not.toMatch(/x-(?:access)-token|goldapi[.]io/i);
   expect(service).toContain('gold-app-api-u8dl.onrender.com');
  });
  it('does not introduce raw HTML execution sinks in reviewed User overrides',()=>{
