@@ -47,10 +47,19 @@
       });
       const result=await r.json().catch(()=>null);
       if(!r.ok){
-        const detail=Array.isArray(result?.message)?result.message.join('، '):result?.message;
-        const err=new Error(r.status===404&&authorized?
-          'هذه الوظيفة لم تُنشر على الخادم بعد.':r.status===401?'انتهت صلاحية الجلسة. سجّل الدخول مجددًا.':
-          r.status===403?'ليس لهذا الحساب صلاحية الإدارة.':detail||'تعذر إكمال الطلب.');
+        // Nest's error envelope is {success:false,error:{code,message,details}}.
+        // Avoid hiding a validation, expired-code, or server failure behind a generic error.
+        const payload=result?.error || result;
+        const detail=Array.isArray(payload?.details)?payload.details.join('، '):
+          Array.isArray(payload?.message)?payload.message.join('، '):payload?.message;
+        const safeDetail=typeof detail==='string'&&detail.length<=500?detail:'';
+        const errorText=r.status===404&&authorized?
+          'هذه الوظيفة لم تُنشر على الخادم بعد.':
+          r.status===401?'انتهت صلاحية الجلسة. سجّل الدخول مجددًا.':
+          r.status===403?'ليس لهذا الحساب صلاحية الإدارة.':
+          r.status>=500?'تعذر تنفيذ التحقق على الخادم حاليًا (رمز الحالة '+r.status+').':
+          safeDetail||'تعذر إكمال الطلب (رمز الحالة '+r.status+').';
+        const err=new Error(errorText);
         err.status=r.status;
         throw err;
       }
