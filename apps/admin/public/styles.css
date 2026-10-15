@@ -129,3 +129,13 @@ body.admin-authenticated .footer{display:none}
 @media(prefers-reduced-motion:reduce){
  *,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* Admin-only mandatory email OTP (visual language from UI.zip). */
+.otp-view[hidden]{display:none!important}
+.otp-intro{color:#d8e0eb;text-align:center;font-size:13px;line-height:1.9;margin:12px 0 20px}
+.otp-input{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center;font-size:28px;letter-spacing:10px;font-weight:800;height:64px;border-color:#d4af37;color:#0c1626}
+.otp-input::placeholder{letter-spacing:6px}
+.otp-hint{color:#64748b;font-size:12px;text-align:center;margin:8px 0 17px;line-height:1.8}
+.otp-actions{display:flex;gap:10px;margin-top:15px}
+.otp-actions .gold-btn-outline{flex:1;font-size:12px;line-height:1.55}
+@media(max-width:380px){.otp-actions{flex-direction:column}.otp-input{font-size:24px}}

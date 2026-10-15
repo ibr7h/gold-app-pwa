@@ -8,6 +8,9 @@
   const loginView=byId('login-view'),dash=byId('dash-view');
   const form=byId('login-form'),notice=byId('notice'),submit=byId('submit');
   const email=byId('email'),password=byId('password');
+  const otpView=byId('otp-view'),otpForm=byId('otp-form'),otpCode=byId('otp-code');
+  const otpNotice=byId('otp-notice'),otpSubmit=byId('otp-submit'),otpMessage=byId('otp-message');
+  let challengeId='';
   let accessToken='',refreshToken='',page=1,pages=0,activePanel='overview';
   let busyUsers=false;
   const formatNumber=n=>new Intl.NumberFormat('ar-SA',{maximumFractionDigits:0}).format(n);
@@ -22,8 +25,10 @@
     notice.setAttribute('aria-live',text?'assertive':'off');
   }
   function setStatus(text){byId('connection-state').textContent=text;}
+  function otpAlert(text){otpNotice.textContent=text;otpNotice.className=text?'notice error':'notice';}
   function clearAuth(){
-    accessToken='';refreshToken='';
+    accessToken='';refreshToken='';challengeId='';
+    otpView.hidden=true;otpCode.value='';otpAlert('');
     byId('session-email').textContent='';
     dash.classList.remove('active');
     document.body.classList.remove('admin-authenticated');
@@ -62,6 +67,17 @@
       if(e.status===401||e.status===403){clearAuth();msg(e.message);}
       throw e;
     }
+  }
+  function showOtp(challenge){
+    if(!challenge?.requiresVerification||!challenge?.challengeId||challenge?.accessToken)
+      throw new Error('تعذر بدء التحقق بالبريد الإلكتروني.');
+    challengeId=challenge.challengeId;
+    otpView.hidden=false;
+    loginView.classList.add('hidden');
+    password.value='';
+    otpCode.value='';otpAlert('');
+    otpMessage.textContent='الرمز صالح لمدة 10 دقائق، ويُستخدم مرة واحدة.';
+    otpCode.focus();
   }
   function selectPanel(panel){
     activePanel=panel;
@@ -172,16 +188,52 @@
     submit.setAttribute('aria-busy','true');
     const old=submit.textContent;submit.textContent='جارٍ التحقق...';
     try{
-      const tokens=await request('/auth/login',{method:'POST',
+      // Never call the general password-only login endpoint for Admin.
+      const challenge=await request('/auth/admin/login',{method:'POST',
         body:{email:email.value.trim(),password:password.value}});
-      if(!tokens?.accessToken||!tokens?.refreshToken)throw new Error('تعذر تأكيد تسجيل الدخول.');
-      accessToken=tokens.accessToken;refreshToken=tokens.refreshToken;
-      const user=await secure('/auth/me');
-      if(accessToken)await enter(user);
+      showOtp(challenge);
     }catch(e){clearAuth();msg(e.message||'تعذر تسجيل الدخول.');}
     finally{submit.disabled=false;submit.textContent=old;submit.removeAttribute('aria-busy');}
   });
-  byId('logout').addEventListener('click',()=>{clearAuth();msg('تم تسجيل الخروج من الواجهة.','ok');email.focus();});
+  otpForm.addEventListener('submit',async event=>{
+    event.preventDefault();if(otpSubmit.disabled||!challengeId)return;
+    const normalized=otpCode.value.replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-0x660))
+      .replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-0x6f0));
+    if(!/^\d{6}$/.test(normalized)){otpAlert('أدخل رمزًا مكونًا من ستة أرقام.');return;}
+    otpSubmit.disabled=true;otpAlert('');
+    const label=otpSubmit.textContent;otpSubmit.textContent='جارٍ تأكيد الرمز...';
+    try{
+      const tokens=await request('/auth/admin/verify',{method:'POST',
+        body:{challengeId,code:normalized}});
+      if(!tokens?.accessToken||!tokens?.refreshToken)
+        throw new Error('تعذر تأكيد تسجيل الدخول.');
+      accessToken=tokens.accessToken;refreshToken=tokens.refreshToken;
+      challengeId='';
+      const user=await secure('/auth/me');
+      if(accessToken){otpView.hidden=true;await enter(user);}
+    }catch(e){otpAlert(e.message||'رمز التحقق غير صحيح أو انتهت صلاحيته.');}
+    finally{otpSubmit.disabled=false;otpSubmit.textContent=label;}
+  });
+  byId('otp-resend').addEventListener('click',async ()=>{
+    if(!challengeId||byId('otp-resend').disabled)return;
+    const button=byId('otp-resend');button.disabled=true;otpAlert('');
+    try{
+      const next=await request('/auth/admin/resend',{method:'POST',body:{challengeId}});
+      if(!next?.requiresVerification||!next?.challengeId)throw new Error('تعذر إعادة إرسال الرمز.');
+      challengeId=next.challengeId;otpCode.value='';otpCode.focus();
+      otpMessage.textContent='تم إرسال رمز جديد. انتهت صلاحية الرمز السابق.';
+    }catch(e){otpAlert(e.message||'تعذر إرسال الرمز.');}
+    finally{button.disabled=false;}
+  });
+  byId('otp-cancel').addEventListener('click',()=>{clearAuth();msg('يمكنك تسجيل الدخول من جديد.','ok');email.focus();});
+  byId('logout').addEventListener('click',async ()=>{
+    const token=accessToken;
+    try{
+      if(token) await request('/auth/logout',{method:'POST',authorized:true});
+      clearAuth();msg('تم تسجيل الخروج بأمان.','ok');
+    }catch(e){clearAuth();msg('تم الخروج من هذا الجهاز، لكن تعذر إبطال الجلسة بالخادم.');}
+    email.focus();
+  });
   byId('toggle-password').addEventListener('click',()=>{
     password.type=password.type==='password'?'text':'password';
     byId('toggle-password').textContent=password.type==='password'?'إظهار كلمة المرور':'إخفاء كلمة المرور';

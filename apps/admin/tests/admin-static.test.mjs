@@ -23,7 +23,7 @@ test('admin bundle parses and every referenced element exists once', () => {
 test('admin scope and UI are isolated from customer and trader', () => {
   assert.equal(manifest.scope, '/gold-app-pwa/admin/');
   assert.equal(manifest.start_url, '/gold-app-pwa/admin/');
-  assert.match(sw, /dhahabk-admin-ui-original-v3/);
+  assert.match(sw, /dhahabk-admin-email-otp-v4/);
   assert.match(html, /ذهبك للإدارة/);
   assert.match(css, /#001F3F/);
 });
@@ -56,4 +56,15 @@ test('no active actions without admin-only server endpoints', () => {
   assert.match(html, /توليد وتفعيل الرمز<\/button>/);
   assert.match(html, /disabled><i class="fa-solid fa-key"/);
   assert.doesNotMatch(html, /onclick=|onerror=|<script>.*function handleAdminLogin/s);
+});
+
+test('admin login strictly requires email OTP and never uses the generic login endpoint',()=>{
+  assert.match(html,/id="otp-view"/);
+  assert.match(html,/id="otp-code"/);
+  assert.match(html,/autocomplete="one-time-code"/);
+  assert.match(js,/\/auth\/admin\/login/);
+  assert.match(js,/\/auth\/admin\/verify/);
+  assert.match(js,/\/auth\/admin\/resend/);
+  assert.doesNotMatch(js,/request\('\/auth\/login'/);
+  assert.doesNotMatch(js,/innerHTML|localStorage|sessionStorage/);
 });
