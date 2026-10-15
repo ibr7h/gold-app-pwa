@@ -75,7 +75,7 @@
     });
     if(panel==='users'){page=1;loadUsers();}
     window.scrollTo({top:0,behavior:'instant'});
-    if(panel==='prices')loadPrice();
+    if(panel==='overview')loadPrice();
   }
   async function loadSummary(){
     ['users','merchants','admins','suspended'].forEach(k=>byId('count-'+k).textContent='—');
@@ -114,10 +114,10 @@
   async function loadUsers(){
     if(busyUsers||!accessToken)return;
     busyUsers=true;
-    const body=byId('users-body');
-    body.replaceChildren();
+    const body=byId('users-body'), cards=byId('users-cards');
+    body.replaceChildren();cards.replaceChildren();
     byId('users-note').textContent='جارٍ تحميل المستخدمين...';
-    body.setAttribute('aria-busy','true');
+    body.setAttribute('aria-busy','true');cards.setAttribute('aria-busy','true');
     byId('users-prev').disabled=true;byId('users-next').disabled=true;
     const q=new URLSearchParams({page:String(page),limit:'20'});
     for(const id of ['role','status','search']){
@@ -130,6 +130,18 @@
       const items=Array.isArray(result?.items)?result.items:[];
       pages=Number.isInteger(result?.pages)?result.pages:0;
       for(const item of items){
+        // UI.zip / 19_admin_users: white gold-card user entries, populated only from real API data.
+        const card=document.createElement('article');card.className='gold-card user-card';
+        const top=document.createElement('div');top.className='user-top';
+        const info=document.createElement('div');
+        const name=document.createElement('div');name.className='user-name';name.textContent=item.fullName||'—';
+        const mail=document.createElement('div');mail.className='user-email';mail.textContent=item.email||'—';
+        const role=document.createElement('span');role.className='role-pill '+(item.role||'');role.textContent=roles[item.role]||item.role||'—';
+        info.append(name,mail);top.append(info,role);
+        const meta=document.createElement('div');meta.className='user-meta';
+        const state=document.createElement('span');state.textContent='الحالة: '+(statuses[item.status]||item.status||'—');
+        const date=document.createElement('span');date.textContent=formatDate(item.createdAt);
+        meta.append(state,date);card.append(top,meta);cards.appendChild(card);
         const tr=document.createElement('tr');
         cell(tr,item.fullName||'—');
         cell(tr,item.email||'—');
@@ -144,7 +156,7 @@
       byId('users-prev').disabled=page<=1;
       byId('users-next').disabled=page>=pages;
     }catch(e){if(accessToken)byId('users-note').textContent=e.message;}
-    finally{busyUsers=false;body.setAttribute('aria-busy','false');}
+    finally{busyUsers=false;body.setAttribute('aria-busy','false');cards.setAttribute('aria-busy','false');}
   }
   async function enter(user){
     if(!user||user.role!=='admin')throw new Error('هذا الحساب لا يملك صلاحية الدخول إلى بوابة الإدارة.');
@@ -172,7 +184,7 @@
   byId('logout').addEventListener('click',()=>{clearAuth();msg('تم تسجيل الخروج من الواجهة.','ok');email.focus();});
   byId('toggle-password').addEventListener('click',()=>{
     password.type=password.type==='password'?'text':'password';
-    byId('toggle-password').textContent=password.type==='password'?'إظهار':'إخفاء';
+    byId('toggle-password').textContent=password.type==='password'?'إظهار كلمة المرور':'إخفاء كلمة المرور';
     byId('toggle-password').setAttribute('aria-pressed',String(password.type==='text'));
     byId('toggle-password').setAttribute('aria-label',password.type==='password'?'إظهار كلمة المرور':'إخفاء كلمة المرور');
   });
