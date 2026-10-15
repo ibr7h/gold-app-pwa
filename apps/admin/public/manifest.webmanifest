@@ -2,15 +2,15 @@
   "id": "/gold-app-pwa/admin/",
   "name": "ذهبك للإدارة",
   "short_name": "ذهبك إدارة",
-  "description": "لوحة إدارة منصة ذهبك",
+  "description": "بوابة الإدارة المركزية لذهبك — التصميم الأصلي من UI.zip",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "/gold-app-pwa/admin/",
   "scope": "/gold-app-pwa/admin/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#001F3F",
-  "theme_color": "#001F3F",
+  "background_color": "#0c1626",
+  "theme_color": "#0c1626",
   "categories": [
     "finance",
     "business"

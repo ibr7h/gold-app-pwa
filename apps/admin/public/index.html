@@ -1,65 +1,145 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#001F3F"><title>ذهبك للإدارة</title><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="assets/icon.svg"><link rel="stylesheet" href="styles.css"></head><body data-app="admin" data-role="admin">
- <main class="app"><div class="shell">
-  <section class="login" id="login-view">
-   <div class="brand"><img class="brand-icon" src="assets/icon.svg" alt=""><h1>ذهبك للإدارة</h1><p>إدارة منصة الذهب</p><span class="role-badge">دخول المدير فقط</span></div>
-   <div class="card">
-    <div id="notice" class="notice" role="alert"></div>
-    <form id="login-form">
-     <label>البريد الإلكتروني<div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6"/></svg><input id="email" type="email" dir="ltr" autocomplete="username" placeholder="البريد الإداري" required></div></label>
-     <label>كلمة المرور<div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11h10v9H7z M9 11V8a3 3 0 0 1 6 0v3"/></svg><input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required></div></label>
-     <button id="toggle-password" class="password-toggle" type="button" aria-label="إظهار أو إخفاء كلمة المرور">إظهار</button>
-     <button id="submit" class="primary" type="submit">دخول لوحة الإدارة</button>
-    </form>
-    <p class="security">هذه البوابة مخصصة لحسابات الإدارة فقط. لا يتوفر تسجيل إداري ذاتي.</p>
+<!doctype html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c1626">
+<meta name="description" content="بوابة الإدارة المركزية لمنصة ذهبك">
+<title>ذهبك للإدارة | بوابة الإدارة المركزية</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-app="admin" data-role="admin">
+<div class="app">
+ <div class="shell">
+  <!-- Original UI.zip screen: screens/02_login_admin.html (redacted and functional) -->
+  <section class="login" id="login-view" aria-label="دخول الإدارة">
+   <div class="login-container">
+    <div class="shield-emblem"><img class="brand-icon" src="assets/icon.svg" alt="شعار بوابة الإدارة"></div>
+    <h1 class="app-title">بوابة الإدارة المركزية</h1>
+    <div class="login-subtitle"><span class="restricted"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> منطقة مقيدة — للإدارة فقط</span></div>
+    <div class="gold-card auth-card">
+     <div id="notice" class="notice" role="alert" aria-live="assertive"></div>
+     <form id="login-form">
+      <div class="form-group"><label class="form-label" for="email">المعرّف الإداري أو البريد الإلكتروني</label>
+       <div class="input-with-icon"><input id="email" class="form-input" type="email" dir="ltr" autocomplete="username" inputmode="email" placeholder="البريد الإلكتروني الإداري" required>
+       <i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
+      </div>
+      <div class="form-group"><label class="form-label" for="password">كلمة المرور الإدارية</label>
+       <div class="input-with-icon"><input id="password" class="form-input" type="password" autocomplete="current-password" placeholder="••••••••" required>
+       <i class="fa-solid fa-key" aria-hidden="true"></i></div>
+       <button id="toggle-password" class="password-toggle" type="button" aria-label="إظهار كلمة المرور" aria-pressed="false">إظهار كلمة المرور</button>
+      </div>
+      <button id="submit" class="gold-btn" type="submit"><i class="fa-solid fa-unlock-keyhole" aria-hidden="true"></i><span>دخول لوحة التحكم العامة</span></button>
+     </form>
+     <p class="security-notice"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> لا يتوفر تسجيل ذاتي للمسؤولين؛ تُمنح صلاحيات الإدارة من النظام فقط.</p>
+    </div>
    </div>
   </section>
+
+  <!-- Original UI.zip screens 18-22 combined into role-protected Admin PWA -->
   <section class="dash" id="dash-view" aria-label="لوحة إدارة ذهبك">
-   <header class="dash-head"><img src="assets/icon.svg" alt=""><div><h2>ذهبك للإدارة</h2><p id="session-email" dir="ltr"></p></div><div id="connection-state" class="connection-state" role="status">جارٍ التحقق...</div><button id="logout" class="logout" type="button" aria-label="تسجيل الخروج" title="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4"/></svg></button></header>
-   <nav class="admin-nav" aria-label="أقسام لوحة الإدارة">
-    <button type="button" data-panel="overview" class="selected">نظرة عامة</button>
-    <button type="button" data-panel="users">المستخدمون</button>
-    <button type="button" data-panel="prices">الأسعار</button>
-    <button type="button" data-panel="roadmap">الخدمات القادمة</button>
-   </nav>
-   <section data-view="overview" class="workspace">
-    <div class="section-heading"><div><h3>نظرة عامة</h3><p>حالة الحسابات المسجلة في المنصة</p></div><button id="summary-retry" class="small-action" type="button">تحديث البيانات</button></div>
-    <div class="stats">
-     <div class="stat"><span>المستخدمون</span><strong id="count-users">—</strong></div>
-     <div class="stat"><span>التجار</span><strong id="count-merchants">—</strong></div>
-     <div class="stat"><span>حسابات الإدارة</span><strong id="count-admins">—</strong></div>
-     <div class="stat"><span>الحسابات الموقوفة</span><strong id="count-suspended">—</strong></div>
+   <div class="mobile-screen">
+    <header class="app-bar">
+      <div class="admin-brand">
+       <img src="assets/icon.svg" class="nav-logo" alt="">
+       <div><div class="eyebrow">الإدارة والتحكم</div><div class="admin-title">مدير النظام الرئيسي</div><div class="admin-email" id="session-email" dir="ltr"></div></div>
+      </div>
+      <button id="logout" class="icon-btn" type="button" aria-label="تسجيل الخروج" title="تسجيل الخروج"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i></button>
+    </header>
+    <div class="screen-content">
+      <section data-view="overview" class="screen-panel">
+        <h2 class="screen-title">لوحة الإدارة العامة</h2>
+        <div class="stats">
+         <div class="gold-card stat"><span>إجمالي المستخدمين</span><strong id="count-users">—</strong><small>الحسابات المسجلة</small></div>
+         <div class="gold-card stat"><span>حسابات التجار</span><strong id="count-merchants">—</strong><small>التجار المسجلون</small></div>
+         <div class="gold-card stat"><span>حسابات الإدارة</span><strong id="count-admins">—</strong><small>صلاحية مدير</small></div>
+         <div class="gold-card stat"><span>الحسابات الموقوفة</span><strong id="count-suspended">—</strong><small>حالة موقوف</small></div>
+        </div>
+        <div class="gold-card system-state">
+          <div class="system-row"><i class="fa-solid fa-server" aria-hidden="true"></i>
+            <div><strong>حالة الربط بالخدمات الإدارية</strong><p id="connection-state" role="status">جارٍ التحقق من الاتصال...</p></div>
+          </div>
+          <p id="summary-note" class="subnote" role="status">لا توجد إحصاءات محمّلة بعد.</p>
+          <button id="summary-retry" class="gold-btn-outline" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> تحديث إحصاءات الحسابات</button>
+        </div>
+        <div class="gold-card market-monitor">
+          <h3 class="gold-card-title">آخر سعر محفوظ للذهب — عيار 24</h3>
+          <div class="market-value" id="market-price">—</div>
+          <p id="market-updated">لم تُحمّل قراءة السعر بعد.</p>
+          <p>المصدر: <span id="market-source">—</span></p>
+          <small class="subnote">هذه قراءة محفوظة وليست بالضرورة سعرًا مباشرًا.</small>
+          <button id="prices-retry" type="button" class="gold-btn-outline">تحديث القراءة</button>
+        </div>
+        <div class="gold-card">
+         <h3 class="gold-card-title">إدارة عناصر المنصة</h3>
+         <div class="quick-links">
+          <button data-panel="users" type="button" class="gold-btn-outline"><span><i class="fa-solid fa-users-gear" aria-hidden="true"></i> إدارة المستخدمين والصلاحيات</span><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+          <button data-panel="invites" type="button" class="gold-btn-outline"><span><i class="fa-solid fa-key" aria-hidden="true"></i> رموز الدعوة والتجار</span><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+          <button data-panel="stats" type="button" class="gold-btn-outline"><span><i class="fa-solid fa-chart-line" aria-hidden="true"></i> التحليلات والإحصائيات</span><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+          <button data-panel="settings" type="button" class="gold-btn-outline"><span><i class="fa-solid fa-sliders" aria-hidden="true"></i> إعدادات المنصة</span><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+         </div>
+        </div>
+      </section>
+
+      <section data-view="users" class="screen-panel" hidden>
+        <h2 class="screen-title"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> إدارة المستخدمين والصلاحيات</h2>
+        <div class="gold-card">
+          <form id="users-filter" class="filters" aria-label="البحث في حسابات المنصة">
+            <label class="form-group"><span class="form-label">البحث بالاسم أو البريد</span><input id="users-search" class="form-input" maxlength="80" autocomplete="off" type="search" placeholder="ابحث في الحسابات..."></label>
+            <div class="filter-pair">
+             <label class="form-group"><span class="form-label">نوع الحساب</span><select class="form-input" id="users-role"><option value="">الكل</option><option value="user">مستخدم</option><option value="merchant">تاجر</option><option value="admin">مدير</option></select></label>
+             <label class="form-group"><span class="form-label">الحالة</span><select class="form-input" id="users-status"><option value="">الكل</option><option value="active">نشط</option><option value="suspended">موقوف</option><option value="deleted">محذوف</option></select></label>
+            </div>
+            <button type="submit" class="gold-btn"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> بحث</button>
+          </form>
+        </div>
+        <div id="users-cards" class="users-cards" role="region" aria-label="نتائج المستخدمين"></div>
+        <div class="users-table-wrap"><table><thead><tr><th>الاسم</th><th>البريد</th><th>الصلاحية</th><th>الحالة</th><th>تاريخ التسجيل</th></tr></thead><tbody id="users-body"></tbody></table></div>
+        <div class="gold-card pager"><p id="users-note" role="status">لا توجد بيانات محمّلة.</p><div class="pagination"><button id="users-prev" class="gold-btn-outline" disabled type="button">السابق</button><button id="users-next" class="gold-btn-outline" disabled type="button">التالي</button></div></div>
+        <p class="pending-note">استعراض الحسابات فقط. تعديل الصلاحيات وإيقاف الحسابات غير متاحين بعد.</p>
+      </section>
+
+      <section data-view="invites" class="screen-panel" hidden>
+        <h2 class="screen-title"><i class="fa-solid fa-key" aria-hidden="true"></i> رموز دعوة التجار المعتمدين</h2>
+        <div class="gold-card">
+         <h3 class="gold-card-title">توليد رمز دعوة جديد</h3>
+         <label class="form-group"><span class="form-label">الرمز المقترح</span><input class="form-input" type="text" placeholder="يُتاح عند تشغيل خدمة الدعوات" disabled></label>
+         <label class="form-group"><span class="form-label">ملاحظات / اسم التاجر</span><input class="form-input" type="text" placeholder="غير متاح حاليًا" disabled></label>
+         <button class="gold-btn" type="button" disabled><i class="fa-solid fa-key" aria-hidden="true"></i> توليد وتفعيل الرمز</button>
+         <p class="pending-note">بانتظار الخادم: لن يُنشأ رمز دعوة افتراضي أو غير مسجل في قاعدة البيانات.</p>
+        </div>
+        <div class="gold-card"><h3 class="gold-card-title">الرموز الفعالة والمستخدمة</h3><p class="empty-state">بانتظار الخادم — لا تتوفر قائمة رموز موثوقة بعد.</p></div>
+      </section>
+
+      <section data-view="stats" class="screen-panel" hidden>
+       <h2 class="screen-title"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> تحليلات وإحصائيات النظام</h2>
+       <div class="gold-card"><h3 class="gold-card-title">مؤشرات الحسابات</h3><p class="empty-state">الإحصاءات المتاحة للحسابات تظهر في «نظرة عامة» بعد اتصال الخادم.</p></div>
+       <div class="gold-card"><h3 class="gold-card-title">حجم التداول الأسبوعي</h3><p class="empty-state">بانتظار الخادم — لا نعرض رسومًا أو أرقام تداول افتراضية.</p></div>
+       <div class="gold-card"><h3 class="gold-card-title">مؤشرات أداء الخدمات</h3><p class="empty-state">بانتظار الخادم — ستُعرض المقاييس الحقيقية بعد توفير خدمة المراقبة.</p></div>
+      </section>
+
+      <section data-view="settings" class="screen-panel" hidden>
+       <h2 class="screen-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> إعدادات المنصة والربط البرمجي</h2>
+       <div class="gold-card"><h3 class="gold-card-title">مزوّد أسعار الذهب</h3><p class="empty-state">مفاتيح الاتصال محفوظة على الخادم ولا تُعرض في المتصفح.</p><button class="gold-btn-outline" type="button" disabled>تدوير المفتاح — بانتظار الخادم</button></div>
+       <div class="gold-card"><h3 class="gold-card-title">إعدادات الرسوم والعمولات</h3><p class="empty-state">بانتظار الخادم — لا توجد قيم محفوظة معروضة لهذه الإعدادات حاليًا.</p><button class="gold-btn" type="button" disabled>حفظ الإعدادات</button></div>
+       <p class="pending-note">تغيير أسعار أو رسوم أو مفاتيح الاتصال يتطلب صلاحيات خادم وسجل تدقيق قبل التفعيل.</p>
+      </section>
     </div>
-    <p class="info-note" id="summary-note" role="status">جارٍ تحميل الإحصاءات...</p>
-    <div class="info-note">لا تمثل أعداد التجار طلبات اعتماد معلّقة؛ خدمة اعتماد التجار لم تُفعّل بعد.</div>
-   </section>
-   <section data-view="users" class="workspace" hidden>
-    <div class="section-heading"><div><h3>دليل المستخدمين</h3><p>استعراض الحسابات دون تعديلها</p></div></div>
-    <form id="users-filter" class="filters" aria-label="تصفية حسابات المستخدمين">
-     <label>بحث <input id="users-search" type="search" maxlength="80" autocomplete="off" placeholder="الاسم أو البريد"></label>
-     <label>النوع <select id="users-role"><option value="">الكل</option><option value="user">مستخدم</option><option value="merchant">تاجر</option><option value="admin">مدير</option></select></label>
-     <label>الحالة <select id="users-status"><option value="">الكل</option><option value="active">نشط</option><option value="suspended">موقوف</option><option value="deleted">محذوف</option></select></label>
-     <button class="small-action" type="submit">بحث</button>
-    </form>
-    <div class="table-scroll"><table><thead><tr><th scope="col">الاسم</th><th scope="col">البريد</th><th scope="col">النوع</th><th scope="col">الحالة</th><th scope="col">تاريخ التسجيل</th></tr></thead><tbody id="users-body"></tbody></table></div>
-    <div class="pagination"><p id="users-note" role="status">لا توجد بيانات محمّلة.</p><div><button id="users-prev" type="button" disabled>السابق</button><button id="users-next" type="button" disabled>التالي</button></div></div>
-    <p class="info-note">البيانات لا تعرض كلمات المرور أو الموقع الجغرافي. التفعيل والإيقاف غير متاحين في هذه المرحلة.</p>
-   </section>
-   <section data-view="prices" class="workspace" hidden>
-    <div class="section-heading"><div><h3>مراقبة أسعار الذهب</h3><p>آخر سعر محفوظ، وليس بالضرورة سعرًا مباشرًا</p></div><button id="prices-retry" class="small-action" type="button">تحديث القراءة</button></div>
-    <div class="price-card"><span>آخر سعر رصد محفوظ لجرام عيار 24 بالريال السعودي</span><strong id="market-price">—</strong><p id="market-updated" role="status">لم تُحمّل البيانات بعد</p><p>مصدر الرصد: <span id="market-source">—</span></p></div>
-    <p class="info-note">تحديث القراءة لا يُنشئ رصدًا جديدًا، ولا يغيّر أسعار المستخدمين.</p>
-   </section>
-   <section data-view="roadmap" class="workspace" hidden>
-    <div class="section-heading"><div><h3>خدمات الإدارة القادمة</h3><p>وحدات مخططة؛ لا تعرض بيانات افتراضية أو أزرارًا تنفيذية وهمية</p></div></div>
-    <div class="modules">
-     <article class="module"><div><h3>اعتماد التجار</h3><p>طلبات الاعتماد والمستندات وقرارات القبول والرفض الموثّقة</p></div><span class="pending">بانتظار الخادم</span></article>
-     <article class="module"><div><h3>رموز الدعوة والمسوقون</h3><p>الرموز وتخصيصها وتتبع الإحالات</p></div><span class="pending">بانتظار الخادم</span></article>
-     <article class="module"><div><h3>الاشتراكات والعمولات</h3><p>تتبع الدفع والتجديد والاسترداد وتسجيل أثره المالي</p></div><span class="pending">بانتظار الخادم</span></article>
-     <article class="module"><div><h3>التقارير وسجل التدقيق</h3><p>سجل من قام بالإجراء ومتى وما الذي تغيّر</p></div><span class="pending">بانتظار الخادم</span></article>
-    </div>
-   </section>
-   <p class="security dash-security">حسابات الإدارة فقط. التحقق من الصلاحيات يُطبّق في الخادم وليس في الواجهة وحدها.</p>
+    <nav class="bottom-nav admin-nav" aria-label="أقسام لوحة الإدارة">
+     <button type="button" data-panel="overview" class="nav-item selected"><i class="fa-solid fa-gauge-high nav-icon" aria-hidden="true"></i><span>نظرة عامة</span></button>
+     <button type="button" data-panel="users" class="nav-item"><i class="fa-solid fa-users-gear nav-icon" aria-hidden="true"></i><span>المستخدمون</span></button>
+     <button type="button" data-panel="invites" class="nav-item"><i class="fa-solid fa-key nav-icon" aria-hidden="true"></i><span>الدعوات</span></button>
+     <button type="button" data-panel="stats" class="nav-item"><i class="fa-solid fa-chart-simple nav-icon" aria-hidden="true"></i><span>الإحصائيات</span></button>
+     <button type="button" data-panel="settings" class="nav-item"><i class="fa-solid fa-sliders nav-icon" aria-hidden="true"></i><span>الإعدادات</span></button>
+    </nav>
+   </div>
+   <p class="dash-security">الصلاحيات تتحقق على الخادم، وليست في الواجهة وحدها.</p>
   </section>
   <footer class="footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer>
- </div></main>
- <script src="app.js"></script></body></html>
+ </div>
+</div>
+<script src="app.js"></script>
+</body></html>
