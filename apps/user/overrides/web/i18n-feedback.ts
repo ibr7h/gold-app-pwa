@@ -26,6 +26,7 @@ const backendEnglish:Record<string,readonly [string,string]>={
  'انتظر دقيقة قبل طلب رمز تحقق آخر.':['Please wait one minute before requesting another verification code.','Veuillez patienter une minute avant de demander un nouveau code.'],
  'استجابة التحقق غير مكتملة. حاول لاحقًا.':['The verification response is incomplete. Please try again.','La réponse de vérification est incomplète. Réessayez.'],
  'تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجددًا.':['Could not connect to the service. Check your connection and try again.','Connexion au service impossible. Vérifiez votre connexion et réessayez.'],
+ 'انتهت مهلة الاتصال بالخادم. حاول مجددًا بعد قليل.':['The service took too long to respond. Please try again shortly.','Le service a mis trop de temps à répondre. Veuillez réessayer dans un instant.'],
  'كلمتا المرور غير متطابقتين.':['The passwords do not match.','Les mots de passe ne correspondent pas.'],
  'أدخل رمز التحقق المكوّن من 6 أرقام.':['Enter the six-digit verification code.','Saisissez le code de vérification à six chiffres.'],
  'Email already exists':['This email is already registered. Please sign in.','Cette adresse e-mail est déjà enregistrée. Veuillez vous connecter.'],
