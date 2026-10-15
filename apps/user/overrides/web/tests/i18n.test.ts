@@ -19,7 +19,7 @@ describe('Customer-facing connection messages in all supported languages',()=>{
   it('shows human-readable messages without Arabic or developer jargon in '+language,()=>{
    for(const message of messages){
     const output=localizeFeedback(message,language);
-    expect(output).not.toMatch(/[\\u0600-\\u06FF]/);
+    expect(output).not.toMatch(/[\u0600-\u06FF]/);
     expect(output).not.toMatch(/API|HTTP|JSON|server|backend|CORS|token/i);
    }
   });
