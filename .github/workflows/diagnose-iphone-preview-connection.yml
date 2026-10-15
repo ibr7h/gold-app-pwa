@@ -71,6 +71,10 @@ jobs:
                   try{
                     const payload=await response.json();
                     console.log(label+' version='+JSON.stringify(payload).slice(0,400));
+                    if(payload.displayVersion!=='v1.9.77'){
+                      console.log('FAIL: '+host+' has stale version '+payload.displayVersion+'; expected v1.9.77');
+                      failed=true;
+                    }
                   }catch{console.log(label+' version file is not valid JSON');}
                 }
                 if(path.endsWith('manifest.webmanifest')&&response.ok){
