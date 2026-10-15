@@ -23,7 +23,7 @@ test('admin bundle parses and every referenced element exists once', () => {
 test('admin scope and UI are isolated from customer and trader', () => {
   assert.equal(manifest.scope, '/gold-app-pwa/admin/');
   assert.equal(manifest.start_url, '/gold-app-pwa/admin/');
-  assert.match(sw, /dhahabk-admin-v2/);
+  assert.match(sw, /dhahabk-admin-ui-original-v3/);
   assert.match(html, /ذهبك للإدارة/);
   assert.match(css, /#001F3F/);
 });
@@ -39,4 +39,21 @@ test('no fabricated admin metrics or write controls in stage one', () => {
   assert.match(js, /\/admin\/users/);
   assert.doesNotMatch(js, /\/admin\/(?:approve|suspend|delete|invite)/);
   assert.match(html, /بانتظار الخادم/);
+});
+
+test('original UI.zip admin visual baseline and navigation are present', () => {
+  for (const label of ['بوابة الإدارة المركزية', 'إدارة المستخدمين والصلاحيات', 'رموز دعوة التجار المعتمدين', 'تحليلات وإحصائيات النظام', 'إعدادات المنصة والربط البرمجي']) {
+    assert.ok(html.includes(label), 'Missing original UI admin screen label: ' + label);
+  }
+  assert.match(css, /#0c1626/);
+  assert.match(html, /class="bottom-nav admin-nav"/);
+  assert.match(html, /fa-solid fa-shield-halved/);
+  assert.equal((html.match(/class="nav-item"/g)||[]).length, 4); // 5 tabs; overview starts selected
+  assert.doesNotMatch(html, /admin2026|admin@gold\.app|GOLD2026|goldapi-[0-9a-z]+|tRPC|SSL 256-bit/i);
+});
+test('no active actions without admin-only server endpoints', () => {
+  assert.match(html, /توليد وتفعيل الرمز<\/button>/);
+  assert.match(html, /توليد وتفعيل الرمز<\/button>/);
+  assert.match(html, /disabled><i class="fa-solid fa-key"/);
+  assert.doesNotMatch(html, /onclick=|onerror=|<script>.*function handleAdminLogin/s);
 });
