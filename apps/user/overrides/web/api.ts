@@ -2,24 +2,45 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {clearSessionVault,closeSessionVault,hasSessionVault,persistVaultSession,type SessionTokens} from './session-vault';
 export const API_BASE='https://gold-app-api-u8dl.onrender.com';
 const ACCESS='dhahabi_user_access_token',REFRESH='dhahabi_user_refresh_token',PROFILE='dhahabi_user_profile';
+const REPLACED='dhahabi_user_session_replaced_v1';
+export const SESSION_REPLACED_MESSAGE='تم تسجيل الدخول إلى حسابك من جهاز أو تطبيق آخر. انتهت الجلسة هنا؛ سجّل الدخول بكلمة المرور لاستعادة الوصول.';
 let epoch=0,refreshFlight:Promise<string>|null=null;
 let session:SessionTokens|null=null;
 let blocked=false;
+let sessionReplaced=false;
+export const wasSessionReplaced=()=>sessionReplaced;
+export async function pendingSessionReplacement(){
+ if(sessionReplaced)return true;
+ return (await AsyncStorage.getItem(REPLACED))==='1';
+}
+export const isSessionReplaced=(e:unknown)=>e instanceof ApiError&&e.status===401&&
+  e.message==='Session replaced by a sign-in on another device';
 let legacyFlight:Promise<void>|null=null;
 let cleanupFlight:Promise<void>=Promise.resolve();
 const listeners=new Set<()=>void>();
 export class ApiError extends Error{constructor(message:string,public status=0){super(message);}}
 export function onSessionEnded(fn:()=>void){listeners.add(fn);return()=>{listeners.delete(fn);};}
-function announceSessionEnded(){
+function announceSessionEnded(reason:'login'|'logout'|'replaced'='logout'){
  if(typeof window==='undefined')return;
- try{window.localStorage?.setItem('dhahabi_user_session_ended',String(Date.now())+':'+Math.random());}catch{}
+ try{window.localStorage?.setItem('dhahabi_user_session_ended',reason+':'+Date.now()+':'+Math.random());}catch{}
 }
-export function clearSession(announce=true):Promise<void>{
- epoch++;session=null;blocked=false;closeSessionVault();listeners.forEach(fn=>fn());
+export function clearSession(announce=true,preserveFactors=false):Promise<void>{
+ epoch++;session=null;blocked=false;sessionReplaced=preserveFactors;
+ closeSessionVault();listeners.forEach(fn=>fn());
  // Other tabs invalidate their memory without erasing a newly authenticated tab's vault.
  if(!announce)return cleanupFlight;
- announceSessionEnded();
- const cleanup=async()=>{await clearSessionVault();await AsyncStorage.multiRemove([ACCESS,REFRESH,PROFILE]);};
+ announceSessionEnded(preserveFactors?'replaced':'logout');
+ const cleanup=async()=>{
+  if(preserveFactors){
+   // Preserve local PIN verifier, public WebAuthn credential and encrypted vault;
+   // its old JWTs are not authoritative after server-side revocation.
+   await AsyncStorage.setItem(REPLACED,'1');
+   await AsyncStorage.multiRemove([ACCESS,REFRESH]);
+  }else{
+   await clearSessionVault();
+   await AsyncStorage.multiRemove([ACCESS,REFRESH,PROFILE,REPLACED]);
+  }
+ };
  cleanupFlight=cleanupFlight.then(cleanup,cleanup);return cleanupFlight;
 }
 /** Tokens remain in memory only. Locking invalidates in-flight API operations. */
@@ -55,8 +76,8 @@ export async function saveVerifiedUser(user:VerifiedCachedUser){
 }
 export async function saveSession(tokens:any){
  if(typeof tokens?.accessToken!=='string'||!tokens.accessToken||typeof tokens?.refreshToken!=='string'||!tokens.refreshToken)throw new ApiError('استجابة الدخول غير مكتملة.');
- epoch++;blocked=false;session={accessToken:tokens.accessToken,refreshToken:tokens.refreshToken};
- await AsyncStorage.multiRemove([ACCESS,REFRESH,PROFILE]);
+ epoch++;blocked=false;sessionReplaced=false;session={accessToken:tokens.accessToken,refreshToken:tokens.refreshToken};
+ await AsyncStorage.multiRemove([ACCESS,REFRESH,PROFILE,REPLACED]);
 }
 export function resumeSession(tokens:SessionTokens){session={...tokens};blocked=false;epoch++;}
 export function errorMessage(e:unknown){
@@ -71,6 +92,7 @@ export function errorMessage(e:unknown){
  'Invalid or expired recovery code':'رمز الاستعادة غير صحيح أو انتهت صلاحيته.',
  'Password changed. Sign in with your new password.':'تم تغيير كلمة المرور. سجّل الدخول مجددًا.',
  'Session has expired':'انتهت الجلسة. سجّل الدخول مجددًا.',
+ 'Session replaced by a sign-in on another device':SESSION_REPLACED_MESSAGE,
  'Invalid or expired verification code':'رمز التحقق غير صحيح أو انتهت صلاحيته.',
  'Registration has expired; start again':'انتهت جلسة التسجيل. أعد إدخال بياناتك لطلب رمز جديد.',
  'Too many verification requests; try again later':'محاولات كثيرة. انتظر قبل طلب رمز جديد.',
@@ -103,7 +125,7 @@ export async function authenticate(path:'/auth/login'|'/auth/register/verify',da
  const started=epoch,tokens=await raw(path,{method:'POST',body:JSON.stringify(data)});
  await cleanupFlight;
  if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
- announceSessionEnded();
+ announceSessionEnded('login');
  closeSessionVault();await saveSession(tokens);
 }
 async function refreshAccess(expiredToken:string|null):Promise<string>{
@@ -119,7 +141,7 @@ async function refreshAccess(expiredToken:string|null):Promise<string>{
    session={accessToken:tokens.accessToken,refreshToken:tokens.refreshToken};return tokens.accessToken as string;
   };
   const flight:Promise<string>=(async()=>{if(typeof navigator!=='undefined'&&navigator.locks)return await navigator.locks.request('dhahabi-user-refresh',refresh);return await refresh();})();
-  const tracked=flight.catch(async e=>{if(started===epoch&&e instanceof ApiError&&e.status===401)await clearSession();throw e;}).finally(()=>{if(refreshFlight===tracked)refreshFlight=null;});
+  const tracked=flight.catch(async e=>{if(started===epoch&&e instanceof ApiError&&e.status===401)await clearSession(true,isSessionReplaced(e));throw e;}).finally(()=>{if(refreshFlight===tracked)refreshFlight=null;});
   refreshFlight=tracked;
  }return refreshFlight!;
 }
@@ -129,9 +151,17 @@ export async function api<T=any>(path:string,options:RequestInit={}):Promise<T>{
  try{const result=await raw(path,options,token||undefined);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
  catch(e){
   if(!(e instanceof ApiError)||e.status!==401||started!==epoch)throw e;
+  if(isSessionReplaced(e)){await clearSession(true,true);throw e;}
   const current=session?.accessToken,next=current&&current!==token?current:await refreshAccess(token);
   try{const result=await raw(path,options,next);if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);return result;}
-  catch(retry){if(retry instanceof ApiError&&retry.status===401&&started===epoch)await clearSession();throw retry;}
+  catch(retry){if(retry instanceof ApiError&&retry.status===401&&started===epoch)await clearSession(true,isSessionReplaced(retry));throw retry;}
  }
+}
+/** Logout is server-side session revocation; failed network calls must not
+ * prevent clearing local tokens, but are surfaced to the caller.
+ */
+export async function revokeServerSession(){
+ if(!session?.accessToken)return;
+ await raw('/auth/logout',{method:'POST'},session.accessToken);
 }
 export const jsonRequest=(method:string,data?:object):RequestInit=>({method,...(data?{body:JSON.stringify(data)}:{})});

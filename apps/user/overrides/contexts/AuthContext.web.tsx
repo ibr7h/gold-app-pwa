@@ -1,11 +1,12 @@
 import React,{createContext,useContext,useEffect,useState,useRef} from 'react';
 import {localBiometricSupported,readLocalCredential,enrollLocalCredential,persistLocalCredential,forgetLocalCredential,verifyLocalCredential,type LocalCredential} from '../web/local-biometric';
-import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession} from '../web/api';
+import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession,revokeServerSession,pendingSessionReplacement,wasSessionReplaced,SESSION_REPLACED_MESSAGE} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {withBiometricUnlockDeadline,BiometricUnlockTimeoutError} from '../web/biometric-unlock-deadline';
 import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
 import {beginRegistration,resendRegistration,type RegistrationChallenge,type TermsAcceptance} from '../web/registration';
+import {bindExistingPushToSession} from '../web/push-client';
 export type UserRole = 'user' | 'admin' | 'trader';
 export type BiometricType = 'face' | 'fingerprint' | 'none';
 export type ResetStep = 'email' | 'code' | 'newPassword' | 'success';
@@ -109,15 +110,22 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  };
  useEffect(()=>{let active=true;const boot=version.current;
   const unsubscribe=onSessionEnded(()=>{
+   const replaced=wasSessionReplaced();
    begin();setRegistration(null);enrollment.current=null;setLockedAccount(null);setQuickPinEnabled(false);
    setBiometricEnabled(false);setBiometricEnrolled(false);setPinReconnectRequired(false);setUser(null);setLoading(false);
+   if(replaced)setError(SESSION_REPLACED_MESSAGE);
   });
   const onStorage=(event:StorageEvent)=>{
-   if(event.key==='dhahabi_user_session_ended'&&event.newValue)void clearSession(false);
+   if(event.key==='dhahabi_user_session_ended'&&event.newValue)
+    void clearSession(false,event.newValue.startsWith('replaced:'));
   };
   window.addEventListener('storage',onStorage);
   (async()=>{try{
    await restoreLegacySession();
+   if(await pendingSessionReplacement()){
+    if(active&&version.current===boot)setError(SESSION_REPLACED_MESSAGE);
+    return;
+   }
    const session=await hasSession();
    if(!session){if(active&&version.current===boot)await refreshBiometricState(null);return;}
    const cached=await getVerifiedCachedUser(),c=await readLocalCredential();
@@ -163,6 +171,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     await refreshBiometricState(me,attempt);
    }
    setLockedAccount(null);setUser(me);setBiometricAvailable(await localBiometricSupported());
+   // Existing Push permission and endpoint can be relinked without prompting.
+   void bindExistingPushToSession().catch(()=>{});
   }catch(e){if(attempt===version.current)setError(errorMessage(e));throw e;}
   finally{if(attempt===version.current)setLoading(false);}
  };
@@ -316,7 +326,13 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   begin();closeSessionVault();lockSession();
   setLockedAccount(null);setUser(null);setError(null);setLoading(false);
  };
- const logout=()=>{begin();setLockedAccount(null);setUser(null);enrollment.current=null;setQuickPinEnabled(false);setPinReconnectRequired(false);setBiometricEnrolled(false);setBiometricEnabled(false);setLoading(false);void clearSession();};
+ const logout=()=>{
+  begin();setLockedAccount(null);setUser(null);enrollment.current=null;
+  setQuickPinEnabled(false);setPinReconnectRequired(false);setBiometricEnrolled(false);
+  setBiometricEnabled(false);setLoading(false);
+  // Revoke this session only, never a replacement session on another device.
+  void revokeServerSession().catch(()=>{}).finally(()=>{void clearSession();});
+ };
  const updateProfile=async(changes:{fullName:string;city:string})=>{
   const updated=await api<{id:string|number;fullName:string|null;city:string|null;phone:string|null;email:string}>('/auth/profile',{
     method:'PATCH',body:JSON.stringify(changes)
