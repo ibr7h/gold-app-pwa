@@ -1,11 +1,27 @@
-# Dhahabi Admin App
+# ذهبك — بوابة الإدارة المستقلة
 
-Independent admin PWA for Dhahabi.
+- التطبيق: `apps/admin/public/`
+- المسار المخصص مستقبلًا: `/gold-app-pwa/admin/`
+- الهوية الثابتة: `#001F3F` و `#C5A021` و `#D4AF37`.
+- الدخول محصور بحسابات `admin`، ولا يوجد تسجيل ذاتي أو حساب افتراضي.
+- الواجهة لا تحفظ رموز JWT في Local Storage أو Session Storage؛ رموز الدخول في الذاكرة فقط، وإعادة تحميل الصفحة تتطلب تسجيل دخول جديدًا.
+- لا تُستخدم بيانات أو أرقام تجريبية في الواجهة.
 
-- Accepted backend role: `ADMIN` only.
-- Self-registration: disabled.
-- Production path: `/gold-app-pwa/admin/`.
-- Session namespace: `dhahabi_admin_*`.
-- Identity colors: `#001F3F`, `#C5A021`, `#D4AF37`.
-- This app must not expose login choices or routes for the other two Dhahabi apps.
-- Current dashboard modules are explicit integration placeholders until their backend modules exist.
+## نطاق المرحلة الأولى
+
+- نظرة عامة: إحصاءات المستخدمين والتجار والمديرين والموقوفين من `GET /admin/summary`.
+- المستخدمون: استعراض مصفّى ومحدود الصفحات من `GET /admin/users` دون تعديل، وبحقول آمنة فقط.
+- مراقبة السعر: آخر قراءة محفوظة من `GET /prices/latest` مع وقت الرصد والمصدر، وليس ادعاء سعر مباشر.
+- اعتماد التجار، الدعوات، المسوقون، الاشتراكات، العمولات، التدقيق: تظهر كخدمات مستقبلية ولا تنفذ طلبات API وهمية.
+
+## شرط تشغيل الميزة
+
+يتطلب نشر واجهة الخادم المستقلة في الفرع `feature/admin-readonly-api-20261015` من مستودع `ibr7h/gold-app`. قبل نشر الخادم، سيعرض التطبيق رسالة بأن الخدمة غير منشورة دون إخفاء الخطأ.
+
+## قبل الإنتاج
+
+- مراجعة توافق الواجهة مع التصميم الأصلي من أرشيف UI.
+- إجراء اختبار دخول فعلي بمدير، وتجربة رفض دخول حساب user/merchant، والتحقق من 401/403 من الخادم.
+- مراجعة نهج جلسات المدير والإبطال الفوري للرموز وMFA قبل أي صلاحيات كتابة.
+- إنشاء منظومة Audit Log غير قابلة للتعديل قبل اعتماد التجار أو إيقاف الحسابات أو تنفيذ أي إجراء مالي.
+- لا تغيير على `apps/user` أو `apps/trader` أو رابط Render للإنتاج.
