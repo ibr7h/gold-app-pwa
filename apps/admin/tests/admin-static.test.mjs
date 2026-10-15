@@ -23,7 +23,7 @@ test('admin bundle parses and every referenced element exists once', () => {
 test('admin scope and UI are isolated from customer and trader', () => {
   assert.equal(manifest.scope, '/gold-app-pwa/admin/');
   assert.equal(manifest.start_url, '/gold-app-pwa/admin/');
-  assert.match(sw, /dhahabk-admin-login-align-v9/);
+  assert.match(sw, /dhahabk-admin-splash-v10/);
   assert.match(html, /ذهبك للإدارة/);
   assert.match(css, /#001F3F/);
 });
@@ -109,9 +109,9 @@ test('all accounts expose explicit action visibility and protected statuses',()=
  assert.match(html,/واجهة المدير · تحديث 9/);
 });
 test('iPhone cannot be stuck on stale cache-first admin.js after update',()=>{
- assert.match(html,/app\.js\?admin-v9/);
- assert.match(html,/styles\.css\?admin-v9/);
- assert.match(sw,/dhahabk-admin-login-align-v9/);
+ assert.match(html,/app\.js\?admin-v10/);
+ assert.match(html,/styles\.css\?admin-v10/);
+ assert.match(sw,/dhahabk-admin-splash-v10/);
  assert.match(sw,/cache:'no-store'/);
  assert.match(sw,/app\\\.js/);
 });
@@ -125,4 +125,20 @@ test('admin email field reserves the physical left icon space on iPhone RTL layo
   assert.match(css, /#password\{text-align:right\}/);
   assert.match(css, /pointer-events:none/);
   assert.doesNotMatch(css, /\.input-with-icon>\.form-input\{padding-inline-end:/);
+});
+
+test('Admin splash follows UI.zip royal visual language and never bypasses login',()=>{
+  assert.match(html,/id="admin-splash"/);
+  assert.match(html,/class="admin-splash-inner"/);
+  assert.match(html,/assets\/icon\.svg/);
+  assert.match(html,/بوابة الإدارة المركزية/);
+  assert.match(css,/radial-gradient\(circle at center,#072e5c 0%,#0c1626 100%\)/);
+  assert.match(css,/@keyframes admin-splash-dismiss/);
+  assert.match(css,/visibility:hidden;pointer-events:none/);
+  assert.match(css,/prefers-reduced-motion:reduce/);
+  assert.doesNotMatch(html,/تخطي كزائر|href="02_login.html"/);
+  assert.match(js,/\/auth\/admin\/verify/);
+  assert.match(sw,/dhahabk-admin-splash-v10/);
+  assert.match(html,/app\.js\?admin-v10/);
+  assert.match(html,/styles\.css\?admin-v10/);
 });
