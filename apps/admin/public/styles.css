@@ -3,10 +3,10 @@
 /* Admin console — appended without changing the existing login layout. */
 [hidden]{display:none!important}
 .password-toggle{display:block;margin:-4px 0 15px auto;border:0;background:transparent;color:#735700;cursor:pointer;text-decoration:underline;font-size:12px}
-body:has(.dash.active){background:#F8F9FA;color:var(--ink)}
-body:has(.dash.active) .app{display:block;padding:24px 20px 34px}
-body:has(.dash.active) .shell{width:min(100%,1150px);margin:auto}
-body:has(.dash.active) .footer{color:#64748B}
+body.admin-authenticated{background:#F8F9FA;color:var(--ink)}
+body.admin-authenticated .app{display:block;padding:24px 20px 34px}
+body.admin-authenticated .shell{width:min(100%,1150px);margin:auto}
+body.admin-authenticated .footer{color:#64748B}
 .dash-head{background:var(--navy);padding:18px 22px;border-radius:16px;color:white;box-shadow:0 5px 22px rgba(0,31,63,.12);margin-bottom:16px}
 .dash-head h2{color:var(--gold2)}
 .connection-state{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.09);font-size:11px;color:#E2E8F0;max-width:250px;text-align:center}
@@ -51,7 +51,7 @@ body:has(.dash.active) .footer{color:#64748B}
 .pending{flex-shrink:0;font-size:11px}
 .dash-security{font-size:11px}
 @media(max-width:750px){
- body:has(.dash.active) .app{padding:12px}
+ body.admin-authenticated .app{padding:12px}
  .dash-head{padding:13px;gap:10px}
  .dash-head h2{font-size:16px}
  .connection-state{display:none}
@@ -69,4 +69,86 @@ body:has(.dash.active) .footer{color:#64748B}
  .small-action{align-self:flex-start}
  .pagination{flex-direction:column;align-items:stretch}
  .pagination div{justify-content:flex-end}
+}
+
+
+/* Consolidated iPhone / desktop UX refinements from the User PWA. */
+:root{--canvas:#F5F7FA;--hairline:#E7E9EE;--focus-ring:rgba(197,160,33,.26)}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html,body{overflow-x:hidden}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+input,select,button{font-size:16px}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #C5A021;outline-offset:2px}
+body:not(.admin-authenticated){background:radial-gradient(circle at 15% 0%,#123457 0,transparent 40%),var(--navy-dark)}
+body:not(.admin-authenticated) .app{padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom))}
+.brand-icon{filter:drop-shadow(0 12px 24px rgba(197,160,33,.2))}
+.brand p{font-size:14px}
+.brand h1{font-weight:850;letter-spacing:-.35px}
+.card{border-radius:22px;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.23)}
+.card label{font-size:14px}
+.card .field input{font-size:16px;min-height:52px;padding-inline-start:44px;border-color:#DCE2EA}
+.card .field input:focus{border-color:var(--gold);box-shadow:0 0 0 4px var(--focus-ring)}
+.card .primary{min-height:53px;font-size:15px}
+.card .security{font-size:12px}
+.password-toggle{min-height:38px;margin:-5px 0 10px auto;text-decoration:none;font-size:13px;font-weight:700}
+.notice{font-size:13px;line-height:1.75}
+body.admin-authenticated{background:var(--canvas)}
+body.admin-authenticated .app{padding:max(22px,env(safe-area-inset-top)) 22px max(28px,env(safe-area-inset-bottom))}
+body.admin-authenticated .shell{max-width:1170px}
+.dash-head{position:relative;overflow:hidden;border:1px solid rgba(212,175,55,.16);border-radius:20px;padding:21px 24px}
+.dash-head:before{content:"";position:absolute;left:-60px;top:-90px;width:230px;height:230px;border:1px solid rgba(212,175,55,.15);border-radius:50%;pointer-events:none}
+.dash-head img{position:relative;width:53px;height:53px;background:#032743;padding:3px}
+.dash-head h2{font-size:21px}
+.dash-head p{font-size:13px}
+.dash-head .logout{position:relative;flex:0 0 44px}
+.admin-nav{box-shadow:0 3px 12px rgba(0,31,63,.035);padding:7px;gap:6px}
+.admin-nav button{transition:background .15s ease,color .15s ease;min-height:44px;font-size:14px}
+.admin-nav button:not(.selected):hover{background:#F4F6F8;color:var(--navy)}
+.admin-nav button.selected{background:var(--navy);color:#fff;box-shadow:0 4px 12px rgba(0,31,63,.12)}
+.workspace{box-shadow:0 8px 22px rgba(7,28,50,.035);border-color:var(--hairline);padding:24px}
+.section-heading h3{font-size:20px;letter-spacing:-.25px}
+.section-heading p{font-size:13px}
+.stat{border-radius:15px;background:linear-gradient(180deg,#fff,#FBFBFC);min-height:114px}
+.stat span{font-size:13px;font-weight:600}
+.stat strong{font-weight:800;font-variant-numeric:tabular-nums}
+.stat:nth-child(1){border-top:3px solid #C5A021}
+.stat:nth-child(2){border-top:3px solid #001F3F}
+.stat:nth-child(3){border-top:3px solid #D4AF37}
+.stat:nth-child(4){border-top:3px solid #BD6B53}
+.info-note{border:1px solid #ECF0F3;font-size:13px;background:#FBFCFD}
+.price-card strong{font-variant-numeric:tabular-nums}
+.price-card{background:linear-gradient(115deg,#001F3F,#083558);box-shadow:0 10px 25px rgba(0,31,63,.12)}
+.table-scroll th{font-size:13px}
+.table-scroll td{font-size:13px;line-height:1.6}
+.modules{gap:12px}
+.module{border-radius:14px;padding:18px}
+.module p{font-size:12px}
+.dash-security{margin-bottom:0}
+@media(min-width:950px){
+ .workspace{min-height:320px}
+}
+@media(max-width:750px){
+ body.admin-authenticated .app{padding:max(10px,env(safe-area-inset-top)) 12px calc(88px + env(safe-area-inset-bottom))}
+ .dash-head{padding:15px 13px;border-radius:16px;margin-bottom:11px}
+ .dash-head img{height:45px;width:45px}
+ .dash-head h2{font-size:16px}
+ .dash-head p{font-size:12px}
+ .admin-nav{position:fixed;z-index:10;inset:auto 0 0 0;border-radius:17px 17px 0 0;padding:8px 9px calc(9px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;box-shadow:0 -8px 30px rgba(0,31,63,.13);border-bottom:0}
+ .admin-nav button{min-width:0;min-height:52px;white-space:normal;padding:9px 5px;font-size:12px;line-height:1.3}
+ .workspace{border-radius:15px;padding:16px}
+ .section-heading h3{font-size:18px}
+ .stats{gap:9px}
+ .stat{padding:14px;min-height:98px}
+ .stat span{font-size:12px}
+ .stat strong{font-size:27px}
+ .filters{gap:9px}
+ .filters input,.filters select{font-size:16px}
+ .table-scroll th,.table-scroll td{padding:13px 12px}
+ .modules{grid-template-columns:1fr}
+ .dash-security{padding-bottom:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ *,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
