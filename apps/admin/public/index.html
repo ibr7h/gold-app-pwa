@@ -9,7 +9,7 @@
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="styles.css?admin-v8">
+<link rel="stylesheet" href="styles.css?admin-v9">
 </head>
 <body data-app="admin" data-role="admin">
 <div class="app">
@@ -23,8 +23,8 @@
     <div class="gold-card auth-card">
      <div id="notice" class="notice" role="alert" aria-live="assertive"></div>
      <form id="login-form">
-      <div class="form-group"><label class="form-label" for="email">المعرّف الإداري أو البريد الإلكتروني</label>
-       <div class="input-with-icon"><input id="email" class="form-input" type="email" dir="ltr" autocomplete="username" inputmode="email" placeholder="البريد الإلكتروني الإداري" required>
+      <div class="form-group"><label class="form-label" for="email">البريد الإلكتروني الإداري</label>
+       <div class="input-with-icon"><input id="email" class="form-input" type="email" dir="ltr" autocomplete="username" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="البريد الإلكتروني الإداري" required>
        <i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
       </div>
       <div class="form-group"><label class="form-label" for="password">كلمة المرور الإدارية</label>
@@ -106,7 +106,7 @@
 
       <section data-view="users" class="screen-panel" hidden>
         <h2 class="screen-title"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> إدارة المستخدمين والصلاحيات</h2>
-        <p class="admin-build" id="admin-build" aria-label="إصدار واجهة الإدارة">واجهة المدير · تحديث 8</p>
+        <p class="admin-build" id="admin-build" aria-label="إصدار واجهة الإدارة">واجهة المدير · تحديث 9</p>
         <div class="gold-card">
           <form id="users-filter" class="filters" aria-label="البحث في حسابات المنصة">
             <label class="form-group"><span class="form-label">البحث بالاسم أو البريد</span><input id="users-search" class="form-input" maxlength="80" autocomplete="off" type="search" placeholder="ابحث في الحسابات..."></label>
@@ -184,5 +184,5 @@
   <footer class="footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer>
  </div>
 </div>
-<script src="app.js?admin-v8"></script>
+<script src="app.js?admin-v9"></script>
 </body></html>
