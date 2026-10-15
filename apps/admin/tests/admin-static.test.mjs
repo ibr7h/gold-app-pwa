@@ -68,3 +68,11 @@ test('admin login strictly requires email OTP and never uses the generic login e
   assert.doesNotMatch(js,/request\('\/auth\/login'/);
   assert.doesNotMatch(js,/innerHTML|localStorage|sessionStorage/);
 });
+
+test('admin OTP errors preserve the backend error envelope instead of generic failure',()=>{
+  assert.match(js,/result\?\.error \|\| result/);
+  assert.match(js,/payload\?\.message/);
+  assert.match(js,/رمز الحالة/);
+  assert.match(js,/\/auth\/admin\/verify/);
+  assert.doesNotMatch(js,/localStorage|sessionStorage|innerHTML/);
+});
