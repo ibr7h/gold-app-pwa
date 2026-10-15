@@ -168,3 +168,13 @@ body.admin-authenticated .footer{display:none}
 .status-buttons button{font-size:12px;padding:10px;min-height:48px}
 .status-buttons .danger-action{background:#b91c1c;color:#fff}
 .status-buttons .danger-action:hover{background:#991b1b}
+
+/* Account controls are intentionally explicit on every Admin account card. */
+.account-controls{border-top:1px solid #e2e8f0;margin-top:13px;padding-top:12px}
+.account-controls-label{font-size:12px;font-weight:800;color:#334155;margin-bottom:8px}
+.account-controls-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.account-controls-row .account-action{margin-top:0;min-height:44px;font-size:13px}
+.account-controls-row .account-action:disabled{opacity:.56;color:#64748b;border-color:#cbd5e1;background:#f1f5f9}
+.account-controls-hint{font-size:11px;line-height:1.8;color:#475569;margin:9px 0 0}
+.account-delete-note{font-size:11px;line-height:1.8;color:#9a3412;margin:6px 0 0}
+.admin-build{font-size:11px;color:#94a3b8;margin:-9px 0 14px}
