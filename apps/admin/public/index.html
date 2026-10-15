@@ -9,9 +9,24 @@
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="styles.css?admin-v9">
+<link rel="stylesheet" href="styles.css?admin-v10">
 </head>
 <body data-app="admin" data-role="admin">
+<!-- Derived from the original UI.zip screens/01_splash.html: radial royal-navy background,
+     central gold emblem and brand typography. Admin icon from assets/icons/app_icon_admin.svg.
+     Informational-only splash: never a visitor entry point or auth bypass. -->
+<section id="admin-splash" class="admin-splash" aria-hidden="true">
+  <div class="admin-splash-inner">
+    <div class="admin-splash-edition"><i class="fa-solid fa-crown" aria-hidden="true"></i><span>ذهبك للإدارة</span></div>
+    <div class="admin-splash-center">
+      <div class="admin-splash-icon"><img src="assets/icon.svg" alt="" width="108" height="108"></div>
+      <div class="admin-splash-brand">ذَهَبْك</div>
+      <p class="admin-splash-subtitle">بوابة الإدارة المركزية</p>
+      <p class="admin-splash-detail">إدارة آمنة لمنصة ذهبك</p>
+    </div>
+    <div class="admin-splash-footnote"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> وصول مقيد للإدارة</div>
+  </div>
+</section>
 <div class="app">
  <div class="shell">
   <!-- Original UI.zip screen: screens/02_login_admin.html (redacted and functional) -->
@@ -184,5 +199,5 @@
   <footer class="footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer>
  </div>
 </div>
-<script src="app.js?admin-v9"></script>
+<script src="app.js?admin-v10"></script>
 </body></html>
