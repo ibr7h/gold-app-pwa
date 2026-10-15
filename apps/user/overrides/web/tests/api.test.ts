@@ -38,6 +38,50 @@ describe('sessions',()=>{
   expect(await getVerifiedCachedUser()).toEqual({id:'new-account',email:'new@example.test',role:'user'});
  });
 });
+ it('recovers a GET identity lookup after one transient network failure',async()=>{
+  let calls=0;
+  const fetch=vi.fn(async()=>{calls++;if(calls===1)throw new TypeError('network dropped');return json({userId:'account',email:'user@example.test',role:'user'});});
+  vi.stubGlobal('fetch',fetch);
+  expect(await api('/auth/me')).toEqual({userId:'account',email:'user@example.test',role:'user'});
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(activeSessionTokens().refreshToken).toBe('refresh-fixture');
+ });
+ it('does not retry a failed password login POST or discard the prior token',async()=>{
+  const fetch=vi.fn(async()=>{throw new TypeError('no connection');});
+  vi.stubGlobal('fetch',fetch);
+  await expect(authenticate('/auth/login',{identifier:'person@example.test',password:'not-real'}))
+    .rejects.toMatchObject({connectionFailure:'network',status:0});
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(activeSessionTokens().refreshToken).toBe('refresh-fixture');
+ });
+ it('does not retry a GET after logout while its first network attempt is in flight',async()=>{
+  let fail!:(err:Error)=>void;
+  const fetch=vi.fn(()=>new Promise<Response>((_resolve,reject)=>{fail=reject;}));
+  vi.stubGlobal('fetch',fetch);
+  const pending=api('/auth/me');
+  await new Promise(resolve=>setTimeout(resolve,0));
+  await clearSession();
+  fail(new TypeError('network offline'));
+  await expect(pending).rejects.toThrow('تغيرت الجلسة.');
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(()=>activeSessionTokens()).toThrow();
+ });
+ it('does not retry a malformed successful response or HTTP 500 as a network problem',async()=>{
+  const fetch=vi.fn(async()=>new Response('not-json',{status:200}));
+  vi.stubGlobal('fetch',fetch);
+  await expect(api('/auth/me')).rejects.toThrow('استجابة الخادم غير صالحة.');
+  expect(fetch).toHaveBeenCalledTimes(1);
+  fetch.mockImplementation(async()=>json({message:'Internal server error'},500));
+  await expect(api('/auth/me')).rejects.toMatchObject({status:500});
+  expect(fetch).toHaveBeenCalledTimes(2);
+ });
+ it('reports browser aborts as a timeout without logging credentials',async()=>{
+  const fetch=vi.fn(async()=>{const e=new Error('Request aborted');e.name='AbortError';throw e;});
+  vi.stubGlobal('fetch',fetch);
+  await expect(authenticate('/auth/login',{identifier:'account@example.test',password:'private-secret'}))
+    .rejects.toMatchObject({connectionFailure:'timeout',status:0});
+  expect(fetch).toHaveBeenCalledTimes(1);
+ });
 describe('startup identity cache',()=>{
  it('restores only a server-verified User identity for fast startup',async()=>{
   const identity={id:'sample-id',email:'investor@example.test',role:'user' as const};
