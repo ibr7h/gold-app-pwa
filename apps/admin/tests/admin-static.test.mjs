@@ -87,7 +87,7 @@ test('real account metrics identify user accounts rather than claiming all roles
 test('status action and audit are limited to Admin and require explicit confirmation',()=>{
  assert.match(js,/\/admin\/users\/'\+encodeURIComponent\(target\.id\)\+'\/status'/);
  assert.match(js,/\/admin\/audit\?page=/);
- assert.match(js,/\['user','merchant'\]\.includes\(item\.role\)/);
+ assert.match(js,/\['user','merchant'\]\.includes\(normalizedRole\)/);
  assert.match(js,/adminPassword:/);
  assert.match(html,/id="status-dialog"/);
  assert.match(html,/id="status-reason"/);
