@@ -184,6 +184,16 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
 
       <section data-view="settings" class="screen-panel" hidden>
        <h2 class="screen-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> إعدادات المنصة والربط البرمجي</h2>
+       <div class="gold-card" id="admin-push-settings">
+        <h3 class="gold-card-title"><i class="fa-solid fa-bell" aria-hidden="true"></i> إشعارات الإدارة عند إغلاق التطبيق</h3>
+        <p class="admin-update-hint">يمكن استقبال إشعارات الإدارة على شاشة القفل بعد تثبيت التطبيق والسماح بالإشعارات. لن تُعرض بيانات حسابات أو تفاصيل حساسة في التنبيه.</p>
+        <p id="admin-push-state" class="admin-push-state" role="status" aria-live="polite">لم يُفحص وضع الإشعارات بعد.</p>
+        <div class="admin-push-actions">
+          <button id="admin-push-enable" type="button" class="gold-btn">تفعيل الإشعارات</button>
+          <button id="admin-push-test" type="button" class="gold-btn-outline" disabled>إرسال إشعار تجريبي</button>
+          <button id="admin-push-disable" type="button" class="gold-btn-outline" disabled>إيقاف الإشعارات</button>
+        </div>
+       </div>
        <div class="gold-card"><h3 class="gold-card-title">تحديث تطبيق الإدارة</h3><div class="admin-update-tools admin-update-tools-settings"><span>الإصدار المثبت <b dir="ltr">__ADMIN_DISPLAY_VERSION__</b></span><button id="admin-check-update-settings" class="gold-btn-outline" type="button">التحقق من التحديثات</button></div><p class="admin-update-hint">يتم التحقق تلقائيًا من التحديثات عند فتح التطبيق والعودة إليه.</p></div>
        <div class="gold-card"><h3 class="gold-card-title">مزوّد أسعار الذهب</h3><p class="empty-state">مفاتيح الاتصال محفوظة على الخادم ولا تُعرض في المتصفح.</p><button class="gold-btn-outline" type="button" disabled>تدوير المفتاح — بانتظار الخادم</button></div>
        <div class="gold-card"><h3 class="gold-card-title">إعدادات الرسوم والعمولات</h3><p class="empty-state">بانتظار الخادم — لا توجد قيم محفوظة معروضة لهذه الإعدادات حاليًا.</p><button class="gold-btn" type="button" disabled>حفظ الإعدادات</button></div>
