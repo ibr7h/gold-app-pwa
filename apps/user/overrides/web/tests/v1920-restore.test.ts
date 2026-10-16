@@ -12,30 +12,30 @@ const getCalculator=(src:string)=>{
  return src.slice(a,b);
 };
 describe('v1.9.20 user calculator and historical chart restoration',()=>{
- it('preserves v1.9.20 inputs and formulas, with the requested single summary card',()=>{
-  const actual=getCalculator(current),baseline=v1920Calculator;
-  const fields=(s:string)=>{
-   const a=s.indexOf('<section className="approved-card calculator-form">');
-   const b=s.indexOf('</section>',a);
-   if(a<0||b<0)throw Error('Calculator inputs missing');
-   return s.slice(a,b+10);
-  };
-  const withoutAddedUnitPrice=actual.replace(/\n    <div className="calc-unit-price" role="status" aria-live="polite">[\s\S]*?<\/div>/,'').replace('<label>المصنعية / جرام <span dir="ltr">({priceCurrency})</span> (اختياري)','<label>المصنعية / جرام (اختياري)');
-  expect(fields(withoutAddedUnitPrice)).toBe(fields(baseline));
+ it('keeps the core 24/22/21/18K calculator controls while applying requested manual tax',()=>{
+  const actual=getCalculator(current);
+  const baseline=v1920Calculator;
+  for(const marker of ['[24,22,21,18]','weight-presets','calcFee','calcWeight','calcKarat']){
+   expect(actual).toContain(marker);
+   expect(baseline).toContain(marker);
+  }
   expect(actual).toContain('سعر الجرام الأساسي حسب العيار المحدد');
-  expect(actual).toContain("money(calcUnit,priceCurrency)");
-  expect(actual).toContain('عيار {calcKarat}');
-  expect(actual).toContain("marketClosed?' · آخر سعر مسجل':''");
-  expect(current).toContain("const calcMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===calcKarat)");
-  expect(current).toContain('const calcUnit=calcMarket?Number(calcMarket.buyPrice):null;');
-  expect(actual).not.toContain('calc-total-card');
-  expect(actual).not.toContain('السعر الإجمالي التقريبي');
+  expect(actual).toContain('money(calcBaseUnit,priceCurrency)');
+  expect(actual).toContain('calc-manual-price');
+  expect(actual).toContain('calcTaxInput');
+  expect(actual).toContain('الضريبة المدخلة');
+  expect(actual).not.toContain('ضريبة 15% (اختيارية)');
+  expect(actual).not.toContain('calcVat');
   expect(actual).toContain('className="approved-card calc-estimate-card"');
   expect(actual).toContain('className="calc-words-block"');
   expect(actual).toContain('className="calc-words-label">الإجمالي كتابة');
   expect(actual).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
   for(const field of ["calcRaw,priceCurrency","calcFeeTotal,priceCurrency","calcTax,priceCurrency","calcTotal,priceCurrency"])expect(actual).toContain(field);
+  expect(current).toContain("const calcMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===calcKarat)");
+  expect(current).toContain("calculatorQuoteWithTaxAmount(calcUnit,calcWeightN,calcFeeN,calcTaxAmount)");
   expect(current).toContain("import {amountToDisplayCurrencyWords} from './arabic-amount-words'");
+  expect(actual).not.toContain('calc-total-card');
+  expect(actual).not.toContain('السعر الإجمالي التقريبي');
  });
  it('keeps the original historical chart in both pages with all range/interaction controls',()=>{
   expect(current).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact range={homeRange} onRangeChange={setHomeRange} now={clock} loading={marketLoading}/></section>');
