@@ -18,7 +18,8 @@ import {priceFreshness,isGlobalGoldMarketOpen} from './price-status';
 import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
-import {calculatorQuote} from './calculator-quote';
+import {calculatorQuoteWithTaxAmount} from './calculator-quote';
+import {quoteShareText,shareQuotePng,ShareQuote,ShareFormat} from './calculator-sharing';
 import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
 import {displayAmount,displayPortfolioSummary,sarPerUsd,DisplayCurrency} from './display-currency';
@@ -144,7 +145,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState(''),[homeRange,setHomeRange]=useState<TrendRange>('day');
  const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24),[chartRange,setChartRange]=useState<TrendRange>('available');
- const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0'),[calcVat,setCalcVat]=useState(false);
+ const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0');
+ const [calcTaxInput,setCalcTaxInput]=useState('0'),[calcUseManual,setCalcUseManual]=useState(false),[calcManualPrice,setCalcManualPrice]=useState('');
+ const [calcShareFormat,setCalcShareFormat]=useState<ShareFormat>('post');
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
  const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';portfolio?:Portfolio;purchase?:Purchase;alert?:PriceAlert}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
@@ -252,9 +255,29 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  </section>;
  const nav=<><div className="nav-brand"><span className="brand-mark small">ذ</span><div><strong>{tr("ذهبك")}</strong><small>حساب المستخدم</small></div></div><nav aria-label="القائمة الرئيسية">{primaryPages.map(p=><button key={p.id} className={'nav-item '+(p.id===page?'selected':'')} aria-current={p.id===page?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav><div className="nav-account"><span className="avatar">{email[0].toUpperCase()}</span><span className="email" dir="ltr">{email}</span><button className="icon-button" title="تسجيل الخروج" aria-label="تسجيل الخروج" onClick={signOut}><Icon name="logout"/></button></div></>;
  const calcMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===calcKarat);
- const calcUnit=calcMarket?Number(calcMarket.buyPrice):null;
- const calcWeightN=Math.max(0,Number(calcWeight)||0),calcFeeN=Math.max(0,Number(calcFee)||0);
- const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuote(calcUnit,calcWeightN,calcFeeN,calcVat);
+ const calcBaseUnit=calcMarket&&Number.isFinite(Number(calcMarket.buyPrice))?Number(calcMarket.buyPrice):null;
+ const calcUnit=calcUseManual?(calcManualPrice.trim()&&Number(calcManualPrice)>0?Number(calcManualPrice):null):calcBaseUnit;
+ const calcWeightN=calcWeight.trim()?Number(calcWeight):0,calcFeeN=calcFee.trim()?Number(calcFee):0;
+ const calcTaxAmount=calcTaxInput.trim()?Number(calcTaxInput):0;
+ const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuoteWithTaxAmount(calcUnit,calcWeightN,calcFeeN,calcTaxAmount);
+ const quoteSnapshot=():ShareQuote|null=>{
+  if(calcUnit===null||calcRaw===null||calcFeeTotal===null||calcTax===null||calcTotal===null)return null;
+  return {language,currency:priceCurrency,karat:calcKarat,weight:calcWeightN,unitPrice:calcUnit,
+   basePrice:calcBaseUnit,priceSource:calcUseManual?'manual':'market',raw:calcRaw,fees:calcFeeTotal,
+   tax:calcTax,total:calcTotal,words:language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language),
+   generatedAt:new Date().toISOString()};
+ };
+ const copyQuoteDetails=async()=>{
+  const snapshot=quoteSnapshot();if(!snapshot)return;
+  try{await navigator.clipboard.writeText(quoteShareText(snapshot));setMessage(tr('تم نسخ تفاصيل السعر المقدر.'));}
+  catch{setMessage(tr('تعذر النسخ على هذا الجهاز.'));}
+ };
+ const shareQuoteImage=async(download:boolean)=>{
+  const snapshot=quoteSnapshot();if(!snapshot)return;
+  try{const outcome=await shareQuotePng(snapshot,calcShareFormat,download);
+   if(outcome==='downloaded')setMessage(tr('تم إعداد صورة التقدير للحفظ.'));
+  }catch{setMessage(tr('تعذر تجهيز صورة المشاركة. حاول مرة أخرى.'));}
+ };
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
  const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurFx?.eurPerUsd??null);
  const selectedHomeHistory=homeHistoryCurrency===priceCurrency?homeHistory:[];
@@ -300,23 +323,45 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <label>1. اختر عيار الذهب<div className="karat-switch">{[24,22,21,18].map(k=><button type="button" key={k} className={calcKarat===k?'active':''} onClick={()=>setCalcKarat(k)}>{k}K</button>)}</div></label>
     <div className="calc-unit-price" role="status" aria-live="polite">
      <span className="calc-unit-label">سعر الجرام الأساسي حسب العيار المحدد<small>عيار {calcKarat} · السعر العالمي الاسترشادي، دون مصنعية أو ضريبة{marketClosed?' · آخر سعر مسجل':''}</small></span>
-     <strong dir="ltr">{money(calcUnit,priceCurrency)}</strong>
+     <strong dir="ltr">{money(calcBaseUnit,priceCurrency)}</strong>
     </div>
+    <div className="calc-price-switch" role="group" aria-label="مصدر السعر المستخدم في الحساب">
+     <button type="button" className={!calcUseManual?'active':''} aria-pressed={!calcUseManual} onClick={()=>setCalcUseManual(false)}>السعر الأساسي</button>
+     <button type="button" className={calcUseManual?'active':''} aria-pressed={calcUseManual} onClick={()=>setCalcUseManual(true)}>إدخال سعر آخر</button>
+    </div>
+    {calcUseManual&&<label className="calc-manual-price">سعر الجرام المعتمد في الحساب <span dir="ltr">({priceCurrency})</span>
+     <input type="number" inputMode="decimal" min="0.01" step="0.01" value={calcManualPrice} placeholder="0.00" onChange={e=>setCalcManualPrice(e.target.value)}/>
+     <small>يُحسب الإجمالي بالسعر الذي تُدخله، ويمكنك استعادة السعر الأساسي في أي وقت.</small>
+    </label>}
     <label>الوزن (جرام)<input type="number" inputMode="decimal" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(e.target.value)}/><div className="weight-presets">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(String(w))}>{w===31.1?'أونصة 31.1g':w+' جرام'}</button>)}</div></label>
     <label>المصنعية / جرام <span dir="ltr">({priceCurrency})</span> (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
-    <div className="calc-toggle"><div><strong>ضريبة 15% (اختيارية)</strong><small>الضريبة = (قيمة الذهب + إجمالي المصنعية) × 15%.</small></div><input type="checkbox" checked={calcVat} onChange={e=>setCalcVat(e.target.checked)}/></div>
+    <label className="calc-tax-input">الضريبة (مبلغ اختياري) <span dir="ltr">({priceCurrency})</span>
+     <input type="number" inputMode="decimal" min="0" step="0.01" value={calcTaxInput} onChange={e=>setCalcTaxInput(e.target.value)}/>
+     <small>أدخل مبلغ الضريبة كما تريد احتسابه؛ لا تُضاف نسبة تلقائية.</small>
+    </label>
    </section>
    <section className="approved-card calc-estimate-card" aria-label="تفاصيل السعر المقدر">
     <div className="approved-card-title">تفاصيل السعر المقدر</div>
     <dl className="calc-breakdown">
      <div><dt>قيمة الذهب الخام</dt><dd dir="ltr">{money(calcRaw,priceCurrency)}</dd></div>
      <div><dt>إجمالي المصنعية</dt><dd dir="ltr">{money(calcFeeTotal,priceCurrency)}</dd></div>
-     <div><dt>الضريبة التقديرية</dt><dd dir="ltr">{money(calcTax,priceCurrency)}</dd></div>
+     <div><dt>الضريبة المدخلة</dt><dd dir="ltr">{money(calcTax,priceCurrency)}</dd></div>
      <div className="final"><dt>الإجمالي النهائي</dt><dd dir="ltr">{money(calcTotal,priceCurrency)}</dd></div>
     </dl>
     <div className="calc-words-block">
      <div className="calc-words-label">الإجمالي كتابة</div>
      <p className="calc-words-value" aria-label="الإجمالي كتابة">{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
+    </div>
+    <div className="calc-share-panel">
+     <div className="calc-share-top"><strong>مشاركة تفاصيل التقدير</strong><label>مقاس الصورة
+      <select aria-label="مقاس صورة المشاركة" value={calcShareFormat} onChange={e=>setCalcShareFormat(e.target.value==='story'?'story':'post')}>
+       <option value="post">منشور 4:5</option><option value="story">ستوري 9:16</option>
+      </select></label></div>
+     <div className="calc-share-buttons">
+      <button type="button" className="secondary" disabled={calcTotal===null} onClick={()=>void copyQuoteDetails()}>نسخ التفاصيل</button>
+      <button type="button" className="primary" disabled={calcTotal===null} onClick={()=>void shareQuoteImage(false)}>مشاركة كصورة</button>
+      <button type="button" className="secondary" disabled={calcTotal===null} onClick={()=>void shareQuoteImage(true)}>حفظ الصورة</button>
+     </div>
     </div>
    </section>
   </>;
