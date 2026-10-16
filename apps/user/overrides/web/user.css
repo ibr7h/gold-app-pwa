@@ -2570,12 +2570,42 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .gold-web .calc-price-switch button.active{background:#c5a021;color:#071d34;border-color:#c5a021;box-shadow:0 4px 10px #c5a02133}
 .gold-web .calc-manual-price,.gold-web .calc-tax-input{color:#1b3551;padding:10px;border:1px solid #e0e7ed;background:#fafbfc;border-radius:11px;margin-bottom:15px}
 .gold-web .calc-manual-price small,.gold-web .calc-tax-input small{display:block;color:#64748b;font-size:11px;font-weight:400;line-height:1.6}
-.gold-web .calc-estimate-card .calc-share-panel{border-top:1px solid #d7dee6;margin-top:15px;padding-top:14px}
-.gold-web .calc-share-top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.gold-web .calc-share-top>strong{color:#082a4c;font-size:14px}
-.gold-web .calc-share-top label{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0;font-size:12px;color:#475569}
-.gold-web .calc-share-top select{min-height:39px;width:auto;padding:6px 25px 6px 8px;background:#fff;color:#082a4c;border:1px solid #cbd5e1;font-size:13px}
-.gold-web .calc-share-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:13px}
-.gold-web .calc-share-buttons button{min-width:0;min-height:45px;font-size:12px;line-height:1.5;padding:9px}
-.gold-web .calc-share-buttons button:last-child{grid-column:1/-1;border-color:#c5a021;color:#193958}
-@media(min-width:650px){.gold-web .calc-share-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}.gold-web .calc-share-buttons button:last-child{grid-column:auto}}
+
+
+/* Quiet icon-only actions beside the estimated quote title. */
+.gold-web.workspace .calc-estimate-card>.approved-card-title.calc-quote-heading{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:6px!important;flex-wrap:nowrap;min-width:0;
+}
+.gold-web.workspace .calc-quote-heading>span{
+ min-width:0;flex:1 1 auto;font-size:clamp(14px,3.8vw,22px);line-height:1.5;
+}
+.gold-web.workspace .calc-quote-actions{
+ display:flex;gap:2px;align-items:center;justify-content:flex-end;
+ flex:0 0 auto;white-space:nowrap;
+}
+.gold-web.workspace .calc-quote-actions button{
+ display:inline-flex;align-items:center;justify-content:center;
+ width:44px;height:44px;min-width:44px;min-height:44px;
+ padding:0;border:1px solid transparent;border-radius:11px;
+ background:transparent;color:#8B6B00;cursor:pointer;
+ transition:background-color .18s,border-color .18s;
+}
+.gold-web.workspace .calc-quote-actions button:hover:not(:disabled){
+ background:#F3EBD1;border-color:#D9C27B;
+}
+.gold-web.workspace .calc-quote-actions button:focus-visible{
+ outline:2px solid #C5A021;outline-offset:1px;
+}
+.gold-web.workspace .calc-quote-actions button:disabled{opacity:.35;cursor:not-allowed}
+.gold-web.workspace .calc-quote-actions svg{width:21px;height:21px;flex:0 0 auto}
+.gold-web.workspace .calc-estimate-card .calc-words-value{
+ max-width:100%;min-width:0;overflow-wrap:anywhere;word-break:normal;
+ white-space:normal;direction:inherit;unicode-bidi:plaintext;
+}
+@media(max-width:380px){
+ .gold-web.workspace .calc-estimate-card>.approved-card-title.calc-quote-heading{gap:2px!important}
+ .gold-web.workspace .calc-quote-heading>span{font-size:14px!important}
+ .gold-web.workspace .calc-quote-actions{gap:0}
+ .gold-web.workspace .calc-quote-actions button{width:40px;min-width:40px}
+}
