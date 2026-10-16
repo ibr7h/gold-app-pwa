@@ -61,7 +61,7 @@ function createFixture(items){
     return {ok:true,status:200,json:async()=>payload};
   };
   const context=createContext({
-    document,window:{scrollTo(){}},navigator:{},fetch,
+    document,window:{scrollTo(){},addEventListener(){}},navigator:{},fetch,
     AbortController,URLSearchParams,URL,Intl,Date,Number,String,Array,Boolean,
     setTimeout,clearTimeout,
   });

@@ -33,6 +33,7 @@
     byId('status-admin-password').value='';
     byId('status-reason').value='';
     accessToken='';refreshToken='';challengeId='';
+    window.AdminQuickLock?.offAuth();
     otpView.hidden=true;otpCode.value='';otpAlert('');
     byId('session-email').textContent='';
     dash.classList.remove('active');
@@ -330,6 +331,33 @@
   async function enter(user){
     if(!user||user.role!=='admin')throw new Error('هذا الحساب لا يملك صلاحية الدخول إلى بوابة الإدارة.');
     byId('session-email').textContent=user.email||'';
+    window.AdminQuickLock?.onAuth(user.email||'', async()=>{
+      if(!accessToken||!refreshToken)return false;
+      let verified=null;
+      try{verified=await request('/auth/me',{authorized:true});}catch{}
+      if(verified?.role==='admin')return true;
+      try{
+        const next=await request('/auth/refresh',{method:'POST',body:{refreshToken}});
+        if(!next?.accessToken||!next?.refreshToken)throw new Error('Invalid admin refresh');
+        accessToken=next.accessToken;refreshToken=next.refreshToken;
+        const user=await request('/auth/me',{authorized:true});
+        if(user?.role!=='admin')throw new Error('Admin role required');
+        // Rebind an existing opt-in push endpoint to the newly rotated admin session.
+        if(pushSupported()){
+          try{
+            const {sub}=await ownPushSubscription();
+            if(sub){
+              const keys=sub.toJSON()?.keys;
+              if(keys?.p256dh&&keys?.auth)
+                await pushRequest('subscriptions',{method:'POST',body:{
+                  endpoint:sub.endpoint,keys,userAgent:navigator.userAgent.slice(0,250)
+                }});
+            }
+          }catch{} // A notification failure never grants or denies admin access.
+        }
+        return true;
+      }catch{clearAuth();msg('انتهت جلسة الإدارة. سجّل الدخول بكلمة المرور ورمز البريد.');return false;}
+    });
     document.body.classList.add('admin-authenticated');
     loginView.classList.add('hidden');dash.classList.add('active');
     msg('');selectPanel('overview');setStatus('جارٍ التحقق...');
@@ -508,5 +536,6 @@
     }catch(e){pushMessage(e.message||'تعذر إيقاف الإشعارات.');}
     finally{pushBusy=false;void checkAdminPushStatus();}
   });
+  window.addEventListener('dhahabk:admin-password-login',()=>{clearAuth();email.focus();});
   // The isolated Admin updater manages Service Worker registration and updates.
 })();

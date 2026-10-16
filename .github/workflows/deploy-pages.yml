@@ -647,6 +647,7 @@ jobs:
           set -euo pipefail
           node --check apps/trader/public/app.js
           node --check apps/admin/public/app.js
+          node --check apps/admin/public/admin-quick-lock.js
           node --check apps/trader/public/sw.js
           node --check apps/admin/public/sw.js
           node --check apps/admin/public/admin-update-client.js
@@ -688,7 +689,7 @@ jobs:
               "__ADMIN_BUILD_SHA__": sha,
               "__ADMIN_DISPLAY_VERSION__": display,
           }
-          for name in ("index.html", "sw.js", "admin-update-client.js"):
+          for name in ("index.html", "sw.js", "admin-update-client.js", "admin-quick-lock.js"):
               file = folder / name
               body = file.read_text(encoding="utf-8")
               for original, replacement in replacements.items():
@@ -709,10 +710,11 @@ jobs:
           PY
           node --check _site/admin/sw.js
           node --check _site/admin/admin-update-client.js
+          node --check _site/admin/admin-quick-lock.js
           python3 -m json.tool _site/admin/version.json >/dev/null
           grep -q "admin-${admin_sha}" _site/admin/admin-update-client.js
           grep -q "admin-${admin_sha}" _site/admin/version.json
-          ! grep -R -q '__ADMIN_' _site/admin/index.html _site/admin/sw.js _site/admin/admin-update-client.js
+          ! grep -R -q '__ADMIN_' _site/admin/index.html _site/admin/sw.js _site/admin/admin-update-client.js _site/admin/admin-quick-lock.js
 
       # The iPhone preview is compiled and versioned on a different branch.
       # Publish its files under /iphone/ without touching the stable /full/ route.
