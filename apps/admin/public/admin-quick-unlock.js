@@ -65,13 +65,11 @@ async function persist(next){
 async function keyForEnroll(){
  if(rawKey)return rawKey;
  const existing=read();
- if(existing&&existing.id===principal?.id){
-  if(existing.pin?.deviceId)await window.DhahabkAdminBridge.api(
-   '/auth/admin/quick/revoke','POST',{deviceId:existing.pin.deviceId}).catch(()=>{});
-  clear(); // Re-enrollment follows a successful password + email OTP login.
- }
- rawKey=random(32);
- return rawKey;
+ // Never revoke or overwrite a valid existing PIN/Face ID vault during new-method setup.
+ // Unlock using the existing method first, or explicitly remove it before re-enrolling.
+ if(existing&&existing.id===principal?.id)
+  throw new Error('current_unlock_required');
+ return random(32);
 }
 async function setupPin(event){
  event.preventDefault();if(busy||!principal||!tokens||!supported())return;
@@ -95,15 +93,17 @@ async function setupPin(event){
   const v={v:1,origin:location.origin,id:principal.id,email:principal.email,
     ...(old?.id===principal.id?old:{}),pin:{deviceId:issuedDeviceId,box}};
   v.session=await seal(await aes(key),te.encode(JSON.stringify({refreshToken:tokens.refreshToken})),principal.id);
-  save(v);
+  save(v);rawKey=key;
   if(oldDevice&&oldDevice!==issuedDeviceId){
    void window.DhahabkAdminBridge.api('/auth/admin/quick/revoke','POST',{deviceId:oldDevice}).catch(()=>{});
   }
   $('quick-setup-pin').value='';$('quick-setup-confirm').value='';
   notice('تم تفعيل رمز الدخول السريع مع حماية المحاولات على الخادم.');updateControls();
- }catch{
+ }catch(e){
   if(issuedDeviceId)void window.DhahabkAdminBridge.api('/auth/admin/quick/revoke','POST',{deviceId:issuedDeviceId}).catch(()=>{});
-  notice('تعذر تفعيل الرمز. تحقق من الاتصال وخدمة حماية المدير.',true);
+  notice(e?.message==='current_unlock_required'
+    ?'لفتح وسيلة ثانية دون فقدان الأولى، استخدم وسيلة الدخول السريع الحالية أولًا؛ أو ألغِها صراحة من الإعدادات.'
+    :'تعذر تفعيل الرمز. تحقق من الاتصال وخدمة حماية المدير.',true);
  }finally{busy=false;}
 }
 function clientData(buffer,type,challenge){
@@ -112,6 +112,10 @@ function clientData(buffer,type,challenge){
 }
 async function setupFace(){
  if(busy||!principal||!tokens||!supported()||!navigator.credentials?.create)return;
+ if(read()?.id===principal.id&&!rawKey){
+  notice('افتح التطبيق بوسيلة الدخول السريع الموجودة أولًا، أو ألغِها قبل تسجيل بصمة جديدة.',true);
+  return;
+ }
  // iOS Safari may not support PRF extension. Never silently store an unprotected token.
  busy=true;
  try{
@@ -135,7 +139,7 @@ async function setupFace(){
    face:{credentialId:b64(new Uint8Array(credential.rawId)),salt:b64(salt),box},
    failed:old?.failed||0,lockedUntil:old?.lockedUntil||0};
   v.session=await seal(await aes(key),te.encode(JSON.stringify({refreshToken:tokens.refreshToken})),principal.id);
-  save(v);notice('تم تفعيل فتح التطبيق ببصمة الجهاز.');updateControls();
+  save(v);rawKey=key;notice('تم تفعيل فتح التطبيق ببصمة الجهاز.');updateControls();
  }catch{notice('تعذر تفعيل بصمة الجهاز، أو أُلغي الطلب. استخدم PIN أو البريد.',true);}
  finally{busy=false;}
 }
