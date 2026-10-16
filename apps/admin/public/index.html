@@ -219,6 +219,15 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
          <button id="quick-enable-face" class="gold-btn-outline" type="button">تفعيل بصمة الوجه / الجهاز</button>
          <button id="quick-remove" class="quick-danger" type="button" disabled>إلغاء الدخول السريع على هذا الجهاز</button>
         </div>
+       <div class="gold-card admin-push-settings">
+        <h3 class="gold-card-title">إشعارات الإدارة</h3>
+        <p class="subnote">تصل إشعارات Push عند إغلاق التطبيق أو قفل الهاتف، بعد تفعيل الإذن واشتراك الجهاز. لا تظهر التفاصيل الإدارية الحساسة على شاشة القفل.</p>
+        <p id="admin-push-message" class="admin-push-message" role="status" aria-live="polite">لم يتم فحص اشتراك الإشعارات بعد.</p>
+        <button id="admin-push-enable" type="button" class="gold-btn">تفعيل إشعارات الإدارة</button>
+        <button id="admin-push-test" type="button" class="gold-btn-outline">إرسال إشعار اختبار</button>
+        <button id="admin-push-refresh" type="button" class="gold-btn-outline">التحقق من حالة الإشعارات</button>
+        <button id="admin-push-disable" type="button" class="quick-danger">إيقاف الإشعارات على هذا الجهاز</button>
+       </div>
        <div class="gold-card"><h3 class="gold-card-title">تحديث تطبيق الإدارة</h3><div class="admin-update-tools admin-update-tools-settings"><span>الإصدار المثبت <b dir="ltr">__ADMIN_DISPLAY_VERSION__</b></span><button id="admin-check-update-settings" class="gold-btn-outline" type="button">التحقق من التحديثات</button></div><p class="admin-update-hint">يتم التحقق تلقائيًا من التحديثات عند فتح التطبيق والعودة إليه.</p></div>
        <div class="gold-card"><h3 class="gold-card-title">مزوّد أسعار الذهب</h3><p class="empty-state">مفاتيح الاتصال محفوظة على الخادم ولا تُعرض في المتصفح.</p><button class="gold-btn-outline" type="button" disabled>تدوير المفتاح — بانتظار الخادم</button></div>
        <div class="gold-card"><h3 class="gold-card-title">إعدادات الرسوم والعمولات</h3><p class="empty-state">بانتظار الخادم — لا توجد قيم محفوظة معروضة لهذه الإعدادات حاليًا.</p><button class="gold-btn" type="button" disabled>حفظ الإعدادات</button></div>
@@ -257,4 +266,5 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
 <script src="app.js?admin-__ADMIN_BUILD_SHA__"></script>
 <script src="admin-update-client.js?admin-__ADMIN_BUILD_SHA__"></script>
 <script src="admin-quick-unlock.js?admin-__ADMIN_BUILD_SHA__"></script>
+<script src="admin-push.js?admin-__ADMIN_BUILD_SHA__"></script>
 </body></html>
