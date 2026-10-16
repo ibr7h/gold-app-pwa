@@ -26,12 +26,11 @@ test('Admin Face ID and PIN never bypass admin email OTP, and refresh is server-
  assert.match(quick,/webauthn\.get/);
  assert.match(quick,/getClientExtensionResults/);
  assert.match(quick,/userVerification:'required'/);
- assert.match(quick,/PBKDF2/);
  assert.match(quick,/AES-GCM/);
- assert.match(quick,/310000/);
- assert.match(quick,/MAX_FAILURES=5/);
- assert.match(quick,/WAIT=15\*60\*1000/);
  assert.match(quick,/window\.DhahabkAdminBridge\.resume/);
+ assert.match(quick,/window\.DhahabkAdminBridge\.pinVerify/);
+ assert.match(quick,/auth\/admin\/quick\/register/);
+ assert.doesNotMatch(quick,/PBKDF2/);
  assert.match(quick,/location\.origin/);
  assert.match(quick,/document\.addEventListener\('visibilitychange'/);
  assert.match(html,/id="quick-use-password"/);
