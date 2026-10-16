@@ -80,21 +80,33 @@ async function setupPin(event){
  const pin=$('quick-setup-pin').value,confirm=$('quick-setup-confirm').value;
  if(!/^[0-9]{6}$/.test(pin)||pin!==confirm){notice('أدخل رمزًا من 6 أرقام متطابقًا في الحقلين.',true);return;}
  if(/^(.)\1{5}$/.test(pin)||['123456','654321','012345'].includes(pin)){
- notice('اختر رمزًا أصعب من الأرقام المتتابعة أو المتكررة.',true);return;
+  notice('اختر رمزًا أصعب من الأرقام المتتابعة أو المتكررة.',true);return;
  }
  busy=true;
+ let issuedDeviceId='';
  try{
-  const key=await keyForEnroll(),salt=random(16);
-  const box=await seal(await pinKey(pin,salt),key,principal.id);
+  // A server-verified Admin session is required to enroll a device.
+  // The wrapping key is held by the server until PIN attempts pass its durable rate limiter.
+  const enrollment=await window.DhahabkAdminBridge.api('/auth/admin/quick/register','POST',{pin});
+  if(!enrollment?.deviceId||!enrollment?.unlockKey)throw Error('invalid_registration');
+  issuedDeviceId=enrollment.deviceId;
+  const key=await keyForEnroll();
+  const box=await seal(await aes(bin(enrollment.unlockKey)),key,principal.id);
   const old=read();
+  const oldDevice=old?.id===principal.id?old.pin?.deviceId:null;
   const v={v:1,origin:location.origin,id:principal.id,email:principal.email,
-    ...(old?.id===principal.id?old:{}),pin:{salt:b64(salt),box},
-    failed:0,lockedUntil:0};
+    ...(old?.id===principal.id?old:{}),pin:{deviceId:issuedDeviceId,box}};
   v.session=await seal(await aes(key),te.encode(JSON.stringify({refreshToken:tokens.refreshToken})),principal.id);
-  save(v);$('quick-setup-pin').value='';$('quick-setup-confirm').value='';
-  notice('تم تفعيل رمز الدخول السريع بنجاح.');updateControls();
- }catch{notice('تعذر حماية بيانات الدخول. تأكد من دعم التشفير في الجهاز.',true);}
- finally{busy=false;}
+  save(v);
+  if(oldDevice&&oldDevice!==issuedDeviceId){
+   void window.DhahabkAdminBridge.api('/auth/admin/quick/revoke','POST',{deviceId:oldDevice}).catch(()=>{});
+  }
+  $('quick-setup-pin').value='';$('quick-setup-confirm').value='';
+  notice('تم تفعيل رمز الدخول السريع مع حماية المحاولات على الخادم.');updateControls();
+ }catch{
+  if(issuedDeviceId)void window.DhahabkAdminBridge.api('/auth/admin/quick/revoke','POST',{deviceId:issuedDeviceId}).catch(()=>{});
+  notice('تعذر تفعيل الرمز. تحقق من الاتصال وخدمة حماية المدير.',true);
+ }finally{busy=false;}
 }
 function clientData(buffer,type,challenge){
  const data=JSON.parse(td.decode(buffer));
@@ -142,27 +154,21 @@ async function resume(key,id){
 }
 async function unlockPin(event){
  event.preventDefault();if(unlocking)return;
- const v=read();if(!v?.pin)return showQuick();
+ const v=read();if(!v?.pin?.deviceId)return showQuick();
  const pin=$('quick-pin-input').value;
  if(!/^[0-9]{6}$/.test(pin)){notice('أدخل رمز PIN المكوّن من 6 أرقام.',true);return;}
- if(Date.now()<(v.lockedUntil||0)){
-  const mins=Math.ceil((v.lockedUntil-Date.now())/60000);
-  notice('تم إيقاف المحاولات مؤقتًا. أعد المحاولة بعد '+mins+' دقيقة.',true);return;
- }
  unlocking=true;
  try{
-  const key=await unseal(await pinKey(pin,bin(v.pin.salt)),v.pin.box,v.id);
+  // No local PIN-derived key exists. Offline guessing a copied vault is impossible:
+  // the server releases this random device key only after a rate-limited PIN check.
+  const unlocked=await window.DhahabkAdminBridge.pinVerify(v.pin.deviceId,pin);
+  if(!unlocked?.unlockKey)throw Error('invalid_key');
+  const key=await unseal(await aes(bin(unlocked.unlockKey)),v.pin.box,v.id);
   await resume(key,v.id);
-  const latest=read();if(latest)save({...latest,failed:0,lockedUntil:0});
  }catch(e){
-  const latest=read();if(latest){
-   // A revoked session requires OTP, not retries. Only incorrect PIN increments lockout.
-   if(e?.name==='OperationError'){
-    const next=(latest.failed||0)+1,locked=next>=MAX_FAILURES;
-    save({...latest,failed:locked?0:next,lockedUntil:locked?Date.now()+WAIT:0});
-    notice(locked?'أُوقفت محاولات PIN لمدة 15 دقيقة. يمكنك تسجيل الدخول بكلمة المرور.':'رمز PIN غير صحيح.',true);
-   }else notice('تعذر تجديد الجلسة. سجّل الدخول بكلمة المرور ورمز البريد.',true);
-  }
+  notice(e?.status===429?'أُوقفت محاولات PIN مؤقتًا. استخدم البريد أو انتظر 15 دقيقة.':
+    e?.status===401?'رمز PIN غير صحيح أو لم تعد الجلسة صالحة.':
+    'تعذر فتح الإدارة. تأكد من الإنترنت أو استخدم البريد.',true);
  }finally{unlocking=false;$('quick-pin-input').value='';}
 }
 async function unlockFace(){
@@ -191,8 +197,13 @@ function lock(){
  window.DhahabkAdminBridge?.lock();
  showQuick();
 }
-function remove(){
+async function remove(){
  if(!principal)return;
+ const v=read();
+ if(v?.pin?.deviceId){
+  try{await window.DhahabkAdminBridge.api('/auth/admin/quick/revoke','POST',{deviceId:v.pin.deviceId});}
+  catch{notice('تعذر إلغاء جهاز PIN على الخادم. تحقق من الاتصال وأعد المحاولة.',true);return;}
+ }
  clear();updateControls();notice('تم إلغاء الدخول السريع من هذا الجهاز.');
 }
 function logout(){
@@ -202,7 +213,7 @@ $('quick-pin-form').addEventListener('submit',unlockPin);
 $('quick-set-pin-form').addEventListener('submit',setupPin);
 $('quick-enable-face').addEventListener('click',setupFace);
 $('quick-use-face').addEventListener('click',unlockFace);
-$('quick-remove').addEventListener('click',remove);
+$('quick-remove').addEventListener('click',()=>{void remove();});
 $('quick-use-password').addEventListener('click',()=>{
  $('admin-quick-screen').hidden=true;$('login-view').classList.remove('hidden');
  $('password').focus();
