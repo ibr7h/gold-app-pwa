@@ -1,5 +1,5 @@
-/* Admin-only local quick unlock. WebAuthn PRF for device biometrics,
-   PBKDF2 for optional PIN; the server remains the authority on every unlock. */
+/* Admin-only quick unlock. WebAuthn PRF protects Face ID credentials;
+   PINs are checked by the server before a random device key can unwrap session data. */
 (()=>{
 'use strict';
 const STORAGE='dhahabk_admin_secure_v1',AAD='dhahabk-admin-session:v1';
