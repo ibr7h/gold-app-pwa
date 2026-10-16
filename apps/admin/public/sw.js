@@ -7,7 +7,8 @@ const CORE=[
   BASE+'styles.css?admin-__ADMIN_BUILD_SHA__',
   BASE+'app.js?admin-__ADMIN_BUILD_SHA__',
   BASE+'admin-update-client.js?admin-__ADMIN_BUILD_SHA__',
-  BASE+'admin-quick-unlock.js?admin-__ADMIN_BUILD_SHA__'
+  BASE+'admin-quick-unlock.js?admin-__ADMIN_BUILD_SHA__',
+  BASE+'admin-push.js?admin-__ADMIN_BUILD_SHA__'
 ];
 self.addEventListener('install',event=>{
   // Wait for the user to choose "Update now", like the approved User app.
