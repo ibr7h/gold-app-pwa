@@ -1,7 +1,6 @@
 /** Localized labels for the User calculator's optional manual price/tax and sharing controls. */
 export const calculatorShareUiMessages:ReadonlyArray<readonly [string,string,string]>=[
  ['إجراءات تفاصيل السعر المقدر','Estimated price actions','Actions de l’estimation'],
- ['تفاصيل السعر المقدر','Estimated price details','Détails du prix estimé'],
  ['مصدر السعر المستخدم في الحساب','Price source used for calculation','Source du prix pour le calcul'],
  ['السعر الأساسي','Reference price','Prix de référence'],
  ['إدخال سعر آخر','Enter a different price','Saisir un autre prix'],
