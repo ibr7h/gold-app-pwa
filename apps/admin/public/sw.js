@@ -6,7 +6,8 @@ const CORE=[
   BASE,BASE+'index.html',BASE+'manifest.webmanifest',BASE+'assets/icon.svg',
   BASE+'styles.css?admin-__ADMIN_BUILD_SHA__',
   BASE+'app.js?admin-__ADMIN_BUILD_SHA__',
-  BASE+'admin-update-client.js?admin-__ADMIN_BUILD_SHA__'
+  BASE+'admin-update-client.js?admin-__ADMIN_BUILD_SHA__',
+  BASE+'admin-quick-unlock.js?admin-__ADMIN_BUILD_SHA__'
 ];
 self.addEventListener('install',event=>{
   // Wait for the user to choose "Update now", like the approved User app.
@@ -43,4 +44,35 @@ self.addEventListener('fetch',event=>{
       return response;
     })
   ));
+});
+
+
+// Push is delivered by the system service worker, even without any open app tabs.
+self.addEventListener('push',event=>{
+ event.waitUntil((async()=>{
+  let payload={};
+  try{payload=event.data?.json()||{};}catch{payload={};}
+  // Lock-screen notifications never expose account names, case details or transaction data.
+  const tag=typeof payload.tag==='string'&&/^[A-Za-z0-9_-]{1,70}$/.test(payload.tag)
+   ?payload.tag:'dhahabk-admin-alert';
+  await self.registration.showNotification('ذهبك | تنبيه إداري',{
+   body:'لديك إشعار إداري جديد. افتح التطبيق للاطلاع عليه بأمان.',
+   tag,icon:BASE+'assets/icon.svg',
+   lang:'ar',dir:'rtl',data:{url:BASE}
+  });
+ })());
+});
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();
+ event.waitUntil((async()=>{
+  const target=new URL(BASE,self.location.origin).href;
+  const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  for(const client of windows){
+   if(new URL(client.url).origin===self.location.origin&&new URL(client.url).pathname.startsWith(BASE)){
+    await client.focus();
+    return;
+   }
+  }
+  if(self.clients.openWindow)await self.clients.openWindow(target);
+ })());
 });
