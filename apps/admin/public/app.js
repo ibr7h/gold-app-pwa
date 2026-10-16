@@ -338,10 +338,12 @@
   // Every launch rotates the Admin refresh token on the server before displaying data.
   window.DhahabkAdminBridge={
     api:async(path,method='GET',body)=>{
-      if(!path.startsWith('/admin/push/'))throw new Error('Invalid Admin API path');
+      if(!path.startsWith('/admin/push/')&&!['/auth/admin/quick/register','/auth/admin/quick/revoke'].includes(path))
+        throw new Error('Invalid Admin API path');
       if(!accessToken)throw new Error('تتطلب الإشعارات جلسة إدارة نشطة.');
       return request(path,{method,body,authorized:true});
     },
+    pinVerify:(deviceId,pin)=>request('/auth/admin/quick/verify',{method:'POST',body:{deviceId,pin}}),
     lock:()=>clearAuth(),
     resume:async(storedRefresh,expectedUserId)=>{
       if(!/^a\.v[0-9]+\./.test(storedRefresh)||!expectedUserId)
