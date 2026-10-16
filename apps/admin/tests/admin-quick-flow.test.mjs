@@ -44,7 +44,7 @@ function fixture(pinResponse='ok'){
  };
  const context={
   document,window,
-  navigator:{credentials:{}},crypto:webcrypto,location:{origin:'https://ibr7h.github.io',hostname:'ibr7h.github.io'},
+  navigator:{credentials:{create(){throw Error('Face authenticator must not open before existing method is unlocked');}}},crypto:webcrypto,location:{origin:'https://ibr7h.github.io',hostname:'ibr7h.github.io'},
   localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},
   TextEncoder,TextDecoder,Uint8Array,JSON,Date,Promise,
   atob:v=>Buffer.from(v,'base64').toString('binary'),
