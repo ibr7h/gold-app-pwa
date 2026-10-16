@@ -80,7 +80,7 @@ test('a different admin account cannot reuse the previous lock config',async()=>
 test('the Admin quick lock never persists credential secrets or requests biometric auth automatically',()=>{
  assert.doesNotMatch(script,/localStorage\.(?:setItem|put)\([^\n]*(?:accessToken|refreshToken)/);
  assert.doesNotMatch(script,/indexedDB|sessionStorage/);
- assert.match(script,/verifyFace\(profile\.face\)/);
+ assert.match(script,/verifyFace\(profile\.face,start,forAccount\)/);
  assert.match(script,/clientVerified\(response\.clientDataJSON,'webauthn\.get'/);
  assert.match(script,/crypto\.subtle\.verify/);
  assert.match(script,/navigator\.credentials\.create/);
