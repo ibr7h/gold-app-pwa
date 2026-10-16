@@ -90,3 +90,44 @@ test('Admin PIN server throttling failure cannot resume the dashboard',async()=>
  assert.equal(f.calls.resume,0);
  assert.match(f.nodes.get('quick-notice').textContent,/15 دقيقة/);
 });
+
+test('re-enrollment failure cannot delete existing PIN vault or silently replace its key',async()=>{
+ const f=fixture();
+ const user={role:'admin',userId:'00000000-0000-4000-8000-000000000001',email:'admin@example.test'};
+ await f.window.AdminQuickUnlock.onAuthenticated(user,
+  {accessToken:'test-access',refreshToken:'a.v0.example-session-refresh'});
+ f.nodes.get('quick-setup-pin').value='728439';
+ f.nodes.get('quick-setup-confirm').value='728439';
+ await submit(f.nodes.get('quick-set-pin-form'));
+ const previous=f.store.get('dhahabk_admin_secure_v1');
+ assert.ok(previous);
+ // Simulate full app close followed by valid password + email OTP authentication.
+ f.window.AdminQuickUnlock.lock();
+ await f.window.AdminQuickUnlock.onAuthenticated(user,
+  {accessToken:'new-otp-access',refreshToken:'a.v0.example-session-refresh'});
+ f.nodes.get('quick-setup-pin').value='659247';
+ f.nodes.get('quick-setup-confirm').value='659247';
+ await submit(f.nodes.get('quick-set-pin-form'));
+ assert.equal(f.store.get('dhahabk_admin_secure_v1'),previous);
+ assert.match(f.nodes.get('quick-notice').textContent,/دون فقدان الأولى/);
+ f.nodes.get('quick-pin-input').value='728439';
+ await submit(f.nodes.get('quick-pin-form'));
+ assert.equal(f.calls.resume,1,'Previously enrolled PIN still unlocks same account');
+});
+
+test('unsupported or aborted Face ID re-enrollment leaves existing PIN intact',async()=>{
+ const f=fixture();
+ const user={role:'admin',userId:'00000000-0000-4000-8000-000000000001',email:'admin@example.test'};
+ await f.window.AdminQuickUnlock.onAuthenticated(user,
+  {accessToken:'test-access',refreshToken:'a.v0.example-session-refresh'});
+ f.nodes.get('quick-setup-pin').value='728439';
+ f.nodes.get('quick-setup-confirm').value='728439';
+ await submit(f.nodes.get('quick-set-pin-form'));
+ const previous=f.store.get('dhahabk_admin_secure_v1');
+ f.window.AdminQuickUnlock.lock();
+ await f.window.AdminQuickUnlock.onAuthenticated(user,
+  {accessToken:'new-otp-access',refreshToken:'a.v0.example-session-refresh'});
+ await f.nodes.get('quick-enable-face').handlers.click();
+ assert.equal(f.store.get('dhahabk_admin_secure_v1'),previous);
+ assert.match(f.nodes.get('quick-notice').textContent,/أولًا/);
+});
