@@ -72,6 +72,27 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
    </div>
   </section>
 
+  <!-- Device-bound optional quick unlock; Admin authentication remains server-authoritative. -->
+  <section id="admin-quick-screen" class="quick-screen" hidden aria-label="فتح الإدارة السريع">
+   <div class="quick-shell">
+    <div class="quick-emblem"><img src="assets/icon.svg" width="76" height="76" alt=""></div>
+    <h1>مرحبًا بعودتك</h1>
+    <p class="quick-account" id="quick-account" dir="ltr"></p>
+    <p class="quick-lead">افتح لوحة الإدارة ببصمة الجهاز أو رمز الدخول السريع.</p>
+    <div class="quick-card">
+     <button id="quick-use-face" class="gold-btn" type="button">فتح ببصمة الوجه / الجهاز</button>
+     <form id="quick-pin-form" hidden>
+      <label for="quick-pin-input">رمز الدخول السريع</label>
+      <input id="quick-pin-input" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" placeholder="••••••" aria-label="رمز PIN من ستة أرقام">
+      <button class="gold-btn" type="submit">فتح بالرمز</button>
+     </form>
+     <p id="quick-notice" role="status" aria-live="polite"></p>
+     <button id="quick-use-password" class="quick-password-link" type="button">الدخول بكلمة المرور ورمز البريد</button>
+    </div>
+    <p class="quick-warning">وصول إداري محمي — لا تشارك رمز الدخول السريع مع أحد.</p>
+   </div>
+  </section>
+
   <!-- Second factor: required after password, before any admin session exists. -->
   <section id="otp-view" class="otp-view" aria-label="تأكيد الدخول بالبريد" hidden>
     <div class="login-container">
@@ -184,6 +205,20 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
 
       <section data-view="settings" class="screen-panel" hidden>
        <h2 class="screen-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> إعدادات المنصة والربط البرمجي</h2>
+       <div class="gold-card quick-settings" id="quick-security-settings">
+         <h3 class="gold-card-title">فتح التطبيق السريع</h3>
+         <p class="subnote">فعّل PIN أو بصمة الجهاز بعد الدخول الآمن، لفتح التطبيق حتى بعد إغلاقه بالكامل. يتم التحقق من الجلسة لدى الخادم عند كل فتح.</p>
+         <p id="quick-status" class="quick-settings-status">لم تُفعّل وسيلة الدخول السريع بعد.</p>
+         <form id="quick-set-pin-form">
+          <label for="quick-setup-pin" class="form-label">رمز PIN جديد (6 أرقام)</label>
+          <input id="quick-setup-pin" class="form-input" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="new-password" required>
+          <label for="quick-setup-confirm" class="form-label">تأكيد رمز PIN</label>
+          <input id="quick-setup-confirm" class="form-input" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="new-password" required>
+          <button id="quick-enable-pin" class="gold-btn" type="submit">تفعيل رمز الدخول</button>
+         </form>
+         <button id="quick-enable-face" class="gold-btn-outline" type="button">تفعيل بصمة الوجه / الجهاز</button>
+         <button id="quick-remove" class="quick-danger" type="button" disabled>إلغاء الدخول السريع على هذا الجهاز</button>
+        </div>
        <div class="gold-card"><h3 class="gold-card-title">تحديث تطبيق الإدارة</h3><div class="admin-update-tools admin-update-tools-settings"><span>الإصدار المثبت <b dir="ltr">__ADMIN_DISPLAY_VERSION__</b></span><button id="admin-check-update-settings" class="gold-btn-outline" type="button">التحقق من التحديثات</button></div><p class="admin-update-hint">يتم التحقق تلقائيًا من التحديثات عند فتح التطبيق والعودة إليه.</p></div>
        <div class="gold-card"><h3 class="gold-card-title">مزوّد أسعار الذهب</h3><p class="empty-state">مفاتيح الاتصال محفوظة على الخادم ولا تُعرض في المتصفح.</p><button class="gold-btn-outline" type="button" disabled>تدوير المفتاح — بانتظار الخادم</button></div>
        <div class="gold-card"><h3 class="gold-card-title">إعدادات الرسوم والعمولات</h3><p class="empty-state">بانتظار الخادم — لا توجد قيم محفوظة معروضة لهذه الإعدادات حاليًا.</p><button class="gold-btn" type="button" disabled>حفظ الإعدادات</button></div>
@@ -221,4 +256,5 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
 <div id="admin-update-notice" class="admin-update-notice" role="status" aria-live="polite" hidden></div>
 <script src="app.js?admin-__ADMIN_BUILD_SHA__"></script>
 <script src="admin-update-client.js?admin-__ADMIN_BUILD_SHA__"></script>
+<script src="admin-quick-unlock.js?admin-__ADMIN_BUILD_SHA__"></script>
 </body></html>
