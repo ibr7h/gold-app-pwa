@@ -63,7 +63,7 @@ test('Admin push authorization is separate from User, including closed-app notif
  assert.match(worker,/registration\.showNotification/);
  assert.match(worker,/clients\.openWindow/);
  assert.match(worker,/const BASE='\/gold-app-pwa\/admin\/'/);
- assert.doesNotMatch(push,/\/push\/subscriptions'\s*,/);
+ assert.doesNotMatch(push,/auth\('\/push\//);
 });
 
 test('Locked-screen push display never uses server-supplied sensitive title, body or URL',async()=>{
