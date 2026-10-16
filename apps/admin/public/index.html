@@ -194,7 +194,23 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
           <button id="admin-push-disable" type="button" class="gold-btn-outline" disabled>إيقاف الإشعارات</button>
         </div>
        </div>
-       <div class="gold-card"><h3 class="gold-card-title">تحديث تطبيق الإدارة</h3><div class="admin-update-tools admin-update-tools-settings"><span>الإصدار المثبت <b dir="ltr">__ADMIN_DISPLAY_VERSION__</b></span><button id="admin-check-update-settings" class="gold-btn-outline" type="button">التحقق من التحديثات</button></div><p class="admin-update-hint">يتم التحقق تلقائيًا من التحديثات عند فتح التطبيق والعودة إليه.</p></div>
+       <div class="gold-card" id="admin-quick-settings">
+         <h3 class="gold-card-title"><i class="fa-solid fa-lock" aria-hidden="true"></i> قفل الإدارة بالبصمة أو الرمز</h3>
+         <p class="admin-update-hint">قفل محلي للجلسة المفتوحة فقط. لا يحفظ كلمات المرور أو رموز الجلسة؛ إذا أُغلق التطبيق بالكامل يلزم تسجيل الدخول الإداري المعتاد.</p>
+         <p id="admin-quick-state" class="admin-push-state" role="status" aria-live="polite">جارٍ التحقق من طرق القفل...</p>
+         <label class="form-label" for="admin-setup-pin">إنشاء أو تغيير رمز دخول من 6 أرقام</label>
+         <div class="admin-quick-pin-setup">
+          <input id="admin-setup-pin" class="form-input" type="password" inputmode="numeric" pattern="[0-9]{6}" autocomplete="new-password" maxlength="6" placeholder="الرمز">
+          <input id="admin-confirm-pin" class="form-input" type="password" inputmode="numeric" pattern="[0-9]{6}" autocomplete="new-password" maxlength="6" placeholder="تأكيد الرمز">
+         </div>
+         <div class="admin-push-actions">
+          <button id="admin-pin-enable" class="gold-btn" type="button">تفعيل رمز الدخول</button>
+          <button id="admin-face-enable" class="gold-btn-outline" type="button">تفعيل بصمة الوجه / تحقق الجهاز</button>
+          <button id="admin-lock-now" class="gold-btn-outline" type="button">قفل التطبيق الآن</button>
+          <button id="admin-quick-remove" class="gold-btn-outline" type="button">إلغاء القفل السريع</button>
+         </div>
+        </div>
+        <div class="gold-card"><h3 class="gold-card-title">تحديث تطبيق الإدارة</h3><div class="admin-update-tools admin-update-tools-settings"><span>الإصدار المثبت <b dir="ltr">__ADMIN_DISPLAY_VERSION__</b></span><button id="admin-check-update-settings" class="gold-btn-outline" type="button">التحقق من التحديثات</button></div><p class="admin-update-hint">يتم التحقق تلقائيًا من التحديثات عند فتح التطبيق والعودة إليه.</p></div>
        <div class="gold-card"><h3 class="gold-card-title">مزوّد أسعار الذهب</h3><p class="empty-state">مفاتيح الاتصال محفوظة على الخادم ولا تُعرض في المتصفح.</p><button class="gold-btn-outline" type="button" disabled>تدوير المفتاح — بانتظار الخادم</button></div>
        <div class="gold-card"><h3 class="gold-card-title">إعدادات الرسوم والعمولات</h3><p class="empty-state">بانتظار الخادم — لا توجد قيم محفوظة معروضة لهذه الإعدادات حاليًا.</p><button class="gold-btn" type="button" disabled>حفظ الإعدادات</button></div>
        <p class="pending-note">تغيير أسعار أو رسوم أو مفاتيح الاتصال يتطلب صلاحيات خادم وسجل تدقيق قبل التفعيل.</p>
@@ -228,7 +244,23 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
   <footer class="footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer>
  </div>
 </div>
+<section id="admin-lock-screen" class="admin-lock-screen" aria-label="قفل تطبيق الإدارة" hidden>
+ <div class="admin-lock-panel">
+  <div class="shield-emblem"><img class="brand-icon" src="assets/icon.svg" alt=""></div>
+  <h2 class="app-title">الإدارة مقفلة</h2>
+  <p class="admin-lock-hint">تحقق من هويتك لاستكمال الجلسة الإدارية الحالية.</p>
+  <p id="admin-lock-message" class="admin-lock-feedback" role="status" aria-live="polite"></p>
+  <form id="admin-lock-pin-form" class="admin-lock-pin-form">
+   <label class="form-label" for="admin-lock-pin">رمز الدخول السريع</label>
+   <input class="form-input" id="admin-lock-pin" type="password" inputmode="numeric" pattern="[0-9]{6}" autocomplete="off" maxlength="6" required>
+   <button type="submit" class="gold-btn">فتح التطبيق بالرمز</button>
+  </form>
+  <button id="admin-face-unlock" type="button" class="gold-btn-outline">فتح ببصمة الوجه / تحقق الجهاز</button>
+  <button id="admin-password-unlock" type="button" class="gold-btn-outline">الدخول بكلمة المرور ورمز البريد</button>
+ </div>
+</section>
 <div id="admin-update-notice" class="admin-update-notice" role="status" aria-live="polite" hidden></div>
+<script src="admin-quick-lock.js?admin-__ADMIN_BUILD_SHA__"></script>
 <script src="app.js?admin-__ADMIN_BUILD_SHA__"></script>
 <script src="admin-update-client.js?admin-__ADMIN_BUILD_SHA__"></script>
 </body></html>
