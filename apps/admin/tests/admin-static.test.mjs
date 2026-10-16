@@ -116,7 +116,7 @@ test('iPhone cannot be stuck on stale cache-first admin.js after update',()=>{
  assert.doesNotMatch(js,/serviceWorker\.register/);
  assert.match(html,/id="admin-check-update-login"/);
  assert.match(html,/id="admin-check-update-settings"/);
- assert.match(sw,/app\\\.js/);
+ assert.ok(sw.includes("BASE+'app.js?admin-__ADMIN_BUILD_SHA__'"));
 });
 
 test('admin email field reserves the physical left icon space on iPhone RTL layout',()=>{
