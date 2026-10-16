@@ -2562,3 +2562,20 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
  border-radius:13px;background:#fffaf0}
 .gold-web .dh-quick-reconnect p{margin:0;line-height:1.7;font-size:13px;color:#354255}
 .gold-web .dh-quick-reconnect button{width:100%;max-width:100%;white-space:normal}
+
+
+/* User calculator: compact, calm preview and share controls (no Trader/Admin impact). */
+.gold-web .calc-price-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 18px}
+.gold-web .calc-price-switch button{border:1px solid #d7dee6;border-radius:10px;background:#fff;color:#132f4d;padding:10px 8px;min-height:43px;font-size:13px;font-weight:700}
+.gold-web .calc-price-switch button.active{background:#c5a021;color:#071d34;border-color:#c5a021;box-shadow:0 4px 10px #c5a02133}
+.gold-web .calc-manual-price,.gold-web .calc-tax-input{color:#1b3551;padding:10px;border:1px solid #e0e7ed;background:#fafbfc;border-radius:11px;margin-bottom:15px}
+.gold-web .calc-manual-price small,.gold-web .calc-tax-input small{display:block;color:#64748b;font-size:11px;font-weight:400;line-height:1.6}
+.gold-web .calc-estimate-card .calc-share-panel{border-top:1px solid #d7dee6;margin-top:15px;padding-top:14px}
+.gold-web .calc-share-top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.gold-web .calc-share-top>strong{color:#082a4c;font-size:14px}
+.gold-web .calc-share-top label{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0;font-size:12px;color:#475569}
+.gold-web .calc-share-top select{min-height:39px;width:auto;padding:6px 25px 6px 8px;background:#fff;color:#082a4c;border:1px solid #cbd5e1;font-size:13px}
+.gold-web .calc-share-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:13px}
+.gold-web .calc-share-buttons button{min-width:0;min-height:45px;font-size:12px;line-height:1.5;padding:9px}
+.gold-web .calc-share-buttons button:last-child{grid-column:1/-1;border-color:#c5a021;color:#193958}
+@media(min-width:650px){.gold-web .calc-share-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}.gold-web .calc-share-buttons button:last-child{grid-column:auto}}
