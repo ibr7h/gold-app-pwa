@@ -147,7 +147,17 @@ async function resume(key,id){
  const result=await window.DhahabkAdminBridge.resume(payload.refreshToken,id);
  if(!result?.refreshToken)throw Error('invalid_refresh');
  rawKey=key;principal={id,email:v.email};tokens=result;
- await persist(result);
+ try{await persist(result);}
+ catch{
+  // A rotated server token must never leave an unusable old encrypted token behind.
+  clear();updateControls();
+ }
+ if(document.visibilityState==='hidden'){
+  rawKey=null;principal=null;tokens=null;
+  window.DhahabkAdminBridge.lock();
+  showQuick();
+  return;
+ }
  $('admin-quick-screen').hidden=true;notice('');
 }
 async function unlockPin(event){
