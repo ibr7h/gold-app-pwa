@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 const root='https://ibr7h.github.io/gold-app-pwa/';
 const userBase=root+'full/';
-const expected='full-'+process.env.GITHUB_SHA.slice(0,8);
+const userBuildSha=process.env.USER_BUILD_SHA;
+assert.match(userBuildSha||'',/^[a-f0-9]{8}$/,'Missing isolated User release SHA');
+const expected='full-'+userBuildSha;
 async function text(url,timeout=15000){return fetch(url+'?verify='+Date.now(),{signal:AbortSignal.timeout(timeout)}).then(r=>{assert(r.ok,url+' returned '+r.status);return r.text();});}
 async function json(url){return fetch(url+'?verify='+Date.now(),{signal:AbortSignal.timeout(15000)}).then(r=>{assert(r.ok,url+' returned '+r.status);return r.json();});}
 let verified=false;
