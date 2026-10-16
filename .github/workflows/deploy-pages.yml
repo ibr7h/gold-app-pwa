@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for Admin-only monotonically increasing release number
 
       - uses: pnpm/action-setup@v4
         with:
@@ -647,6 +649,8 @@ jobs:
           node --check apps/admin/public/app.js
           node --check apps/trader/public/sw.js
           node --check apps/admin/public/sw.js
+          node --check apps/admin/public/admin-update-client.js
+          python3 -m json.tool apps/admin/public/version.json >/dev/null
           python3 -m json.tool apps/trader/public/manifest.webmanifest >/dev/null
           python3 -m json.tool apps/admin/public/manifest.webmanifest >/dev/null
           grep -q 'data-role="merchant"' apps/trader/public/index.html
@@ -663,6 +667,52 @@ jobs:
           cp -R "$SRC/dist-pwa/." _site/full/
           cp -R "$GITHUB_WORKSPACE/apps/trader/public/." _site/trader/
           cp -R "$GITHUB_WORKSPACE/apps/admin/public/." _site/admin/
+
+      - name: Stamp independent Admin release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          admin_sha="$(git log -1 --format=%h -- apps/admin/public/)"
+          admin_index="$(git rev-list --count HEAD -- apps/admin/public/)"
+          admin_date="$(git log -1 --format=%cI -- apps/admin/public/)"
+          test -n "$admin_sha"
+          test "$admin_index" -gt 0
+          ADMIN_SHA="$admin_sha" ADMIN_INDEX="$admin_index" ADMIN_DATE="$admin_date" python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          folder = Path("_site/admin")
+          sha = os.environ["ADMIN_SHA"]
+          index = os.environ["ADMIN_INDEX"]
+          display = f"v1.0.{index}"
+          replacements = {
+              "__ADMIN_BUILD_SHA__": sha,
+              "__ADMIN_DISPLAY_VERSION__": display,
+          }
+          for name in ("index.html", "sw.js", "admin-update-client.js"):
+              file = folder / name
+              body = file.read_text(encoding="utf-8")
+              for original, replacement in replacements.items():
+                  body = body.replace(original, replacement)
+              assert "__ADMIN_" not in body, f"Unresolved Admin template: {file}"
+              file.write_text(body, encoding="utf-8")
+          metadata = {
+              "version": f"admin-{sha}",
+              "displayVersion": display,
+              "force": False,
+              "updatedAt": os.environ["ADMIN_DATE"],
+          }
+          (folder/"version.json").write_text(
+              json.dumps(metadata, ensure_ascii=False, separators=(",", ":")) + "\n",
+              encoding="utf-8",
+          )
+          print(f"Deployed Admin release {display} (admin-{sha})")
+          PY
+          node --check _site/admin/sw.js
+          node --check _site/admin/admin-update-client.js
+          python3 -m json.tool _site/admin/version.json >/dev/null
+          grep -q "admin-${admin_sha}" _site/admin/admin-update-client.js
+          grep -q "admin-${admin_sha}" _site/admin/version.json
+          ! grep -R -q '__ADMIN_' _site/admin/index.html _site/admin/sw.js _site/admin/admin-update-client.js
 
       # The iPhone preview is compiled and versioned on a different branch.
       # Publish its files under /iphone/ without touching the stable /full/ route.
