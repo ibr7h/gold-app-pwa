@@ -111,7 +111,7 @@ async function enrollFace(){
  return {credentialId:b64(new Uint8Array(result.rawId)),
   publicKey:b64(new Uint8Array(spki)),rpId:location.hostname,counter:0};
 }
-async function verifyFace(face){
+async function verifyFace(face,expectedEpoch,expectedAccount){
  if(face.rpId!==location.hostname)throw new Error('اعتماد الجهاز لا يخص هذه النسخة.');
  // Called directly from click to retain iOS user gesture.
  const challenge=random(32);
@@ -137,6 +137,7 @@ async function verifyFace(face){
  const ok=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,
   rawSignature(new Uint8Array(response.signature)),signed);
  if(!ok)throw new Error('لم ينجح التحقق من توقيع الجهاز.');
+ if(epoch!==expectedEpoch||account!==expectedAccount||!profile?.face)return;
  if(count>face.counter){face.counter=count;saveProfile(profile);}
 }
 async function verifiedUnlock(start){
@@ -157,12 +158,14 @@ function lock(){
 }
 async function setPin(){
  const first=byId('admin-setup-pin').value,confirm=byId('admin-confirm-pin').value;
+ const started=epoch,forAccount=account;
  if(!/^[0-9]{6}$/.test(first)||first!==confirm){message('أدخل رمزًا من 6 أرقام وطابق التأكيد.');return;}
  if(!supported()||!account)return;
  pending=true;updateControls();
  try{
   const salt=random(16);
   const digest=await pinDigest(first,salt);
+  if(started!==epoch||forAccount!==account)return;
   saveProfile({...profile,pin:{salt:toHex(salt),digest,failures:0,lockedUntil:0}});
   byId('admin-setup-pin').value='';byId('admin-confirm-pin').value='';
   message('تم تفعيل رمز القفل لهذا الجهاز. لا يُحفظ رمزك أو جلسة المدير.');
@@ -173,9 +176,10 @@ pinButton.addEventListener('click',()=>{void setPin();});
 faceButton.addEventListener('click',()=>{
  if(!account||pending||!supported())return;
  // Credential prompt must start synchronously within user gesture.
+ const forAccount=account,started=epoch;
  const attempt=enrollFace();pending=true;updateControls();
  void attempt.then(credential=>{
-  if(!account)return;
+  if(!account||account!==forAccount||started!==epoch)return;
   saveProfile({...profile,face:credential});
   message('تم تفعيل تحقق الجهاز. قد يستخدم بصمة الوجه أو طريقة تحقق أخرى.');
  }).catch(e=>message(e.message||'تعذر تفعيل التحقق بالجهاز.')).finally(()=>{pending=false;updateControls();});
@@ -210,7 +214,7 @@ pinForm.addEventListener('submit',async e=>{
 });
 faceUnlock.addEventListener('click',()=>{
  if(!locked||pending||!profile?.face)return;
- const start=epoch,attempt=verifyFace(profile.face);
+ const start=epoch,forAccount=account,attempt=verifyFace(profile.face,start,forAccount);
  pending=true;updateControls();
  void attempt.then(()=>verifiedUnlock(start)).catch(e=>lockMessage(e.message||'تعذر التحقق من بصمة الجهاز.'))
    .finally(()=>{pending=false;updateControls();});
