@@ -30,7 +30,12 @@ function harness(){
  return {nodes,window,document,stored,domListeners,winListeners,
   node:id=>nodes.get(id),
   async setPin(code='123456'){nodes.get('admin-setup-pin').value=code;nodes.get('admin-confirm-pin').value=code;
-    await nodes.get('admin-pin-enable').fire('click');await new Promise(resolve=>setTimeout(resolve,10));},
+    await nodes.get('admin-pin-enable').fire('click');
+    // PBKDF2 is intentionally expensive; wait for actual completion, not a fixed 10ms.
+    for(let attempt=0;attempt<60&&!stored.size;attempt++)
+      await new Promise(resolve=>setTimeout(resolve,25));
+    assert.ok(stored.size,'PIN enrollment must persist a salted verifier');
+  },
   async submitPin(code){nodes.get('admin-lock-pin').value=code;await nodes.get('admin-lock-pin-form').fire('submit');}
  };
 }
