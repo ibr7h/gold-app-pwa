@@ -22,9 +22,9 @@ const example:ShareQuote={
 describe('quote sharing',()=>{
  it('uses exactly the amounts passed by the calculator',()=>{
   const content=quoteShareText(example);
-  expect(content).toContain('513.92');
-  expect(content).toContain('501.77');
-  expect(content).toContain('5,139.20');
+  expect(content).toContain('٥١٣٫٩٢');
+  expect(content).toContain('٥٠١٫٧٧');
+  expect(content).toContain('٥٬١٣٩٫٢٠');
   expect(content).toContain('الضريبة المدخلة: ٠٫٠٠ SAR');
   expect(content).not.toContain('آخر متوسط السوق');
   expect(content).not.toContain('15%');
