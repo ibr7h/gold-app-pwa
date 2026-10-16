@@ -23,7 +23,7 @@ test('admin bundle parses and every referenced element exists once', () => {
 test('admin scope and UI are isolated from customer and trader', () => {
   assert.equal(manifest.scope, '/gold-app-pwa/admin/');
   assert.equal(manifest.start_url, '/gold-app-pwa/admin/');
-  assert.match(sw, /dhahabk-admin-splash-v12/);
+  assert.match(sw, /dhahabk-admin-/);
   assert.match(html, /ذهبك للإدارة/);
   assert.match(css, /#001F3F/);
 });
@@ -106,13 +106,16 @@ test('all accounts expose explicit action visibility and protected statuses',()=
  assert.match(js,/إيقاف/);
  assert.match(js,/تنشيط/);
  assert.match(js,/الحذف النهائي غير متاح/);
- assert.match(html,/واجهة المدير · تحديث 9/);
+ assert.match(html,/إصدار الإدارة: __ADMIN_DISPLAY_VERSION__/);
 });
 test('iPhone cannot be stuck on stale cache-first admin.js after update',()=>{
- assert.match(html,/app\.js\?admin-v12/);
- assert.match(html,/styles\.css\?admin-v12/);
- assert.match(sw,/dhahabk-admin-splash-v12/);
+ assert.match(html,/app\.js\?admin-__ADMIN_BUILD_SHA__/);
+ assert.match(html,/styles\.css\?admin-__ADMIN_BUILD_SHA__/);
+ assert.match(sw,/dhahabk-admin-/);
  assert.match(sw,/cache:'no-store'/);
+ assert.doesNotMatch(js,/serviceWorker\.register/);
+ assert.match(html,/id="admin-check-update-login"/);
+ assert.match(html,/id="admin-check-update-settings"/);
  assert.match(sw,/app\\\.js/);
 });
 
@@ -139,7 +142,7 @@ test('Admin splash follows UI.zip royal visual language and never bypasses login
   assert.match(html,/بوابة الإدارة المركزية/);
   assert.ok(css.includes('radial-gradient(circle at center,#072e5c 0%,#0c1626 100%)'));
   assert.ok(html.includes('<style id="admin-first-paint">'));
-  assert.ok(html.indexOf('id="admin-first-paint"') < html.indexOf('href="styles.css?admin-v12"'));
+  assert.ok(html.indexOf('id="admin-first-paint"') < html.indexOf('href="styles.css?admin-__ADMIN_BUILD_SHA__"'));
   assert.ok(html.includes('background:#0c1626'));
   assert.ok(html.includes('@keyframes admin-splash-dismiss'));
   assert.ok(!css.includes('@import url('));
@@ -153,7 +156,36 @@ test('Admin splash follows UI.zip royal visual language and never bypasses login
   assert.doesNotMatch(css,/animation:none;display:none/);
   assert.doesNotMatch(html,/تخطي كزائر|href="02_login.html"/);
   assert.match(js,/\/auth\/admin\/verify/);
-  assert.match(sw,/dhahabk-admin-splash-v12/);
-  assert.match(html,/app\.js\?admin-v12/);
-  assert.match(html,/styles\.css\?admin-v12/);
+  assert.match(sw,/dhahabk-admin-/);
+  assert.match(html,/app\.js\?admin-__ADMIN_BUILD_SHA__/);
+  assert.match(html,/styles\.css\?admin-__ADMIN_BUILD_SHA__/);
+});
+
+test('Admin version metadata and updater match approved User PWA update mechanism',()=>{
+ const updater = read('admin-update-client.js');
+ const meta = JSON.parse(read('version.json'));
+ assert.equal(meta.version,'admin-__ADMIN_BUILD_SHA__');
+ assert.equal(meta.displayVersion,'__ADMIN_DISPLAY_VERSION__');
+ assert.match(html,/id="admin-update-notice"/);
+ assert.match(html,/admin-update-client\.js\?admin-__ADMIN_BUILD_SHA__/);
+ assert.match(html,/id="admin-check-update-login"/);
+ assert.match(html,/id="admin-check-update-settings"/);
+ assert.equal((html.match(/__ADMIN_DISPLAY_VERSION__/g)||[]).length,3);
+ assert.match(updater,/version\.json\?t=/);
+ assert.match(updater,/cache:'no-store'/);
+ assert.match(updater,/updateViaCache: 'none'/);
+ assert.match(updater,/visibilitychange/);
+ assert.match(updater,/controllerchange/);
+ assert.match(updater,/SKIP_WAITING/);
+ assert.match(updater,/تحديث الآن/);
+ assert.match(updater,/لاحقًا/);
+ assert.match(sw,/event\.data\?\.type==='SKIP_WAITING'/);
+ assert.match(sw,/const BASE='\/gold-app-pwa\/admin\/'/);
+ assert.match(sw,/key\.startsWith\(PREFIX\)/);
+ assert.match(sw,/version\.json/);
+ assert.match(sw,/cache:'no-store'/);
+ const install=sw.split("self.addEventListener('install'")[1].split("self.addEventListener('activate'")[0];
+ assert.doesNotMatch(install,/skipWaiting/);
+ assert.doesNotMatch(updater,/localStorage\.(?:clear|removeItem)|indexedDB\.deleteDatabase/);
+ assert.doesNotMatch(sw,/gold-app-pwa\/trader\/|gold-app-pwa\/full\//);
 });
