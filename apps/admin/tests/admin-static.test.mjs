@@ -189,3 +189,21 @@ test('Admin version metadata and updater match approved User PWA update mechanis
  assert.doesNotMatch(updater,/localStorage\.(?:clear|removeItem)|indexedDB\.deleteDatabase/);
  assert.doesNotMatch(sw,/gold-app-pwa\/trader\/|gold-app-pwa\/full\//);
 });
+
+test('Admin background Push is separate and protected by current Admin JWT',()=>{
+ assert.match(html,/id="admin-push-settings"/);
+ for(const id of ['admin-push-enable','admin-push-test','admin-push-disable','admin-push-state'])
+   assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(js,/\/admin\/push\//);
+ assert.match(js,/Notification\.requestPermission\(\)/);
+ assert.match(js,/userVisibleOnly:true/);
+ assert.match(js,/pushManager\.subscribe/);
+ assert.match(js,/authorized:true/);
+ assert.match(js,/matchMedia\('\(display-mode: standalone\)'\)/);
+ assert.match(sw,/self\.addEventListener\('push'/);
+ assert.match(sw,/self\.registration\.showNotification/);
+ assert.match(sw,/self\.addEventListener\('notificationclick'/);
+ assert.match(sw,/new URL\(BASE,self\.location\.origin\)/);
+ assert.doesNotMatch(sw,/payload\?.body|payload\.body|payload\?.title|payload\.title/);
+ assert.doesNotMatch(js,/localStorage|sessionStorage/);
+});
