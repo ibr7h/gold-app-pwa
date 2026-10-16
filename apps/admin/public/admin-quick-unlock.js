@@ -3,7 +3,6 @@
 (()=>{
 'use strict';
 const STORAGE='dhahabk_admin_secure_v1',AAD='dhahabk-admin-session:v1';
-const MAX_FAILURES=5,WAIT=15*60*1000;
 const $=id=>document.getElementById(id);
 let principal=null,tokens=null,rawKey=null,busy=false,unlocking=false;
 const te=new TextEncoder(),td=new TextDecoder();
@@ -23,11 +22,6 @@ async function seal(key,data,id){
 }
 async function unseal(key,box,id){
  return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:bin(box.iv),additionalData:aad(id)},key,bin(box.cipher)));
-}
-async function pinKey(pin,salt){
- const material=await crypto.subtle.importKey('raw',te.encode(pin),'PBKDF2',false,['deriveKey']);
- return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',iterations:310000,salt},material,
- {name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 }
 const notice=(message,warning=false)=>{
  const el=$('quick-notice');if(el){el.textContent=message;el.classList.toggle('warning',warning);}
@@ -71,7 +65,11 @@ async function persist(next){
 async function keyForEnroll(){
  if(rawKey)return rawKey;
  const existing=read();
- if(existing&&existing.id===principal?.id)clear(); // Full password + OTP verified: re-enrollment.
+ if(existing&&existing.id===principal?.id){
+  if(existing.pin?.deviceId)await window.DhahabkAdminBridge.api(
+   '/auth/admin/quick/revoke','POST',{deviceId:existing.pin.deviceId}).catch(()=>{});
+  clear(); // Re-enrollment follows a successful password + email OTP login.
+ }
  rawKey=random(32);
  return rawKey;
 }
