@@ -398,7 +398,5 @@
   byId('users-prev').addEventListener('click',()=>{if(page>1){page--;loadUsers();}});
   byId('users-next').addEventListener('click',()=>{if(page<pages){page++;loadUsers();}});
   byId('prices-retry').addEventListener('click',loadPrice);
-  if('serviceWorker'in navigator){
-    addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(()=>{}));
-  }
+  // The isolated Admin updater manages Service Worker registration and updates.
 })();
