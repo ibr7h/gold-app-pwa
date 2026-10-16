@@ -337,6 +337,11 @@
   // Quick unlock may only resume a previously established password + email OTP session.
   // Every launch rotates the Admin refresh token on the server before displaying data.
   window.DhahabkAdminBridge={
+    api:async(path,method='GET',body)=>{
+      if(!path.startsWith('/admin/push/'))throw new Error('Invalid Admin API path');
+      if(!accessToken)throw new Error('تتطلب الإشعارات جلسة إدارة نشطة.');
+      return request(path,{method,body,authorized:true});
+    },
     lock:()=>clearAuth(),
     resume:async(storedRefresh,expectedUserId)=>{
       if(!/^a\.v[0-9]+\./.test(storedRefresh)||!expectedUserId)
@@ -351,6 +356,7 @@
         if(user?.role!=='admin'||String(user?.userId)!==expectedUserId)
           throw new Error('هذا الجهاز لا يخص الحساب الإداري الحالي.');
         await enter(user);
+        window.AdminPush?.onAuthenticated();
         return fresh;
       }catch(e){clearAuth();throw e;}
     }
@@ -387,6 +393,7 @@
         otpView.hidden=true;
         await enter(user);
         try{await window.AdminQuickUnlock?.onAuthenticated(user,tokens);}catch{ /* Login always works without optional device storage. */ }
+        window.AdminPush?.onAuthenticated();
       }
     }catch(e){otpAlert(e.message||'رمز التحقق غير صحيح أو انتهت صلاحيته.');}
     finally{otpSubmit.disabled=false;otpSubmit.textContent=label;}
@@ -406,7 +413,10 @@
   byId('logout').addEventListener('click',async ()=>{
     const token=accessToken;
     try{
-      if(token) await request('/auth/logout',{method:'POST',authorized:true});
+      if(token){
+        await window.AdminPush?.logout();
+        await request('/auth/logout',{method:'POST',authorized:true});
+      }
       clearAuth();window.AdminQuickUnlock?.logout();msg('تم تسجيل الخروج بأمان.','ok');
     }catch(e){clearAuth();window.AdminQuickUnlock?.logout();msg('تم الخروج من هذا الجهاز، لكن تعذر إبطال الجلسة بالخادم.');}
     email.focus();
