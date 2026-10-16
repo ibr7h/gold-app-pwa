@@ -1,6 +1,5 @@
 /** User-only quote sharing. Render a deterministic, local PNG; never send prices or identity to a QR service. */
 export type QuoteLanguage='ar'|'en'|'fr';
-export type ShareFormat='post'|'story';
 export interface ShareQuote {
  language:QuoteLanguage;
  currency:string;
@@ -17,6 +16,20 @@ export interface ShareQuote {
  generatedAt:string;
 }
 const site='https://app.dhahabk.com';
+const quoteIconUrl='/gold-app-pwa/full/app_icon_user.jpg';
+let quoteIconPromise:Promise<HTMLImageElement>|null=null;
+/** Load the official User icon from the PWA itself, not a third-party host. */
+export function preloadQuoteIcon():Promise<HTMLImageElement>{
+ if(typeof Image==='undefined')return Promise.reject(new Error('Image unavailable'));
+ if(!quoteIconPromise)quoteIconPromise=new Promise<HTMLImageElement>((resolve,reject)=>{
+  const img=new Image();img.decoding='async';
+  img.onload=()=>resolve(img);
+  img.onerror=()=>{quoteIconPromise=null;reject(new Error('Official User app icon could not be loaded'));};
+  img.src=quoteIconUrl;
+ });
+ return quoteIconPromise;
+}
+
 const text={
  ar:{title:'تفاصيل السعر المقدر',subtitle:'تقدير استرشادي — ليست فاتورة ضريبية',brand:'ذَهَبْك',tagline:'المنصة الموثوقة لأسعار الذهب والمجوهرات',purity:'العيار',unit:'سعر الجرام المعتمد في الحساب',base:'سعر الجرام الأساسي',manual:'سعر مُدخل يدويًا',market:'السعر المرجعي',weight:'الوزن',grams:'جرام',metal:'قيمة الذهب',fees:'إجمالي المصنعية',tax:'الضريبة المدخلة',total:'الإجمالي النهائي',words:'الإجمالي كتابة',footer:'حُسب عبر منصة ذَهَبْك للذهب والمجوهرات',disclaimer:'القيمة استرشادية، وقد يختلف السعر الفعلي.',date:'تاريخ التقدير',only:'عيار'},
  en:{title:'Estimated gold price',subtitle:'Indicative estimate — not a tax invoice',brand:'DHAHABK',tagline:'Gold & jewelry price information',purity:'Purity',unit:'Price per gram used',base:'Reference price per gram',manual:'Manually entered',market:'Reference quote',weight:'Weight',grams:'g',metal:'Gold value',fees:'Total workmanship',tax:'Entered tax amount',total:'Estimated total',words:'Total in words',footer:'Calculated with Dhahabk',disclaimer:'Indicative only. Actual seller prices may vary.',date:'Estimate date',only:'K'},
@@ -86,7 +99,7 @@ function wrap(ctx:CanvasRenderingContext2D,s:string,maxWidth:number,size:number)
 }
 function drawQr(ctx:CanvasRenderingContext2D,x:number,y:number,side:number){
  rounded(ctx,x-6,y-6,side+12,side+12,10,'#FFFFFF','#D4AF37');
- const cell=side/33;ctx.fillStyle='#061B32';
+ const cell=side/33;ctx.fillStyle='#C5A021';
  for(let row=0;row<33;row++){
   const packed=parseInt(qrRows[row],16);
   for(let col=0;col<33;col++)if(Math.floor(packed/Math.pow(2,32-col))%2===1)
@@ -94,11 +107,35 @@ function drawQr(ctx:CanvasRenderingContext2D,x:number,y:number,side:number){
     Math.ceil(cell+0.2),Math.ceil(cell+0.2));
  }
 }
-/** Pure bitmap rendering from the same snapshot the app uses for text and totals. */
-export async function quoteShareBlob(quote:ShareQuote,format:ShareFormat):Promise<Blob>{
+/**
+ * The amount in words must always fit; do not trim with slice(0,3) or clip the last line.
+ * Shrink the text to the available height; the card stays 9:16.
+ */
+export function fitQuoteWords(ctx:Pick<CanvasRenderingContext2D,'font'|'measureText'>,value:string,width=852,height=118){
+ for(let size=30;size>=12;size--){
+  const lineHeight=Math.ceil(size*1.28);
+  const lines=wrap(ctx as CanvasRenderingContext2D,value,width,size);
+  if(lines.length*lineHeight<=height)return {lines,fontSize:size,lineHeight};
+ }
+ throw new Error('Unable to fit the full amount in words');
+}
+function drawOfficialIcon(ctx:CanvasRenderingContext2D,img:HTMLImageElement){
+ const x=468,y=85,size=144,r=30;
+ ctx.save();
+ ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+size-r,y);ctx.quadraticCurveTo(x+size,y,x+size,y+r);
+ ctx.lineTo(x+size,y+size-r);ctx.quadraticCurveTo(x+size,y+size,x+size-r,y+size);
+ ctx.lineTo(x+r,y+size);ctx.quadraticCurveTo(x,y+size,x,y+size-r);
+ ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();ctx.clip();
+ const source=Math.min(img.naturalWidth,img.naturalHeight);
+ ctx.drawImage(img,(img.naturalWidth-source)/2,(img.naturalHeight-source)/2,source,source,x,y,size,size);
+ ctx.restore();
+}
+/** Render the same quote snapshot to one fixed 1080×1920 story-size PNG. */
+export async function quoteShareBlob(quote:ShareQuote):Promise<Blob>{
  if(!Number.isFinite(quote.total)||quote.total<0)throw new Error('Invalid quote');
  if(typeof document==='undefined')throw new Error('Browser required');
- const story=format==='story',w=1080,h=story?1920:1350;
+ const w=1080,h=1920;
+ const brandIcon=await preloadQuoteIcon();
  if('fonts' in document)await document.fonts.ready;
  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas unsupported');
@@ -107,9 +144,8 @@ export async function quoteShareBlob(quote:ShareQuote,format:ShareFormat):Promis
  const bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,navy);bg.addColorStop(1,navyDeep);
  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
  rounded(ctx,30,30,w-60,h-60,34,'#071E36','#C5A021');
- ctx.beginPath();ctx.arc(w/2,story?155:100,63,0,Math.PI*2);ctx.fillStyle='#D5AD37';ctx.fill();ctx.strokeStyle='#F6E6A0';ctx.stroke();
- write(ctx,rtl?'ذ':'D',w/2,story?150:98,74,navyDeep,800,'center',140);
- const positions=story?{brand:270,title:360,sub:422,card:495,head:542,start:625,row:83,total:1250,words:1420,footer:1620,disclaimer:1815}:{brand:185,title:253,sub:303,card:343,head:384,start:454,row:62,total:923,words:1050,footer:1184,disclaimer:1289};
+ drawOfficialIcon(ctx,brandIcon);
+ const positions={brand:270,title:360,sub:422,card:495,head:542,start:625,row:83,total:1250,words:1390,footer:1620,disclaimer:1838};
  ctx.direction=rtl?'rtl':'ltr';
  write(ctx,t.brand,w/2,positions.brand,52,lightGold,800,'center');
  write(ctx,t.title,w/2,positions.title,53,'#FFFFFF',800,'center');
@@ -122,30 +158,30 @@ export async function quoteShareBlob(quote:ShareQuote,format:ShareFormat):Promis
  rows.forEach(([label,value],i)=>{
   const y=positions.start+i*positions.row;
   if(i>0){ctx.strokeStyle='#E0E5E7';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(87,y-positions.row/2);ctx.lineTo(996,y-positions.row/2);ctx.stroke();}
-  write(ctx,label,973,y,story?32:29,ink,i===4?700:600,'right',560);
-  write(ctx,value,93,y,story?33:30,i===4?'#9A7217':ink,700,'left',380);
+  write(ctx,label,973,y,32,ink,i===4?700:600,'right',560);
+  write(ctx,value,93,y,33,i===4?'#9A7217':ink,700,'left',380);
  });
- const totalHeight=story?140:112;
+ const totalHeight=140;
  const gradient=ctx.createLinearGradient(55,0,1025,0);gradient.addColorStop(0,'#C5A021');gradient.addColorStop(.6,'#F2D66F');gradient.addColorStop(1,'#CAA02B');
  rounded(ctx,57,positions.total,966,totalHeight,25,gradient);
  write(ctx,t.total,972,positions.total+totalHeight/2,40,navyDeep,800,'right',480);
- write(ctx,amount(quote.total,quote),92,positions.total+totalHeight/2,story?57:47,navyDeep,800,'left',540);
- const wordHeight=story?145:115;
+ write(ctx,amount(quote.total,quote),92,positions.total+totalHeight/2,57,navyDeep,800,'left',540);
+ const wordHeight=200;
  rounded(ctx,57,positions.words,966,wordHeight,22,'#FCF8EF');
- write(ctx,t.words,971,positions.words+30,26,'#8B681C',700,'right',860);
- const wrapSize=story?28:23,wordLines=wrap(ctx,quote.words,852,wrapSize).slice(0,3);
- wordLines.forEach((line,i)=>write(ctx,line,971,positions.words+70+i*31,wrapSize,ink,650,'right',852));
- const footerH=story?180:120;
+ write(ctx,t.words,971,positions.words+33,26,'#8B681C',700,'right',860);
+ const fitted=fitQuoteWords(ctx,quote.words,852,120);
+ fitted.lines.forEach((line,i)=>write(ctx,line,971,positions.words+83+i*fitted.lineHeight,fitted.fontSize,ink,650,'right',852));
+ const footerH=180;
  rounded(ctx,57,positions.footer,966,footerH,22,'#102D4B','#8C721C');
- const qrSize=story?147:91;
+ const qrSize=147;
  drawQr(ctx,85,positions.footer+(footerH-qrSize)/2,qrSize);
- write(ctx,t.footer,975,positions.footer+(story?52:38),story?30:26,'#FFFFFF',700,'right',715);
- write(ctx,site,975,positions.footer+(story?111:84),story?35:28,lightGold,700,'right',700);
- write(ctx,t.disclaimer,w/2,positions.disclaimer,story?25:20,'#B8C9DA',500,'center',950);
+ write(ctx,t.footer,975,positions.footer+52,30,'#FFFFFF',700,'right',715);
+ write(ctx,site,975,positions.footer+111,35,lightGold,700,'right',700);
+ write(ctx,t.disclaimer,w/2,positions.disclaimer,25,'#B8C9DA',500,'center',950);
  return await new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Unable to create PNG')),'image/png'));
 }
-export async function shareQuotePng(quote:ShareQuote,format:ShareFormat,download=false):Promise<'shared'|'downloaded'|'cancelled'> {
- const blob=await quoteShareBlob(quote,format),name='dhahabk-quote-'+format+'.png';
+export async function shareQuotePng(quote:ShareQuote,download=false):Promise<'shared'|'downloaded'|'cancelled'> {
+ const blob=await quoteShareBlob(quote),name='dhahabk-quote-story.png';
  const file=new File([blob],name,{type:'image/png'});
  if(!download&&typeof navigator!=='undefined'&&navigator.canShare?.({files:[file]})&&navigator.share){
   try{await navigator.share({files:[file],title:text[quote.language].title});return 'shared';}

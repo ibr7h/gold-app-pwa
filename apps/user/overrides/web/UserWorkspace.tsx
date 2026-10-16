@@ -19,7 +19,7 @@ import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {calculatorQuoteWithTaxAmount} from './calculator-quote';
-import {quoteShareText,shareQuotePng,ShareQuote,ShareFormat} from './calculator-sharing';
+import {quoteShareText,shareQuotePng,preloadQuoteIcon,ShareQuote} from './calculator-sharing';
 import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
 import {displayAmount,displayPortfolioSummary,sarPerUsd,DisplayCurrency} from './display-currency';
@@ -76,7 +76,7 @@ function Icon({name}:{name:string}){
  }
  if(name==='gem')return <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="m3 8 4-5h10l4 5-9 12Z"/><path fill="none" stroke="#D4AF37" strokeWidth="1.1" d="M3 8h18M7 3l5 5 5-5"/></svg>;
  if(name==='store')return <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M5 3h14l3 6H2ZM3 11h5v10H3Zm7 0h4v10h-4Zm6 0h5v10h-5Z"/></svg>;
- const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4',calculator:'M5 3h14v18H5Z M8 7h8 M8 11h2 M12 11h2 M16 11h1 M8 15h2 M12 15h2 M16 15h1 M8 18h2 M12 18h5',chevron:'m9 18 6-6-6-6',edit:'M12 20h9 m-3-15 2 2L9 18l-5 1 1-5L16 4l2 2Z',trash:'M4 7h16 M9 7V4h6v3 M6 7l1 14h10l1-14 M10 11v6 M14 11v6',settings:'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7 M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 3.67-.08-.02a1.7 1.7 0 0 0-1.8-.35l-.1.04a1.7 1.7 0 0 0-1.1 1.55V22h-4.24v-.17a1.7 1.7 0 0 0-1.1-1.55l-.1-.04a1.7 1.7 0 0 0-1.8.35l-.08.02-2.12-3.67.06-.06A1.7 1.7 0 0 0 5.56 15l-.02-.1A1.7 1.7 0 0 0 4 13.8H3.8V9.56H4a1.7 1.7 0 0 0 1.54-1.1l.02-.1a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-3.67.08.02a1.7 1.7 0 0 0 1.8.35l.1-.04a1.7 1.7 0 0 0 1.1-1.55V1.4h4.24v.17a1.7 1.7 0 0 0 1.1 1.55l.1.04a1.7 1.7 0 0 0 1.8-.35l.08-.02 2.12 3.67-.06.06a1.7 1.7 0 0 0-.34 1.88l.02.1A1.7 1.7 0 0 0 21 9.56h.2v4.24H21a1.7 1.7 0 0 0-1.54 1.1Z',map:'M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z M9 3v15 M15 6v15'};
+ const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Z M9 20v-7h6v7',chart:'M4 4v16h16 M7 14l4-5 4 3 5-7',wallet:'M3 6h17v14H3Z M3 6V4h14 M15 11h6v5h-6Z',receipt:'M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 8h8 M8 12h8',bell:'M5 16h14l-2-3V9a5 5 0 0 0-10 0v4Z M10 20h4',user:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',help:'M12 17v1 M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 3 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',menu:'M4 6h16 M4 12h16 M4 18h16',copy:'M8 8h12v12H8Z M4 16H3V4h12v2',share:'M12 16V3 M7 8l5-5 5 5 M5 14v6h14v-6',download:'M12 3v12 M7 10l5 5 5-5 M4 17v4h16v-4',close:'m6 6 12 12 M6 18 18 6',refresh:'M20 8a9 9 0 1 0 1 8 M20 3v6h-6',plus:'M12 5v14 M5 12h14',logout:'M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4',calculator:'M5 3h14v18H5Z M8 7h8 M8 11h2 M12 11h2 M16 11h1 M8 15h2 M12 15h2 M16 15h1 M8 18h2 M12 18h5',chevron:'m9 18 6-6-6-6',edit:'M12 20h9 m-3-15 2 2L9 18l-5 1 1-5L16 4l2 2Z',trash:'M4 7h16 M9 7V4h6v3 M6 7l1 14h10l1-14 M10 11v6 M14 11v6',settings:'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7 M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 3.67-.08-.02a1.7 1.7 0 0 0-1.8-.35l-.1.04a1.7 1.7 0 0 0-1.1 1.55V22h-4.24v-.17a1.7 1.7 0 0 0-1.1-1.55l-.1-.04a1.7 1.7 0 0 0-1.8.35l-.08.02-2.12-3.67.06-.06A1.7 1.7 0 0 0 5.56 15l-.02-.1A1.7 1.7 0 0 0 4 13.8H3.8V9.56H4a1.7 1.7 0 0 0 1.54-1.1l.02-.1a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-3.67.08.02a1.7 1.7 0 0 0 1.8.35l.1-.04a1.7 1.7 0 0 0 1.1-1.55V1.4h4.24v.17a1.7 1.7 0 0 0 1.1 1.55l.1.04a1.7 1.7 0 0 0 1.8-.35l.08-.02 2.12 3.67-.06.06a1.7 1.7 0 0 0-.34 1.88l.02.1A1.7 1.7 0 0 0 21 9.56h.2v4.24H21a1.7 1.7 0 0 0-1.54 1.1Z',map:'M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z M9 3v15 M15 6v15'};
  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]||paths.home}/></svg>;
 }
 const number=(n:number)=>formatTwo(n);
@@ -147,10 +147,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24),[chartRange,setChartRange]=useState<TrendRange>('available');
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0');
  const [calcTaxInput,setCalcTaxInput]=useState('0'),[calcUseManual,setCalcUseManual]=useState(false),[calcManualPrice,setCalcManualPrice]=useState('');
- const [calcShareFormat,setCalcShareFormat]=useState<ShareFormat>('post');
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
  const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';portfolio?:Portfolio;purchase?:Purchase;alert?:PriceAlert}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
+ useEffect(()=>{if(page==='calculator')void preloadQuoteIcon().catch(()=>{});},[page]);
  const [clock,setClock]=useState(Date.now());const active=useRef(true),loadSequence=useRef(0),marketLoadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
  const loadData=useCallback(async()=>{
   const seq=++loadSequence.current;setLoading(true);setError('');
@@ -274,7 +274,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  };
  const shareQuoteImage=async(download:boolean)=>{
   const snapshot=quoteSnapshot();if(!snapshot)return;
-  try{const outcome=await shareQuotePng(snapshot,calcShareFormat,download);
+  try{const outcome=await shareQuotePng(snapshot,download);
    if(outcome==='downloaded')setMessage(tr('تم إعداد صورة التقدير للحفظ.'));
   }catch{setMessage(tr('تعذر تجهيز صورة المشاركة. حاول مرة أخرى.'));}
  };
@@ -341,7 +341,14 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     </label>
    </section>
    <section className="approved-card calc-estimate-card" aria-label="تفاصيل السعر المقدر">
-    <div className="approved-card-title">تفاصيل السعر المقدر</div>
+    <div className="approved-card-title calc-quote-heading">
+     <span>تفاصيل السعر المقدر</span>
+     <div className="calc-quote-actions" role="group" aria-label={tr('إجراءات تفاصيل السعر المقدر')}>
+      <button type="button" title={tr('نسخ التفاصيل')} aria-label={tr('نسخ التفاصيل')} disabled={calcTotal===null} onClick={()=>void copyQuoteDetails()}><Icon name="copy"/></button>
+      <button type="button" title={tr('مشاركة كصورة')} aria-label={tr('مشاركة كصورة')} disabled={calcTotal===null} onClick={()=>void shareQuoteImage(false)}><Icon name="share"/></button>
+      <button type="button" title={tr('حفظ الصورة')} aria-label={tr('حفظ الصورة')} disabled={calcTotal===null} onClick={()=>void shareQuoteImage(true)}><Icon name="download"/></button>
+     </div>
+    </div>
     <dl className="calc-breakdown">
      <div><dt>قيمة الذهب الخام</dt><dd dir="ltr">{money(calcRaw,priceCurrency)}</dd></div>
      <div><dt>إجمالي المصنعية</dt><dd dir="ltr">{money(calcFeeTotal,priceCurrency)}</dd></div>
@@ -351,17 +358,6 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <div className="calc-words-block">
      <div className="calc-words-label">الإجمالي كتابة</div>
      <p className="calc-words-value" aria-label="الإجمالي كتابة">{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
-    </div>
-    <div className="calc-share-panel">
-     <div className="calc-share-top"><strong>مشاركة تفاصيل التقدير</strong><label>مقاس الصورة
-      <select aria-label="مقاس صورة المشاركة" value={calcShareFormat} onChange={e=>setCalcShareFormat(e.target.value==='story'?'story':'post')}>
-       <option value="post">منشور 4:5</option><option value="story">ستوري 9:16</option>
-      </select></label></div>
-     <div className="calc-share-buttons">
-      <button type="button" className="secondary" disabled={calcTotal===null} onClick={()=>void copyQuoteDetails()}>نسخ التفاصيل</button>
-      <button type="button" className="primary" disabled={calcTotal===null} onClick={()=>void shareQuoteImage(false)}>مشاركة كصورة</button>
-      <button type="button" className="secondary" disabled={calcTotal===null} onClick={()=>void shareQuoteImage(true)}>حفظ الصورة</button>
-     </div>
     </div>
    </section>
   </>;
