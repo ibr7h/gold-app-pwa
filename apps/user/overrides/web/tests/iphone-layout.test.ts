@@ -253,7 +253,7 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
   const a=s.indexOf('className="approved-card calc-estimate-card"');
   let pos=a;
-  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة التقديرية','الإجمالي النهائي','الإجمالي كتابة']){
+  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة المدخلة','الإجمالي النهائي','الإجمالي كتابة']){
    const next=s.indexOf(label,pos+1);
    expect(next).toBeGreaterThan(pos);
    pos=next;

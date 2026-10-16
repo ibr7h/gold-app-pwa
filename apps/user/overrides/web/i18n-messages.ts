@@ -3,6 +3,7 @@ import {marketPushMessages} from './i18n-market-push';
 import {helpNavMessages} from './gold-help-content';
 import {followupUiMessages} from './i18n-followup';
 import {invoiceAndErrorMessages} from './i18n-invoice-errors';
+import {calculatorShareUiMessages} from './calculator-share-i18n';
 import {uncoveredUiMessages,secondaryUiMessages} from './i18n-coverage';
 /** Human-reviewed terminology for Dhahabk User interface. No network translation. */
 export type Language='ar'|'en'|'fr';
@@ -1698,7 +1699,7 @@ const extendedEntries:ReadonlyArray<readonly [string,string,string]>=[
  ]
 ];
 const lookup=new Map<string,readonly [string,string]>(
- [...entries,...extendedEntries,...uncoveredUiMessages,...secondaryUiMessages,...followupUiMessages,...invoiceAndErrorMessages,...chartRangeMessages,...marketPushMessages,...helpNavMessages].map(([ar,en,fr])=>[ar,[en,fr] as const])
+ [...entries,...extendedEntries,...calculatorShareUiMessages,...uncoveredUiMessages,...secondaryUiMessages,...followupUiMessages,...invoiceAndErrorMessages,...chartRangeMessages,...marketPushMessages,...helpNavMessages].map(([ar,en,fr])=>[ar,[en,fr] as const])
 );
 export const translationCount=()=>lookup.size;
 export function translateExact(text:string,lang:Language):string|null{

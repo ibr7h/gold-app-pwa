@@ -1,0 +1,22 @@
+/** Localized labels for the User calculator's optional manual price/tax and sharing controls. */
+export const calculatorShareUiMessages:ReadonlyArray<readonly [string,string,string]>=[
+ ['مصدر السعر المستخدم في الحساب','Price source used for calculation','Source du prix pour le calcul'],
+ ['السعر الأساسي','Reference price','Prix de référence'],
+ ['إدخال سعر آخر','Enter a different price','Saisir un autre prix'],
+ ['سعر الجرام المعتمد في الحساب','Price per gram used','Prix au gramme retenu'],
+ ['يُحسب الإجمالي بالسعر الذي تُدخله، ويمكنك استعادة السعر الأساسي في أي وقت.','The entered gram price is used in the estimate. You can restore the reference price at any time.','Le prix saisi est utilisé pour le calcul. Vous pouvez rétablir le prix de référence à tout moment.'],
+ ['الضريبة (مبلغ اختياري)','Tax (optional amount)','Taxe (montant facultatif)'],
+ ['أدخل مبلغ الضريبة كما تريد احتسابه؛ لا تُضاف نسبة تلقائية.','Enter the tax amount to include; no percentage is added automatically.','Saisissez le montant de la taxe à inclure ; aucun pourcentage automatique.'],
+ ['الضريبة المدخلة','Entered tax amount','Montant de taxe saisi'],
+ ['مشاركة تفاصيل التقدير','Share estimated price','Partager le prix estimé'],
+ ['مقاس الصورة','Image format','Format de l’image'],
+ ['منشور 4:5','Post 4:5','Publication 4:5'],
+ ['ستوري 9:16','Story 9:16','Story 9:16'],
+ ['نسخ التفاصيل','Copy details','Copier les détails'],
+ ['مشاركة كصورة','Share as image','Partager comme image'],
+ ['حفظ الصورة','Save image','Enregistrer l’image'],
+ ['تم نسخ تفاصيل السعر المقدر.','Estimate details copied.','Détails de l’estimation copiés.'],
+ ['تعذر النسخ على هذا الجهاز.','Could not copy details on this device.','Impossible de copier les détails sur cet appareil.'],
+ ['تم إعداد صورة التقدير للحفظ.','Estimate image is ready to save.','L’image de l’estimation est prête à être enregistrée.'],
+ ['تعذر تجهيز صورة المشاركة. حاول مرة أخرى.','Could not prepare the image. Please try again.','Impossible de préparer l’image. Réessayez.'],
+];
