@@ -217,3 +217,17 @@ body.admin-authenticated .footer{display:none}
 .admin-push-state{font-size:12px;line-height:1.8;color:#1e293b;background:#f1f5f9;padding:10px 12px;border-radius:10px;margin:12px 0}
 .admin-push-actions{display:flex;flex-wrap:wrap;gap:10px}
 .admin-push-actions button{flex:1 1 130px;min-height:44px;padding:8px;font-size:12px}
+
+/* Admin quick-lock overlay: session vault and credentials are deliberately not persisted. */
+.admin-quick-pin-setup{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.admin-lock-screen{position:fixed;inset:0;z-index:2147483500;background:#0c1626;color:#fff;display:flex;align-items:center;justify-content:center;padding:calc(20px + env(safe-area-inset-top,0px)) 18px calc(20px + env(safe-area-inset-bottom,0px));overflow-y:auto}
+.admin-lock-screen[hidden]{display:none!important}
+.admin-lock-panel{width:min(100%,410px);display:flex;flex-direction:column;align-items:stretch;gap:12px}
+.admin-lock-panel .shield-emblem{margin-bottom:4px}
+.admin-lock-panel .app-title{text-align:center}
+.admin-lock-hint{text-align:center;font-size:13px;line-height:1.8;color:#e2e8f0;margin:0}
+.admin-lock-feedback{font-size:12px;line-height:1.7;text-align:center;color:#f6ce73;min-height:25px;margin:0}
+.admin-lock-pin-form{display:flex;flex-direction:column;gap:10px}
+.admin-lock-pin-form label{color:#fff}
+.admin-lock-panel button{min-height:44px;margin:0}
+@media(max-width:360px){.admin-quick-pin-setup{grid-template-columns:1fr}}
