@@ -24,7 +24,7 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
 @media(prefers-reduced-motion:reduce){#admin-splash{animation:admin-splash-dismiss-reduced 3.2s steps(1,end) forwards}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="styles.css?admin-v12">
+<link rel="stylesheet" href="styles.css?admin-__ADMIN_BUILD_SHA__">
 <!-- External visual enhancements load after first paint, never block the Admin splash. -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'">
@@ -68,6 +68,7 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
      </form>
      <p class="security-notice"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> لا يتوفر تسجيل ذاتي للمسؤولين؛ تُمنح صلاحيات الإدارة من النظام فقط.</p>
     </div>
+    <div class="admin-update-tools admin-update-tools-login" aria-label="إصدار تطبيق الإدارة"><span>الإصدار <b dir="ltr">__ADMIN_DISPLAY_VERSION__</b></span><button id="admin-check-update-login" class="gold-btn-outline" type="button">التحقق من التحديثات</button></div>
    </div>
   </section>
 
@@ -138,7 +139,7 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
 
       <section data-view="users" class="screen-panel" hidden>
         <h2 class="screen-title"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> إدارة المستخدمين والصلاحيات</h2>
-        <p class="admin-build" id="admin-build" aria-label="إصدار واجهة الإدارة">واجهة المدير · تحديث 9</p>
+        <p class="admin-build" id="admin-build" aria-label="إصدار واجهة الإدارة">إصدار الإدارة: __ADMIN_DISPLAY_VERSION__</p>
         <div class="gold-card">
           <form id="users-filter" class="filters" aria-label="البحث في حسابات المنصة">
             <label class="form-group"><span class="form-label">البحث بالاسم أو البريد</span><input id="users-search" class="form-input" maxlength="80" autocomplete="off" type="search" placeholder="ابحث في الحسابات..."></label>
@@ -183,6 +184,7 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
 
       <section data-view="settings" class="screen-panel" hidden>
        <h2 class="screen-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> إعدادات المنصة والربط البرمجي</h2>
+       <div class="gold-card"><h3 class="gold-card-title">تحديث تطبيق الإدارة</h3><div class="admin-update-tools admin-update-tools-settings"><span>الإصدار المثبت <b dir="ltr">__ADMIN_DISPLAY_VERSION__</b></span><button id="admin-check-update-settings" class="gold-btn-outline" type="button">التحقق من التحديثات</button></div><p class="admin-update-hint">يتم التحقق تلقائيًا من التحديثات عند فتح التطبيق والعودة إليه.</p></div>
        <div class="gold-card"><h3 class="gold-card-title">مزوّد أسعار الذهب</h3><p class="empty-state">مفاتيح الاتصال محفوظة على الخادم ولا تُعرض في المتصفح.</p><button class="gold-btn-outline" type="button" disabled>تدوير المفتاح — بانتظار الخادم</button></div>
        <div class="gold-card"><h3 class="gold-card-title">إعدادات الرسوم والعمولات</h3><p class="empty-state">بانتظار الخادم — لا توجد قيم محفوظة معروضة لهذه الإعدادات حاليًا.</p><button class="gold-btn" type="button" disabled>حفظ الإعدادات</button></div>
        <p class="pending-note">تغيير أسعار أو رسوم أو مفاتيح الاتصال يتطلب صلاحيات خادم وسجل تدقيق قبل التفعيل.</p>
@@ -216,5 +218,7 @@ html,body{min-height:100%;background:#0c1626;color:#f8fafc;margin:0}
   <footer class="footer">© 2026 Ibrahim Alneami — All Rights Reserved</footer>
  </div>
 </div>
-<script src="app.js?admin-v12"></script>
+<div id="admin-update-notice" class="admin-update-notice" role="status" aria-live="polite" hidden></div>
+<script src="app.js?admin-__ADMIN_BUILD_SHA__"></script>
+<script src="admin-update-client.js?admin-__ADMIN_BUILD_SHA__"></script>
 </body></html>
