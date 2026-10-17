@@ -2572,110 +2572,44 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 .gold-web .calc-manual-price small,.gold-web .calc-tax-input small{display:block;color:#64748b;font-size:11px;font-weight:400;line-height:1.6}
 
 
-/* Quiet icon-only actions beside the estimated quote title. */
-.gold-web.workspace .calc-estimate-card>.approved-card-title.calc-quote-heading{
+/* User calculator screen: original four-row estimate breakdown with three compact
+   icon-only actions. The export PNG remains independently styled and unchanged. */
+.gold-web.workspace .calc-estimate-card>.approved-card-title{
  display:flex!important;align-items:center!important;justify-content:space-between!important;
- gap:6px!important;flex-wrap:nowrap;min-width:0;
+ gap:5px!important;flex-wrap:nowrap;min-width:0;
 }
-.gold-web.workspace .calc-quote-heading>span{
+.gold-web.workspace .calc-estimate-card>.approved-card-title>span{
  min-width:0;flex:1 1 auto;font-size:clamp(14px,3.8vw,22px);line-height:1.5;
 }
-.gold-web.workspace .calc-quote-actions{
- display:flex;gap:2px;align-items:center;justify-content:flex-end;
+.gold-web.workspace .calc-title-actions{
+ display:flex;align-items:center;justify-content:flex-end;gap:3px;
  flex:0 0 auto;white-space:nowrap;
 }
-.gold-web.workspace .calc-quote-actions button{
+.gold-web.workspace .calc-badge-btn{
  display:inline-flex;align-items:center;justify-content:center;
- width:44px;height:44px;min-width:44px;min-height:44px;
- padding:0;border:1px solid transparent;border-radius:11px;
- background:transparent;color:#8B6B00;cursor:pointer;
+ width:44px;height:44px;min-width:44px;min-height:44px;flex:0 0 44px;
+ padding:0!important;border:1px solid #E5D9AC;border-radius:12px;
+ background:#FBF8F0;color:#96781C;cursor:pointer;
  transition:background-color .18s,border-color .18s;
 }
-.gold-web.workspace .calc-quote-actions button:hover:not(:disabled){
- background:#F3EBD1;border-color:#D9C27B;
+.gold-web.workspace .calc-badge-btn svg{width:22px;height:22px;flex:none}
+.gold-web.workspace .calc-badge-btn:hover:not(:disabled){background:#F3E6C2;border-color:#C5A021}
+.gold-web.workspace .calc-badge-btn:focus-visible{outline:2px solid #C5A021;outline-offset:2px}
+.gold-web.workspace .calc-badge-btn:disabled{opacity:.4;cursor:not-allowed}
+.gold-web.workspace .calc-estimate-card .calc-breakdown .final{
+ border-top:1px solid #D8DEE8!important;
+ background:transparent!important;
 }
-.gold-web.workspace .calc-quote-actions button:focus-visible{
- outline:2px solid #C5A021;outline-offset:1px;
+.gold-web.workspace .calc-estimate-card .calc-words-block{
+ margin-top:15px;padding-top:17px;border-top:2px dashed #E2D3A2;
 }
-.gold-web.workspace .calc-quote-actions button:disabled{opacity:.35;cursor:not-allowed}
-.gold-web.workspace .calc-quote-actions svg{width:21px;height:21px;flex:0 0 auto}
 .gold-web.workspace .calc-estimate-card .calc-words-value{
  max-width:100%;min-width:0;overflow-wrap:anywhere;word-break:normal;
  white-space:normal;direction:inherit;unicode-bidi:plaintext;
 }
 @media(max-width:380px){
- .gold-web.workspace .calc-estimate-card>.approved-card-title.calc-quote-heading{gap:2px!important}
- .gold-web.workspace .calc-quote-heading>span{font-size:14px!important}
- .gold-web.workspace .calc-quote-actions{gap:0}
- .gold-web.workspace .calc-quote-actions button{width:40px;min-width:40px}
-}
-
-
-/* Gold final-estimate card: reference layout, one uninterrupted golden surface.
-   Naskh-style Arabic faces are preferred for the heading and complete tafqeet.
-   The official amount display keeps the app's existing currency glyph. */
-.gold-web.workspace .calc-estimate-card>.calc-final-gold{
- margin-top:19px;min-width:0;padding:clamp(15px,3.4vw,24px);
- border-radius:17px;overflow:visible;
- background:linear-gradient(105deg,#C49A24 0%,#E5BE46 33%,#F4D86A 65%,#B78E1D 100%);
- box-shadow:0 5px 17px rgba(76,51,8,.12);
- color:#07182C;
- font-family:"Amiri","Geeza Pro","Noto Naskh Arabic","Traditional Arabic",serif;
- font-weight:700;
-}
-.gold-web.workspace .calc-final-gold-top{
- display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
- gap:5px 15px;min-width:0;padding-bottom:12px;
- border-bottom:1px solid rgba(68,57,24,.43);
-}
-.gold-web.workspace .calc-final-gold-label{
- flex:1 1 120px;min-width:0;white-space:normal;
- color:#06172D;font-size:clamp(16px,4.2vw,25px);
- font-weight:800;line-height:1.55;text-align:start;
- font-family:inherit;
-}
-.gold-web.workspace .calc-final-gold-label>span{
- white-space:nowrap;display:inline-block;font-size:.76em;
-}
-.gold-web.workspace .calc-final-gold-amount{
- flex:0 1 auto;min-width:0;max-width:100%;
- color:#06172D!important;font-size:clamp(22px,6.4vw,42px);
- font-family:Arial,"Geeza Pro",sans-serif;font-weight:900;
- line-height:1.35;font-variant-numeric:tabular-nums;
- white-space:nowrap;text-align:end;
-}
-.gold-web.workspace .calc-final-gold-amount .dh-money{
- color:#06172D!important;display:inline-flex;align-items:baseline;
- font-size:inherit!important;gap:4px;max-width:100%;white-space:nowrap;
-}
-.gold-web.workspace .calc-final-gold-amount .dh-money-whole,
-.gold-web.workspace .calc-final-gold-amount .dh-money-fraction,
-.gold-web.workspace .calc-final-gold-amount .dh-money-currency{
- color:#06172D!important;font-weight:900!important;font-size:inherit!important;
-}
-.gold-web.workspace .calc-final-gold-amount .dh-money-currency{font-size:.7em!important}
-.gold-web.workspace .calc-final-gold .calc-words-block{
- margin:0!important;padding:12px 0 0!important;border:0!important;min-width:0;
-}
-.gold-web.workspace .calc-final-gold .calc-words-label{
- margin:0 0 7px!important;padding:0!important;
- font-size:clamp(15px,3.8vw,19px)!important;
- font-weight:800!important;line-height:1.55!important;
- color:#09172C!important;text-align:start!important;
- font-family:inherit;
-}
-.gold-web.workspace .calc-final-gold .calc-words-value{
- margin:0!important;padding:0!important;max-width:100%;
- color:#06172D!important;font-size:clamp(17px,4.2vw,24px)!important;
- font-weight:800!important;line-height:1.8!important;
- text-align:start!important;white-space:normal!important;
- overflow-wrap:anywhere!important;word-break:normal!important;
- direction:inherit!important;unicode-bidi:plaintext;
- font-family:inherit;
-}
-@media(max-width:380px){
- .gold-web.workspace .calc-final-gold-top{gap:4px 8px}
- .gold-web.workspace .calc-final-gold-label{font-size:15px!important}
- .gold-web.workspace .calc-final-gold-amount{font-size:21px!important}
- .gold-web.workspace .calc-final-gold .calc-words-value{font-size:17px!important}
+ .gold-web.workspace .calc-estimate-card>.approved-card-title{gap:2px!important}
+ .gold-web.workspace .calc-estimate-card>.approved-card-title>span{font-size:14px!important}
+ .gold-web.workspace .calc-title-actions{gap:1px}
+ .gold-web.workspace .calc-badge-btn{width:40px;min-width:40px;flex-basis:40px}
 }
