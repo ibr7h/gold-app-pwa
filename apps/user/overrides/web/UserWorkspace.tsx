@@ -543,27 +543,33 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    </section>
    <section className="approved-card dh-preference-card" aria-labelledby="dh-preferences-title">
     <h3 className="dh-ux-group-title" id="dh-preferences-title">التفضيلات</h3>
-    <div className="dh-preference-row">
+    <div className="dh-preference-row dh-preference-item">
+     <div className="dh-preference-head">
      <span className="dh-ux-row-icon"><Icon name="globe"/></span>
      <span className="dh-preference-text"><strong>لغة التطبيق</strong><small>لغة الواجهة الحالية</small></span>
+     </div>
      <div className="dh-language-options" role="group" aria-label="لغة التطبيق">
       <button type="button" lang="ar" aria-pressed={language==='ar'} className={language==='ar'?'selected':''} onClick={()=>setLanguage('ar')}>العربية</button>
       <button type="button" lang="en" aria-pressed={language==='en'} className={language==='en'?'selected':''} onClick={()=>setLanguage('en')}>English</button>
       <button type="button" lang="fr" aria-pressed={language==='fr'} className={language==='fr'?'selected':''} onClick={()=>setLanguage('fr')}>Français</button>
      </div>
     </div>
-    <div className="dh-preference-row">
+    <div className="dh-preference-row dh-preference-item">
+     <div className="dh-preference-head">
      <span className="dh-ux-row-icon"><Icon name="coins"/></span>
      <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong><small>{tr('العملة المعتمدة للأسعار والحاسبة')}</small></span>
+     </div>
      <span className="dh-currency-options" role="group" aria-label="اختيار عملة عرض الأسعار">
       <button type="button" aria-pressed={priceCurrency==='SAR'} className={priceCurrency==='SAR'?'selected':''} onClick={()=>setPriceCurrency('SAR')}>SAR</button>
       <button type="button" aria-pressed={priceCurrency==='USD'} className={priceCurrency==='USD'?'selected':''} onClick={()=>setPriceCurrency('USD')}>USD</button>
       <button type="button" aria-pressed={priceCurrency==='EUR'} className={priceCurrency==='EUR'?'selected':''} onClick={()=>setPriceCurrency('EUR')}>EUR €</button>
      </span>
     </div>
-    <div className="dh-preference-row">
+    <div className="dh-preference-row dh-preference-item">
+     <div className="dh-preference-head">
      <span className="dh-ux-row-icon"><Icon name="globe"/></span>
      <span className="dh-preference-text"><strong>{tr('التقويم')}</strong><small>{tr('نوع التاريخ')}</small></span>
+     </div>
      <span className="dh-calendar-options" role="group" aria-label={tr('التاريخ الهجري أو الميلادي')}>
       <button type="button" aria-pressed={calendar==='gregorian'} className={calendar==='gregorian'?'selected':''} onClick={()=>setCalendar('gregorian')}>{tr('ميلادي')}</button>
       <button type="button" aria-pressed={calendar==='hijri'} className={calendar==='hijri'?'selected':''} onClick={()=>setCalendar('hijri')}>{tr('هجري')}</button>
