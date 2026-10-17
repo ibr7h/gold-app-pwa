@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Script,runInNewContext } from 'node:vm';
 const read=p=>readFileSync(new URL('../public/'+p,import.meta.url),'utf8');
-const html=read('register.html'),script=read('register.js'),login=read('index.html');
+const html=read('register.html'),script=read('register.js'),login=read('index.html'),sw=read('sw.js');
 class Node {
  constructor(id){this.id=id;this.value='';this.hidden=false;this.disabled=false;
   this.checked=false;this.textContent='';this.handlers={};this.classList={toggle(){}};
@@ -73,4 +73,13 @@ test('merchant signs up only via code and email OTP, never gets a session before
  assert.equal(f.requests[1].body.code,'123456');
  assert.equal(f.nodes.get('step-pending').hidden,false);
  assert.ok(!script.includes('refreshToken'),'Registration must never mint sessions');
+});
+
+test('Trader installed PWA versions and precaches only Trader invitation assets',()=>{
+ assert.match(sw,/dhahabi-trader-v2-invite/);
+ for(const file of ['register.html','register.css','register.js']){
+  assert.ok(sw.includes("'"+file+"'"),'Missing installed Merchant registration asset: '+file);
+ }
+ assert.match(sw,/path==='register\.html'/);
+ assert.doesNotMatch(sw,/gold-app-pwa\/full|apps\/user|localStorage\.clear/);
 });
