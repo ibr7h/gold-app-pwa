@@ -751,6 +751,11 @@ const entries:ReadonlyArray<readonly [string,string,string]>=[
   "Choisir la devise d'affichage"
  ],
  [
+  "العملة المعتمدة للأسعار والحاسبة",
+  "Selected currency for prices and the calculator",
+  "Devise choisie pour les prix et la calculatrice"
+ ],
+ [
   "حساب ذهبك",
   "Dhahabk account",
   "Compte Dhahabk"
