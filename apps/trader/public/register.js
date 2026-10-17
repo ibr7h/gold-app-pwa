@@ -56,6 +56,7 @@ $('merchant-form').addEventListener('submit',async event=>{
  const body={
   code:inviteCode,email:$('merchant-email').value.trim().toLowerCase(),
   phone:$('merchant-phone').value.trim(),fullName:$('merchant-name').value.trim(),
+  merchantName:$('merchant-store').value.trim(),
   password,legalTermsVersion:'dhahabk-terms-2026-10-v1',
   legalNoticesAcknowledged:$('legal-accepted').checked
  };
