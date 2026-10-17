@@ -471,7 +471,8 @@ describe('More preferences: approved three-row responsive design',()=>{
   expect(start).toBeGreaterThan(0);
   expect(card).toContain('aria-labelledby="dh-preferences-title"');
   expect(card).toContain('className="dh-ux-group-title" id="dh-preferences-title"');
-  expect(card.match(/className="dh-preference-row"/g)).toHaveLength(3);
+  expect(card.match(/className="dh-preference-row dh-preference-item"/g)).toHaveLength(3);
+  expect(card.match(/className="dh-preference-head"/g)).toHaveLength(3);
   expect(card.match(/className="dh-preference-text"/g)).toHaveLength(3);
   expect(card).toContain("<small>{tr('العملة المعتمدة للأسعار والحاسبة')}</small>");
   expect(card).toContain('className="dh-language-options" role="group"');
@@ -489,16 +490,31 @@ describe('More preferences: approved three-row responsive design',()=>{
   expect(card).toContain('aria-pressed={language===');
   expect(card).toContain('aria-pressed={priceCurrency===');
  });
- it('defines core CSS and keeps a readable narrow-iPhone layout',()=>{
+ it('implements screenshot layout with headers above full-width selected segments, including RTL',()=>{
+  const ui=source('../UserWorkspace.tsx');
+  const start=ui.indexOf('<section className="approved-card dh-preference-card"');
+  const end=ui.indexOf('</section>',start);
+  const card=ui.slice(start,end);
   const css=source('../user.css');
-  for(const selector of ['.dh-preference-card','.dh-preference-row','.dh-preference-text','.dh-ux-row-icon','.dh-language-options','.dh-currency-options','.dh-calendar-options','.dh-ux-group-title']){
+  for(const selector of ['.dh-preference-card','.dh-preference-row','.dh-preference-item','.dh-preference-head','.dh-preference-text','.dh-ux-row-icon','.dh-language-options','.dh-currency-options','.dh-calendar-options','.dh-ux-group-title']){
    expect(css).toContain(selector);
   }
-  expect(css).toContain('grid-template-columns:44px minmax(0,1fr) auto;');
-  expect(css).toContain('@media(max-width:530px)');
-  expect(css).toContain('grid-column:2;grid-row:2');
-  expect(css).toContain('min-height:44px');
-  expect(css).toContain('#C5A021');
+  for(const option of ['dh-language-options','dh-currency-options','dh-calendar-options']){
+   const first=card.indexOf('className="'+option+'"');
+   const precedingHead=card.lastIndexOf('className="dh-preference-head"',first);
+   expect(precedingHead).toBeGreaterThan(0);
+   expect(first).toBeGreaterThan(precedingHead);
+   expect(css).toContain('.dh-preference-item>.'+option);
+  }
+  expect(card.match(/className="dh-preference-head"/g)).toHaveLength(3);
+  expect(css).toContain('display:block!important;min-width:0;min-height:0!important;');
+  expect(css).toContain('grid-template-columns:repeat(3,minmax(0,1fr))!important');
+  expect(css).toContain('grid-template-columns:repeat(2,minmax(0,1fr))!important');
+  expect(css).toContain('direction:rtl!important');
+  expect(css).toContain('min-height:44px!important');
+  expect(css).toContain('background:linear-gradient(115deg,#E7C757,#C5A021)!important');
+  expect(css).toContain('@media(max-width:360px)');
+  expect(css).not.toContain('grid-template-columns:44px minmax(0,1fr) auto;');
  });
  it('localizes the subtitle for both other supported languages',()=>{
   const catalog=source('../i18n-messages.ts');
