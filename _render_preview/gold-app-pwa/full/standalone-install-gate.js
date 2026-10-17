@@ -9,11 +9,11 @@
  ))||navigator.standalone===true;
  if(installed){
    if(!entry||!/^\/gold-app-pwa\/full\/_expo\/static\/js\/web\/entry-[A-Za-z0-9._-]+\.js\?v=[a-f0-9]+$/.test(entry)){
-     document.body.textContent='تعذر تشغيل ذهبي. أعد فتح التطبيق بعد تحديثه.';return;
+     document.body.textContent='تعذر تشغيل ذهبك. أعد فتح التطبيق بعد تحديثه.';return;
    }
    var script=document.createElement('script');
    script.src=entry;script.async=false;
-   script.onerror=function(){var root=document.getElementById('root');if(root)root.textContent='تعذر تحميل التطبيق. تحقق من الاتصال ثم أعد فتح ذهبي من أيقونته.';};
+   script.onerror=function(){var root=document.getElementById('root');if(root)root.textContent='تعذر تحميل التطبيق. تحقق من الاتصال ثم أعد فتح ذهبك من أيقونته.';};
    document.body.appendChild(script);return;
  }
  var sheet=document.createElement('style');
@@ -46,12 +46,12 @@
  screen.id='dh-install-required';screen.setAttribute('role','main');
  screen.setAttribute('aria-labelledby','dh-gate-title');
  screen.innerHTML='<section class="dh-gate-card">'+
- '<img alt="أيقونة ذهبي" src="/gold-app-pwa/full/pwa-icon-af89c21a.png">'+
- '<h1 id="dh-gate-title">ثبّت ذهبي أولًا</h1>'+
- '<p>لا يعمل ذهبي داخل المتصفح. ثبّته على الهاتف أو الكمبيوتر ثم افتحه من أيقونته.</p>'+
+ '<img alt="أيقونة ذهبك" src="/gold-app-pwa/full/pwa-icon-af89c21a.png">'+
+ '<h1 id="dh-gate-title">ثبّت ذهبك أولًا</h1>'+
+ '<p>لا يعمل ذهبك داخل المتصفح. ثبّته على الهاتف أو الكمبيوتر ثم افتحه من أيقونته.</p>'+
  '<div class="dh-gate-instructions"><strong>طريقة التثبيت</strong><ol id="dh-gate-steps"></ol></div>'+
- '<button id="dh-gate-install" type="button" hidden>تثبيت تطبيق ذهبي</button>'+
- '<p class="dh-gate-footnote" id="dh-gate-note">بعد التثبيت، أغلق هذا التبويب وافتح ذهبي من أيقونته على جهازك.</p>'+
+ '<button id="dh-gate-install" type="button" hidden>تثبيت تطبيق ذهبك</button>'+
+ '<p class="dh-gate-footnote" id="dh-gate-note">بعد التثبيت، أغلق هذا التبويب وافتح ذهبك من أيقونته على جهازك.</p>'+
  '</section>';
  document.body.appendChild(screen);
  var ua=navigator.userAgent||'';
@@ -60,27 +60,27 @@
  var how=ios?[
   'اضغط على زر مشاركة في المتصفح.',
   'اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة».',
-  'شغّل ذهبي من الأيقونة على الشاشة الرئيسية.'
+  'شغّل ذهبك من الأيقونة على الشاشة الرئيسية.'
  ]:/Android/i.test(ua)?[
   'افتح القائمة ⋮ في Chrome.',
   'اختر «إضافة إلى الشاشة الرئيسية» ثم «تثبيت التطبيق» إن ظهر.',
-  'شغّل ذهبي من أيقونته على الهاتف.'
+  'شغّل ذهبك من أيقونته على الهاتف.'
  ]:macSafari?[
   'في Safari على macOS Sonoma 14 أو أحدث اختر «ملف».',
   'اضغط «إضافة إلى Dock».',
-  'افتح ذهبي من Dock أو التطبيقات.'
+  'افتح ذهبك من Dock أو التطبيقات.'
  ]:/Edg\//i.test(ua)?[
   'افتح القائمة ⋯ في Microsoft Edge.',
   'اختر «التطبيقات» ثم «تثبيت هذا الموقع كتطبيق».',
-  'شغّل ذهبي من قائمة التطبيقات.'
+  'شغّل ذهبك من قائمة التطبيقات.'
  ]:/(Chrome|Chromium)\//i.test(ua)?[
   'افتح القائمة ⋮ في Google Chrome.',
   'اختر «البث والحفظ والمشاركة» ثم «تثبيت الصفحة كتطبيق» (قد تختلف التسمية).',
-  'افتح ذهبي من قائمة التطبيقات.'
+  'افتح ذهبك من قائمة التطبيقات.'
  ]:[
   'افتح الموقع في Chrome أو Edge أو Safari على نظام يدعم تثبيت تطبيقات الويب.',
   'اختر أمر التثبيت من قائمة المتصفح.',
-  'افتح ذهبي من الأيقونة المثبتة وليس من التبويب.'
+  'افتح ذهبك من الأيقونة المثبتة وليس من التبويب.'
  ];
  var list=document.getElementById('dh-gate-steps');
  how.forEach(function(t){var li=document.createElement('li');li.textContent=t;list.appendChild(li);});
@@ -95,6 +95,6 @@
  });
  window.addEventListener('appinstalled',function(){
   deferred=null;install.hidden=true;
-  note.textContent='تم التثبيت. افتح ذهبي من أيقونته في جهازك بدلًا من هذا التبويب.';
+  note.textContent='تم التثبيت. افتح ذهبك من أيقونته في جهازك بدلًا من هذا التبويب.';
  });
 })();
