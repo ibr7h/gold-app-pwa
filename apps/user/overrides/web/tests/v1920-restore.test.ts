@@ -29,8 +29,9 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
   expect(actual).toContain('className="approved-card calc-estimate-card"');
   expect(actual).toContain('className="calc-words-block"');
   expect(actual).toContain('className="calc-words-label">{tr(\'المبلغ كتابة:\')}');
-  expect(actual).toContain('className="calc-final-gold"');
-  expect(actual).not.toContain('className="final"');
+  expect(actual).not.toContain('className="calc-final-gold"');
+  expect(actual).toContain('className="final"');
+  expect(actual).toContain('className="calc-title-actions"');
   expect(actual).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
   for(const field of ["calcRaw,priceCurrency","calcFeeTotal,priceCurrency","calcTax,priceCurrency","calcTotal,priceCurrency"])expect(actual).toContain(field);
   expect(current).toContain("const calcMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===calcKarat)");
