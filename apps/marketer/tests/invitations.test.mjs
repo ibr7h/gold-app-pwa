@@ -30,11 +30,14 @@ function fixture(authorized=true){
     {code:'DBK-'+'A'.repeat(24),issuerType:'marketer'}:{success:true};
   return {ok:true,status:200,json:async()=>data};
  };
- const env={document:{getElementById:id=>nodes.get(id),createElement:()=>new Element('')},
+ const listeners={};
+ const document={getElementById:id=>nodes.get(id),createElement:()=>new Element(''),
+  visibilityState:'visible',addEventListener:(type,fn)=>{listeners[type]=fn;}};
+ const env={document,
   navigator:{clipboard:{writeText:async()=>{}}},window:{},fetch,
   AbortController,setTimeout,clearTimeout,Date,Number,JSON,Promise,URL};
  runInNewContext(source,env);
- return {nodes,sent};
+ return {nodes,sent,document,listeners};
 }
 test('Marketer is not an administrator and invitation access requires a backend grant',async()=>{
  assert.doesNotThrow(()=>new Script(source));
@@ -67,5 +70,21 @@ test('Authorized marketer may issue only single-use bound-email code, never revi
  assert.ok(f.nodes.get('issued-code').textContent.startsWith('DBK-'));
  assert.equal(f.sent.some(x=>x.path.includes('/review')),false);
  await f.nodes.get('marketer-logout').fire('click');
+ assert.equal(f.nodes.get('issued-code').textContent,'');
+});
+
+test('one-time marketer invite disappears immediately when iPhone is backgrounded',async()=>{
+ const f=fixture();
+ f.nodes.get('marketer-email').value='marketer@example.test';
+ f.nodes.get('marketer-password').value='test-password';
+ await f.nodes.get('login-form').fire('submit');
+ f.nodes.get('store-name').value='Saudi Gold Shop';
+ f.nodes.get('store-email').value='business@example.test';
+ f.nodes.get('invite-days').value='7';
+ await f.nodes.get('issue-form').fire('submit');
+ assert.equal(f.nodes.get('issued-panel').hidden,false);
+ f.document.visibilityState='hidden';
+ f.listeners.visibilitychange();
+ assert.equal(f.nodes.get('issued-panel').hidden,true);
  assert.equal(f.nodes.get('issued-code').textContent,'');
 });
