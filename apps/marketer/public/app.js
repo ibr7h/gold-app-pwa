@@ -32,8 +32,9 @@ async function request(path,method='GET',body,token=access){
   throw e;
  }finally{clearTimeout(t);}
 }
+function clearCode(){shownCode='';$('issued-code').textContent='';$('issued-panel').hidden=true;}
 function clear(){
- access='';shownCode='';$('issued-code').textContent='';$('issued-panel').hidden=true;
+ access='';clearCode();
  $('marketer-password').value='';$('issue-form').reset();show(false);
  $('my-invites').replaceChildren();
 }
@@ -111,6 +112,9 @@ $('refresh-invites').addEventListener('click',()=>void load());
 $('marketer-logout').addEventListener('click',()=>{
  const token=access;clear();tell('تم تسجيل الخروج من بوابة المسوّق.');
  if(token)void request('/auth/logout','POST',undefined,token).catch(()=>{});
+});
+document.addEventListener?.('visibilitychange',()=>{
+ if(document.visibilityState==='hidden')clearCode();
 });
 show(false);
 })();
