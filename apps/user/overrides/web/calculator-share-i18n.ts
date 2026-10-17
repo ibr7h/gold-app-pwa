@@ -1,5 +1,7 @@
 /** Localized labels for the User calculator's optional manual price/tax and sharing controls. */
 export const calculatorShareUiMessages:ReadonlyArray<readonly [string,string,string]>=[
+ ['الإجمالي النهائي التقديري','Final estimated total','Total final estimé'],
+ ['المبلغ كتابة:','Amount in words:','Montant en lettres :'],
  ['إجراءات تفاصيل السعر المقدر','Estimated price actions','Actions de l’estimation'],
  ['مصدر السعر المستخدم في الحساب','Price source used for calculation','Source du prix pour le calcul'],
  ['السعر الأساسي','Reference price','Prix de référence'],
