@@ -363,6 +363,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
       <div className="calc-words-label">{tr('المبلغ كتابة:')}</div>
       <p className="calc-words-value" aria-label={tr('المبلغ كتابة:')}>{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
      </div>
+    </div>
    </section>
   </>;
 
