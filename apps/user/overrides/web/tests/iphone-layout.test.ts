@@ -460,3 +460,50 @@ describe('iPhone chart period controls request the matching real historical wind
   expect(chart).toContain("xAxisLabels.map");
  });
 });
+
+
+describe('More preferences: approved three-row responsive design',()=>{
+ it('keeps all three original preferences and renders the missing currency subtitle',()=>{
+  const ui=source('../UserWorkspace.tsx');
+  const start=ui.indexOf('<section className="approved-card dh-preference-card"');
+  const end=ui.indexOf('</section>',start);
+  const card=ui.slice(start,end);
+  expect(start).toBeGreaterThan(0);
+  expect(card).toContain('aria-labelledby="dh-preferences-title"');
+  expect(card).toContain('className="dh-ux-group-title" id="dh-preferences-title"');
+  expect(card.match(/className="dh-preference-row"/g)).toHaveLength(3);
+  expect(card.match(/className="dh-preference-text"/g)).toHaveLength(3);
+  expect(card).toContain("<small>{tr('العملة المعتمدة للأسعار والحاسبة')}</small>");
+  expect(card).toContain('className="dh-language-options" role="group"');
+  expect(card).toContain('className="dh-currency-options" role="group"');
+  expect(card).toContain('className="dh-calendar-options" role="group"');
+  expect(card).toContain("onClick={()=>setLanguage('ar')}");
+  expect(card).toContain("onClick={()=>setLanguage('en')}");
+  expect(card).toContain("onClick={()=>setLanguage('fr')}");
+  expect(card).toContain("onClick={()=>setPriceCurrency('SAR')}");
+  expect(card).toContain("onClick={()=>setPriceCurrency('USD')}");
+  expect(card).toContain("onClick={()=>setPriceCurrency('EUR')}");
+  expect(card).toContain("onClick={()=>setCalendar('gregorian')}");
+  expect(card).toContain("onClick={()=>setCalendar('hijri')}");
+  expect(card).toContain('aria-pressed={calendar===');
+  expect(card).toContain('aria-pressed={language===');
+  expect(card).toContain('aria-pressed={priceCurrency===');
+ });
+ it('defines core CSS and keeps a readable narrow-iPhone layout',()=>{
+  const css=source('../user.css');
+  for(const selector of ['.dh-preference-card','.dh-preference-row','.dh-preference-text','.dh-ux-row-icon','.dh-language-options','.dh-currency-options','.dh-calendar-options','.dh-ux-group-title']){
+   expect(css).toContain(selector);
+  }
+  expect(css).toContain('grid-template-columns:44px minmax(0,1fr) auto;');
+  expect(css).toContain('@media(max-width:530px)');
+  expect(css).toContain('grid-column:2;grid-row:2');
+  expect(css).toContain('min-height:44px');
+  expect(css).toContain('#C5A021');
+ });
+ it('localizes the subtitle for both other supported languages',()=>{
+  const catalog=source('../i18n-messages.ts');
+  expect(catalog).toContain('"العملة المعتمدة للأسعار والحاسبة"');
+  expect(catalog).toContain('"Selected currency for prices and the calculator"');
+  expect(catalog).toContain('"Devise choisie pour les prix et la calculatrice"');
+ });
+});
