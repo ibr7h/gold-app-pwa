@@ -1,0 +1,39 @@
+name: Verify market-aware gold refresh
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/refresh-prices.yml"
+      - ".github/workflows/verify-gold-market-refresh.yml"
+      - "scripts/gold_market_refresh.py"
+      - "scripts/test_gold_market_refresh.py"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/refresh-prices.yml"
+      - ".github/workflows/verify-gold-market-refresh.yml"
+      - "scripts/gold_market_refresh.py"
+      - "scripts/test_gold_market_refresh.py"
+
+permissions:
+  contents: read
+
+jobs:
+  market-session-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify market hours and price-persistence safeguards
+        run: python3 -m unittest discover -s scripts -p test_gold_market_refresh.py -v
+      - name: Verify workflow checks closure before provider fetch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          workflow = Path(".github/workflows/refresh-prices.yml").read_text()
+          check = workflow.index("scripts/gold_market_refresh.py market-state")
+          fetch = workflow.index("https://api.gold-api.com/price/XAU/USD")
+          assert check < fetch, "Market gate must run before supplier request"
+          assert "if: steps.market.outputs.open == 'true'" in workflow
+          assert "scripts/gold_market_refresh.py update /tmp/gold.json" in workflow
+          print("Market gate and post-fetch validation are both wired.")
+          PY
