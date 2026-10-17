@@ -17,74 +17,66 @@ class Element{
 function fixture(authorized=true){
  const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
  const nodes=new Map(ids.map(id=>[id,new Element(id)]));
- const sent=[];
+ const sent=[];let claimed=false;let available=true;
  const fetch=async(url,options={})=>{
   const path=new URL(url).pathname,method=options.method||'GET';
   sent.push({path,method,body:options.body?JSON.parse(options.body):null});
-  if(path==='/marketer/merchant-invites'&&!authorized)
+  if(path.startsWith('/marketer/merchant-invites')&&!authorized)
    return {ok:false,status:403,json:async()=>({message:'Not an authorized marketer'})};
-  const data=path==='/auth/login'?{accessToken:'test-token',refreshToken:'unused'}:
+  const assigned={id:'00000000-0000-4000-8000-000000000007',merchantName:'Admin issued',
+   intendedEmail:'business@example.test',codeTail:'ABC123',canClaim:!claimed,status:'active'};
+  const data=path==='/auth/login'?{accessToken:'test-token'}:
    path==='/auth/me'?{role:'user',email:'marketer@example.test'}:
-   path==='/marketer/merchant-invites'&&method==='GET'?{items:[]}:
-   path==='/marketer/merchant-invites'&&method==='POST'?
-    {code:'DBK-'+'A'.repeat(24),issuerType:'marketer'}:{success:true};
+   path==='/marketer/merchant-invites'&&method==='GET'?{items:available?[assigned]:[]}:
+   path.endsWith('/claim')&&method==='POST'?(claimed=true,{code:'DBK-'+'A'.repeat(24)}):
+   {success:true};
   return {ok:true,status:200,json:async()=>data};
  };
- const listeners={};
- const document={getElementById:id=>nodes.get(id),createElement:()=>new Element(''),
-  visibilityState:'visible',addEventListener:(type,fn)=>{listeners[type]=fn;}};
- const env={document,
-  navigator:{clipboard:{writeText:async()=>{}}},window:{},fetch,
-  AbortController,setTimeout,clearTimeout,Date,Number,JSON,Promise,URL};
+ const env={document:{getElementById:id=>nodes.get(id),createElement:()=>new Element(''),addEventListener(){}},
+  navigator:{clipboard:{writeText:async()=>{}}},window:{confirm:()=>true},fetch,
+  AbortController,setTimeout,clearTimeout,Date,Number,JSON,Promise,URL,encodeURIComponent};
  runInNewContext(source,env);
- return {nodes,sent,document,listeners};
+ return {nodes,sent,claimed:()=>claimed,available:v=>available=v};
 }
-test('Marketer is not an administrator and invitation access requires a backend grant',async()=>{
+test('Marketer app never offers generation, Admin review, or client-held persistent tokens',async()=>{
  assert.doesNotThrow(()=>new Script(source));
  assert.doesNotMatch(source,/localStorage|sessionStorage|innerHTML/);
- assert.ok(source.includes('/marketer/merchant-invites'));
+ assert.doesNotMatch(source,/\/marketer\/merchant-invites',['POST'].join(''));
+ assert.ok(!html.includes('issue-form'));
+ assert.ok(!html.includes('issue-submit'));
  assert.ok(!source.includes('/admin/merchant-invites'));
+ assert.ok(source.includes('/claim'));
+});
+test('Marketer cannot access assigned invitations without valid server grant',async()=>{
  const f=fixture(false);
  f.nodes.get('marketer-email').value='marketer@example.test';
- f.nodes.get('marketer-password').value='test-password';
+ f.nodes.get('marketer-password').value='password';
  await f.nodes.get('login-form').fire('submit');
  assert.equal(f.nodes.get('login-screen').hidden,false);
  assert.equal(f.nodes.get('portal-screen').hidden,true);
+ assert.equal(f.sent.some(x=>x.path.endsWith('/claim')),false);
 });
-test('Authorized marketer may issue only single-use bound-email code, never review a Merchant',async()=>{
+test('Admin allocation appears in Marketer portal, reveal is explicit and one-time',async()=>{
  const f=fixture(true);
  f.nodes.get('marketer-email').value='marketer@example.test';
- f.nodes.get('marketer-password').value='test-password';
+ f.nodes.get('marketer-password').value='password';
  await f.nodes.get('login-form').fire('submit');
  assert.equal(f.nodes.get('portal-screen').hidden,false);
- f.nodes.get('store-name').value='Saudi Gold Shop';
- f.nodes.get('store-email').value='business@example.test';
- f.nodes.get('invite-days').value='7';
- await f.nodes.get('issue-form').fire('submit');
- const post=f.sent.find(x=>x.path==='/marketer/merchant-invites'&&x.method==='POST');
- assert.ok(post);
- assert.equal(post.body.maxUses,1);
- assert.equal(post.body.intendedEmail,'business@example.test');
- assert.equal(post.body.expiresInDays,7);
+ const rows=f.nodes.get('my-invites').children;
+ assert.equal(rows.length,1);
+ const receive=rows[0].children.find(x=>x.textContent==='استلام الرمز المخصص');
+ assert.ok(receive);
+ assert.equal(f.claimed(),false);
+ await receive.fire('click');
+ assert.equal(f.claimed(),true);
+ const requests=f.sent.filter(x=>x.path.endsWith('/claim'));
+ assert.equal(requests.length,1);
+ assert.equal(requests[0].method,'POST');
+ assert.equal(f.nodes.get('issued-code').textContent,'DBK-'+'A'.repeat(24));
  assert.equal(f.nodes.get('issued-panel').hidden,false);
- assert.ok(f.nodes.get('issued-code').textContent.startsWith('DBK-'));
- assert.equal(f.sent.some(x=>x.path.includes('/review')),false);
  await f.nodes.get('marketer-logout').fire('click');
  assert.equal(f.nodes.get('issued-code').textContent,'');
-});
-
-test('one-time marketer invite disappears immediately when iPhone is backgrounded',async()=>{
- const f=fixture();
- f.nodes.get('marketer-email').value='marketer@example.test';
- f.nodes.get('marketer-password').value='test-password';
- await f.nodes.get('login-form').fire('submit');
- f.nodes.get('store-name').value='Saudi Gold Shop';
- f.nodes.get('store-email').value='business@example.test';
- f.nodes.get('invite-days').value='7';
- await f.nodes.get('issue-form').fire('submit');
- assert.equal(f.nodes.get('issued-panel').hidden,false);
- f.document.visibilityState='hidden';
- f.listeners.visibilitychange();
  assert.equal(f.nodes.get('issued-panel').hidden,true);
- assert.equal(f.nodes.get('issued-code').textContent,'');
+ const unauthorizedPosts=f.sent.filter(x=>x.method==='POST'&&x.path==='/marketer/merchant-invites');
+ assert.equal(unauthorizedPosts.length,0);
 });
