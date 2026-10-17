@@ -249,18 +249,22 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).not.toContain('السعر الإجمالي التقريبي');
   expect(s).toContain('className="approved-card calc-estimate-card"');
   expect(s).toContain('className="calc-words-block"');
-  expect(s).toContain('className="calc-words-label">الإجمالي كتابة');
+  expect(s).toContain('className="calc-words-label">{tr(\'المبلغ كتابة:\')}');
+  expect(s).toContain('className="calc-final-gold"');
+  expect(s).toContain('className="calc-final-gold-top"');
+  expect(s).toContain('className="calc-final-gold-amount"');
   expect(s).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
   const a=s.indexOf('className="approved-card calc-estimate-card"');
   let pos=a;
-  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة المدخلة','الإجمالي النهائي','الإجمالي كتابة']){
+  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة المدخلة','الإجمالي النهائي التقديري','المبلغ كتابة:']){
    const next=s.indexOf(label,pos+1);
    expect(next).toBeGreaterThan(pos);
    pos=next;
   }
   expect(css).toContain('.calc-estimate-card .calc-words-block');
   expect(css).toContain('border-top:2px dashed #E2D3A2');
-  expect(css).toContain('.calc-estimate-card .calc-breakdown .final');
+  expect(css).toContain('.calc-estimate-card>.calc-final-gold');
+  expect(css).toContain('background:linear-gradient(105deg');
  });
 });
 
