@@ -44,13 +44,21 @@ describe('quote sharing',()=>{
 
 describe('story-only quote and fitting',()=>{
  const source=(file:string)=>readFileSync(fileURLToPath(new URL(file,import.meta.url)),'utf8');
- it('places three accessible action icons beside the heading with no bottom share section or format selector',()=>{
+ it('keeps three badge actions in screen heading with the original semantics and no format selector',()=>{
   const ui=source('../UserWorkspace.tsx');
-  expect(ui).toContain('className="approved-card-title calc-quote-heading"');
-  expect(ui).toContain('className="calc-quote-actions"');
-  expect(ui).toContain('<Icon name="copy"/>');
-  expect(ui).toContain('<Icon name="share"/>');
-  expect(ui).toContain('<Icon name="download"/>');
+  const first=ui.indexOf('className="approved-card calc-estimate-card"');
+  const stop=ui.indexOf('</section>',first);
+  const quote=ui.slice(first,stop);
+  expect(quote).toContain('className="approved-card-title"');
+  expect(quote).toContain('className="calc-title-actions"');
+  expect(quote.match(/className="calc-badge-btn"/g)).toHaveLength(3);
+  expect(quote).toContain('aria-label={tr(\'مشاركة كصورة\')}');
+  expect(quote).toContain('aria-label={tr(\'حفظ الصورة\')}');
+  expect(quote).toContain('aria-label={tr(\'نسخ التفاصيل\')}');
+  expect(quote).toContain('shareQuoteImage(false)');
+  expect(quote).toContain('shareQuoteImage(true)');
+  expect(quote).toContain('copyQuoteDetails()');
+  expect(quote).not.toContain('calc-final-gold');
   expect(ui).not.toContain('calc-share-panel');
   expect(ui).not.toContain('calcShareFormat');
   expect(ui).not.toContain('منشور 4:5');
