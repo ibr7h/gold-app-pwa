@@ -1,0 +1,26 @@
+name: Marketer Invite Portal
+on:
+  pull_request:
+    paths:
+      - 'apps/marketer/**'
+      - '.github/workflows/marketer-invites.yml'
+permissions:
+  contents: read
+jobs:
+  marketer-invite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check delegated marketer invitation portal
+        run: node --test apps/marketer/tests/*.test.mjs
+      - name: Prevent User app or Trader app modification
+        run: |
+          git fetch origin main --depth=1
+          if git diff --name-only FETCH_HEAD HEAD | grep -E '^apps/(user|trader)/'; then
+            echo 'Marketer PR may not edit customer or trader source' >&2
+            exit 1
+          fi

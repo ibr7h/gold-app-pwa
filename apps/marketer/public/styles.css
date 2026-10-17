@@ -1,0 +1,23 @@
+:root{font-family:system-ui,-apple-system,Tahoma,"Segoe UI",sans-serif;color:#001F3F;background:#f7f8fc}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:linear-gradient(180deg,#001F3F 0,#0d304f 225px,#f7f8fc 225px)}
+.shell{width:min(100%,470px);margin:auto;padding:calc(env(safe-area-inset-top,0px) + 28px) 16px 35px}
+.brand{text-align:center;color:#fff}.brand h1{margin:6px 0;font-size:26px}
+.brand p,.muted{font-size:13px;line-height:1.8}
+.brand p{color:#dce9f8}.emblem{background:#D4AF37;color:#001F3F;display:grid;place-items:center;margin:auto;
+ width:70px;height:70px;border-radius:18px;font-size:38px;box-shadow:0 8px 26px #0004}
+.card{background:#fff;border:1px solid #e3e8ef;border-radius:18px;margin-top:23px;padding:21px 17px;box-shadow:0 10px 30px #0002}
+.card h2{font-size:18px;margin:0 0 11px}.card[hidden],section[hidden],div[hidden]{display:none!important}
+.muted{color:#526175}
+form{display:grid;gap:11px}label{font-weight:750;font-size:13px}
+input{display:block;border:1px solid #bac5d6;border-radius:11px;min-height:48px;padding:11px 12px;width:100%;
+ background:white;color:#001F3F;font-size:16px}input:focus-visible{outline:2px solid #C5A021;outline-offset:1px}
+button{min-height:46px;border:0;border-radius:11px;padding:9px 14px;font-size:14px;cursor:pointer;
+ background:#001F3F;color:#eecb64;font-weight:800}button.secondary{border:1px solid #C5A021;background:#fff;color:#001F3F}
+button:disabled{opacity:.55}.between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.issued{margin-top:16px;border:1px solid #C5A021;border-radius:14px;background:#fffdf2;padding:14px;display:grid;gap:12px}
+.issued code{font-weight:800;font-size:16px;overflow-wrap:anywhere;user-select:all;text-align:center}
+.record{border:1px solid #e2e8f0;border-radius:11px;padding:12px;margin:10px 0}
+.record strong{font-size:14px}.record p{margin:5px 0}
+.feedback{text-align:center;font-size:13px;color:#334155;min-height:22px;line-height:1.8;margin:14px 0}
+.feedback.error{color:#b91c1c;background:#fff1f2;border:1px solid #fda4af;border-radius:10px;padding:10px}
+footer{font-size:12px;text-align:center;color:#64748b;margin:25px 0}
