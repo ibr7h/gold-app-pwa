@@ -554,7 +554,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     </div>
     <div className="dh-preference-row">
      <span className="dh-ux-row-icon"><Icon name="coins"/></span>
-     <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong></span>
+     <span className="dh-preference-text"><strong>عملة عرض الأسعار</strong><small>{tr('العملة المعتمدة للأسعار والحاسبة')}</small></span>
      <span className="dh-currency-options" role="group" aria-label="اختيار عملة عرض الأسعار">
       <button type="button" aria-pressed={priceCurrency==='SAR'} className={priceCurrency==='SAR'?'selected':''} onClick={()=>setPriceCurrency('SAR')}>SAR</button>
       <button type="button" aria-pressed={priceCurrency==='USD'} className={priceCurrency==='USD'?'selected':''} onClick={()=>setPriceCurrency('USD')}>USD</button>
