@@ -57,6 +57,7 @@ test('merchant signs up only via code and email OTP, never gets a session before
  await f.nodes.get('invite-form').submit();
  assert.equal(f.nodes.get('step-details').hidden,false);
  f.nodes.get('merchant-name').value='Merchant owner';
+ f.nodes.get('merchant-store').value='Gold Store Name';
  f.nodes.get('merchant-email').value='merchant@example.test';
  f.nodes.get('merchant-phone').value='+966509005555';
  f.nodes.get('merchant-password').value='safe-merchant-password';
@@ -66,6 +67,7 @@ test('merchant signs up only via code and email OTP, never gets a session before
  assert.equal(f.requests.length,1);
  assert.equal(f.requests[0].body.code,'DBK-'+ 'A'.repeat(24));
  assert.equal(f.requests[0].body.email,'merchant@example.test');
+ assert.equal(f.requests[0].body.merchantName,'Gold Store Name');
  assert.equal(f.nodes.get('step-otp').hidden,false);
  f.nodes.get('merchant-otp').value='١٢٣٤٥٦';
  await f.nodes.get('otp-form').submit();
