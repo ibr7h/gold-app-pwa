@@ -4,7 +4,7 @@
 <title>ذهبك — بوابة المسوّق المعتمد</title><link rel="stylesheet" href="styles.css"></head>
 <body><main class="shell">
 <header class="brand"><div class="emblem" aria-hidden="true">✦</div><h1>ذهبك للمسوّق</h1>
-<p>إصدار دعوات التجار للمسوّقين المفوّضين من الإدارة فقط</p></header>
+<p>استلام وتوزيع رموز التجار المخصّصة من إدارة ذهبك</p></header>
 <section id="login-screen" class="card" aria-labelledby="login-title">
 <h2 id="login-title">دخول المسوّق المعتمد</h2>
 <p class="muted">يتطلب حسابًا موثّقًا من ذهبك وتفويضًا نشطًا من الإدارة. لا يوجد تسجيل ذاتي للمسوّقين في هذه البوابة.</p>
@@ -14,19 +14,16 @@
 <button id="login-submit" type="submit">الدخول إلى بوابة المسوّق</button>
 </form></section>
 <section id="portal-screen" hidden>
-<div class="card"><div class="between"><h2>إصدار دعوة تاجر</h2><button id="marketer-logout" class="secondary" type="button">خروج</button></div>
-<p class="muted">صلاحية الإصدار محدودة من الإدارة. كل رمز يخص بريد تاجر واحدًا، ويُستخدم مرة واحدة ويظل صالحًا لمدة لا تتجاوز 14 يومًا.</p>
-<form id="issue-form">
-<label for="store-name">اسم متجر الذهب</label><input id="store-name" type="text" minlength="2" maxlength="120" autocomplete="off" required>
-<label for="store-email">بريد حساب التاجر الجديد</label><input id="store-email" type="email" dir="ltr" maxlength="254" autocomplete="off" required>
-<label for="invite-days">صلاحية الدعوة بالأيام (1–14)</label><input id="invite-days" type="number" min="1" max="14" value="7" required>
-<button id="issue-submit" type="submit">إنشاء رمز الدعوة</button></form>
+<div class="card"><div class="between"><h2>الرموز المخصصة لحسابك</h2>
+<button id="marketer-logout" class="secondary" type="button">خروج</button></div>
+<p class="muted">المدير وحده يصدر رموز دعوة التجار ويخصصها لحسابك. لا يمكنك إنشاء رموز إضافية.
+ اضغط «استلام الرمز» لعرضه مرة واحدة، ثم وزعه على التاجر المقصود.</p>
 <div id="issued-panel" class="issued" hidden>
-<strong>رمز الدعوة — يظهر مرة واحدة</strong><code id="issued-code" dir="ltr"></code>
+<strong>رمز مخصّص من الإدارة — يظهر مرة واحدة</strong><code id="issued-code" dir="ltr"></code>
 <button id="issued-copy" class="secondary" type="button">نسخ الرمز</button>
-<p class="muted">لا يُخزّن الرمز كاملاً في قائمة الدعوات؛ أرسله لصاحب البريد المحدد فقط.</p>
+<p class="muted">بعد إغلاق العرض لن يمكن كشف هذا الرمز مرة أخرى من الخادم.</p>
 </div></div>
-<div class="card"><div class="between"><h2>دعواتي السابقة</h2><button id="refresh-invites" class="secondary" type="button">تحديث</button></div>
+<div class="card"><div class="between"><h2>سجل الرموز المخصصة</h2><button id="refresh-invites" class="secondary" type="button">تحديث</button></div>
 <div id="my-invites" class="records"><p class="muted">ستُحمّل الدعوات من الخادم.</p></div></div>
 </section>
 <p id="portal-message" class="feedback" role="status" aria-live="polite"></p>
