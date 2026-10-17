@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const BASE = '/gold-app-pwa/full/';
-  const CURRENT = 'full-1.9.81-20261017';
+  const CURRENT = 'full-1.9.82-20261017';
   const RELEASE_MATCH = /^full-(\d+\.\d+\.\d+)-(\d{8})$/.exec(CURRENT);
   const DISPLAY_VERSION = RELEASE_MATCH ? 'v' + RELEASE_MATCH[1] : '';
   const CHECK_EVERY_MS = 15 * 60 * 1000;
