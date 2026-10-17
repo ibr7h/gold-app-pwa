@@ -41,7 +41,7 @@ function fixture(authorized=true){
 test('Marketer app never offers generation, Admin review, or client-held persistent tokens',async()=>{
  assert.doesNotThrow(()=>new Script(source));
  assert.doesNotMatch(source,/localStorage|sessionStorage|innerHTML/);
- assert.doesNotMatch(source,/\/marketer\/merchant-invites',['POST'].join(''));
+ assert.ok(!source.includes("request('/marketer/merchant-invites','POST'"), 'Marketer must not issue codes');
  assert.ok(!html.includes('issue-form'));
  assert.ok(!html.includes('issue-submit'));
  assert.ok(!source.includes('/admin/merchant-invites'));
