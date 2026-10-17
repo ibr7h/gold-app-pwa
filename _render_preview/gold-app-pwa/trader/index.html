@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#001F3F">
+  <title>ذهبك للتاجر — بوابة التاجر المعتمد</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-app="trader" data-role="merchant">
+  <main class="app">
+    <div class="shell">
+
+      <!-- ================= 1. VIEW: LOGIN ================= -->
+      <section class="view-section active" id="login-view">
+        <div class="brand">
+          <img class="brand-icon" src="assets/icon.svg" alt="ذهبك للتاجر">
+          <h1>ذهبك للتاجر</h1>
+          <p>بوابة التجار المعتمدين لمنصة ذهبك</p>
+          <span class="role-badge">MERCHANT PORTAL</span>
+        </div>
+
+        <div class="card">
+          <div id="notice-login" class="notice" role="alert"></div>
+
+          <form id="login-form">
+            <label>
+              <span>البريد الإلكتروني أو رقم الجوال</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6"/></svg>
+                <input id="login-identifier" type="text" dir="ltr" autocomplete="username" placeholder="merchant@dhahabk.com" required>
+              </div>
+            </label>
+
+            <label>
+              <span>كلمة المرور</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11h10v9H7z M9 11V8a3 3 0 0 1 6 0v3"/></svg>
+                <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+              </div>
+            </label>
+
+            <button id="login-submit" class="btn btn-primary" type="submit">دخول بوابة التاجر</button>
+          </form>
+
+          <div class="auth-links">
+            <button type="button" class="auth-link" id="go-forgot-link">نسيت كلمة المرور؟</button>
+            <button type="button" class="auth-link" id="go-register-link">لديك رمز دعوة؟ تسجيل تاجر جديد</button>
+          </div>
+
+          <p class="security-note">بوابة مخصصة للشركات والمؤسسات وتجار الذهب المعتمدين في المملكة العربية السعودية.</p>
+        </div>
+      </section>
+
+      <!-- ================= 2. VIEW: MERCHANT ONBOARDING (REGISTER) ================= -->
+      <section class="view-section" id="register-view">
+        <div class="brand">
+          <img class="brand-icon" src="assets/icon.svg" alt="ذهبك للتاجر">
+          <h1>انضمام تاجر معتمد</h1>
+          <p>تفعيل حساب تاجر جديد عبر رمز الدعوة المعتمد</p>
+          <span class="role-badge">INVITATION ONLY</span>
+        </div>
+
+        <div class="card">
+          <div id="notice-register" class="notice" role="alert"></div>
+
+          <!-- Step A: Enter Details -->
+          <form id="register-form">
+            <label>
+              <span>رمز الدعوة المعتمد (Invite Code)</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+                <input id="reg-code" type="text" dir="ltr" placeholder="DBK-xxxxxxxxxxxxxxxxxxxxxxxx" required>
+              </div>
+              <span class="field-help">يبدأ بـ DBK- ويتم تزويدك به من قِبل إدارة المنصة أو مسوق معتمد.</span>
+            </label>
+
+            <label>
+              <span>اسم التاجر / المتجر أو المنشأة</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input id="reg-fullname" type="text" placeholder="مثال: مجوهرات الصائغ الحديثة" required minlength="2" maxlength="80">
+              </div>
+            </label>
+
+            <label>
+              <span>البريد الإلكتروني للتاجر</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6"/></svg>
+                <input id="reg-email" type="email" dir="ltr" placeholder="trader@store.com" required maxlength="254">
+              </div>
+            </label>
+
+            <label>
+              <span>رقم الجوال التجاري (E.164 مع مفتاح الدولة)</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <input id="reg-phone" type="tel" dir="ltr" placeholder="+966501234567" required pattern="^\+[1-9]\d{7,14}$">
+              </div>
+              <span class="field-help">مثال للسعودية: +9665xxxxxxxx</span>
+            </label>
+
+            <label>
+              <span>كلمة المرور</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11h10v9H7z M9 11V8a3 3 0 0 1 6 0v3"/></svg>
+                <input id="reg-password" type="password" placeholder="8 خانات على الأقل" required minlength="8" maxlength="72">
+              </div>
+            </label>
+
+            <label class="checkbox-label">
+              <input type="checkbox" id="reg-terms-check" required>
+              <span>أوافق على <a href="#" id="view-terms-link" class="auth-link">الشروط والأحكام والسياسات المعتمدة (dhahabk-terms-2026-10-v1)</a> وأقر بصحة البيانات المقدمة.</span>
+            </label>
+
+            <button id="reg-submit" class="btn btn-primary" type="submit">إرسال وتلقي رمز التفعيل</button>
+          </form>
+
+          <!-- Step B: Enter Verification Code -->
+          <form id="verify-onboarding-form" style="display:none; margin-top: 16px;">
+            <div style="background:var(--surface-alt); padding:14px; border-radius:var(--radius-sm); margin-bottom:14px; text-align:center;">
+              <p style="margin:0; font-size:13px; color:var(--ink);">تم إرسال رمز تفعيل مكون من 6 أرقام إلى بريدك الإلكتروني.</p>
+              <strong id="verify-email-display" dir="ltr" style="color:var(--navy); font-size:13px;"></strong>
+            </div>
+
+            <label>
+              <span>رمز التحقق (6 أرقام)</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <input id="verify-code-input" type="text" dir="ltr" placeholder="123456" maxlength="6" pattern="^\d{6}$" required>
+              </div>
+            </label>
+
+            <button id="verify-submit" class="btn btn-primary" type="submit">تأكيد التفعيل والدخول</button>
+          </form>
+
+          <div class="auth-links">
+            <button type="button" class="auth-link" id="reg-back-login-link">العودة لتسجيل الدخول</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. VIEW: FORGOT PASSWORD ================= -->
+      <section class="view-section" id="forgot-view">
+        <div class="brand">
+          <img class="brand-icon" src="assets/icon.svg" alt="ذهبك للتاجر">
+          <h1>استعادة كلمة المرور</h1>
+          <p>إعادة تعيين كلمة المرور لحساب التاجر المعتمد</p>
+        </div>
+
+        <div class="card">
+          <div id="notice-forgot" class="notice" role="alert"></div>
+
+          <!-- Step 1: Request Code -->
+          <form id="forgot-request-form">
+            <label>
+              <span>البريد الإلكتروني المسجل</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6"/></svg>
+                <input id="forgot-email" type="email" dir="ltr" placeholder="trader@store.com" required>
+              </div>
+            </label>
+
+            <button id="forgot-request-submit" class="btn btn-primary" type="submit">إرسال رمز الاستعادة</button>
+          </form>
+
+          <!-- Step 2: Confirm Code and New Password -->
+          <form id="forgot-confirm-form" style="display:none; margin-top: 16px;">
+            <div style="background:var(--surface-alt); padding:14px; border-radius:var(--radius-sm); margin-bottom:14px; text-align:center;">
+              <p style="margin:0; font-size:13px;">أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك.</p>
+            </div>
+
+            <label>
+              <span>رمز التحقق (6 أرقام)</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <input id="forgot-code" type="text" dir="ltr" placeholder="123456" maxlength="6" pattern="^\d{6}$" required>
+              </div>
+            </label>
+
+            <label>
+              <span>كلمة المرور الجديدة</span>
+              <div class="field">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11h10v9H7z M9 11V8a3 3 0 0 1 6 0v3"/></svg>
+                <input id="forgot-new-password" type="password" placeholder="8 خانات على الأقل" minlength="8" maxlength="72" required>
+              </div>
+            </label>
+
+            <button id="forgot-confirm-submit" class="btn btn-primary" type="submit">تعيين كلمة المرور الجديدة</button>
+
+            <div style="margin-top:10px; text-align:center;">
+              <button type="button" class="auth-link" id="forgot-resend-btn">إعادة إرسال الرمز</button>
+              <span id="forgot-countdown" style="font-size:11px; color:var(--muted); margin-right:6px;"></span>
+            </div>
+          </form>
+
+          <div class="auth-links">
+            <button type="button" class="auth-link" id="forgot-back-login-link">العودة لتسجيل الدخول</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. VIEW: MAIN DASHBOARD ================= -->
+      <section class="view-section" id="dash-view">
+        <!-- Top Bar -->
+        <header class="dash-head">
+          <div class="dash-user">
+            <img src="assets/icon.svg" alt="ذهبك للتاجر">
+            <div>
+              <h2 id="merchant-name-display">بوابة التاجر</h2>
+              <p id="session-email"></p>
+            </div>
+          </div>
+          <div class="dash-actions">
+            <button id="btn-refresh-data" class="icon-btn" title="تحديث البيانات" aria-label="تحديث البيانات">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            </button>
+            <button id="logout" class="icon-btn" title="تسجيل الخروج" aria-label="تسجيل الخروج">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H4v18h5 M9 12h12 m-4-4 4 4-4 4"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs-nav" role="tablist">
+          <button class="tab-btn active" data-tab="tab-prices" role="tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            الأسعار والمؤشر
+          </button>
+          <button class="tab-btn" data-tab="tab-profile" role="tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            بيانات التاجر
+          </button>
+          <button class="tab-btn" data-tab="tab-push" role="tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            إشعارات السوق
+          </button>
+          <button class="tab-btn" data-tab="tab-orders" role="tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4z M8 3v6 M16 3v6"/></svg>
+            الطلبات والعملاء
+          </button>
+        </nav>
+
+        <!-- TAB 1: PRICES & CHART -->
+        <div class="tab-content" id="tab-prices">
+          <!-- 4 Karat Cards -->
+          <div class="prices-grid">
+            <div class="price-card featured" id="card-karat-24">
+              <span class="karat-badge">عيار 24 (نقي 999)</span>
+              <div class="price-val" id="price-24-val">—</div>
+              <div class="price-sub">شراء / بيع بالريال السعودي (SAR)</div>
+            </div>
+
+            <div class="price-card" id="card-karat-22">
+              <span class="karat-badge">عيار 22 (916)</span>
+              <div class="price-val" id="price-22-val">—</div>
+              <div class="price-sub">سعر الجرام الحالي</div>
+            </div>
+
+            <div class="price-card" id="card-karat-21">
+              <span class="karat-badge">عيار 21 (المعياري)</span>
+              <div class="price-val" id="price-21-val">—</div>
+              <div class="price-sub">الأكثر تداولاً في السوق</div>
+            </div>
+
+            <div class="price-card" id="card-karat-18">
+              <span class="karat-badge">عيار 18 (750)</span>
+              <div class="price-val" id="price-18-val">—</div>
+              <div class="price-sub">المشغولات الذهبية</div>
+            </div>
+          </div>
+
+          <!-- Price Status Bar -->
+          <div class="price-status-bar">
+            <div>
+              <span class="pulse-dot"></span>
+              <span id="market-status-text">تحديث الأسعار مباشر</span>
+            </div>
+            <div id="last-update-time">آخر تحديث: —</div>
+          </div>
+
+          <!-- Historical Chart Box -->
+          <div class="chart-box" style="margin-top:14px;">
+            <div class="chart-header">
+              <div>
+                <h3 style="margin:0 0 4px; font-size:15px; color:var(--navy);">مؤشر حركة الأسعار</h3>
+                <div style="font-size:11px; color:var(--muted);">
+                  التغير خلال الفترة: <span id="chart-diff-badge" class="chart-stat-diff">—</span>
+                </div>
+              </div>
+
+              <!-- Controls: Karat & Range -->
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <div class="chart-controls" id="chart-karat-select">
+                  <button class="chart-btn active" data-karat="24">24</button>
+                  <button class="chart-btn" data-karat="22">22</button>
+                  <button class="chart-btn" data-karat="21">21</button>
+                  <button class="chart-btn" data-karat="18">18</button>
+                </div>
+
+                <div class="chart-controls" id="chart-range-select">
+                  <button class="chart-btn active" data-range="day">يوم</button>
+                  <button class="chart-btn" data-range="week">أسبوع</button>
+                  <button class="chart-btn" data-range="month">شهر</button>
+                  <button class="chart-btn" data-range="available">الكل</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- SVG Container -->
+            <div class="chart-svg-wrap" id="chart-svg-container">
+              <div style="display:grid; place-items:center; height:100%; color:var(--muted); font-size:12px;">جارٍ تحميل بيانات الرسم البياني…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: PROFILE & MERCHANT INFO -->
+        <div class="tab-content" id="tab-profile" style="display:none;">
+          <div class="card">
+            <h3 class="card-title">بيانات الحساب والمنشأة</h3>
+            <div id="notice-profile" class="notice" role="alert"></div>
+
+            <form id="profile-form">
+              <label>
+                <span>الاسم الكامل أو اسم المنشأة التجارية</span>
+                <div class="field">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <input id="profile-fullname" type="text" minlength="2" maxlength="80" required>
+                </div>
+              </label>
+
+              <label>
+                <span>المدينة (المقر الرئيسي أو الفرع)</span>
+                <div class="field">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <input id="profile-city" type="text" list="saudi-cities" placeholder="مثال: الرياض، جدة، الدمام، جازان" maxlength="80">
+                  <datalist id="saudi-cities">
+                    <option value="الرياض">
+                    <option value="جدة">
+                    <option value="مكة المكرمة">
+                    <option value="المدينة المنورة">
+                    <option value="الدمام">
+                    <option value="الخبر">
+                    <option value="جازان">
+                    <option value="أبها">
+                    <option value="تبوك">
+                    <option value="بريدة">
+                    <option value="الطائف">
+                    <option value="الهفوف">
+                  </datalist>
+                </div>
+              </label>
+
+              <label>
+                <span>البريد الإلكتروني (المعرف الأساسي)</span>
+                <div class="field">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6"/></svg>
+                  <input id="profile-email-readonly" type="email" dir="ltr" readonly style="background:var(--surface-alt); cursor:not-allowed;">
+                </div>
+              </label>
+
+              <label>
+                <span>نوع الحساب والصلاحية المعتمدة</span>
+                <div style="padding:10px 14px; background:var(--gold-subtle); border:1px solid var(--gold-border); border-radius:var(--radius-sm); font-size:12px; color:#8B6B00; font-weight:700;">
+                  تاجر معتمد — MERCHANT ROLE
+                </div>
+              </label>
+
+              <button id="profile-submit" class="btn btn-primary" type="submit" style="margin-top:8px;">حفظ التعديلات</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- TAB 3: PUSH NOTIFICATIONS -->
+        <div class="tab-content" id="tab-push" style="display:none;">
+          <div class="card">
+            <h3 class="card-title">إشعارات السوق والتنبيهات المباشرة</h3>
+            <div id="notice-push" class="notice" role="alert"></div>
+
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <h4>تفعيل الإشعارات على هذا الجهاز</h4>
+                <p>تلقي تحديثات فورية لأسعار الذهب وتنبيهات الصفقات</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="push-toggle">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <h4>تنبيهات افتتاح وإغلاق السوق</h4>
+                <p>إشعار يومي عند افتتاح التداول العالمي للذهب والإغلاق الأسبوعي</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="market-session-toggle">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--line);">
+              <button id="btn-test-push" class="btn btn-secondary btn-sm" type="button">إرسال إشعار تجريبي لهذا الجهاز</button>
+              <p class="field-help" style="margin-top:8px;">يتطلب تفعيل الإشعارات في متصفحك أو تثبيت التطبيق على الشاشة الرئيسية.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: ORDERS & MARKETPLACE (UPCOMING) -->
+        <div class="tab-content" id="tab-orders" style="display:none;">
+          <div class="card">
+            <h3 class="card-title">وحدات إدارة التجارة والمبيعات</h3>
+            <p style="font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:18px;">
+              تم تصميم هذه الواجهات للربط المباشر مع وحدات Marketplace والطلبات والمحادثات الميدانية فور إطلاق الـ API التجاري المخصص.
+            </p>
+
+            <div class="modules">
+              <article class="module">
+                <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4z M8 3v6 M16 3v6"/></svg></span>
+                <div>
+                  <h3>طلبات الشراء والبيع المباشرة</h3>
+                  <p>استقبال طلبات العملاء وحجز الأسعار المثبتة لحظياً</p>
+                </div>
+                <span class="pending-tag">قيد الربط</span>
+              </article>
+
+              <article class="module">
+                <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>
+                <div>
+                  <h3>إدارة العملاء والمستثمرين</h3>
+                  <p>سجل التعاملات والمحافظ وفواتير الذهب الموثقة</p>
+                </div>
+                <span class="pending-tag">قيد الربط</span>
+              </article>
+
+              <article class="module">
+                <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v12H8l-4 4z"/></svg></span>
+                <div>
+                  <h3>محادثات الصفقات والوساطة</h3>
+                  <p>قنوات اتصال آمنة ومشفرة مع المشترين والمسوقين</p>
+                </div>
+                <span class="pending-tag">قيد الربط</span>
+              </article>
+
+              <article class="module">
+                <span class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9 M10 19V5 M16 19v-7 M22 19H2"/></svg></span>
+                <div>
+                  <h3>التقارير المالية والضريبية</h3>
+                  <p>كشوفات مبيعات الذهب وحسابات ضريبة القيمة المضافة</p>
+                </div>
+                <span class="pending-tag">قيد الربط</span>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <footer class="footer">
+          منصة ذهبك للتاجر المعتمد — © 2026 جميع الحقوق محفوظة
+        </footer>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

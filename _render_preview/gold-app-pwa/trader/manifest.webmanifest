@@ -1,0 +1,26 @@
+{
+  "id": "/gold-app-pwa/trader/",
+  "name": "ذهبي للتاجر",
+  "short_name": "ذهبي تاجر",
+  "description": "بوابة ذهبي المستقلة للتاجر المعتمد",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/gold-app-pwa/trader/",
+  "scope": "/gold-app-pwa/trader/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#001F3F",
+  "theme_color": "#001F3F",
+  "categories": [
+    "finance",
+    "business"
+  ],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
