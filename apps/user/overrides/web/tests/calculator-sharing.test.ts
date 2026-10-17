@@ -35,7 +35,7 @@ describe('quote sharing',()=>{
  it('supports non-Arabic content from the same quote snapshot',()=>{
   const en=quoteShareText({...example,language:'en',words:'Only five thousand one hundred thirty-nine Saudi riyals and twenty halalas.'});
   expect(en).toContain('Entered tax amount: 0.00 SAR');
-  expect(en).toContain('Estimated total: 5,139.20 SAR');
+  expect(en).toContain('Final estimated total: 5,139.20 SAR');
   const fr=quoteShareText({...example,language:'fr',words:'Cinq mille cent trente-neuf riyals.'});
   expect(fr).toContain('Taxe saisie: 0,00 SAR');
  });
@@ -65,6 +65,10 @@ describe('story-only quote and fitting',()=>{
   expect(imageSource).not.toContain("format:ShareFormat");
   expect(imageSource).not.toContain(".slice(0,3)");
   expect(imageSource).not.toContain("rtl?'ذ':'D'");
+  expect(imageSource).toContain('const totalHeight=335;');
+  expect(imageSource).toContain('rounded(ctx,57,positions.total,966,totalHeight,25,gradient);');
+  expect(imageSource).toContain('fitted.lines.forEach((line,i)=>write(');
+  expect(imageSource).not.toContain('positions.words');
  });
  it('keeps every word and shrinks oversized tafqeet instead of truncating',()=>{
   const ctx={

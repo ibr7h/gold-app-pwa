@@ -31,11 +31,12 @@ export function preloadQuoteIcon():Promise<HTMLImageElement>{
 }
 
 const text={
- ar:{title:'تفاصيل السعر المقدر',subtitle:'تقدير استرشادي — ليست فاتورة ضريبية',brand:'ذَهَبْك',tagline:'المنصة الموثوقة لأسعار الذهب والمجوهرات',purity:'العيار',unit:'سعر الجرام المعتمد في الحساب',base:'سعر الجرام الأساسي',manual:'سعر مُدخل يدويًا',market:'السعر المرجعي',weight:'الوزن',grams:'جرام',metal:'قيمة الذهب',fees:'إجمالي المصنعية',tax:'الضريبة المدخلة',total:'الإجمالي النهائي',words:'الإجمالي كتابة',footer:'حُسب عبر منصة ذَهَبْك للذهب والمجوهرات',disclaimer:'القيمة استرشادية، وقد يختلف السعر الفعلي.',date:'تاريخ التقدير',only:'عيار'},
- en:{title:'Estimated gold price',subtitle:'Indicative estimate — not a tax invoice',brand:'DHAHABK',tagline:'Gold & jewelry price information',purity:'Purity',unit:'Price per gram used',base:'Reference price per gram',manual:'Manually entered',market:'Reference quote',weight:'Weight',grams:'g',metal:'Gold value',fees:'Total workmanship',tax:'Entered tax amount',total:'Estimated total',words:'Total in words',footer:'Calculated with Dhahabk',disclaimer:'Indicative only. Actual seller prices may vary.',date:'Estimate date',only:'K'},
- fr:{title:'Détail du prix estimé',subtitle:'Estimation indicative — non fiscale',brand:'DHAHABK',tagline:'Cours de l’or et des bijoux',purity:'Carats',unit:'Prix au gramme retenu',base:'Prix de référence au gramme',manual:'Saisie manuelle',market:'Prix indicatif',weight:'Poids',grams:'g',metal:'Valeur de l’or',fees:'Total de la façon',tax:'Taxe saisie',total:'Total estimé',words:'Montant en lettres',footer:'Calculé avec Dhahabk',disclaimer:'Prix indicatif susceptible de varier en boutique.',date:'Date du calcul',only:'carats'},
+ ar:{title:'تفاصيل السعر المقدر',subtitle:'تقدير استرشادي — ليست فاتورة ضريبية',brand:'ذَهَبْك',tagline:'المنصة الموثوقة لأسعار الذهب والمجوهرات',purity:'العيار',unit:'سعر الجرام المعتمد في الحساب',base:'سعر الجرام الأساسي',manual:'سعر مُدخل يدويًا',market:'السعر المرجعي',weight:'الوزن',grams:'جرام',metal:'قيمة الذهب',fees:'إجمالي المصنعية',tax:'الضريبة المدخلة',total:'الإجمالي النهائي التقديري',words:'المبلغ كتابة:',footer:'حُسب عبر منصة ذَهَبْك للذهب والمجوهرات',disclaimer:'القيمة استرشادية، وقد يختلف السعر الفعلي.',date:'تاريخ التقدير',only:'عيار'},
+ en:{title:'Estimated gold price',subtitle:'Indicative estimate — not a tax invoice',brand:'DHAHABK',tagline:'Gold & jewelry price information',purity:'Purity',unit:'Price per gram used',base:'Reference price per gram',manual:'Manually entered',market:'Reference quote',weight:'Weight',grams:'g',metal:'Gold value',fees:'Total workmanship',tax:'Entered tax amount',total:'Final estimated total',words:'Amount in words:',footer:'Calculated with Dhahabk',disclaimer:'Indicative only. Actual seller prices may vary.',date:'Estimate date',only:'K'},
+ fr:{title:'Détail du prix estimé',subtitle:'Estimation indicative — non fiscale',brand:'DHAHABK',tagline:'Cours de l’or et des bijoux',purity:'Carats',unit:'Prix au gramme retenu',base:'Prix de référence au gramme',manual:'Saisie manuelle',market:'Prix indicatif',weight:'Poids',grams:'g',metal:'Valeur de l’or',fees:'Total de la façon',tax:'Taxe saisie',total:'Total final estimé',words:'Montant en lettres :',footer:'Calculé avec Dhahabk',disclaimer:'Prix indicatif susceptible de varier en boutique.',date:'Date du calcul',only:'carats'},
 } as const;
 const langLocale={ar:'ar-SA',en:'en-US',fr:'fr-FR'};
+const GOLD_CARD_FONT='"Amiri","Geeza Pro","Noto Naskh Arabic","Traditional Arabic",serif';
 function fmt(n:number,lang:QuoteLanguage):string {
  return new Intl.NumberFormat(langLocale[lang],{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
 }
@@ -84,14 +85,14 @@ function rounded(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:numbe
  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
  ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}
 }
-function write(ctx:CanvasRenderingContext2D,s:string,x:number,y:number,size:number,color:string,weight=600,align:CanvasTextAlign='right',limit=860) {
+function write(ctx:CanvasRenderingContext2D,s:string,x:number,y:number,size:number,color:string,weight=600,align:CanvasTextAlign='right',limit=860,fontFamily='Tahoma, Arial, sans-serif') {
  ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline='middle';
  let fontSize=size;
- do {ctx.font=weight+' '+fontSize+'px Tahoma, Arial, sans-serif'; if(ctx.measureText(s).width<=limit||fontSize<=19)break;fontSize-=2;}while(fontSize>19);
+ do {ctx.font=weight+' '+fontSize+'px '+fontFamily; if(ctx.measureText(s).width<=limit||fontSize<=19)break;fontSize-=2;}while(fontSize>19);
  ctx.fillText(s,x,y);
 }
 function wrap(ctx:CanvasRenderingContext2D,s:string,maxWidth:number,size:number):string[] {
- ctx.font='600 '+size+'px Tahoma, Arial, sans-serif';
+ ctx.font='750 '+size+'px '+GOLD_CARD_FONT;
  const words=s.split(/\s+/), lines:string[]=[];let line='';
  for(const word of words){const next=line?line+' '+word:word;if(line&&ctx.measureText(next).width>maxWidth){lines.push(line);line=word;}else line=next;}
  if(line)lines.push(line);
@@ -145,7 +146,7 @@ export async function quoteShareBlob(quote:ShareQuote):Promise<Blob>{
  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
  rounded(ctx,30,30,w-60,h-60,34,'#071E36','#C5A021');
  drawOfficialIcon(ctx,brandIcon);
- const positions={brand:270,title:360,sub:422,card:495,head:542,start:625,row:83,total:1250,words:1390,footer:1620,disclaimer:1838};
+ const positions={brand:270,title:360,sub:422,card:495,head:542,start:625,row:83,total:1250,footer:1620,disclaimer:1838};
  ctx.direction=rtl?'rtl':'ltr';
  write(ctx,t.brand,w/2,positions.brand,52,lightGold,800,'center');
  write(ctx,t.title,w/2,positions.title,53,'#FFFFFF',800,'center');
@@ -161,16 +162,21 @@ export async function quoteShareBlob(quote:ShareQuote):Promise<Blob>{
   write(ctx,label,973,y,32,ink,i===4?700:600,'right',560);
   write(ctx,value,93,y,33,i===4?'#9A7217':ink,700,'left',380);
  });
- const totalHeight=140;
- const gradient=ctx.createLinearGradient(55,0,1025,0);gradient.addColorStop(0,'#C5A021');gradient.addColorStop(.6,'#F2D66F');gradient.addColorStop(1,'#CAA02B');
+ const totalHeight=335;
+ const gradient=ctx.createLinearGradient(57,0,1023,0);
+ gradient.addColorStop(0,'#C49A24');gradient.addColorStop(.33,'#E5BE46');
+ gradient.addColorStop(.65,'#F4D86A');gradient.addColorStop(1,'#B78E1D');
  rounded(ctx,57,positions.total,966,totalHeight,25,gradient);
- write(ctx,t.total,972,positions.total+totalHeight/2,40,navyDeep,800,'right',480);
- write(ctx,amount(quote.total,quote),92,positions.total+totalHeight/2,57,navyDeep,800,'left',540);
- const wordHeight=200;
- rounded(ctx,57,positions.words,966,wordHeight,22,'#FCF8EF');
- write(ctx,t.words,971,positions.words+33,26,'#8B681C',700,'right',860);
- const fitted=fitQuoteWords(ctx,quote.words,852,120);
- fitted.lines.forEach((line,i)=>write(ctx,line,971,positions.words+83+i*fitted.lineHeight,fitted.fontSize,ink,650,'right',852));
+ // Right-aligned title, prominent total on the left; one uninterrupted gold card.
+ const currencyLabel=quote.currency==='SAR'&&rtl?'ر.س':quote.currency;
+ write(ctx,t.total+' ('+currencyLabel+')',975,positions.total+68,38,navyDeep,800,'right',520,GOLD_CARD_FONT);
+ const goldenAmount=fmt(quote.total,quote.language)+' '+currencyLabel;
+ write(ctx,goldenAmount,92,positions.total+68,58,navyDeep,900,'left',510,'Arial,\"Geeza Pro\",sans-serif');
+ ctx.strokeStyle='rgba(68,57,24,.48)';ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(85,positions.total+117);ctx.lineTo(994,positions.total+117);ctx.stroke();
+ write(ctx,t.words,975,positions.total+160,28,navyDeep,800,'right',850,GOLD_CARD_FONT);
+ const fitted=fitQuoteWords(ctx,quote.words,870,112);
+ fitted.lines.forEach((line,i)=>write(ctx,line,975,positions.total+213+i*fitted.lineHeight,fitted.fontSize,navyDeep,800,'right',870,GOLD_CARD_FONT));
  const footerH=180;
  rounded(ctx,57,positions.footer,966,footerH,22,'#102D4B','#8C721C');
  const qrSize=147;
