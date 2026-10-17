@@ -353,12 +353,16 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
      <div><dt>قيمة الذهب الخام</dt><dd dir="ltr">{money(calcRaw,priceCurrency)}</dd></div>
      <div><dt>إجمالي المصنعية</dt><dd dir="ltr">{money(calcFeeTotal,priceCurrency)}</dd></div>
      <div><dt>الضريبة المدخلة</dt><dd dir="ltr">{money(calcTax,priceCurrency)}</dd></div>
-     <div className="final"><dt>الإجمالي النهائي</dt><dd dir="ltr">{money(calcTotal,priceCurrency)}</dd></div>
     </dl>
-    <div className="calc-words-block">
-     <div className="calc-words-label">الإجمالي كتابة</div>
-     <p className="calc-words-value" aria-label="الإجمالي كتابة">{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
-    </div>
+    <div className="calc-final-gold" role="group" aria-label={tr('الإجمالي النهائي التقديري')}>
+     <div className="calc-final-gold-top">
+      <strong className="calc-final-gold-label">{tr('الإجمالي النهائي التقديري')} <span dir="ltr">({priceCurrency==='SAR'?'ر.س':priceCurrency})</span></strong>
+      <strong className="calc-final-gold-amount" dir="ltr">{money(calcTotal,priceCurrency)}</strong>
+     </div>
+     <div className="calc-words-block">
+      <div className="calc-words-label">{tr('المبلغ كتابة:')}</div>
+      <p className="calc-words-value" aria-label={tr('المبلغ كتابة:')}>{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
+     </div>
    </section>
   </>;
 
