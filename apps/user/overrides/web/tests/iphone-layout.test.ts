@@ -278,7 +278,7 @@ describe('Approved global gold market-closed UI',()=>{
   expect(css).toContain('.calc-title-actions');
   expect(css).toContain('.calc-badge-btn');
   expect(css).not.toContain('.calc-final-gold');
- });;
+ });
 });
 
 describe('iPhone more and profile UX redesign',()=>{
