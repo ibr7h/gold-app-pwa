@@ -1,0 +1,34 @@
+<!doctype html><html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#001F3F"><meta name="description" content="بوابة مسوّقي ذهبك المعتمدين — إصدار دعوات التجار">
+<title>ذهبك — بوابة المسوّق المعتمد</title><link rel="stylesheet" href="styles.css"></head>
+<body><main class="shell">
+<header class="brand"><div class="emblem" aria-hidden="true">✦</div><h1>ذهبك للمسوّق</h1>
+<p>إصدار دعوات التجار للمسوّقين المفوّضين من الإدارة فقط</p></header>
+<section id="login-screen" class="card" aria-labelledby="login-title">
+<h2 id="login-title">دخول المسوّق المعتمد</h2>
+<p class="muted">يتطلب حسابًا موثّقًا من ذهبك وتفويضًا نشطًا من الإدارة. لا يوجد تسجيل ذاتي للمسوّقين في هذه البوابة.</p>
+<form id="login-form">
+<label for="marketer-email">البريد الإلكتروني</label><input id="marketer-email" type="email" dir="ltr" autocomplete="username" required>
+<label for="marketer-password">كلمة المرور</label><input id="marketer-password" type="password" autocomplete="current-password" required>
+<button id="login-submit" type="submit">الدخول إلى بوابة المسوّق</button>
+</form></section>
+<section id="portal-screen" hidden>
+<div class="card"><div class="between"><h2>إصدار دعوة تاجر</h2><button id="marketer-logout" class="secondary" type="button">خروج</button></div>
+<p class="muted">صلاحية الإصدار محدودة من الإدارة. كل رمز يخص بريد تاجر واحدًا، ويُستخدم مرة واحدة ويظل صالحًا لمدة لا تتجاوز 14 يومًا.</p>
+<form id="issue-form">
+<label for="store-name">اسم متجر الذهب</label><input id="store-name" type="text" minlength="2" maxlength="120" autocomplete="off" required>
+<label for="store-email">بريد حساب التاجر الجديد</label><input id="store-email" type="email" dir="ltr" maxlength="254" autocomplete="off" required>
+<label for="invite-days">صلاحية الدعوة بالأيام (1–14)</label><input id="invite-days" type="number" min="1" max="14" value="7" required>
+<button id="issue-submit" type="submit">إنشاء رمز الدعوة</button></form>
+<div id="issued-panel" class="issued" hidden>
+<strong>رمز الدعوة — يظهر مرة واحدة</strong><code id="issued-code" dir="ltr"></code>
+<button id="issued-copy" class="secondary" type="button">نسخ الرمز</button>
+<p class="muted">لا يُخزّن الرمز كاملاً في قائمة الدعوات؛ أرسله لصاحب البريد المحدد فقط.</p>
+</div></div>
+<div class="card"><div class="between"><h2>دعواتي السابقة</h2><button id="refresh-invites" class="secondary" type="button">تحديث</button></div>
+<div id="my-invites" class="records"><p class="muted">ستُحمّل الدعوات من الخادم.</p></div></div>
+</section>
+<p id="portal-message" class="feedback" role="status" aria-live="polite"></p>
+<footer>© 2026 ذهبك — صلاحيات المسوّق محددة بالإصدار فقط</footer>
+</main><script src="app.js"></script></body></html>
