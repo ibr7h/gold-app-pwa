@@ -341,28 +341,29 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     </label>
    </section>
    <section className="approved-card calc-estimate-card" aria-label="تفاصيل السعر المقدر">
-    <div className="approved-card-title calc-quote-heading">
+    <div className="approved-card-title">
      <span>تفاصيل السعر المقدر</span>
-     <div className="calc-quote-actions" role="group" aria-label={tr('إجراءات تفاصيل السعر المقدر')}>
-      <button type="button" title={tr('نسخ التفاصيل')} aria-label={tr('نسخ التفاصيل')} disabled={calcTotal===null} onClick={()=>void copyQuoteDetails()}><Icon name="copy"/></button>
-      <button type="button" title={tr('مشاركة كصورة')} aria-label={tr('مشاركة كصورة')} disabled={calcTotal===null} onClick={()=>void shareQuoteImage(false)}><Icon name="share"/></button>
-      <button type="button" title={tr('حفظ الصورة')} aria-label={tr('حفظ الصورة')} disabled={calcTotal===null} onClick={()=>void shareQuoteImage(true)}><Icon name="download"/></button>
+     <div className="calc-title-actions" role="group" aria-label={tr('إجراءات تفاصيل السعر المقدر')}>
+      <button type="button" className="calc-badge-btn" title={tr('مشاركة كصورة')} aria-label={tr('مشاركة كصورة')} disabled={calcTotal===null} onClick={()=>void shareQuoteImage(false)}>
+       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8.59 13.51l6.83 3.98M15.41 6.51 8.59 10.49"/></svg>
+      </button>
+      <button type="button" className="calc-badge-btn" title={tr('حفظ الصورة')} aria-label={tr('حفظ الصورة')} disabled={calcTotal===null} onClick={()=>void shareQuoteImage(true)}>
+       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3"/></svg>
+      </button>
+      <button type="button" className="calc-badge-btn" title={tr('نسخ التفاصيل')} aria-label={tr('نسخ التفاصيل')} disabled={calcTotal===null} onClick={()=>void copyQuoteDetails()}>
+       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 9h10v11H9Z M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+      </button>
      </div>
     </div>
     <dl className="calc-breakdown">
      <div><dt>قيمة الذهب الخام</dt><dd dir="ltr">{money(calcRaw,priceCurrency)}</dd></div>
      <div><dt>إجمالي المصنعية</dt><dd dir="ltr">{money(calcFeeTotal,priceCurrency)}</dd></div>
      <div><dt>الضريبة المدخلة</dt><dd dir="ltr">{money(calcTax,priceCurrency)}</dd></div>
+     <div className="final"><dt>{tr('الإجمالي النهائي التقديري')}</dt><dd dir="ltr">{money(calcTotal,priceCurrency)}</dd></div>
     </dl>
-    <div className="calc-final-gold" role="group" aria-label={tr('الإجمالي النهائي التقديري')}>
-     <div className="calc-final-gold-top">
-      <strong className="calc-final-gold-label">{tr('الإجمالي النهائي التقديري')} <span dir="ltr">({priceCurrency==='SAR'?'ر.س':priceCurrency})</span></strong>
-      <strong className="calc-final-gold-amount" dir="ltr">{money(calcTotal,priceCurrency)}</strong>
-     </div>
-     <div className="calc-words-block">
-      <div className="calc-words-label">{tr('المبلغ كتابة:')}</div>
-      <p className="calc-words-value" aria-label={tr('المبلغ كتابة:')}>{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
-     </div>
+    <div className="calc-words-block">
+     <div className="calc-words-label">{tr('المبلغ كتابة:')}</div>
+     <p className="calc-words-value" aria-label={tr('المبلغ كتابة:')}>{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
     </div>
    </section>
   </>;

@@ -242,29 +242,42 @@ describe('Approved global gold market-closed UI',()=>{
   expect(s).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000)");
   expect(s).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
  });
- it('matches the approved estimated-price details card and tafqeet block',()=>{
+ it('keeps the original quote screen layout with four line items, action badges, and tafqeet footer',()=>{
   const s=source('../UserWorkspace.tsx');
   const css=source('../user.css');
-  expect(s).not.toContain('className="approved-card calc-total-card"');
-  expect(s).not.toContain('السعر الإجمالي التقريبي');
-  expect(s).toContain('className="approved-card calc-estimate-card"');
-  expect(s).toContain('className="calc-words-block"');
-  expect(s).toContain('className="calc-words-label">{tr(\'المبلغ كتابة:\')}');
-  expect(s).toContain('className="calc-final-gold"');
-  expect(s).toContain('className="calc-final-gold-top"');
-  expect(s).toContain('className="calc-final-gold-amount"');
-  expect(s).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
-  const a=s.indexOf('className="approved-card calc-estimate-card"');
-  let pos=a;
-  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة المدخلة','الإجمالي النهائي التقديري','المبلغ كتابة:']){
-   const next=s.indexOf(label,pos+1);
-   expect(next).toBeGreaterThan(pos);
-   pos=next;
+  const start=s.indexOf('className="approved-card calc-estimate-card"');
+  const finish=s.indexOf('</section>',start);
+  const card=s.slice(start,finish);
+  expect(start).toBeGreaterThan(0);
+  expect(card).toContain('className="approved-card-title"');
+  expect(card).toContain('className="calc-title-actions"');
+  expect(card.match(/className="calc-badge-btn"/g)).toHaveLength(3);
+  expect(card).toContain('onClick={()=>void shareQuoteImage(false)}');
+  expect(card).toContain('onClick={()=>void shareQuoteImage(true)}');
+  expect(card).toContain('onClick={()=>void copyQuoteDetails()}');
+  expect(card).not.toContain('className="calc-final-gold"');
+  expect(card).not.toContain('15%');
+  expect(card).toContain('className="calc-words-label">{tr(\'المبلغ كتابة:\')}');
+  expect(card).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
+  const summary=card.indexOf('<dl className="calc-breakdown">');
+  const lastRow=card.indexOf('className="final"');
+  const endBreakdown=card.indexOf('</dl>');
+  const words=card.indexOf('<div className="calc-words-block">');
+  expect(summary).toBeGreaterThan(0);
+  expect(lastRow).toBeGreaterThan(summary);
+  expect(lastRow).toBeLessThan(endBreakdown);
+  expect(words).toBeGreaterThan(endBreakdown);
+  let pos=summary;
+  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة المدخلة','الإجمالي النهائي التقديري']){
+   const index=card.indexOf(label,pos+1);
+   expect(index).toBeGreaterThan(pos);
+   pos=index;
   }
+  expect(css).toContain('.calc-estimate-card .calc-breakdown .final');
   expect(css).toContain('.calc-estimate-card .calc-words-block');
-  expect(css).toContain('border-top:2px dashed #E2D3A2');
-  expect(css).toContain('.calc-estimate-card>.calc-final-gold');
-  expect(css).toContain('background:linear-gradient(105deg');
+  expect(css).toContain('.calc-title-actions');
+  expect(css).toContain('.calc-badge-btn');
+  expect(css).not.toContain('.calc-final-gold');
  });
 });
 
