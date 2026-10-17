@@ -2615,68 +2615,124 @@ html:not(.dh-iphone-page-lock) .gold-auth .dh-intl-country-trigger{
 }
 
 
-/* More > Preferences — match the three-row approved structure in RTL and LTR.
-   Keep 44px touch targets, gold selected state, and all existing onClick logic. */
-.gold-web.workspace .dh-preference-card>.dh-preference-row{
- display:grid;grid-template-columns:44px minmax(0,1fr) auto;
- align-items:center;gap:10px 12px;min-width:0;
- padding:13px 0;box-sizing:border-box;
+/* More > Preferences — dedicated vertical layout based on approved screenshot.
+   These selectors are scoped to the user More page, not Profile or other cards. */
+.gold-web.workspace .dh-ux-more .dh-preference-card{
+ display:block!important;min-width:0;overflow:visible!important;
+ padding:15px 16px 17px!important;
+ background:#fff!important;border:1px solid #E5EAF1!important;
+ border-radius:20px!important;
+ box-shadow:0 5px 18px rgba(0,31,63,.06);
 }
-.gold-web.workspace .dh-preference-card>.dh-preference-row>.dh-ux-row-icon{
- grid-column:1;grid-row:1;margin:0;
+.gold-web.workspace .dh-ux-more .dh-preference-card>.dh-ux-group-title{
+ display:flex!important;align-items:center;gap:9px;
+ margin:0!important;padding:0 0 13px!important;
+ border-bottom:1px solid #E7ECF2!important;
+ color:#001F3F!important;font-size:16px!important;
+ font-weight:800!important;line-height:1.5!important;
+ text-align:start!important;
 }
-.gold-web.workspace .dh-preference-card>.dh-preference-row>.dh-preference-text{
- grid-column:2;grid-row:1;min-width:0;flex:none;
- text-align:start;overflow-wrap:break-word;
+.gold-web.workspace .dh-ux-more .dh-preference-card>.dh-ux-group-title::before{
+ content:"";width:4px;height:17px;flex:0 0 4px;
+ border-radius:4px;background:#C5A021;
 }
-.gold-web.workspace .dh-preference-card .dh-preference-text small{
- display:block;margin-top:2px;line-height:1.5;
+.gold-web.workspace .dh-ux-more .dh-preference-card>.dh-preference-row.dh-preference-item{
+ display:block!important;min-width:0;min-height:0!important;
+ margin:0!important;padding:13px 0 14px!important;
+ background:transparent!important;border:0!important;
+ border-bottom:1px solid #E7ECF2!important;
 }
-.gold-web.workspace .dh-preference-card>.dh-preference-row>.dh-language-options,
-.gold-web.workspace .dh-preference-card>.dh-preference-row>.dh-currency-options,
-.gold-web.workspace .dh-preference-card>.dh-preference-row>.dh-calendar-options{
- grid-column:3;grid-row:1;
- display:flex;align-items:center;justify-content:flex-end;
- justify-self:end;flex:initial;min-width:0;max-width:100%;
- margin:0;gap:6px;direction:ltr;
+.gold-web.workspace .dh-ux-more .dh-preference-card>.dh-preference-item:last-child{
+ border-bottom:0!important;padding-bottom:0!important;
 }
-.gold-web.workspace .dh-preference-card .dh-language-options{
- flex-wrap:nowrap;
+.gold-web.workspace .dh-ux-more .dh-preference-head{
+ display:flex!important;align-items:center;gap:11px;
+ flex-direction:row;min-width:0;min-height:47px;
+ margin:0 0 10px!important;direction:inherit;
 }
-.gold-web.workspace .dh-preference-card .dh-language-options button{
- min-width:77px;flex:0 1 auto;
+.gold-web.workspace .dh-ux-more .dh-preference-head>.dh-ux-row-icon{
+ display:flex;align-items:center;justify-content:center;flex:0 0 44px;
+ width:44px;height:44px;min-width:44px;
+ border-radius:13px;background:#F1F4F8!important;
+ border:1px solid #E1E7EF;color:#001F3F!important;
+ box-shadow:0 1px 2px rgba(8,25,45,.045);
 }
-.gold-web.workspace .dh-preference-card .dh-currency-options button,
-.gold-web.workspace .dh-preference-card .dh-calendar-options button{
- flex:0 1 auto;
+.gold-web.workspace .dh-ux-more .dh-preference-head>.dh-ux-row-icon svg{
+ width:22px;height:22px;stroke-width:1.8;
 }
-.gold-web.workspace .dh-preference-card .dh-language-options button.selected,
-.gold-web.workspace .dh-preference-card .dh-currency-options button.selected,
-.gold-web.workspace .dh-preference-card .dh-calendar-options button.selected{
- background:#F5EDD1;border-color:#C5A021;color:#001F3F;
+.gold-web.workspace .dh-ux-more .dh-preference-head>.dh-preference-text{
+ display:flex;flex:1 1 auto;min-width:0;flex-direction:column;
+ align-items:flex-start;gap:2px;text-align:start!important;
 }
-@media(max-width:530px){
- .gold-web.workspace .dh-preference-card>.dh-preference-row{
-  grid-template-columns:44px minmax(0,1fr);
-  row-gap:9px;
- }
- .gold-web.workspace .dh-preference-card>.dh-preference-row>.dh-language-options,
- .gold-web.workspace .dh-preference-card>.dh-preference-row>.dh-currency-options,
- .gold-web.workspace .dh-preference-card>.dh-preference-row>.dh-calendar-options{
-  grid-column:2;grid-row:2;justify-self:stretch;
-  justify-content:stretch;max-width:100%;width:100%;min-width:0;
- }
- .gold-web.workspace .dh-preference-card .dh-language-options button,
- .gold-web.workspace .dh-preference-card .dh-currency-options button,
- .gold-web.workspace .dh-preference-card .dh-calendar-options button{
-  flex:1 1 0;min-width:0;min-height:44px;padding:8px 5px;
- }
+.gold-web.workspace .dh-ux-more .dh-preference-head>.dh-preference-text strong{
+ color:#001F3F!important;font-size:15px!important;
+ font-weight:800!important;line-height:1.5!important;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-head>.dh-preference-text small{
+ color:#7B89A1!important;font-size:11px!important;
+ font-weight:500;line-height:1.6!important;display:block!important;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-language-options,
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-currency-options,
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-calendar-options{
+ box-sizing:border-box!important;
+ display:grid!important;align-items:stretch!important;
+ grid-auto-flow:row;gap:4px!important;
+ flex:none!important;min-width:0!important;max-width:none!important;
+ width:100%!important;min-height:52px!important;
+ margin:0!important;padding:4px!important;
+ border:1px solid #DFE6EF!important;border-radius:13px!important;
+ background:#EEF2F7!important;
+ justify-content:stretch!important;justify-self:auto!important;
+ box-shadow:none!important;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-language-options,
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-currency-options{
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ direction:ltr!important;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-calendar-options{
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ direction:rtl!important;
+}
+.gold-web[dir="ltr"].workspace .dh-ux-more .dh-preference-item>.dh-calendar-options{
+ direction:ltr!important;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-language-options>button,
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-currency-options>button,
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-calendar-options>button{
+ box-sizing:border-box!important;display:flex!important;
+ align-items:center!important;justify-content:center!important;
+ width:100%!important;min-width:0!important;max-width:100%!important;
+ min-height:44px!important;flex:none!important;
+ margin:0!important;padding:7px 3px!important;
+ border:1px solid transparent!important;border-radius:10px!important;
+ background:transparent!important;box-shadow:none!important;
+ color:#43546C!important;font:800 12px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif!important;
+ white-space:nowrap!important;cursor:pointer;
+ transition:background .15s ease,border-color .15s ease,box-shadow .15s ease;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-language-options>button[aria-pressed="true"],
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-currency-options>button[aria-pressed="true"],
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-calendar-options>button[aria-pressed="true"]{
+ color:#061A33!important;background:linear-gradient(115deg,#E7C757,#C5A021)!important;
+ border-color:#CBAB30!important;box-shadow:0 2px 6px rgba(121,88,9,.16)!important;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-language-options>button:focus-visible,
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-currency-options>button:focus-visible,
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-calendar-options>button:focus-visible{
+ outline:2px solid #96751A!important;outline-offset:1px!important;
+}
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-language-options>button:hover:not([aria-pressed="true"]),
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-currency-options>button:hover:not([aria-pressed="true"]),
+.gold-web.workspace .dh-ux-more .dh-preference-item>.dh-calendar-options>button:hover:not([aria-pressed="true"]){
+ background:rgba(255,255,255,.7)!important;
 }
 @media(max-width:360px){
- .gold-web.workspace .dh-preference-card{padding-inline:12px!important}
- .gold-web.workspace .dh-preference-card>.dh-preference-row{gap:8px}
- .gold-web.workspace .dh-preference-card .dh-language-options,
- .gold-web.workspace .dh-preference-card .dh-currency-options,
- .gold-web.workspace .dh-preference-card .dh-calendar-options{gap:4px}
- .gold-web.workspace .dh-preference-card .dh-language-options button{font-size:11px}
+ .gold-web.workspace .dh-ux-more .dh-preference-card{padding:14px 12px 16px!important}
+ .gold-web.workspace .dh-ux-more .dh-preference-item>.dh-language-options,
+ .gold-web.workspace .dh-ux-more .dh-preference-item>.dh-currency-options,
+ .gold-web.workspace .dh-ux-more .dh-preference-item>.dh-calendar-options{gap:2px!important}
+ .gold-web.workspace .dh-ux-more .dh-preference-item>.dh-language-options>button,
+ .gold-web.workspace .dh-ux-more .dh-preference-item>.dh-currency-options>button{font-size:11px!important}
 }
