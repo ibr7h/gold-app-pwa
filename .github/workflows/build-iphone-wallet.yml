@@ -8,6 +8,7 @@ on:
       - "scripts/security-audit-iphone.cjs"
       - "apps/user/scripts/user-update-client.js"
       - "apps/user/scripts/user-update-locales.js"
+      - "apps/user/scripts/standalone-install-gate.js"
       - "apps/user/scripts/user-service-worker.js"
       - "apps/user/scripts/user-update.test.cjs"
       - "apps/user/scripts/test-iphone-purchase.cjs"
@@ -250,6 +251,8 @@ jobs:
           import shutil
           base=Path('_render_preview/gold-app-pwa/full')
           shutil.copy2('apps/user/scripts/user-update-locales.js',base/'user-update-locales.js')
+          # The installation gate is generated from one reviewed User-only source.
+          shutil.copy2('apps/user/scripts/standalone-install-gate.js',base/'standalone-install-gate.js')
           needle='<script src="/gold-app-pwa/full/pwa-update.js'
           injected=0
           for page in base.rglob('*.html'):

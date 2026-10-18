@@ -16,6 +16,11 @@ assert(/^full-\d+\.\d+\.\d+-\d{8}$/.test(semanticRelease),'Semantic release must
 const stamp=semanticRelease.slice(5),semver=stamp.split('-')[0];
 assert.equal(json.displayVersion,'v'+semver);
 assert(read('apps/user/overrides/web/app-version.ts').includes("APP_VERSION = '"+semver+"'"));
+const gateSource=read('apps/user/scripts/standalone-install-gate.js');
+const gatePublished=read('_render_preview/gold-app-pwa/full/standalone-install-gate.js');
+assert.equal(gatePublished,gateSource,'Published install gate must match User source');
+assert(gatePublished.includes('ثبّت ذهبك أولًا'),'Install gate does not use the Dhahabk brand');
+assert(!gatePublished.includes('ذهبي'),'Old application brand remains in installation gate');
 const updater=read('_render_preview/gold-app-pwa/full/pwa-update.js');
 assert(updater.includes("const CURRENT = '"+semanticRelease+"'"));
 if(bridgedManifest){
@@ -49,7 +54,7 @@ function check(dir){
   if(e.isDirectory()){if(['assets','_expo','node_modules'].includes(e.name))continue;check(path.join(dir,e.name));continue;}
   if(!e.name.endsWith('.html'))continue;
   const html=fs.readFileSync(path.join(dir,e.name),'utf8');
-  for(const file of ['iphone-preview-lock.css','iphone-preview-lock.js','pwa-update.js']){
+  for(const file of ['iphone-preview-lock.css','iphone-preview-lock.js','pwa-update.js','standalone-install-gate.js']){
    if(html.includes(file+'?v='))assert(html.includes(file+'?v='+stamp),'Outdated '+file+' in '+e.name);
   }
   if(html.includes('iphone-preview-lock.js'))count++;
