@@ -83,11 +83,12 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
  </main>;
 }
 /** Setup and confirmation happen in-app; raw codes are never written to local storage. */
-export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentPin?:string)=>Promise<void>;onClose:()=>void;mode:'enable'|'change'|'disable'|'reconnect'}){
+export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentPin?:string,password?:string)=>Promise<void>;onClose:()=>void;mode:'enable'|'change'|'disable'|'reconnect'|'recover'}){
  const {language,direction}=useLanguage();
- const initialStage=mode==='enable'?'enter':'current';
+ const initialStage=mode==='enable'||mode==='recover'?'enter':'current';
  const [stage,setStage]=useState<'current'|'enter'|'confirm'>(initialStage);
  const [currentPin,setCurrentPin]=useState('');
+ const [password,setPassword]=useState('');
  const [first,setFirst]=useState(''),[digits,setDigits]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const pending=useRef(false);
  const commit=(value:string)=>{
@@ -101,16 +102,26 @@ export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentP
    setFirst(value);setDigits('');setStage('confirm');setError('');return;
   }
   if(mode!=='disable'&&mode!=='reconnect'&&value!==first){setError('الرمزان غير متطابقين؛ أدخل رمزًا جديدًا.');setFirst('');setDigits('');setStage('enter');return;}
+  if(mode==='recover'&&!password){setError('أدخل كلمة مرور حسابك لإعادة تعيين الرمز.');setDigits('');return;}
   pending.current=true;setBusy(true);
-  void onSave(mode==='disable'||mode==='reconnect'?'':value,mode==='disable'||mode==='reconnect'?value:currentPin||undefined).then(onClose).catch(e=>{
-   setError(e instanceof Error?e.message:'تعذر حفظ الرمز.');setDigits('');setFirst('');setCurrentPin('');setStage(initialStage);
+  void onSave(mode==='disable'||mode==='reconnect'?'':value,
+   mode==='disable'||mode==='reconnect'?value:currentPin||undefined,
+   mode==='recover'?password:undefined).then(onClose).catch(e=>{
+   setError(e instanceof Error?e.message:'تعذر حفظ الرمز.');setDigits('');setFirst('');setCurrentPin('');setPassword('');setStage(initialStage);
   }).finally(()=>{pending.current=false;setBusy(false);});
  };
  return <div className="dh-pin-setup-backdrop" role="presentation">
   <section className="dh-pin-setup" role="dialog" aria-modal="true" aria-label="إعداد رمز الدخول السريع" dir={direction} lang={language}>
-   <div className="dh-pin-setup-head"><h2>{mode==='disable'?'إيقاف رمز الدخول':mode==='change'?'تغيير رمز الدخول':mode==='reconnect'?'تأكيد رمز الدخول المحفوظ':'تفعيل الدخول السريع'}</h2>
+   <div className="dh-pin-setup-head"><h2>{mode==='disable'?'إيقاف رمز الدخول':mode==='change'?'تغيير رمز الدخول':mode==='reconnect'?'تأكيد رمز الدخول المحفوظ':mode==='recover'?'استعادة رمز الدخول السريع':'تفعيل الدخول السريع'}</h2>
     <button type="button" aria-label="إغلاق إعداد الرمز" onClick={onClose} disabled={busy}>×</button></div>
    <p>{stage==='current'?'أدخل رمز الدخول الحالي لتأكيد هويتك.':stage==='enter'?'اختر رمزًا من ٦ أرقام لا تستخدمه في خدمات أخرى.':'أعد إدخال الرمز نفسه لتأكيده.'}</p>
+   {mode==='recover'&&<div className="dh-pin-recover-password">
+    <label htmlFor="dh-recover-account-password">كلمة مرور حساب ذهبك</label>
+    <input id="dh-recover-account-password" type="password" autoComplete="current-password"
+     value={password} onChange={e=>setPassword(e.target.value)} disabled={busy}
+     placeholder="أدخل كلمة مرور الحساب"/>
+    <small>سيُتحقق من كلمة المرور عبر حسابك، ويُستبدل الرمز المحلي فقط. يلزم تفعيل بصمة الجهاز مجددًا بعد الاستعادة.</small>
+   </div>}
    <PinDots length={digits.length}/>
    <p className="dh-pin-feedback" role="alert">{localizeFeedback(error,language)||' '}</p>
    <Keypad disabled={busy} onDigit={d=>{if(digits.length<PIN_LENGTH)commit(digits+d);}}
