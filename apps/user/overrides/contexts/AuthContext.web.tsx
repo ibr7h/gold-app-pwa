@@ -306,6 +306,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    await protectSessionWithPin(String(me.id),pin,activeSessionTokens());current(attempt);
    try{await provisionQuickDevice(String(me.id),attempt);}catch{/* Existing unlock succeeded. */}
    setLockedAccount(null);setUser(me);await refreshBiometricState(me,attempt);
+   void bindExistingPushToSession().catch(()=>{});
    return {ok:true,waitSeconds:0,remaining:5};
   }catch(e){
    if(attempt===version.current){lockSession();setError(e instanceof Error?e.message:'تعذر فتح الجلسة.');}
@@ -326,7 +327,9 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
     current(attempt);
     try{await provisionQuickDevice(c.accountId,attempt);}catch{/* Existing unlock succeeded. */}
-    setLockedAccount(null);setUser(me);return true;
+    setLockedAccount(null);setUser(me);
+    void bindExistingPushToSession().catch(()=>{});
+    return true;
    })();
    return await withBiometricUnlockDeadline(unlock,controller);
   }catch(e){
