@@ -175,6 +175,24 @@ async function removeMethod(accountId:string,method:'pin'|'biometric'){
  if(!v.pin&&!v.biometric&&!v.biometricPending){closeSessionVault();await AsyncStorage.removeItem(STORAGE);return;}
  await AsyncStorage.setItem(STORAGE,JSON.stringify(v));
 }
+/** A fresh password-authenticated session can replace a forgotten local PIN.
+ * Deliberately rotate the vault key and drop old biometric envelopes: they
+ * cannot safely be reused without recovering the previous key.
+ */
+async function resetPinAfterPassword(accountId:string,pin:string,tokens:SessionTokens){
+ if(!supported())throw new Error('استعادة رمز الدخول تحتاج HTTPS ومتصفحًا حديثًا.');
+ if(!accountId||!/^[0-9]{6}$/.test(pin))throw new Error('أدخل رمزًا جديدًا من ٦ أرقام.');
+ const started=generation,rawKey=random(32),key=await keyOf(rawKey);
+ const session=await seal(key,new TextEncoder().encode(JSON.stringify(tokens)),accountId);
+ const salt=random(16),box=await seal(await pinKey(pin,salt),rawKey,accountId);
+ const next:Vault={version:1,accountId,origin:location.origin,session,
+  pin:{salt:hex(salt),box,iterations:PIN_ITERATIONS}};
+ assertCurrent(started);
+ await AsyncStorage.setItem(STORAGE,JSON.stringify(next));
+ assertCurrent(started);opened={accountId,key,rawKey};
+}
+export const resetSessionPinAfterPassword=(accountId:string,pin:string,tokens:SessionTokens)=>
+ exclusive(()=>resetPinAfterPassword(accountId,pin,tokens));
 export const protectSessionWithPin=(accountId:string,pin:string,tokens:SessionTokens)=>exclusive(()=>protectWithPin(accountId,pin,tokens));
 export const protectSessionWithBiometric=(accountId:string,secret:Uint8Array,tokens:SessionTokens,credentialId?:string)=>exclusive(()=>protectWithBiometric(accountId,secret,tokens,credentialId));
 export const promoteSessionBiometric=(accountId:string,credentialId:string)=>exclusive(()=>promoteBiometric(accountId,credentialId));

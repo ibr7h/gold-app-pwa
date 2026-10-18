@@ -523,3 +523,28 @@ describe('More preferences: approved three-row responsive design',()=>{
   expect(catalog).toContain('"Devise choisie pour les prix et la calculatrice"');
  });
 });
+
+
+describe('Forgotten quick PIN recovery',()=>{
+ it('requires a fresh server password login before local PIN rotation',()=>{
+  const auth=source('../../contexts/AuthContext.web.tsx');
+  const vault=source('../session-vault.ts');
+  expect(auth).toContain("await passwordSession('/auth/login',{identifier:user.email,password}");
+  expect(auth).toContain("if(recovery&&String(me.id)!==recovery.accountId)");
+  expect(auth.indexOf('await authenticate(path,data)')).toBeLessThan(auth.indexOf('await resetSessionPinAfterPassword('));
+  expect(vault).toContain('async function resetPinAfterPassword(');
+  expect(vault).toContain('assertCurrent(started)');
+  expect(vault).toContain('pin:{salt:hex(salt),box,iterations:PIN_ITERATIONS}');
+ });
+ it('lets the owner choose a replacement without the lost PIN and drops stale biometrics',()=>{
+  const quick=source('../QuickLockScreen.tsx');
+  const workspace=source('../UserWorkspace.tsx');
+  const auth=source('../../contexts/AuthContext.web.tsx');
+  expect(quick).toContain("mode==='recover'?'استعادة رمز الدخول السريع'");
+  expect(quick).toContain('mode===\'recover\'?password:undefined');
+  expect(workspace).toContain("setPinSetup('recover')");
+  expect(workspace).toContain('await recoverQuickPin(password||\'\',pin)');
+  expect(auth).toContain('await forgetLocalCredential();current(attempt)');
+  expect(auth).toContain('setPinReconnectRequired(false)');
+ });
+});

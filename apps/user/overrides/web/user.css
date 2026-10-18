@@ -1613,6 +1613,11 @@
 .dh-pin-setup-head h2{font-size:18px;margin:0;color:#001F3F}
 .dh-pin-setup-head button{width:40px;height:40px;border:0;background:#F1F5F9;border-radius:50%;font-size:25px;color:#001F3F;cursor:pointer}
 .dh-pin-setup>p{font-size:13px;color:#52627A;line-height:1.8;margin:18px 0 0}
+.dh-pin-recover-password{text-align:start;margin:12px 0 4px;display:flex;flex-direction:column;gap:7px}
+.dh-pin-recover-password label{font-size:13px;font-weight:750;color:#001F3F}
+.dh-pin-recover-password input{box-sizing:border-box;width:100%;min-height:46px;border:1px solid #94A3B8;border-radius:11px;background:#fff;color:#001F3F;font:inherit;font-size:16px;padding:9px 12px;direction:auto}
+.dh-pin-recover-password input:focus-visible{outline:3px solid #C5A021;outline-offset:2px}
+.dh-pin-recover-password small{color:#64748B;font-size:11px;line-height:1.6}
 .dh-pin-setup .dh-pin-dots{margin:16px 0 5px}
 .dh-pin-setup .dh-pin-feedback{color:#B91C1C}
 .dh-pin-setup .dh-pin-keypad{margin:0 auto;gap:2px 13px;width:min(100%,310px)}

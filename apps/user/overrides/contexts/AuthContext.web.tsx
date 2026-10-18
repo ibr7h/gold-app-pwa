@@ -3,7 +3,7 @@ import {localBiometricSupported,readLocalCredential,enrollLocalCredential,persis
 import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession,revokeServerSession,pendingSessionReplacement,wasSessionReplaced,SESSION_REPLACED_MESSAGE} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {withBiometricUnlockDeadline,BiometricUnlockTimeoutError} from '../web/biometric-unlock-deadline';
-import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
+import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,resetSessionPinAfterPassword,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
 import {beginRegistration,resendRegistration,type RegistrationChallenge,type TermsAcceptance} from '../web/registration';
 import {bindExistingPushToSession} from '../web/push-client';
@@ -26,6 +26,7 @@ interface AuthContextType {
   quickPinEnabled: boolean;
   pinReconnectRequired: boolean;
   reconnectQuickPin:(currentPin:string)=>Promise<void>;
+  recoverQuickPin:(password:string,newPin:string)=>Promise<void>;
   enableQuickPin:(pin:string,currentPin?:string)=>Promise<void>;
   disableQuickPin:(currentPin:string)=>Promise<void>;
   unlockWithPin:(pin:string)=>Promise<PinResult>;
@@ -147,12 +148,13 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   finally{if(active&&version.current===boot)setLoading(false);}})();
   return()=>{active=false;unsubscribe();request.current?.abort();window.removeEventListener('storage',onStorage);};
  },[]);
- const passwordSession=async(path:'/auth/login'|'/auth/register/verify',data:object)=>{
+ const passwordSession=async(path:'/auth/login'|'/auth/register/verify',data:object,recovery?:{accountId:string;newPin:string})=>{
   const attempt=begin();setLoading(true);setError(null);
   try{
    const cachedBefore=await getVerifiedCachedUser();
    const savedPinAccount=await storedQuickPinAccountId();current(attempt);
    await authenticate(path,data);current(attempt);const me=await loadMe(attempt,cachedBefore);
+   if(recovery&&String(me.id)!==recovery.accountId)throw new Error('الحساب لا يطابق الحساب المطلوب استعادة رمزه.');
    const sameSavedAccount=!!me.id&&(savedPinAccount
     ?String(me.id)===savedPinAccount
     :!!cachedBefore&&String(me.id)===String(cachedBefore.id));
@@ -163,6 +165,16 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     await forgetLocalCredential();current(attempt);
     enrollment.current=null;setQuickPinEnabled(false);setPinReconnectRequired(false);
     setBiometricEnrolled(false);setBiometricEnabled(false);
+   }else if(recovery){
+    // Password was checked by /auth/login and /auth/me verified the account.
+    // Replace only local unlock secrets, never server-side wallet or purchase data.
+    // Old biometric envelopes cannot decrypt a newly generated vault key.
+    await resetSessionPinAfterPassword(String(me.id),recovery.newPin,activeSessionTokens());
+    current(attempt);
+    await setQuickPin(String(me.id),recovery.newPin);current(attempt);
+    await forgetLocalCredential();current(attempt);
+    enrollment.current=null;setBiometricEnabled(false);setBiometricEnrolled(false);
+    setQuickPinEnabled(true);setPinReconnectRequired(false);
    }else{
     // Preserve the verifier. Reconfirm the old PIN once to re-wrap the freshly
     // issued JWTs; never write an unencrypted password, PIN or refresh token.
@@ -177,6 +189,13 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   finally{if(attempt===version.current)setLoading(false);}
  };
  const login=(identifier:string,password:string)=>passwordSession('/auth/login',{identifier:identifier.trim(),password});
+ const recoverQuickPin=async(password:string,newPin:string)=>{
+  if(!user?.id||user.role!=='user'||!quickPinEnabled)throw new Error('سجّل الدخول إلى حسابك أولًا.');
+  if(!password)throw new Error('أدخل كلمة مرور حسابك للتحقق من هويتك.');
+  if(!/^[0-9]{6}$/.test(newPin))throw new Error('أدخل رمزًا جديدًا من ٦ أرقام.');
+  await passwordSession('/auth/login',{identifier:user.email,password},
+   {accountId:String(user.id),newPin});
+ };
  const startRegistration=async(name:string,email:string,password:string,phone?:string,legal?:TermsAcceptance)=>{
   const attempt=begin();setLoading(true);setError(null);
   try{const next=await beginRegistration(name,email,password,phone,legal);current(attempt);setRegistration(next);return true;}
@@ -362,7 +381,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   }catch(e){setError(errorMessage(e));return false;}
  };
  const unsupported=async()=>{setError('هذه الميزة غير متاحة من الخادم حاليًا.');return false;};
- const value:AuthContextType={user,lockedAccount,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,continueWithPassword,clearError:()=>setError(null),
+ const value:AuthContextType={user,lockedAccount,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,recoverQuickPin,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,continueWithPassword,clearError:()=>setError(null),
  biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
  resetStep:'email',resetEmail:'',resetCode:'',sendResetCode:unsupported,verifyResetCode:unsupported,resetPassword:unsupported,resendResetCode:unsupported,cancelReset:()=>{},
  registerStep:registration?'verify':'form',registerEmail:registration?.email||'',registerCode:'',
