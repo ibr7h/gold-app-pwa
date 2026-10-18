@@ -37,6 +37,7 @@ type UserLockAuth=ReturnType<typeof useAuth> & {
  quickPinEnabled:boolean;
  pinReconnectRequired:boolean;
  reconnectQuickPin:(currentPin:string)=>Promise<void>;
+ recoverQuickPin:(password:string,newPin:string)=>Promise<void>;
  unlockWithPin:(pin:string)=>Promise<{ok:boolean;waitSeconds:number;remaining:number}>;
  enableQuickPin:(pin:string,currentPin?:string)=>Promise<void>;
  disableQuickPin:(currentPin:string)=>Promise<void>;
@@ -118,9 +119,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   const {language,setLanguage,direction}=useLanguage();
   // Explicit React translations for dynamic/critical labels: no dependence on DOM observer timing.
   const tr=(source:string)=>translateUiText(source,language);
- const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,enableQuickPin,disableQuickPin}=useUserLockAuth();
+ const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,recoverQuickPin,enableQuickPin,disableQuickPin}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
- const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|'reconnect'|null>(null);
+ const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|'reconnect'|'recover'|null>(null);
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
  const [portfolios,setPortfolios]=useState<Portfolio[]>([]),[purchases,setPurchases]=useState<Purchase[]>([]),[alerts,setAlerts]=useState<PriceAlert[]>([]);
@@ -480,7 +481,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  {quickPinEnabled&&pinReconnectRequired&&<div className="dh-quick-reconnect" role="status"><p>رمز الدخول محفوظ على جهازك. بعد تسجيل الدخول بكلمة المرور، أكّد الرمز الحالي مرة واحدة لربطه بالجلسة الجديدة.</p><button type="button" className="primary" onClick={()=>setPinSetup('reconnect')}>تأكيد رمز الدخول المحفوظ</button></div>}
   {quickPinEnabled&&<div className="dh-quick-row-actions">
   <button type="button" className="secondary" onClick={()=>setPinSetup('change')}>تغيير رمز الدخول السريع</button>
- </div>}
+  <button type="button" className="secondary" onClick={()=>setPinSetup('recover')}>نسيت الرمز؟ إعادة تعيين بكلمة المرور</button>
+ </div>
  <div className="dh-quick-setting-row">
   <span><strong>خدمة بصمة الوجه/الإصبع</strong><small>{biometricAvailable?'عند الضغط على زر البصمة؛ حسب دعم المتصفح':'غير مدعومة في هذا المتصفح'}</small></span>
   <button type="button" role="switch" aria-label="خدمة بصمة الوجه والإصبع"
@@ -501,7 +503,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   })()}>قفل ذهبك الآن</button>}
  </div>
  <details className="dh-security-help"><summary>كيف يعمل الدخول السريع؟</summary><p>يمكنك فتح ذهبك برمز من ٦ أرقام. تُحفظ الجلسة مشفّرة وتجزئة الرمز محليًا؛ ولا تُخزّن بيانات بصمتك. يظهر القفل عند إعادة فتح التطبيق بجلسة محفوظة أو بعد العودة من الخلفية بدقيقة. وقد يطلب النظام تحقق Face ID أو Touch ID بحسب دعم المتصفح.</p></details>
- <details className="dh-security-help"><summary>نسيت رمز الدخول؟</summary><p>سجّل الدخول بكلمة مرور حسابك لاستعادة الوصول، ثم أعد إعداد الدخول السريع. إذا انتهت الجلسة يلزم تسجيل الدخول الكامل.</p></details>
+ <details className="dh-security-help"><summary>نسيت رمز الدخول؟</summary><p>إذا كنت خارج التطبيق، اختر «الدخول بكلمة المرور» من شاشة القفل. بعد الدخول، افتح الملف الشخصي ← الأمان والدخول ← «نسيت الرمز؟» لإعادة تعيينه بكلمة المرور، دون الرمز السابق. تحتاج إلى تفعيل بصمة الجهاز مجددًا.</p></details>
  </section>
    <section className="dh-ux-group dh-ux-profile-tools" aria-labelledby="dh-profile-tools-title">
     <h3 id="dh-profile-tools-title" className="dh-ux-group-title">الحساب والخدمات</h3>
@@ -585,9 +587,10 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  </header>:<header className="topbar"><button className="icon-button menu-trigger" aria-label="العودة للرئيسية" onClick={()=>navigate('home')}><Icon name="chevron"/></button><div><p className="eyebrow"><span className="role-dot"/>ذهبك · حساب المستخدم</p><h1 tabIndex={-1} ref={headingRef}>{pages.find(p=>p.id===page)?.label}</h1></div>{page==='prices'&&<button className="secondary refresh-button" aria-label="تحديث أسعار الذهب من خادم ذهبك" disabled={marketLoading} onClick={()=>void loadMarket()}><Icon name="refresh"/><span>{marketLoading?'جارٍ التحديث…':'تحديث الأسعار'}</span></button>}</header>}<main className="workspace-content" aria-busy={loading}>{error&&<div className="notice error" role="alert">{localizeFeedback(error,language)} <button className="text-button" disabled={loading} onClick={()=>void loadData()}>إعادة المحاولة</button></div>}{(page==='home'||page==='prices')&&marketError&&<p className="notice warning" role="status">{localizeFeedback(marketError,language)}</p>}{message&&<p className="notice success" role="status">{localizeFeedback(message,language)}</p>}{loading&&!loaded&&<p className="notice info" role="status">جارٍ تحميل بيانات حسابك…</p>}{content()}</main><nav className="mobile-bottom-nav" aria-label="التنقل السريع">{mobilePages.map(p=><button key={p.id} className={'mobile-tab '+(p.id===mobilePage?'selected':'')} aria-current={p.id===mobilePage?'page':undefined} onClick={()=>navigate(p.id)}><Icon name={p.icon}/><span>{p.navLabel||p.label}</span></button>)}</nav></div>
  {menu&&<div className="mobile-nav-backdrop" onClick={()=>setMenu(false)}><div className="mobile-nav" ref={modalRef} role="dialog" aria-modal="true" aria-label="قائمة التنقل" onClick={e=>e.stopPropagation()}><button className="icon-button close-menu" aria-label="إغلاق القائمة" onClick={()=>setMenu(false)}><Icon name="close"/></button>{nav}</div></div>}
  {pinSetup&&<QuickPinSetup mode={pinSetup} onClose={()=>setPinSetup(null)}
-  onSave={async(pin,currentPin)=>{
+  onSave={async(pin,currentPin,password)=>{
    if(pinSetup==='disable'){await disableQuickPin(currentPin||'');setBiometricNotice('أُوقف رمز الدخول السريع على هذا الجهاز.');}
    else if(pinSetup==='reconnect'){await reconnectQuickPin(currentPin||'');setBiometricNotice('تم ربط رمز الدخول المحفوظ بالجلسة الجديدة.');}
+   else if(pinSetup==='recover'){await recoverQuickPin(password||'',pin);setBiometricNotice('تم تعيين رمز جديد. فعّل بصمة الجهاز مجددًا إن أردت استخدامها.');}
    else{await enableQuickPin(pin,currentPin);setBiometricNotice('تم حفظ رمز الدخول السريع لهذا الجهاز.');}
   }}/>}
  {(dialog||confirm)&&<div className="dialog-backdrop"><div className={'dialog '+(confirm?'confirm-dialog':'')} ref={modalRef} role={confirm?'alertdialog':'dialog'} dir={direction} lang={language} aria-modal="true" aria-labelledby="dialog-title" aria-describedby={confirm?'confirm-warning-description':undefined}><div className="section-heading"><h2 id="dialog-title">{tr(confirm?'تأكيد الحذف':dialog?.type==='portfolio'?(dialog.portfolio?'تعديل اسم المحفظة':'محفظة جديدة'):dialog?.type==='alert'?(dialog.alert?'تعديل التنبيه':'تنبيه جديد'):dialog?.purchase?'تعديل سجل الشراء':'تسجيل شراء')}</h2><button className="icon-button" aria-label={tr('إغلاق')} disabled={busy} onClick={()=>{setDialog(null);setConfirm(null);}}><Icon name="close"/></button></div>
