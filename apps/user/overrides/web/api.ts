@@ -145,7 +145,7 @@ export async function verifyQuickSessionWithRecovery(
  };
  try {
   const verified=await meFor(tokens.accessToken);
-  if(epoch!==started)throw new ApiError('تغيرت الجلسة.',401);
+  if(epoch!==started)throw new Error('تغيرت الجلسة.');
   return verified;
  }catch(err) {if(!(err instanceof ApiError)||err.status!==401)throw err;}
  let next:SessionTokens;
