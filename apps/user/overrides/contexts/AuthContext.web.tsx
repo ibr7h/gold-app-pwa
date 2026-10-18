@@ -1,9 +1,9 @@
 import React,{createContext,useContext,useEffect,useState,useRef} from 'react';
 import {localBiometricSupported,readLocalCredential,enrollLocalCredential,persistLocalCredential,forgetLocalCredential,verifyLocalCredential,type LocalCredential} from '../web/local-biometric';
-import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession,revokeServerSession,pendingSessionReplacement,wasSessionReplaced,SESSION_REPLACED_MESSAGE} from '../web/api';
+import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession,revokeServerSession,registerQuickDeviceGrant,pendingSessionReplacement,wasSessionReplaced,SESSION_REPLACED_MESSAGE} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {withBiometricUnlockDeadline,BiometricUnlockTimeoutError} from '../web/biometric-unlock-deadline';
-import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,resetSessionPinAfterPassword,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
+import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,resetSessionPinAfterPassword,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod,readVaultDeviceGrant,persistVaultDeviceGrant} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
 import {beginRegistration,resendRegistration,type RegistrationChallenge,type TermsAcceptance} from '../web/registration';
 import {bindExistingPushToSession} from '../web/push-client';
@@ -148,6 +148,14 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   finally{if(active&&version.current===boot)setLoading(false);}})();
   return()=>{active=false;unsubscribe();request.current?.abort();window.removeEventListener('storage',onStorage);};
  },[]);
+ /** Enrollment requires live server login and an opened local encryption vault.
+  * Failures must not destroy working PIN/Face ID or their existing verifier.
+  */
+ const provisionQuickDevice=async(accountId:string,attempt:number,force=false)=>{
+  if(!force&&await readVaultDeviceGrant(accountId))return;
+  const grant=await registerQuickDeviceGrant();current(attempt);
+  await persistVaultDeviceGrant(accountId,grant);current(attempt);
+ };
  const passwordSession=async(path:'/auth/login'|'/auth/register/verify',data:object,recovery?:{accountId:string;newPin:string})=>{
   const attempt=begin();setLoading(true);setError(null);
   try{
@@ -175,6 +183,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     await forgetLocalCredential();current(attempt);
     enrollment.current=null;setBiometricEnabled(false);setBiometricEnrolled(false);
     setQuickPinEnabled(true);setPinReconnectRequired(false);
+    try{await provisionQuickDevice(String(me.id),attempt,true);}catch{/* PIN still works; password remains fallback. */}
    }else{
     // Preserve the verifier. Reconfirm the old PIN once to re-wrap the freshly
     // issued JWTs; never write an unencrypted password, PIN or refresh token.
@@ -240,6 +249,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   }
   // Without PRF, WebAuthn can unlock only this open tab. A restart needs PIN/password.
   enrollment.current=c;setBiometricAvailable(true);setBiometricEnrolled(true);setBiometricEnabled(true);
+  if(c.unlockSecret)
+   try{await provisionQuickDevice(accountId,attempt);}catch{/* Existing biometric remains usable. */}
  };
  const disableBiometric=async()=>{
   if(!user?.id)throw new Error('سجّل الدخول أولًا.');
@@ -262,6 +273,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   if(quickPinEnabled)await authorizePinChange(accountId,currentPin||'',attempt);
   await protectSessionWithPin(accountId,pin,activeSessionTokens());current(attempt);
   await setQuickPin(accountId,pin);current(attempt);setQuickPinEnabled(true);setPinReconnectRequired(false);
+  try{await provisionQuickDevice(accountId,attempt);}catch{/* PIN remains usable; server renewal needs enrollment. */}
  };
  const reconnectQuickPin=async(currentPin:string)=>{
   if(!user?.id||!pinReconnectRequired)throw new Error('لا يلزم إعادة ربط رمز الدخول.');
@@ -276,6 +288,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   await protectSessionWithPin(accountId,currentPin,tokens);current(attempt);
   setQuickPinEnabled(true);setPinReconnectRequired(false);
   await refreshBiometricState(user,attempt);
+  try{await provisionQuickDevice(accountId,attempt,true);}catch{/* Password fallback remains. */}
  };
  const disableQuickPin=async(currentPin:string)=>{
   if(!user?.id)throw new Error('سجّل الدخول أولًا.');
@@ -291,6 +304,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    const tokens=await hasSessionVault(String(account.id))?await unlockSessionWithPin(String(account.id),pin):activeSessionTokens();
    const me=await verifyQuickUnlock(String(account.id),tokens,()=>attempt===version.current);
    await protectSessionWithPin(String(me.id),pin,activeSessionTokens());current(attempt);
+   try{await provisionQuickDevice(String(me.id),attempt);}catch{/* Existing unlock succeeded. */}
    setLockedAccount(null);setUser(me);await refreshBiometricState(me,attempt);
    return {ok:true,waitSeconds:0,remaining:5};
   }catch(e){
@@ -310,7 +324,9 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     const tokens=await hasSessionVault(c.accountId)?await unlockSessionWithBiometric(c.accountId,secret,c.credentialId):activeSessionTokens();
     current(attempt);
     const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
-    current(attempt);setLockedAccount(null);setUser(me);return true;
+    current(attempt);
+    try{await provisionQuickDevice(c.accountId,attempt);}catch{/* Existing unlock succeeded. */}
+    setLockedAccount(null);setUser(me);return true;
    })();
    return await withBiometricUnlockDeadline(unlock,controller);
   }catch(e){
