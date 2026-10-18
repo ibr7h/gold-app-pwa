@@ -482,7 +482,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   {quickPinEnabled&&<div className="dh-quick-row-actions">
   <button type="button" className="secondary" onClick={()=>setPinSetup('change')}>تغيير رمز الدخول السريع</button>
   <button type="button" className="secondary" onClick={()=>setPinSetup('recover')}>نسيت الرمز؟ إعادة تعيين بكلمة المرور</button>
- </div>
+ </div>}
  <div className="dh-quick-setting-row">
   <span><strong>خدمة بصمة الوجه/الإصبع</strong><small>{biometricAvailable?'عند الضغط على زر البصمة؛ حسب دعم المتصفح':'غير مدعومة في هذا المتصفح'}</small></span>
   <button type="button" role="switch" aria-label="خدمة بصمة الوجه والإصبع"
