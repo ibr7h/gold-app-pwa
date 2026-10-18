@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {clearSessionVault,closeSessionVault,hasSessionVault,persistVaultSession,type SessionTokens,type DeviceGrant} from './session-vault';
+import {clearSessionVault,closeSessionVault,hasSessionVault,persistVaultSession,persistVaultDeviceGrant,type SessionTokens,type DeviceGrant} from './session-vault';
 export const API_BASE='https://gold-app-api-u8dl.onrender.com';
 const ACCESS='dhahabi_user_access_token',REFRESH='dhahabi_user_refresh_token',PROFILE='dhahabi_user_profile';
 const REPLACED='dhahabi_user_session_replaced_v1';
@@ -148,7 +148,7 @@ export async function verifyQuickSessionWithRecovery(
   if(epoch!==started)throw new Error('تغيرت الجلسة.');
   return verified;
  }catch(err) {if(!(err instanceof ApiError)||err.status!==401)throw err;}
- let next:SessionTokens;
+ let next:SessionTokens,rotatedGrant:DeviceGrant|null=null;
  try {
   const renewed=await raw('/auth/refresh',{method:'POST',
    body:JSON.stringify({refreshToken:tokens.refreshToken})});
@@ -158,13 +158,18 @@ export async function verifyQuickSessionWithRecovery(
   if(!grant)throw new ApiError('انتهت الجلسة. سجّل الدخول بكلمة المرور لتوثيق هذا الجهاز.',401);
   const renewed=await raw('/auth/device/renew',{method:'POST',
    body:JSON.stringify({deviceId:grant.deviceId,secret:grant.secret})});
+  if(!renewed?.deviceGrant?.deviceId||!renewed?.deviceGrant?.secret)
+   throw new ApiError('استجابة إعادة توثيق الجهاز غير مكتملة.');
+  rotatedGrant=renewed.deviceGrant as DeviceGrant;
   next={accessToken:renewed.accessToken,refreshToken:renewed.refreshToken};
  }
  if(typeof next?.accessToken!=='string'||typeof next?.refreshToken!=='string')
   throw new ApiError('استجابة الجلسة غير صالحة.');
  if(epoch!==started)throw new ApiError('تغيرت الجلسة.',401);
  const me=await meFor(next.accessToken);
- if(epoch!==started)throw new ApiError('تغيرت الجلسة.',401);
+ if(epoch!==started)throw new Error('تغيرت الجلسة.');
+ if(rotatedGrant)await persistVaultDeviceGrant(expectedAccountId,rotatedGrant);
+ if(epoch!==started)throw new Error('تغيرت الجلسة.');
  resumeSession(next);
  await persistVaultSession(next);
  return me;
