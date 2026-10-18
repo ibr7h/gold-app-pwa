@@ -143,8 +143,11 @@ export async function verifyQuickSessionWithRecovery(
    throw new ApiError('الحساب الحالي لا يطابق الدخول السريع.',403);
   return result;
  };
- try {return await meFor(tokens.accessToken);}
- catch(err) {if(!(err instanceof ApiError)||err.status!==401)throw err;}
+ try {
+  const verified=await meFor(tokens.accessToken);
+  if(epoch!==started)throw new ApiError('تغيرت الجلسة.',401);
+  return verified;
+ }catch(err) {if(!(err instanceof ApiError)||err.status!==401)throw err;}
  let next:SessionTokens;
  try {
   const renewed=await raw('/auth/refresh',{method:'POST',
