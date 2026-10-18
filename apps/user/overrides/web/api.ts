@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {clearSessionVault,closeSessionVault,hasSessionVault,persistVaultSession,type SessionTokens} from './session-vault';
+import {clearSessionVault,closeSessionVault,hasSessionVault,persistVaultSession,type SessionTokens,type DeviceGrant} from './session-vault';
 export const API_BASE='https://gold-app-api-u8dl.onrender.com';
 const ACCESS='dhahabi_user_access_token',REFRESH='dhahabi_user_refresh_token',PROFILE='dhahabi_user_profile';
 const REPLACED='dhahabi_user_session_replaced_v1';
@@ -127,6 +127,50 @@ export async function authenticate(path:'/auth/login'|'/auth/register/verify',da
  if(started!==epoch)throw new ApiError('تغيرت الجلسة.',401);
  announceSessionEnded('login');
  closeSessionVault();await saveSession(tokens);
+}
+/** Called ONLY after the local PIN/biometric vault is successfully opened.
+ * This path deliberately does not erase encrypted factors on a recoverable 401.
+ * If the server rejects both refresh and device grant, password login is required.
+ */
+export async function verifyQuickSessionWithRecovery(
+ tokens:SessionTokens,grant:DeviceGrant|null,expectedAccountId:string
+):Promise<{userId:string;email:string;role:string}> {
+ resumeSession(tokens);
+ const started=epoch;
+ const meFor=async(accessToken:string)=>{
+  const result=await raw('/auth/me',{},accessToken);
+  if(result?.role!=='user'||String(result?.userId)!==expectedAccountId)
+   throw new ApiError('الحساب الحالي لا يطابق الدخول السريع.',403);
+  return result;
+ };
+ try {return await meFor(tokens.accessToken);}
+ catch(err) {if(!(err instanceof ApiError)||err.status!==401)throw err;}
+ let next:SessionTokens;
+ try {
+  const renewed=await raw('/auth/refresh',{method:'POST',
+   body:JSON.stringify({refreshToken:tokens.refreshToken})});
+  next={accessToken:renewed.accessToken,refreshToken:renewed.refreshToken};
+ }catch(err) {
+  if(!(err instanceof ApiError)||err.status!==401)throw err;
+  if(!grant)throw new ApiError('انتهت الجلسة. سجّل الدخول بكلمة المرور لتوثيق هذا الجهاز.',401);
+  const renewed=await raw('/auth/device/renew',{method:'POST',
+   body:JSON.stringify({deviceId:grant.deviceId,secret:grant.secret})});
+  next={accessToken:renewed.accessToken,refreshToken:renewed.refreshToken};
+ }
+ if(typeof next?.accessToken!=='string'||typeof next?.refreshToken!=='string')
+  throw new ApiError('استجابة الجلسة غير صالحة.');
+ if(epoch!==started)throw new ApiError('تغيرت الجلسة.',401);
+ const me=await meFor(next.accessToken);
+ if(epoch!==started)throw new ApiError('تغيرت الجلسة.',401);
+ resumeSession(next);
+ await persistVaultSession(next);
+ return me;
+}
+export async function registerQuickDeviceGrant():Promise<DeviceGrant>{
+ const result=await api<DeviceGrant>('/auth/device/register',{method:'POST'});
+ if(!result||typeof result.deviceId!=='string'||typeof result.secret!=='string')
+  throw new ApiError('تعذر تسجيل الجهاز الموثوق.');
+ return result;
 }
 async function refreshAccess(expiredToken:string|null):Promise<string>{
  if(!refreshFlight){const started=epoch;
