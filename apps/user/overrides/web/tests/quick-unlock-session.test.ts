@@ -73,7 +73,7 @@ describe('quick-unlock authentication state machine',()=>{
    if(url.endsWith('/auth/refresh'))return response({message:'Session has expired'},401);
    if(url.endsWith('/auth/device/renew')){
     expect(JSON.parse(String(options.body))).toMatchObject({deviceId:grant.deviceId,secret:grant.secret});
-    return response({accessToken:'fresh-access',refreshToken:'fresh-refresh'});
+    return response({accessToken:'fresh-access',refreshToken:'fresh-refresh',deviceGrant:{...grant}});
    }
    if(url.endsWith('/auth/me'))
     return new Headers(options.headers).get('Authorization')==='Bearer fresh-access'
