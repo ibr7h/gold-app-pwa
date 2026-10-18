@@ -58,7 +58,7 @@ describe('quick-unlock authentication state machine',()=>{
   expect(await hasSession()).toBe(false);expect(memory.has('dhahabi_user_session_vault_v1')).toBe(false);
  });
  it('preserves encrypted factors but blocks account data if expired refresh has no device grant',async()=>{
-  const fetch=vi.fn(async()=>response({message:'Invalid refresh token'},401));
+  const fetch=vi.fn(async(_url:string,_options:RequestInit)=>response({message:'Invalid refresh token'},401));
   vi.stubGlobal('fetch',fetch);
   await expect(verifyQuickUnlock('account',tokens,()=>true)).rejects.toThrow();
   expect(memory.has('dhahabi_user_session_vault_v1')).toBe(true);
