@@ -8,6 +8,7 @@ export interface SessionTokens {accessToken:string;refreshToken:string}
 interface Box {iv:string;cipher:string}
 interface Vault {
  version:1;accountId:string;origin:string;session:Box;
+ deviceGrant?:Box;
  pin?:{salt:string;box:Box;iterations?:number};biometric?:Box;
  biometricCredentialId?:string;
  /** Staged envelope retains the previous credential through interrupted enrollment. */
@@ -193,6 +194,32 @@ async function resetPinAfterPassword(accountId:string,pin:string,tokens:SessionT
 }
 export const resetSessionPinAfterPassword=(accountId:string,pin:string,tokens:SessionTokens)=>
  exclusive(()=>resetPinAfterPassword(accountId,pin,tokens));
+/** Opaque server grant is sealed with the same key as the authenticated vault.
+ * A six-digit PIN is never transmitted to the server. The grant survives JWT expiry,
+ * but server revocation and its own expiration remain authoritative.
+ */
+export interface DeviceGrant{deviceId:string;secret:string;expiresAt:string}
+export async function readVaultDeviceGrant(accountId:string):Promise<DeviceGrant|null>{
+ const v=await read(),state=opened;
+ if(!v?.deviceGrant||v.accountId!==accountId||state?.accountId!==accountId)return null;
+ try{
+  const data=JSON.parse(new TextDecoder().decode(await unseal(state.key,v.deviceGrant,accountId)));
+  if(typeof data.deviceId!=='string'||typeof data.secret!=='string'||typeof data.expiresAt!=='string')return null;
+  return data as DeviceGrant;
+ }catch{return null;}
+}
+async function saveDeviceGrant(accountId:string,grant:DeviceGrant):Promise<void>{
+ const v=await read(),state=opened;
+ if(!v||v.accountId!==accountId||state?.accountId!==accountId)
+  throw new Error('افتح الجلسة برمز الدخول أو البصمة قبل تفعيل استعادتها.');
+ if(!/^[0-9a-f-]{36}$/i.test(grant.deviceId)||!/^[A-Za-z0-9_-]{43}$/.test(grant.secret))
+  throw new Error('بيانات اعتماد الجهاز غير صالحة.');
+ const stored=await seal(state.key,new TextEncoder().encode(JSON.stringify(grant)),accountId);
+ await AsyncStorage.setItem(STORAGE,JSON.stringify({...v,deviceGrant:stored}));
+}
+export const persistVaultDeviceGrant=(accountId:string,grant:DeviceGrant)=>
+ exclusive(()=>saveDeviceGrant(accountId,grant));
+
 export const protectSessionWithPin=(accountId:string,pin:string,tokens:SessionTokens)=>exclusive(()=>protectWithPin(accountId,pin,tokens));
 export const protectSessionWithBiometric=(accountId:string,secret:Uint8Array,tokens:SessionTokens,credentialId?:string)=>exclusive(()=>protectWithBiometric(accountId,secret,tokens,credentialId));
 export const promoteSessionBiometric=(accountId:string,credentialId:string)=>exclusive(()=>promoteBiometric(accountId,credentialId));
