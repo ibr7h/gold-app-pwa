@@ -6,7 +6,7 @@ vi.mock('@react-native-async-storage/async-storage',()=>({default:{
  multiRemove:async(keys:string[])=>{keys.forEach(k=>memory.delete(k));}
 }}));
 import {clearSession,saveSession,lockSession,api,activeSessionTokens,hasSession,saveVerifiedUser,getVerifiedCachedUser} from '../api';
-import {protectSessionWithPin,unlockSessionWithPin,persistVaultDeviceGrant} from '../session-vault';
+import {protectSessionWithPin,unlockSessionWithPin,persistVaultDeviceGrant,readVaultDeviceGrant} from '../session-vault';
 import {verifyQuickUnlock} from '../quick-unlock-session';
 const tokens={accessToken:'access-fixture',refreshToken:'refresh-fixture'};
 const response=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status});
@@ -73,7 +73,7 @@ describe('quick-unlock authentication state machine',()=>{
    if(url.endsWith('/auth/refresh'))return response({message:'Session has expired'},401);
    if(url.endsWith('/auth/device/renew')){
     expect(JSON.parse(String(options.body))).toMatchObject({deviceId:grant.deviceId,secret:grant.secret});
-    return response({accessToken:'fresh-access',refreshToken:'fresh-refresh',deviceGrant:{...grant}});
+    return response({accessToken:'fresh-access',refreshToken:'fresh-refresh',deviceGrant:{...grant,secret:'C'.repeat(43)}});
    }
    if(url.endsWith('/auth/me'))
     return new Headers(options.headers).get('Authorization')==='Bearer fresh-access'
@@ -86,6 +86,7 @@ describe('quick-unlock authentication state machine',()=>{
   const restored=await unlockSessionWithPin('account','406195');
   expect((await verifyQuickUnlock('account',restored,()=>true)).name).toBe('مستخدم موثوق');
   expect(activeSessionTokens()).toEqual({accessToken:'fresh-access',refreshToken:'fresh-refresh'});
+  expect((await readVaultDeviceGrant('account'))?.secret).toBe('C'.repeat(43));
   expect(fetch.mock.calls.filter(call=>String(call[0]).endsWith('/auth/device/renew'))).toHaveLength(1);
  });
  it('rejects an expired or revoked trusted-device grant without opening account data',async()=>{
