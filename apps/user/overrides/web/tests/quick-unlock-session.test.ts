@@ -6,7 +6,7 @@ vi.mock('@react-native-async-storage/async-storage',()=>({default:{
  multiRemove:async(keys:string[])=>{keys.forEach(k=>memory.delete(k));}
 }}));
 import {clearSession,saveSession,lockSession,api,activeSessionTokens,hasSession,saveVerifiedUser,getVerifiedCachedUser} from '../api';
-import {protectSessionWithPin,unlockSessionWithPin} from '../session-vault';
+import {protectSessionWithPin,unlockSessionWithPin,persistVaultDeviceGrant,readVaultDeviceGrant} from '../session-vault';
 import {verifyQuickUnlock} from '../quick-unlock-session';
 const tokens={accessToken:'access-fixture',refreshToken:'refresh-fixture'};
 const response=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status});
@@ -57,9 +57,45 @@ describe('quick-unlock authentication state machine',()=>{
   await expect(verifyQuickUnlock('account',tokens,()=>true)).rejects.toThrow();
   expect(await hasSession()).toBe(false);expect(memory.has('dhahabi_user_session_vault_v1')).toBe(false);
  });
- it('requires password when the server rejects an expired refresh session',async()=>{
-  vi.stubGlobal('fetch',vi.fn(async()=>response({message:'Invalid refresh token'},401)));
-  await expect(verifyQuickUnlock('account',tokens,()=>true)).rejects.toThrow();expect(await hasSession()).toBe(false);
+ it('preserves encrypted factors but blocks account data if expired refresh has no device grant',async()=>{
+  const fetch=vi.fn(async(_url:string,_options:RequestInit)=>response({message:'Invalid refresh token'},401));
+  vi.stubGlobal('fetch',fetch);
+  await expect(verifyQuickUnlock('account',tokens,()=>true)).rejects.toThrow();
+  expect(memory.has('dhahabi_user_session_vault_v1')).toBe(true);
+  await expect(api('/portfolio')).rejects.toThrow();
+  expect(fetch.mock.calls.every(call=>!String(call[0]).endsWith('/auth/device/renew'))).toBe(true);
+ });
+ it('issues fresh server tokens from an enrolled device after refresh expires',async()=>{
+  const grant={deviceId:'00000000-0000-4000-8000-000000000021',
+   secret:'A'.repeat(43),expiresAt:'2027-01-01T00:00:00.000Z'};
+  await persistVaultDeviceGrant('account',grant);
+  const fetch=vi.fn(async(url:string,options:RequestInit)=>{
+   if(url.endsWith('/auth/refresh'))return response({message:'Session has expired'},401);
+   if(url.endsWith('/auth/device/renew')){
+    expect(JSON.parse(String(options.body))).toMatchObject({deviceId:grant.deviceId,secret:grant.secret});
+    return response({accessToken:'fresh-access',refreshToken:'fresh-refresh',deviceGrant:{...grant,secret:'C'.repeat(43)}});
+   }
+   if(url.endsWith('/auth/me'))
+    return new Headers(options.headers).get('Authorization')==='Bearer fresh-access'
+     ?response({userId:'account',email:'user@example.test',role:'user'})
+     :response({message:'Session has expired'},401);
+   if(url.endsWith('/auth/profile'))return response({id:'account',fullName:'مستخدم موثوق'});
+   throw new Error('Unexpected endpoint: '+url);
+  });
+  vi.stubGlobal('fetch',fetch);
+  const restored=await unlockSessionWithPin('account','406195');
+  expect((await verifyQuickUnlock('account',restored,()=>true)).name).toBe('مستخدم موثوق');
+  expect(activeSessionTokens()).toEqual({accessToken:'fresh-access',refreshToken:'fresh-refresh'});
+  expect((await readVaultDeviceGrant('account'))?.secret).toBe('C'.repeat(43));
+  expect(fetch.mock.calls.filter(call=>String(call[0]).endsWith('/auth/device/renew'))).toHaveLength(1);
+ });
+ it('rejects an expired or revoked trusted-device grant without opening account data',async()=>{
+  await persistVaultDeviceGrant('account',{deviceId:'00000000-0000-4000-8000-000000000022',
+   secret:'B'.repeat(43),expiresAt:'2027-01-01T00:00:00.000Z'});
+  vi.stubGlobal('fetch',vi.fn(async()=>response({message:'Device credential revoked'},401)));
+  await expect(verifyQuickUnlock('account',tokens,()=>true)).rejects.toThrow();
+  expect(memory.has('dhahabi_user_session_vault_v1')).toBe(true);
+  await expect(api('/portfolio')).rejects.toThrow();
  });
  it('does not unlock when the user switches account or logs out during the server check',async()=>{
   let finish!:(value:Response)=>void;
