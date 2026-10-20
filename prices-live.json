@@ -2,14 +2,14 @@
   "source": "api.gold-api.com",
   "symbol": "XAU",
   "currency": "USD",
-  "spotUsdPerOunce": 4124.600098,
+  "spotUsdPerOunce": 4116.399902,
   "usdSar": 3.75,
-  "updatedAt": "2026-10-20T17:50:39Z",
-  "generatedAt": "2026-10-20T17:50:58.882071+00:00",
+  "updatedAt": "2026-10-20T23:47:40Z",
+  "generatedAt": "2026-10-20T23:47:45.540992+00:00",
   "pricesSarPerGram": {
-    "24": 497.28,
-    "22": 455.84,
-    "21": 435.12,
-    "18": 372.96
+    "24": 496.29,
+    "22": 454.94,
+    "21": 434.26,
+    "18": 372.22
   }
 }
