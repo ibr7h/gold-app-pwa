@@ -1,5 +1,8 @@
 /** Remaining iPhone localization coverage; checked against live JSX text fragments. */
 export const followupUiMessages:ReadonlyArray<readonly [string,string,string]>=[
+ ['الضريبة (%) — اختيارية','Tax (%) — optional','Taxe (%) — facultative'],
+ ['تُحسب النسبة على قيمة الذهب وإجمالي المصنعية.','Applied to gold value plus total workmanship.','Appliquée à la valeur de l’or et au total de fabrication.'],
+ ['مبلغ الضريبة','Tax amount','Montant de la taxe'],
  [
   "1. اختر عيار الذهب",
   "1. Choose gold purity",

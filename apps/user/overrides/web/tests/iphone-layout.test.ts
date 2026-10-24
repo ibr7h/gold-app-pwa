@@ -268,7 +268,7 @@ describe('Approved global gold market-closed UI',()=>{
   expect(lastRow).toBeLessThan(endBreakdown);
   expect(words).toBeGreaterThan(endBreakdown);
   let pos=summary;
-  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة المدخلة','الإجمالي النهائي التقديري']){
+  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','مبلغ الضريبة','الإجمالي النهائي التقديري']){
    const index=card.indexOf(label,pos+1);
    expect(index).toBeGreaterThan(pos);
    pos=index;

@@ -13,6 +13,8 @@ const FX_URL='https://api.frankfurter.dev/v1/';
 const DAY_MS=86400000;
 const MS_4H=4*3600000;
 let cache:EuroReferenceRates|null=null;
+let flight:Promise<EuroReferenceRates>|null=null;
+const STORAGE='dhahabk:public-eur-reference-v1';
 
 function validDay(value:unknown):value is string{
  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
@@ -25,7 +27,8 @@ function validRate(value:unknown):value is number{
 }
 export function parseEuroReferenceRates(response:unknown, now=Date.now()):EuroReferenceRates{
  if(!response||typeof response!=='object')throw new Error('invalid_eur_fx');
- const data=response as {start_date?:unknown;end_date?:unknown;rates?:unknown};
+ const data=response as {base?:unknown;start_date?:unknown;end_date?:unknown;rates?:unknown};
+ if(data.base!==undefined&&data.base!=='USD')throw new Error('invalid_eur_fx_base');
  if(!data.rates||typeof data.rates!=='object'||Array.isArray(data.rates))throw new Error('missing_eur_fx');
  const byDay:Record<string,number>={};
  for(const [day,values]of Object.entries(data.rates as Record<string,unknown>)){
@@ -36,21 +39,47 @@ export function parseEuroReferenceRates(response:unknown, now=Date.now()):EuroRe
  const days=Object.keys(byDay).sort();
  const latestDate=days[days.length-1];
  if(!latestDate)throw new Error('missing_eur_fx');
- // A reference exchange quote older than five calendar days is too stale.
+ // A reference exchange quote older than six calendar days is too stale.
  if(now-Date.parse(latestDate+'T00:00:00Z')>6*DAY_MS)throw new Error('stale_eur_fx');
  return {latestDate,eurPerUsd:byDay[latestDate],byDay,fetchedAt:now};
 }
 export async function loadEuroReferenceRates(now=Date.now(),request:typeof fetch=fetch):Promise<EuroReferenceRates>{
- if(cache&&now-cache.fetchedAt<MS_4H&&now-Date.parse(cache.latestDate+'T00:00:00Z')<=6*DAY_MS)return cache;
+ if(!cache){
+  try{
+   const raw=typeof window!=='undefined'?window.localStorage.getItem(STORAGE):null;
+   if(raw&&raw.length<=64000){
+    const stored=JSON.parse(raw),parsed=parseEuroReferenceRates(stored,now);
+    if(typeof stored.fetchedAt==='number'&&stored.fetchedAt>0&&stored.fetchedAt<=now)
+     cache={...parsed,fetchedAt:stored.fetchedAt};
+   }
+  }catch{/* A corrupted/blocked public FX cache cannot authorize a made-up rate. */}
+ }
+ if(cache&&now>=cache.fetchedAt&&now-cache.fetchedAt<MS_4H&&now-Date.parse(cache.latestDate+'T00:00:00Z')<=6*DAY_MS)return cache;
+ if(flight)return flight;
  const start=isoDate(now-372*DAY_MS);
  const end=isoDate(now);
  const url=FX_URL+start+'..'+end+'?base=USD&symbols=EUR';
- const res=await request(url,{cache:'no-store'});
- if(!res.ok)throw new Error('eur_fx_http_'+res.status);
- const payload:unknown=await res.json();
- const result=parseEuroReferenceRates(payload,now);
- cache=result;
- return result;
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+ const work=(async()=>{
+  try{
+   const res=await request(url,{cache:'no-store',credentials:'omit',redirect:'error',signal:controller.signal});
+   if(!res.ok)throw new Error('eur_fx_http_'+res.status);
+   const payload:unknown=await res.json();
+   const result=parseEuroReferenceRates(payload,now);
+   cache=result;
+   try{
+    const rates=Object.fromEntries(Object.entries(result.byDay).map(([day,EUR])=>[day,{EUR}]));
+    if(typeof window!=='undefined')window.localStorage.setItem(STORAGE,JSON.stringify({rates,fetchedAt:now}));
+   }catch{/* Public cache persistence is optional. */}
+   return result;
+  }catch(error){
+   // Daily reference observations remain explicitly dated; never invent a rate.
+   if(cache&&now-Date.parse(cache.latestDate+'T00:00:00Z')<=6*DAY_MS)return cache;
+   throw error;
+  }finally{clearTimeout(timer);}
+ })();
+ flight=work;
+ try{return await work;}finally{if(flight===work)flight=null;}
 }
 export function euroRateOnDate(rates:EuroReferenceRates,date:string):number|null{
  if(!validDay(date))return null;

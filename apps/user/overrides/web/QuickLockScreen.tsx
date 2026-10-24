@@ -24,9 +24,10 @@ function Keypad({onDigit,onDelete,disabled,biometric,onBiometric}:{onDigit:(d:st
   })}
  </div>;
 }
-export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loading,error:remoteError,onPin,onBiometric,onForgot}:{
+export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loading,error:remoteError,onPin,onBiometric,onForgot,onOfflineTools}:{
  account:User;biometricEnabled:boolean;quickPinEnabled:boolean;loading:boolean;error:string|null;
  onPin:(pin:string)=>Promise<PinResult>;onBiometric:()=>Promise<boolean>;onForgot:()=>void;
+ onOfflineTools?:()=>void;
 }){
  const {language,direction}=useLanguage();
  const [digits,setDigits]=useState(''),[localError,setLocalError]=useState(''),[busy,setBusy]=useState(false);
@@ -79,6 +80,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
     :<div className="dh-pin-bio-only">{!biometricEnabled&&<p role="status">بصمة الجهاز غير متاحة حاليًا؛ استخدم كلمة المرور.</p>}</div>}
    {biometricEnabled&&<div className={'dh-pin-bio-only'+(quickPinEnabled?' dh-pin-bio-compact':'')}><button type="button" onClick={biometric} disabled={busy||loading}><FaceMark/> فتح ببصمة الجهاز</button></div>}
    <small className="dh-pin-security-note">يعمل رمز الدخول على هذا الجهاز فقط. يتطلب فتح البيانات جلسة صالحة في خادم ذهبك.</small>
+   {onOfflineTools&&<button className="dh-pin-forgot" type="button" disabled={busy||loading} onClick={onOfflineTools}>{language==='en'?'Offline calculator and saved prices':language==='fr'?'Calculatrice hors connexion et cours enregistrés':'الحاسبة والأسعار المحفوظة دون اتصال'}</button>}
      </div>
  </main>;
 }

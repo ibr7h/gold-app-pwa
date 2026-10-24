@@ -3,6 +3,7 @@
 // Each new iPhone User code release advances its visible semantic version.
 // Rebuilding an unchanged git commit does not create a new application release.
 const fs=require('node:fs'),path=require('node:path');
+const {buildOfflineWorker}=require('../apps/user/scripts/offline-assets.cjs');
 const root=path.resolve(__dirname,'..'),base=path.join(root,'_render_preview/gold-app-pwa/full');
 const src=path.join(root,'apps/user/overrides/web/app-version.ts');
 const read=p=>fs.readFileSync(p,'utf8'),write=(p,s)=>fs.writeFileSync(p,s,'utf8');
@@ -21,7 +22,9 @@ const releaseSha=(process.env.GITHUB_SHA||process.env.IPHONE_RELEASE_SHA||'').tr
 if(!/^[a-f0-9]{8,40}$/i.test(releaseSha))throw Error('Valid release SHA is required for legacy iPhone update migration');
 const legacyVersion='full-'+releaseSha.slice(0,8).toLowerCase();
 const swPath=path.join(base,'sw.js'),clientPath=path.join(base,'pwa-update.js');
-let sw=read(swPath),client=read(clientPath);
+// Always publish the reviewed worker source. Merely restamping an old deployed
+// worker silently ignored source-level offline fixes in previous releases.
+let sw=read(path.join(root,'apps/user/scripts/user-service-worker.js')),client=read(clientPath);
 if(!/const VERSION = '[^']+';/.test(sw)||!/const CURRENT = 'full-[^']+';/.test(client)||!client.includes('watchAccountVersion()'))throw Error('Release scripts not ready');
 let count=0;
 function stamp(folder){
@@ -68,7 +71,7 @@ const validatorLine=/^[ \t]*if \(typeof requested !== 'string' \|\| !\/\^full-.*
 if(!validatorLine.test(client))throw Error('Updater semantic version validation missing');
 client=client.replace(validatorLine,versionValidator);
 client=client.replace(/const CURRENT = 'full-[^']+';/,"const CURRENT = '"+version+"';");
-sw=sw.replace(/const VERSION = '[^']+';/,"const VERSION = '"+token+"';");
+sw=buildOfflineWorker(base,sw,token);
 write(src,current.replace(m[0],"export const APP_VERSION = '"+next+"';"));
 // Preserve DhahabiUpdateLocale as the compatibility API consumed by old installed clients.
 write(clientPath,client);
