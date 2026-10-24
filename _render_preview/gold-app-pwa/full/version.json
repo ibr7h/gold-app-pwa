@@ -1,8 +1,8 @@
 {
-  "version": "full-80b21f53",
-  "releaseVersion": "full-80b21f53",
-  "semanticReleaseVersion": "full-1.9.88-20261024",
-  "displayVersion": "v1.9.88",
+  "version": "full-2e1924c1",
+  "releaseVersion": "full-2e1924c1",
+  "semanticReleaseVersion": "full-1.9.89-20261024",
+  "displayVersion": "v1.9.89",
   "releasedAt": "20261024",
   "force": true
 }
