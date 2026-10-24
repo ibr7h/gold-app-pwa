@@ -16,7 +16,7 @@ export function parsePublicMarketSnapshot(value:unknown,now=Date.now()):PublicMa
  for(const row of v.rows){
   if(!row||!allowedCurrencies.includes(row.currency)||!allowedKarats.includes(row.karat)||
    typeof row.timestamp!=='string'||!Number.isFinite(Date.parse(row.timestamp))||Date.parse(row.timestamp)>now+300000||
-   ![row.buyPrice,row.sellPrice].every(p=>typeof p==='string'&&p.trim()!==''&&Number.isFinite(Number(p))&&Number(p)>0&&Number(p)<100000000))return null;
+   ![row.buyPrice,row.sellPrice].every(p=>typeof p==='string'&&p.length<=64&&p.trim()!==''&&Number.isFinite(Number(p))&&Number(p)>0&&Number(p)<100000000))return null;
   const id=row.currency+':'+row.karat;
   if(seen.has(id))return null;
   seen.add(id);
@@ -39,6 +39,9 @@ export function savePublicMarketSnapshot(rows:MarketPrice[],now=Date.now()):void
   const updated=new Set(rows.map(r=>r.currency+':'+r.karat));
   const combined=[...rows,...previous.filter(r=>!updated.has(r.currency+':'+r.karat))];
   const snapshot=parsePublicMarketSnapshot({version:1,savedAt:now,rows:combined},now);
-  if(snapshot?.rows.length)window.localStorage.setItem(PUBLIC_MARKET_CACHE,JSON.stringify(snapshot));
+  if(snapshot?.rows.length){
+   const serialized=JSON.stringify(snapshot);
+   if(serialized.length<=20000)window.localStorage.setItem(PUBLIC_MARKET_CACHE,serialized);
+  }
  }catch{/* Private browsing/quota must never break live pricing. */}
 }

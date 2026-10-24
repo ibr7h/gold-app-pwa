@@ -31,6 +31,7 @@ describe('Reliable reference EUR pricing in User iPhone',()=>{
   expect(()=>parseEuroReferenceRates({rates:{'2026-10-12':{EUR:6}}},now)).toThrow();
   expect(()=>parseEuroReferenceRates({rates:{'2026-09-20':{EUR:0.9}}},now)).toThrow();
   expect(()=>parseEuroReferenceRates({rates:{'2026-10-34':{EUR:0.8}}},now)).toThrow();
+  expect(()=>parseEuroReferenceRates({base:'EUR',rates:{'2026-10-12':{EUR:1}}},now)).toThrow();
  });
  it('uses the nearest prior WORKING day across weekends, not a made-up Sunday FX quote',()=>{
   expect(euroRateOnDate(fx,'2026-10-11')).toBe(0.89238);

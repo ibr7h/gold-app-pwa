@@ -195,6 +195,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     setHistory(priceCurrency==='EUR'?(reference?euroHistoryRows(historyRows,reference):[]):historyRows);
     setHomeHistory(priceCurrency==='EUR'?(reference?euroHistoryRows(homeHistoryRows,reference):[]):homeHistoryRows);
     if(reference)setEurFx(reference);
+    else if(priceCurrency==='EUR')setEurFx(null);
     setHomeHistoryCurrency(priceCurrency);
     setHistoryQuery(priceCurrency+':'+chartKarat+':'+chartRange);
     const publicRows=reference?[...cleanLatest,...euroMarketRows(cleanLatest,reference)]:cleanLatest;

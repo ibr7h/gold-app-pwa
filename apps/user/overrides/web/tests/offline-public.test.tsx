@@ -18,6 +18,9 @@ describe('public-only offline tools and price snapshots',()=>{
  it('whitelists public fields and never persists caller-supplied private data',()=>{
   savePublicMarketSnapshot([{...row(),accessToken:'must-not-be-stored',email:'private@example.invalid',portfolioId:'private-wallet'} as any]);
   expect(memory.get(PUBLIC_MARKET_CACHE)).not.toMatch(/accessToken|email|portfolioId|must-not-be-stored/);
+  memory.clear();
+  savePublicMarketSnapshot([{...row(),buyPrice:'0'.repeat(21000)+'300'}]);
+  expect(memory.has(PUBLIC_MARKET_CACHE)).toBe(false);
  });
  it('preserves distinctly timestamped EUR observations when only SAR/USD refresh',()=>{
   savePublicMarketSnapshot([{...row(),currency:'EUR',buyPrice:'120'}]);
