@@ -2,6 +2,10 @@
 
 Independent end-user PWA for Dhahabi.
 
+Canonical production source: this repository's `preview/iphone-render` branch.
+See [release evidence and source ownership](RELEASE_CHECKLIST.md) before changing
+the Render service source or promoting another standalone repository.
+
 - Role accepted: `USER` only.
 - Registration: allowed through the public user registration endpoint.
 - Production path: `/gold-app-pwa/full/` (legacy-compatible user URL).
