@@ -8,6 +8,8 @@ on:
       - "gold-app 17 apr 15-19 adimin icon.zip"
       - ".github/workflows/build-iphone-wallet.yml"
       - ".github/workflows/iphone-user-ui-preflight.yml"
+      - "scripts/iphone_static_assets.py"
+      - "scripts/test_iphone_static_assets.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -54,3 +56,13 @@ jobs:
           pnpm exec tsc --noEmit
           pnpm exec vitest run web/tests
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
+      - name: Test static-asset guard and verify the real release packaging
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_iphone_static_assets.py'
+          python3 - <<'PY'
+          import os,subprocess,yaml
+          cfg=yaml.safe_load(open('.github/workflows/build-iphone-wallet.yml',encoding='utf-8'))
+          steps=cfg['jobs']['build']['steps']
+          script=next(step['run'] for step in steps if step.get('name')=='Preserve preview PWA assets and replace compiled bundle')
+          subprocess.run(['bash','-euo','pipefail','-c',script],check=True,env=os.environ)
+          PY
