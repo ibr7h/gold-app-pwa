@@ -42,10 +42,18 @@ assert(!/www[.]goldapi[.]io|x-access-token/i.test(archiveText),'Direct upstream-
 const html=[];
 function collect(dir){for(const name of fs.readdirSync(dir)){const file=path.join(dir,name),stat=fs.statSync(file);if(stat.isDirectory())collect(file);else if(name.endsWith('.html'))html.push(file);}}
 collect(preview);
+const fxSource=fs.readFileSync(path.join(root,'apps/user/overrides/web/euro-reference.ts'),'utf8');
+const fxAddress=fxSource.match(/const FX_URL='([^']+)'/);
+assert(fxAddress,'Reviewed User FX source missing');
+const fxOrigin=new URL(fxAddress[1]).origin;
 for(const file of html){
  const page=fs.readFileSync(file,'utf8');
  assert(page.includes('http-equiv="Content-Security-Policy"'),'Missing CSP meta in '+path.relative(root,file));
  assert(page.includes('name="referrer" content="no-referrer"'),'Missing referrer policy in '+path.relative(root,file));
+ const policy=page.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
+ const connect=policy?.split(';').map(v=>v.trim()).find(v=>v.startsWith('connect-src '))?.split(/\s+/).slice(1)||[];
+ assert(connect.includes(fxOrigin),'Current EUR FX endpoint is blocked by published CSP: '+path.relative(root,file));
+ assert(!connect.some(v=>v.includes('*')||v==='https:'||v==='http:'),'Unrestricted CSP network source in '+path.relative(root,file));
 }
 for(const obsolete of ['oauth/callback.html','forgot-password.html','dev/theme-lab.html'])
  assert(!fs.existsSync(path.join(preview,obsolete)),'Obsolete route remains deployable: '+obsolete);

@@ -69,7 +69,7 @@ function GuestPrices({onBack}:{onBack:()=>void}){
  </main>;
 }
 
-export default function AuthForm({register=false}:{register?:boolean}){
+export default function AuthForm({register=false,onOfflineTools}:{register?:boolean;onOfflineTools?:()=>void}){
  const {language,direction}=useLanguage();
  const t=(ar:string,en:string,fr:string)=>language==='en'?en:language==='fr'?fr:ar;
  const {user,isLoading,error,login,startRegistration,registerStep,registerEmail,verifyRegistration,resendRegisterCode,cancelRegistration,registrationExpiresAt,registrationResendAt,clearError,biometricAvailable,biometricEnrolled,biometricEnabled,loginWithBiometric}=useAuth() as RegistrationAuth;
@@ -185,6 +185,7 @@ export default function AuthForm({register=false}:{register?:boolean}){
      <div className="mockup-login-options"><label className="mockup-remember"><input type="checkbox" disabled/><span>الدخول السريع من إعدادات الحساب</span></label><button type="button" className="mockup-forgot" onClick={()=>{setRecovery(true);setLocalError('');clearError();}}>{t('نسيت كلمة المرور؟','Forgot password?','Mot de passe oublié ?')}</button></div>
      <button className="gold-btn mockup-primary-btn" disabled={isLoading}><AuthIcon name="login"/><span>{isLoading?'جارٍ تسجيل الدخول…':'تسجيل الدخول'}</span></button>
      <button type="button" className="gold-btn-outline mockup-guest-btn" onClick={()=>setGuest(true)}><AuthIcon name="guest"/><span>المتابعة كزائر (تصفح الأسعار فقط)</span></button>
+     {onOfflineTools&&<button type="button" className="registration-back" onClick={onOfflineTools}>{t('الحاسبة والأسعار المحفوظة دون اتصال','Offline calculator and saved prices','Calculatrice hors connexion et cours enregistrés')}</button>}
      <div className="mockup-register-link">ليس لديك حساب؟ <button type="button" onClick={()=>{clearError();router.replace('/register');}}>إنشاء حساب مستخدم جديد</button></div>
     </form>
    </section>

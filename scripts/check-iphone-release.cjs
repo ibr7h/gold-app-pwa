@@ -48,6 +48,13 @@ assert(sw.includes("'/version.json'") && sw.includes("'/pwa-update.js'") &&
   sw.includes("url.pathname.endsWith(path)") && sw.includes("cache:'no-store'"),
   'SW version and bootstrap network bypass missing');
 new vm.Script(sw);
+const offlineList=sw.match(/const OFFLINE_ASSETS = (\[[^\n]*\]);/);
+assert(offlineList,'Published worker must have a generated offline manifest');
+const offlineAssets=JSON.parse(offlineList[1]);
+assert(offlineAssets.some(file=>/\/entry-[a-f0-9]+\.js$/.test(file)),'Offline manifest is missing the actual Expo entry');
+for(const file of ['standalone-install-gate.js','iphone-preview-lock.js','pwa-update.js','user-update-locales.js'])
+ assert(offlineAssets.includes('/gold-app-pwa/full/'+file),'Offline bootstrap missing: '+file);
+assert(!offlineAssets.some(file=>/\.map$|version\.json$|sw\.js$/.test(file)),'Sensitive/source/update metadata must not be precached');
 let count=0;
 function check(dir){
  for(const e of fs.readdirSync(dir,{withFileTypes:true})){
