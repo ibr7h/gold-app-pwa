@@ -217,12 +217,13 @@ test('new worker never activates in install and only clears its own old caches o
   assert.match(worker,/key\.startsWith\(PREFIX\) && key !== CACHE/);
   assert.doesNotMatch(worker,/CLEAR_CACHES/);
 });
-test('new worker does not block install on optional icon failures or cache the update bootstrap',()=>{
+test('new worker tolerates optional aliases and precaches actual boot dependencies',()=>{
   const install=worker.split("self.addEventListener('install'")[1].split("self.addEventListener('activate'")[0];
   assert.match(install,/Promise\.allSettled/);
   assert.match(worker,/url\.pathname\.endsWith\('\/index\.html'\)/);
   assert.match(worker,/'\/pwa-update\.js'/);
   assert.match(worker,/'\/standalone-install-gate\.js'/);
+  assert.match(worker,/\.\.\.OFFLINE_ASSETS/);
   assert.ok(worker.includes("fetch(event.request,{cache:'no-store'})"));
 });
 test('a temporary network outage resolves every worker FetchEvent to a response',async()=>{
@@ -230,7 +231,8 @@ test('a temporary network outage resolves every worker FetchEvent to a response'
  const cache={
   async addAll(){},
   async add(){},
-  async put(){}
+  async put(){},
+  async match(url){return storedRoutes.get(typeof url==='string'?url:url.url.replace('https://dhahabi-user-iphone-preview.onrender.com',''));}
  };
  const storedRoutes=new Map([['/gold-app-pwa/full/login.html',new Response('cached-login',{status:200})]]);
  const context={
@@ -269,7 +271,7 @@ test('worker only pre-caches user auth routes and never intercepts external serv
  assert.ok(worker.includes("BASE + 'login.html'"));
  assert.ok(worker.includes("BASE + 'register.html'"));
  assert.ok(worker.includes("network().catch(() => unavailable())"));
- assert.ok(worker.includes("return await caches.match(fallback) || unavailable(true)"));
+ assert.ok(worker.includes("caches.open(CACHE)"));
  assert.ok(worker.includes("url.origin !== self.location.origin"));
 });
 
@@ -309,6 +311,10 @@ test('release generator upgrades both legacy and already-patched published updat
       const src=path.join(dir,'apps/user/overrides/web');
       fs.mkdirSync(base,{recursive:true});fs.mkdirSync(scripts,{recursive:true});fs.mkdirSync(src,{recursive:true});
       fs.writeFileSync(path.join(scripts,'release-iphone-version.cjs'),source);
+      const userScripts=path.join(dir,'apps/user/scripts');
+      fs.mkdirSync(userScripts,{recursive:true});
+      for(const name of ['offline-assets.cjs','user-service-worker.js'])
+       fs.copyFileSync(path.join(repoRoot,'apps/user/scripts',name),path.join(userScripts,name));
       fs.writeFileSync(path.join(src,'app-version.ts'),versionSource);
       fs.writeFileSync(path.join(base,'sw.js'),worker);
       fs.writeFileSync(path.join(base,'pwa-update.js'),input);

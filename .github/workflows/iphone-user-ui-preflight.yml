@@ -66,3 +66,14 @@ jobs:
           script=next(step['run'] for step in steps if step.get('name')=='Preserve preview PWA assets and replace compiled bundle')
           subprocess.run(['bash','-euo','pipefail','-c',script],check=True,env=os.environ)
           PY
+          node scripts/security-audit-iphone.cjs
+          node --test apps/user/scripts/user-update.test.cjs apps/user/scripts/offline-assets.test.cjs
+          node apps/user/scripts/offline-assets.cjs _render_preview/gold-app-pwa/full
+      - name: Install isolated browser-test tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/dhahabk-browser" --no-save --ignore-scripts --no-audit --no-fund playwright@1.64.1
+          "$RUNNER_TEMP/dhahabk-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Exercise real CSP and cold offline restart in Chromium
+        env:
+          NODE_PATH: ${{ runner.temp }}/dhahabk-browser/node_modules
+        run: node apps/user/scripts/iphone-browser-smoke.cjs _render_preview/gold-app-pwa/full

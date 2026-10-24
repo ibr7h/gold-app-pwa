@@ -18,12 +18,15 @@ import {priceFreshness,isGlobalGoldMarketOpen} from './price-status';
 import './user.css';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
-import {calculatorQuoteWithTaxAmount} from './calculator-quote';
+import {calculatorQuoteWithTaxRate} from './calculator-quote';
+import OfflineWorkspace from './OfflineWorkspace';
+import {savePublicMarketSnapshot} from './public-market-cache';
 import {quoteShareText,shareQuotePng,preloadQuoteIcon,ShareQuote} from './calculator-sharing';
 import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
 import {displayAmount,displayPortfolioSummary,sarPerUsd,DisplayCurrency} from './display-currency';
-import {loadEuroReferenceRates,euroMarketRows,euroHistoryRows,EuroReferenceRates} from './euro-reference';
+import {loadEuroReferenceRates,euroHistoryRows} from './euro-reference';
+import {loadEuroSpot,euroSpotRows} from './euro-spot';
 import {LanguageProvider,useLanguage,activeLocale} from './i18n';
 import {amountToLocalizedWords} from './amount-words-localized';
 import {translateUiText} from './i18n-messages';
@@ -107,12 +110,16 @@ export default function UserWorkspace(){
 }
 function LocalizedUserWorkspace(){
  const {user,lockedAccount,isLoading,error,logout,continueWithPassword,quickPinEnabled,biometricEnabled,unlockWithPin,loginWithBiometric}=useUserLockAuth();
+ const [online,setOnline]=useState(()=>typeof navigator==='undefined'||navigator.onLine!==false);
+ const [publicTools,setPublicTools]=useState(false);
+ useEffect(()=>{const changed=()=>{const connected=navigator.onLine!==false;setOnline(connected);if(connected)setPublicTools(false);};window.addEventListener('online',changed);window.addEventListener('offline',changed);return()=>{window.removeEventListener('online',changed);window.removeEventListener('offline',changed);};},[]);
+ if(!online||publicTools)return <OfflineWorkspace online={online} onReturn={()=>{setOnline(navigator.onLine!==false);setPublicTools(false);}}/>;
  if(isLoading&&!user&&!lockedAccount)return <BootScreen/>;
  if(lockedAccount)return <QuickLockScreen key={String(lockedAccount.id)}
   account={lockedAccount} quickPinEnabled={quickPinEnabled} biometricEnabled={biometricEnabled}
   loading={isLoading} error={error} onPin={unlockWithPin}
-  onBiometric={loginWithBiometric} onForgot={continueWithPassword}/>;
- if(!user)return <AuthForm/>;
+  onBiometric={loginWithBiometric} onForgot={continueWithPassword} onOfflineTools={()=>setPublicTools(true)}/>;
+ if(!user)return <AuthForm onOfflineTools={()=>setPublicTools(true)}/>;
  return <Workspace key={String(user.id)} email={user.email} role={user.role} logout={logout}/>;
 }
 export function Workspace({email,role,logout}:{email:string;role:string;logout:()=>void}){
@@ -141,7 +148,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   window.addEventListener('focus',sync);
   return()=>{window.removeEventListener('online',sync);window.removeEventListener('focus',sync);};
  },[language,priceCurrency]);
- const [eurFx,setEurFx]=useState<EuroReferenceRates|null>(null);
+ const [eurPerUsd,setEurPerUsd]=useState<number|null>(null);
  const [calendar,setCalendar]=useState<DisplayCalendar>(readDisplayCalendar);
  useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState(''),[homeRange,setHomeRange]=useState<TrendRange>('day');
@@ -173,27 +180,32 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   try{
    const currencies=['SAR','USD'];
    const sourceCurrency=priceCurrency==='EUR'?'USD':priceCurrency;
-   const eurFxRequest=priceCurrency==='EUR'?loadEuroReferenceRates():Promise.resolve(null);
+   // Current EUR comes from XAU/EUR itself, never from daily historical FX.
+   const eurSpotRequest=loadEuroSpot().catch(()=>null);
+   const eurFxRequest=priceCurrency==='EUR'?loadEuroReferenceRates().catch(()=>null):Promise.resolve(null);
    const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
    const selectedHistory=api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(sourceCurrency)+'&karat='+chartKarat+'&range='+chartRange);
-   const [historyRows,homeHistoryRows,reference,...latest]=await Promise.all([
+   const [historyRows,homeHistoryRows,reference,eurSpot,...latest]=await Promise.all([
     selectedHistory,
     chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(sourceCurrency)+'&karat=24&range='+homeRange),
     eurFxRequest,
+    eurSpotRequest,
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
    const cleanLatest=latest.filter((row):row is PriceHistoryRow&MarketPrice=>!!row&&typeof row.timestamp==='string'&&
     row.kind!=='daily-average'&&row.sellPrice!==undefined&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
    if(active.current&&seq===marketLoadSequence.current){
-    setHistory(reference?euroHistoryRows(historyRows,reference):historyRows);
-    setHomeHistory(reference?euroHistoryRows(homeHistoryRows,reference):homeHistoryRows);
-    if(reference)setEurFx(reference);
+    setHistory(priceCurrency==='EUR'?(reference?euroHistoryRows(historyRows,reference):[]):historyRows);
+    setHomeHistory(priceCurrency==='EUR'?(reference?euroHistoryRows(homeHistoryRows,reference):[]):homeHistoryRows);
+    setEurPerUsd(eurSpot?.eurPerUsd??null);
     setHomeHistoryCurrency(priceCurrency);
     setHistoryQuery(priceCurrency+':'+chartKarat+':'+chartRange);
-    setAllMarketRows(reference?[...cleanLatest,...euroMarketRows(cleanLatest,reference)]:cleanLatest);
-    setMarketError('');
-    setHistoryError('');
+    const publicRows=eurSpot?[...cleanLatest,...euroSpotRows(eurSpot)]:cleanLatest;
+    setAllMarketRows(publicRows);
+    savePublicMarketSnapshot(publicRows);
+    setMarketError(priceCurrency==='EUR'&&!eurSpot?'تعذر تحديث سعر الذهب باليورو. لا يوجد سعر يورو موثوق متاح الآن.':'');
+    setHistoryError(priceCurrency==='EUR'&&!reference?'تعذر تحميل الرسم التاريخي باليورو. سعر الذهب الحالي مستقل عن بيانات الرسم.':'');
    }
   }catch{
    // Retain the last real stored prices when offline; never replace them with fabricated data.
@@ -247,7 +259,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const summary=totals(purchases,allMarketRows),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
  const visibleHistory=historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[];
   const fxRate=sarPerUsd(allMarketRows);
-  const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate,eurFx?.eurPerUsd??null);return <Money amount={display.amount} currency={display.currency}/>;};
+  const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate,eurPerUsd);return <Money amount={display.amount} currency={display.currency}/>;};
  const priceNote=<p className="fine">{tr('لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.')}</p>;
  const marketTime=(row:Pick<MarketPrice,'timestamp'>|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp,calendar):'لا يوجد تحديث موثوق';
  const priceBlock=<section className="market-price-card">
@@ -259,8 +271,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const calcBaseUnit=calcMarket&&Number.isFinite(Number(calcMarket.buyPrice))?Number(calcMarket.buyPrice):null;
  const calcUnit=calcUseManual?(calcManualPrice.trim()&&Number(calcManualPrice)>0?Number(calcManualPrice):null):calcBaseUnit;
  const calcWeightN=calcWeight.trim()?Number(calcWeight):0,calcFeeN=calcFee.trim()?Number(calcFee):0;
- const calcTaxAmount=calcTaxInput.trim()?Number(calcTaxInput):0;
- const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuoteWithTaxAmount(calcUnit,calcWeightN,calcFeeN,calcTaxAmount);
+ const calcTaxRate=calcTaxInput.trim()?Number(calcTaxInput):0;
+ const {raw:calcRaw,fees:calcFeeTotal,tax:calcTax,total:calcTotal}=calculatorQuoteWithTaxRate(calcUnit,calcWeightN,calcFeeN,calcTaxRate);
  const quoteSnapshot=():ShareQuote|null=>{
   if(calcUnit===null||calcRaw===null||calcFeeTotal===null||calcTax===null||calcTotal===null)return null;
   return {language,currency:priceCurrency,karat:calcKarat,weight:calcWeightN,unitPrice:calcUnit,
@@ -280,7 +292,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   }catch{setMessage(tr('تعذر تجهيز صورة المشاركة. حاول مرة أخرى.'));}
  };
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
- const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurFx?.eurPerUsd??null);
+ const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurPerUsd);
  const selectedHomeHistory=homeHistoryCurrency===priceCurrency?homeHistory:[];
   // Daily historical averages are not live quotes and must not enter daily P/L.
   const realHomeQuotes=selectedHomeHistory.filter((r):r is PriceHistoryRow&{timestamp:string}=>
@@ -336,9 +348,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     </label>}
     <label>الوزن (جرام)<input type="number" inputMode="decimal" min="0" step="0.1" value={calcWeight} onChange={e=>setCalcWeight(e.target.value)}/><div className="weight-presets">{[5,10,20,31.1,50].map(w=><button type="button" key={w} onClick={()=>setCalcWeight(String(w))}>{w===31.1?'أونصة 31.1g':w+' جرام'}</button>)}</div></label>
     <label>المصنعية / جرام <span dir="ltr">({priceCurrency})</span> (اختياري)<input type="number" inputMode="decimal" min="0" step="0.01" value={calcFee} onChange={e=>setCalcFee(e.target.value)}/></label>
-    <label className="calc-tax-input">الضريبة (مبلغ اختياري) <span dir="ltr">({priceCurrency})</span>
-     <input type="number" inputMode="decimal" min="0" step="0.01" value={calcTaxInput} onChange={e=>setCalcTaxInput(e.target.value)}/>
-     <small>أدخل مبلغ الضريبة كما تريد احتسابه؛ لا تُضاف نسبة تلقائية.</small>
+    <label className="calc-tax-input">{tr('الضريبة (%) — اختيارية')}
+     <input type="number" inputMode="decimal" min="0" max="100" step="0.01" value={calcTaxInput} onChange={e=>setCalcTaxInput(e.target.value)}/>
+     <small>{tr('تُحسب النسبة على قيمة الذهب وإجمالي المصنعية.')}</small>
     </label>
    </section>
    <section className="approved-card calc-estimate-card" aria-label="تفاصيل السعر المقدر">
@@ -359,7 +371,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <dl className="calc-breakdown">
      <div><dt>قيمة الذهب الخام</dt><dd dir="ltr">{money(calcRaw,priceCurrency)}</dd></div>
      <div><dt>إجمالي المصنعية</dt><dd dir="ltr">{money(calcFeeTotal,priceCurrency)}</dd></div>
-     <div><dt>الضريبة المدخلة</dt><dd dir="ltr">{money(calcTax,priceCurrency)}</dd></div>
+     <div><dt>{tr('مبلغ الضريبة')}</dt><dd dir="ltr">{money(calcTax,priceCurrency)}</dd></div>
      <div className="final"><dt>{tr('الإجمالي النهائي التقديري')}</dt><dd dir="ltr">{money(calcTotal,priceCurrency)}</dd></div>
     </dl>
     <div className="calc-words-block">

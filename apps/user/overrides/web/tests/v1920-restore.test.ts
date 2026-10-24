@@ -12,7 +12,7 @@ const getCalculator=(src:string)=>{
  return src.slice(a,b);
 };
 describe('v1.9.20 user calculator and historical chart restoration',()=>{
- it('keeps the core 24/22/21/18K calculator controls while applying requested manual tax',()=>{
+ it('keeps the core calculator controls with the restored optional percentage tax',()=>{
   const actual=getCalculator(current);
   const baseline=v1920Calculator;
   for(const marker of ['[24,22,21,18]','weight-presets','calcFee','calcWeight','calcKarat']){
@@ -23,7 +23,9 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
   expect(actual).toContain('money(calcBaseUnit,priceCurrency)');
   expect(actual).toContain('calc-manual-price');
   expect(actual).toContain('calcTaxInput');
-  expect(actual).toContain('الضريبة المدخلة');
+  expect(actual).toContain('الضريبة (%) — اختيارية');
+  expect(actual).toContain('تُحسب النسبة على قيمة الذهب وإجمالي المصنعية.');
+  expect(actual).toContain('max="100"');
   expect(actual).not.toContain('ضريبة 15% (اختيارية)');
   expect(actual).not.toContain('calcVat');
   expect(actual).toContain('className="approved-card calc-estimate-card"');
@@ -35,7 +37,7 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
   expect(actual).toContain("calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language))");
   for(const field of ["calcRaw,priceCurrency","calcFeeTotal,priceCurrency","calcTax,priceCurrency","calcTotal,priceCurrency"])expect(actual).toContain(field);
   expect(current).toContain("const calcMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===calcKarat)");
-  expect(current).toContain("calculatorQuoteWithTaxAmount(calcUnit,calcWeightN,calcFeeN,calcTaxAmount)");
+  expect(current).toContain("calculatorQuoteWithTaxRate(calcUnit,calcWeightN,calcFeeN,calcTaxRate)");
   expect(current).toContain("import {amountToDisplayCurrencyWords} from './arabic-amount-words'");
   expect(actual).not.toContain('calc-total-card');
   expect(actual).not.toContain('السعر الإجمالي التقريبي');

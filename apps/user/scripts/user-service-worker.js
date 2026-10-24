@@ -3,6 +3,8 @@ const VERSION = '__BUILD_VERSION__';
 const PREFIX = 'dhahabi-full-';
 const CACHE = PREFIX + VERSION;
 const BASE = '/gold-app-pwa/full/';
+// Generated from the verified current export; contains public static files only.
+const OFFLINE_ASSETS = [];
 const CORE = [
   BASE,
   BASE + 'index.html',
@@ -14,11 +16,13 @@ const CORE = [
 ];
 
 self.addEventListener('install', event => {
-  // Only the application shell is essential. A temporarily missing icon must
-  // not abort the entire SW install and strand iOS on an old release.
+  // The current shell and its actual dependencies are essential. Obsolete
+  // optional icon aliases below must not strand iOS on an old release.
   // A new worker still waits for the user's explicit update action.
   event.waitUntil(caches.open(CACHE).then(async cache => {
-    await cache.addAll([BASE, BASE + 'index.html']);
+    // A successful install means every boot dependency is durable, not just HTML.
+    // If an essential fetch fails, leave the old worker active for a safe retry.
+    await cache.addAll([...new Set([BASE, BASE + 'index.html', BASE + 'login.html', BASE + 'register.html', ...OFFLINE_ASSETS])]);
     await Promise.allSettled(CORE.filter(url => url !== BASE && url !== BASE + 'index.html')
       .map(url => cache.add(url)));
   }));
@@ -52,10 +56,32 @@ self.addEventListener('fetch', event => {
   const network = () => fetch(event.request,{cache:'no-store'});
 
   // No stale update metadata. Never reject a fetch event when offline.
-  const fresh = ['/version.json','/prices-live.json','/pwa-update.js','/sw.js',
-    '/standalone-install-gate.js','/iphone-preview-lock.js','/user-update-locales.js'];
+  const fresh = ['/version.json','/prices-live.json','/sw.js'];
   if(fresh.some(path => url.pathname.endsWith(path))){
     event.respondWith(network().catch(() => unavailable()));
+    return;
+  }
+
+  // Bootstrap code is network-first online, with a *same-release* offline fallback.
+  // Version metadata above is never served stale. Never read another release cache.
+  const bootstrap = ['/pwa-update.js','/standalone-install-gate.js','/iphone-preview-lock.js','/user-update-locales.js'];
+  const matchingAsset = async () => {
+    try{
+    const cache = await caches.open(CACHE);
+    const requestedVersion = url.searchParams.get('v');
+    const sameRelease = !requestedVersion || requestedVersion === VERSION;
+    return await cache.match(event.request) ||
+      (sameRelease ? await cache.match(url.pathname,{ignoreSearch:true}) : undefined);
+    }catch{return undefined;}
+  };
+  if(bootstrap.some(path => url.pathname.endsWith(path))){
+    event.respondWith((async()=>{
+      try{
+        const response=await network();
+        if(response.ok)return response;
+        return await matchingAsset() || response;
+      }catch{return await matchingAsset() || unavailable();}
+    })());
     return;
   }
 
@@ -67,7 +93,8 @@ self.addEventListener('fetch', event => {
       : route.endsWith('/register') || route.endsWith('/register.html') ? BASE+'register.html'
       : BASE+'index.html';
     event.respondWith(network().catch(async()=>{
-      return await caches.match(fallback) || unavailable(true);
+      try{return await (await caches.open(CACHE)).match(fallback) || unavailable(true);}
+      catch{return unavailable(true);}
     }));
     return;
   }
@@ -75,13 +102,14 @@ self.addEventListener('fetch', event => {
   // Content-hashed JS/CSS/assets can be served from cache when offline, but
   // an uncached resource must produce a controlled 503 instead of a rejection.
   event.respondWith((async()=>{
-    const cached=await caches.match(event.request).catch(()=>undefined);
+    const cache=await caches.open(CACHE).catch(()=>null);
+    const cached=await cache?.match(event.request,{ignoreSearch:true}).catch(()=>undefined);
     if(cached)return cached;
     try{
       const response=await fetch(event.request);
       if(response.ok){
         const copy=response.clone();
-        void caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{});
+        if(cache)await cache.put(event.request,copy).catch(()=>{});
       }
       return response;
     }catch{return unavailable();}

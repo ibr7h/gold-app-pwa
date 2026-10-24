@@ -6,6 +6,8 @@ on:
       - "apps/user/scripts/user-update-client.js"
       - "apps/user/scripts/user-service-worker.js"
       - "apps/user/scripts/user-update.test.cjs"
+      - "apps/user/scripts/offline-assets.cjs"
+      - "apps/user/scripts/offline-assets.test.cjs"
       - "_render_preview/gold-app-pwa/full/pwa-update.js"
       - "_render_preview/gold-app-pwa/full/sw.js"
       - ".github/workflows/verify-iphone-update.yml"
@@ -19,5 +21,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test apps/user/scripts/user-update.test.cjs
+      - run: node --test apps/user/scripts/user-update.test.cjs apps/user/scripts/offline-assets.test.cjs
+      # PRs carry the last committed export. Build the candidate worker from
+      # reviewed source before validating it; full fresh export is in preflight.
+      - name: Generate and validate the proposed same-release offline worker
+        run: node apps/user/scripts/offline-assets.cjs _render_preview/gold-app-pwa/full
       - run: node scripts/check-iphone-release.cjs

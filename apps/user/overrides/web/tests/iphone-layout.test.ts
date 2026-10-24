@@ -268,7 +268,7 @@ describe('Approved global gold market-closed UI',()=>{
   expect(lastRow).toBeLessThan(endBreakdown);
   expect(words).toBeGreaterThan(endBreakdown);
   let pos=summary;
-  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','الضريبة المدخلة','الإجمالي النهائي التقديري']){
+  for(const label of ['قيمة الذهب الخام','إجمالي المصنعية','مبلغ الضريبة','الإجمالي النهائي التقديري']){
    const index=card.indexOf(label,pos+1);
    expect(index).toBeGreaterThan(pos);
    pos=index;
@@ -370,7 +370,8 @@ describe('Global display-currency integration regression',()=>{
   expect(workspace).toContain("homeHistoryCurrency===priceCurrency?homeHistory:[]");
   expect(workspace).toContain('PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency}');
   expect(workspace).toContain('money(calcTotal,priceCurrency)');
-  expect(workspace).toContain('displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurFx?.eurPerUsd??null)');
+  expect(workspace).toContain('displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurPerUsd)');
+  expect(workspace).toContain('setEurPerUsd(eurSpot?.eurPerUsd??null)');
   expect(workspace).toContain("homeMarketMovement(realHomeQuotes,homeMarket,clock,priceCurrency)");
    expect(workspace).toContain("r.kind!=='daily-average'");
  });

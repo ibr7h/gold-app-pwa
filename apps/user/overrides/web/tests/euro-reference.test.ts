@@ -31,6 +31,7 @@ describe('Reliable reference EUR pricing in User iPhone',()=>{
   expect(()=>parseEuroReferenceRates({rates:{'2026-10-12':{EUR:6}}},now)).toThrow();
   expect(()=>parseEuroReferenceRates({rates:{'2026-09-20':{EUR:0.9}}},now)).toThrow();
   expect(()=>parseEuroReferenceRates({rates:{'2026-10-34':{EUR:0.8}}},now)).toThrow();
+  expect(()=>parseEuroReferenceRates({base:'EUR',rates:{'2026-10-12':{EUR:1}}},now)).toThrow();
  });
  it('uses the nearest prior WORKING day across weekends, not a made-up Sunday FX quote',()=>{
   expect(euroRateOnDate(fx,'2026-10-11')).toBe(0.89238);
@@ -79,11 +80,14 @@ describe('Reliable reference EUR pricing in User iPhone',()=>{
   expect(displayAmount(100,'EUR','SAR',3.75,null).available).toBe(false);
   expect(eurFromUsd(100,null)).toBeNull();
  });
- it('offers EUR as a display currency, while keeping API requests in supported SAR/USD',()=>{
+ it('uses direct EUR for current prices and dated FX only for history, keeping backend reads in supported SAR/USD',()=>{
   const s=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url)),'utf8');
   expect(s).toContain("priceCurrency==='EUR'?'USD':priceCurrency");
   expect(s).toContain("euroHistoryRows(historyRows,reference)");
-  expect(s).toContain("euroMarketRows(cleanLatest,reference)");
+  expect(s).toContain('loadEuroSpot().catch(()=>null)');
+  expect(s).toContain('euroSpotRows(eurSpot)');
+  expect(s).not.toContain('euroMarketRows(cleanLatest,reference)');
+  expect(s).toContain('setEurPerUsd(eurSpot?.eurPerUsd??null)');
   expect(s).toContain("setPriceCurrency('EUR')");
   expect(s).toContain('>EUR</option>');
   expect(s).toContain("dialog.alert?.currency||(priceCurrency==='EUR'?'USD':priceCurrency)");
