@@ -370,7 +370,8 @@ describe('Global display-currency integration regression',()=>{
   expect(workspace).toContain("homeHistoryCurrency===priceCurrency?homeHistory:[]");
   expect(workspace).toContain('PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency}');
   expect(workspace).toContain('money(calcTotal,priceCurrency)');
-  expect(workspace).toContain('displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurFx?.eurPerUsd??null)');
+  expect(workspace).toContain('displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurPerUsd)');
+  expect(workspace).toContain('setEurPerUsd(eurSpot?.eurPerUsd??null)');
   expect(workspace).toContain("homeMarketMovement(realHomeQuotes,homeMarket,clock,priceCurrency)");
    expect(workspace).toContain("r.kind!=='daily-average'");
  });
