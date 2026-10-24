@@ -156,6 +156,7 @@ jobs:
         run: |
           cd "$SRC"
           pnpm install --frozen-lockfile
+          pnpm exec tsc --noEmit
           # Include the PIN/device-renewal/session-vault regressions on every release.
           pnpm exec vitest run web/tests
           pnpm exec expo export --platform web --output-dir dist-pwa --clear

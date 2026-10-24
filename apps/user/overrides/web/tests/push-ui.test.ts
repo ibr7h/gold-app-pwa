@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,URL} from 'node:url';
 const source=(name:string)=>readFileSync(fileURLToPath(new URL('../'+name,import.meta.url)),'utf8');
 describe('User Push UX guards',()=>{
  it('shows backend, permission and subscription status separately',()=>{
