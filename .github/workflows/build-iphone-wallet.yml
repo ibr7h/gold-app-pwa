@@ -3,6 +3,8 @@ on:
   push:
     branches: ["preview/iphone-render"]
     paths:
+      - "apps/user/overrides/**"
+      - "apps/user/scripts/**"
       - ".github/workflows/build-iphone-wallet.yml"
       - "gold-app 17 apr 15-19 adimin icon.zip"
       - "scripts/security-audit-iphone.cjs"
@@ -154,7 +156,8 @@ jobs:
         run: |
           cd "$SRC"
           pnpm install --frozen-lockfile
-          pnpm exec vitest run web/tests/registration.test.ts web/tests/gold-help.test.ts web/tests/single-session-compatibility.test.ts web/tests/biometric-vault-recovery.test.ts web/tests/frontend-security.test.ts web/tests/nearby-geolocation.test.ts web/tests/price-status.test.ts web/tests/price-trend.test.ts web/tests/iphone-layout.test.ts web/tests/calculator-quote.test.ts web/tests/arabic-amount-words.test.ts web/tests/v1920-restore.test.ts web/tests/i18n.test.ts web/tests/auth-device-language.test.ts web/tests/calendar-preferences.test.ts
+          # Include the PIN/device-renewal/session-vault regressions on every release.
+          pnpm exec vitest run web/tests
           pnpm exec expo export --platform web --output-dir dist-pwa --clear
       - name: Preserve preview PWA assets and replace compiled bundle
         run: |

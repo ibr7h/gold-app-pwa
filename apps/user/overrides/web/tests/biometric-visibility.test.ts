@@ -1,5 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {canShowBiometricLogin} from '../biometric-visibility';
 
 describe('biometric entry requires an explicit secure opt-in',()=>{
@@ -15,9 +16,9 @@ describe('biometric entry requires an explicit secure opt-in',()=>{
   expect(canShowBiometricLogin({biometricAvailable:true,biometricEnrolled:true,biometricEnabled:true})).toBe(true);
  });
  it('actually applies the gate in the sign-in view and exposes an accurate status in profile',()=>{
-  const auth=readFileSync(new URL('../AuthForm.tsx',import.meta.url).pathname,'utf8');
-  const workspace=readFileSync(new URL('../UserWorkspace.tsx',import.meta.url).pathname,'utf8');
-  const context=readFileSync(new URL('../../contexts/AuthContext.web.tsx',import.meta.url).pathname,'utf8');
+  const auth=readFileSync(fileURLToPath(new URL('../AuthForm.tsx',import.meta.url)),'utf8');
+  const workspace=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url)),'utf8');
+  const context=readFileSync(fileURLToPath(new URL('../../contexts/AuthContext.web.tsx',import.meta.url)),'utf8');
   expect(auth).toContain('showBiometricLogin&&<button className="mockup-biometric"');
   expect(auth).toContain("showBiometricLogin?'أو بالبريد الإلكتروني أو رقم الجوال':'الدخول بالبريد الإلكتروني أو رقم الجوال'");
   expect(workspace).toContain('const biometricActive=canShowBiometricLogin(');

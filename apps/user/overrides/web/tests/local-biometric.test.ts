@@ -1,6 +1,7 @@
 import {describe,it,expect,vi,beforeEach,afterEach} from 'vitest';
 import {generateKeyPairSync,createHash,sign,webcrypto} from 'node:crypto';
 import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 
 const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{
@@ -117,7 +118,7 @@ describe('device-only WebAuthn assertion verification',()=>{
   expect(await readLocalCredential()).toBeNull();
  });
  it('never opens the workspace directly when a local lock is present',()=>{
-  const ctx=readFileSync(new URL('../../contexts/AuthContext.web.tsx',import.meta.url).pathname,'utf8');
+  const ctx=readFileSync(fileURLToPath(new URL('../../contexts/AuthContext.web.tsx',import.meta.url)),'utf8');
   expect(ctx).toContain('setLockedAccount(cached);setUser(null);setLoading(false);');
   expect(ctx).toContain('await verifyLocalCredential(c,request.current!.signal)');
   expect(ctx).toContain("await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current)");
