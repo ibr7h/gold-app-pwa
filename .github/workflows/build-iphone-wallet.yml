@@ -16,6 +16,8 @@ on:
       - "apps/user/scripts/test-iphone-purchase.cjs"
       - "scripts/release-iphone-version.cjs"
       - "scripts/check-iphone-release.cjs"
+      - "scripts/iphone_static_assets.py"
+      - "scripts/test_iphone_static_assets.py"
       - "apps/user/overrides/web/UserWorkspace.tsx"
       - "apps/user/overrides/web/GoldHelp.tsx"
       - "apps/user/overrides/web/gold-help-content.ts"
@@ -165,6 +167,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import os,re,shutil
+          from scripts.iphone_static_assets import refresh_css_links,verify_static_assets
           src=Path(os.environ['SRC'])/'dist-pwa'
           dest=Path('_render_preview/gold-app-pwa/full')
           entries=list((src/'_expo/static/js/web').glob('entry-*.js'))
@@ -177,9 +180,9 @@ jobs:
               if marker not in compiled:
                   raise RuntimeError(f'New wallet code missing in compiled Expo bundle: {marker}')
           css_files=list((src/'_expo/static/css').glob('user-*.css'))
+          fresh_css_names=[p.name for p in (src/'_expo/static/css').glob('*.css')]
           if len(css_files)!=1:
               raise RuntimeError(f'Expected one User stylesheet, got {css_files}')
-          user_css=css_files[0].name
           help_styles=list((src/'_expo/static/css').glob('gold-help-*.css'))
           if len(help_styles)!=1:
               raise RuntimeError(f'Expected one GoldHelp stylesheet, got {help_styles}')
@@ -220,7 +223,9 @@ jobs:
           for page in dest.rglob('*.html'):
               html=page.read_text()
               next_html,n=re.subn(r'(?<=/web/)entry-(?:[0-9a-f]+|dhahabi-v[0-9.]+)\.js',bundle.name,html)
-              next_html=re.sub(r'user-[a-f0-9]+\.css',user_css,next_html)
+              # Update every retained Expo CSS chunk, not only user.css. In
+              # particular, web.css changes hashes and iphone.css is now retired.
+              next_html=refresh_css_links(next_html,fresh_css_names)
               # Expo exports GoldHelp as a separate CSS chunk; the User entry pages
               # do not link it automatically. Include the active, hashed stylesheet.
               next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/gold-help-[a-f0-9]+\.css"\s*/?>','',next_html)
@@ -245,6 +250,8 @@ jobs:
               if target.read_text().count(signup_href)!=1:
                   raise RuntimeError(f'Registration CSS is not linked by {target}')
           print(f'New User entry {bundle.name}, GoldHelp CSS {help_css}, updated {updated} preview pages')
+          pages,assets=verify_static_assets(dest)
+          print(f'PASS packaged User assets: {pages} pages, {assets} assets, zero broken references')
           PY
       - name: Block frontend secret leakage and unsafe legacy artifacts
         run: node scripts/security-audit-iphone.cjs
@@ -279,6 +286,10 @@ jobs:
           node scripts/release-iphone-version.cjs
           node scripts/check-iphone-release.cjs
           node apps/user/scripts/test-iphone-purchase.cjs
+      - name: Reject missing assets in the final versioned release
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_iphone_static_assets.py'
+          python3 scripts/iphone_static_assets.py _render_preview/gold-app-pwa/full
       - name: Keep build on isolated iPhone branch
         run: |
           git config user.name "github-actions[bot]"
