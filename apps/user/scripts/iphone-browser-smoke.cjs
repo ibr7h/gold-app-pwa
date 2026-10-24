@@ -8,6 +8,7 @@ const csp=html.match(/<meta http-equiv="Content-Security-Policy"[^>]+>/)?.[0];
 assert(csp,'Test must use the actual packaged CSP');
 const types={'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff':'font/woff','.woff2':'font/woff2','.ttf':'font/ttf'};
 const probeScript=`Promise.all([
+ fetch('https://api.gold-api.com/price/XAU/EUR',{credentials:'omit',referrerPolicy:'no-referrer'}).then(r=>r.json()).then(d=>{if(d.currency!=='EUR')throw Error('Wrong currency');document.body.dataset.eur=d.currency;}),
  fetch('https://api.frankfurter.dev/v1/2026-10-23?base=USD&symbols=EUR',{credentials:'omit'}).then(r=>r.json()).then(d=>document.body.dataset.fx=String(d.rates.EUR)),
  fetch('https://unapproved.example.invalid/blocked',{credentials:'omit'}).then(()=>{throw Error('CSP opened an unapproved origin')},()=>document.body.dataset.blocked='yes')
 ]).catch(e=>document.body.dataset.failure=e.message);`;
@@ -40,6 +41,11 @@ const server=http.createServer((req,res)=>{
    assert.equal(route.request().headers().authorization,undefined);
    return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({rates:{EUR:.86}})});
   });
+  await context.route('https://api.gold-api.com/**',route=>{
+   assert.equal(route.request().headers().authorization,undefined);
+   assert.equal(route.request().headers().referer,undefined);
+   return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({symbol:'XAU',currency:'EUR',price:3110.34768,exchangeRate:.9,updatedAt:new Date().toISOString()})});
+  });
   // Test-only PWA display-mode signal, not an authentication bypass or physical iPhone claim.
   await context.addInitScript(()=>{
    Object.defineProperty(navigator,'standalone',{get:()=>true});
@@ -48,8 +54,8 @@ const server=http.createServer((req,res)=>{
   });
   const probe=await context.newPage();
   await probe.goto(origin+BASE+'qa-csp-probe.html');
-  await probe.waitForFunction(()=>document.body.dataset.fx==='0.86'&&document.body.dataset.blocked==='yes',{},{timeout:10000});
-  console.log('PASS real Chromium CSP: reviewed EUR origin allowed, unrelated origin blocked, no Authorization header');
+  await probe.waitForFunction(()=>document.body.dataset.eur==='EUR'&&document.body.dataset.fx==='0.86'&&document.body.dataset.blocked==='yes',{},{timeout:10000});
+  console.log('PASS real Chromium CSP: direct XAU/EUR and historical FX origins allowed, unrelated origin blocked, no Authorization/referrer to gold provider');
   await probe.close();
   const page=await context.newPage();
   await page.goto(origin+BASE);
@@ -81,5 +87,50 @@ const server=http.createServer((req,res)=>{
   assert.equal(await offline.getByRole('button',{name:'Portfolio',exact:true}).count(),0);
   console.log('PASS reconnect exits public offline view without creating an authenticated session');
   await context.close();
+  // All account responses below are localhost-only fixtures. No real account or production write.
+  const onlineContext=await browser.newContext({viewport:{width:390,height:844},locale:'en-US',serviceWorkers:'allow'});
+  let eurRequests=0;
+  await onlineContext.route('https://api.gold-api.com/**',route=>{
+   assert.equal(route.request().url(),'https://api.gold-api.com/price/XAU/EUR');
+   assert.equal(route.request().headers().authorization,undefined);
+   assert.equal(route.request().headers().referer,undefined);eurRequests++;
+   return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({symbol:'XAU',currency:'EUR',price:3110.34768,exchangeRate:.9,updatedAt:new Date().toISOString()})});
+  });
+  await onlineContext.route('https://api.frankfurter.dev/**',route=>route.abort());
+  await onlineContext.route('https://gold-app-api-u8dl.onrender.com/**',route=>{
+   const url=new URL(route.request().url());
+   const headers={'access-control-allow-origin':'*','access-control-allow-headers':'Authorization, Content-Type','access-control-allow-methods':'GET, OPTIONS'};
+   if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers});
+   assert.equal(route.request().method(),'GET','Browser fixture must not send production writes');
+   let data;
+   if(url.pathname==='/auth/me')data={userId:'qa-user',email:'qa@example.invalid',role:'user'};
+   else if(url.pathname==='/auth/profile')data={id:'qa-user',fullName:'QA User',city:null,phone:null,email:'qa@example.invalid'};
+   else if(url.pathname==='/portfolio'||url.pathname==='/portfolio/purchase')data=[];
+   else if(url.pathname==='/alerts')data={items:[],total:0};
+   else if(url.pathname==='/prices/history/chart')data=[];
+   else if(url.pathname==='/prices/latest'){
+    const currency=url.searchParams.get('currency'),karat=Number(url.searchParams.get('karat'));
+    data={id:'qa-'+currency+'-'+karat,currency,karat,buyPrice:String((currency==='SAR'?375:100)*karat/24),sellPrice:String((currency==='SAR'?375:100)*karat/24),timestamp:new Date().toISOString(),source:'qa-backend'};
+   }else return route.abort();
+   return route.fulfill({status:200,contentType:'application/json',headers,body:JSON.stringify(data)});
+  });
+  await onlineContext.addInitScript(()=>{
+   Object.defineProperty(navigator,'standalone',{get:()=>true});
+   localStorage.setItem('dhahabi:user:auth-language','en');localStorage.setItem('dhahabi:user:language','en');
+   localStorage.setItem('dhahabi:user:price-currency','EUR');
+   localStorage.setItem('dhahabi_user_access_token','localhost-qa-access');
+   localStorage.setItem('dhahabi_user_refresh_token','localhost-qa-refresh');
+  });
+  const calculator=await onlineContext.newPage();
+  await calculator.goto(origin+BASE+'#calculator');
+  await calculator.locator('.calculator-form .calc-unit-price strong').filter({hasText:'100'}).waitFor({timeout:20000});
+  assert.match(await calculator.locator('.calc-unit-price strong').innerText(),/€/);
+  await calculator.locator('.calculator-form input').nth(1).fill('20');
+  await calculator.getByLabel(/Tax \(%\)/).fill('15');
+  assert.match(await calculator.locator('.calc-breakdown .final').innerText(),/1,380/);
+  assert.match(await calculator.locator('.calc-breakdown').innerText(),/180/);
+  assert.ok(eurRequests>=1);
+  console.log('PASS actual online User calculator: direct EUR 100/gram despite historical FX outage; 15% = 180 tax / 1380 total; no upstream credentials');
+  await onlineContext.close();
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;server.close();});

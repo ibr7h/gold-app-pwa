@@ -80,11 +80,14 @@ describe('Reliable reference EUR pricing in User iPhone',()=>{
   expect(displayAmount(100,'EUR','SAR',3.75,null).available).toBe(false);
   expect(eurFromUsd(100,null)).toBeNull();
  });
- it('offers EUR as a display currency, while keeping API requests in supported SAR/USD',()=>{
+ it('uses direct EUR for current prices and dated FX only for history, keeping backend reads in supported SAR/USD',()=>{
   const s=readFileSync(fileURLToPath(new URL('../UserWorkspace.tsx',import.meta.url)),'utf8');
   expect(s).toContain("priceCurrency==='EUR'?'USD':priceCurrency");
   expect(s).toContain("euroHistoryRows(historyRows,reference)");
-  expect(s).toContain("euroMarketRows(cleanLatest,reference)");
+  expect(s).toContain('loadEuroSpot().catch(()=>null)');
+  expect(s).toContain('euroSpotRows(eurSpot)');
+  expect(s).not.toContain('euroMarketRows(cleanLatest,reference)');
+  expect(s).toContain('setEurPerUsd(eurSpot?.eurPerUsd??null)');
   expect(s).toContain("setPriceCurrency('EUR')");
   expect(s).toContain('>EUR</option>');
   expect(s).toContain("dialog.alert?.currency||(priceCurrency==='EUR'?'USD':priceCurrency)");

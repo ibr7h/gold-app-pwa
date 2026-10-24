@@ -25,7 +25,8 @@ import {quoteShareText,shareQuotePng,preloadQuoteIcon,ShareQuote} from './calcul
 import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
 import {displayAmount,displayPortfolioSummary,sarPerUsd,DisplayCurrency} from './display-currency';
-import {loadEuroReferenceRates,euroMarketRows,euroHistoryRows,EuroReferenceRates} from './euro-reference';
+import {loadEuroReferenceRates,euroHistoryRows} from './euro-reference';
+import {loadEuroSpot,euroSpotRows} from './euro-spot';
 import {LanguageProvider,useLanguage,activeLocale} from './i18n';
 import {amountToLocalizedWords} from './amount-words-localized';
 import {translateUiText} from './i18n-messages';
@@ -147,7 +148,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   window.addEventListener('focus',sync);
   return()=>{window.removeEventListener('online',sync);window.removeEventListener('focus',sync);};
  },[language,priceCurrency]);
- const [eurFx,setEurFx]=useState<EuroReferenceRates|null>(null);
+ const [eurPerUsd,setEurPerUsd]=useState<number|null>(null);
  const [calendar,setCalendar]=useState<DisplayCalendar>(readDisplayCalendar);
  useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState(''),[homeRange,setHomeRange]=useState<TrendRange>('day');
@@ -179,13 +180,16 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   try{
    const currencies=['SAR','USD'];
    const sourceCurrency=priceCurrency==='EUR'?'USD':priceCurrency;
+   // Current EUR comes from XAU/EUR itself, never from daily historical FX.
+   const eurSpotRequest=loadEuroSpot().catch(()=>null);
    const eurFxRequest=priceCurrency==='EUR'?loadEuroReferenceRates().catch(()=>null):Promise.resolve(null);
    const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
    const selectedHistory=api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(sourceCurrency)+'&karat='+chartKarat+'&range='+chartRange);
-   const [historyRows,homeHistoryRows,reference,...latest]=await Promise.all([
+   const [historyRows,homeHistoryRows,reference,eurSpot,...latest]=await Promise.all([
     selectedHistory,
     chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(sourceCurrency)+'&karat=24&range='+homeRange),
     eurFxRequest,
+    eurSpotRequest,
     ...latestRequests
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
@@ -194,15 +198,14 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    if(active.current&&seq===marketLoadSequence.current){
     setHistory(priceCurrency==='EUR'?(reference?euroHistoryRows(historyRows,reference):[]):historyRows);
     setHomeHistory(priceCurrency==='EUR'?(reference?euroHistoryRows(homeHistoryRows,reference):[]):homeHistoryRows);
-    if(reference)setEurFx(reference);
-    else if(priceCurrency==='EUR')setEurFx(null);
+    setEurPerUsd(eurSpot?.eurPerUsd??null);
     setHomeHistoryCurrency(priceCurrency);
     setHistoryQuery(priceCurrency+':'+chartKarat+':'+chartRange);
-    const publicRows=reference?[...cleanLatest,...euroMarketRows(cleanLatest,reference)]:cleanLatest;
+    const publicRows=eurSpot?[...cleanLatest,...euroSpotRows(eurSpot)]:cleanLatest;
     setAllMarketRows(publicRows);
     savePublicMarketSnapshot(publicRows);
-    setMarketError(priceCurrency==='EUR'&&!reference?'تعذر تحديث تحويل اليورو. لا يوجد سعر يورو موثوق متاح الآن.':'');
-    setHistoryError('');
+    setMarketError(priceCurrency==='EUR'&&!eurSpot?'تعذر تحديث سعر الذهب باليورو. لا يوجد سعر يورو موثوق متاح الآن.':'');
+    setHistoryError(priceCurrency==='EUR'&&!reference?'تعذر تحميل الرسم التاريخي باليورو. سعر الذهب الحالي مستقل عن بيانات الرسم.':'');
    }
   }catch{
    // Retain the last real stored prices when offline; never replace them with fabricated data.
@@ -256,7 +259,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const summary=totals(purchases,allMarketRows),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
  const visibleHistory=historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[];
   const fxRate=sarPerUsd(allMarketRows);
-  const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate,eurFx?.eurPerUsd??null);return <Money amount={display.amount} currency={display.currency}/>;};
+  const showMoney=(amount:number|null|undefined,source:string)=>{const display=displayAmount(amount,source,priceCurrency,fxRate,eurPerUsd);return <Money amount={display.amount} currency={display.currency}/>;};
  const priceNote=<p className="fine">{tr('لا تشمل الأسعار المصنعية أو الضريبة أو هامش المتجر.')}</p>;
  const marketTime=(row:Pick<MarketPrice,'timestamp'>|null|undefined)=>row&&Number.isFinite(Date.parse(row.timestamp))?dateTime(row.timestamp,calendar):'لا يوجد تحديث موثوق';
  const priceBlock=<section className="market-price-card">
@@ -289,7 +292,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   }catch{setMessage(tr('تعذر تجهيز صورة المشاركة. حاول مرة أخرى.'));}
  };
  const totalWeight=purchases.reduce((sum,p)=>sum+(Number(p.weightGrams)||0),0);
- const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurFx?.eurPerUsd??null);
+ const homePortfolio=displayPortfolioSummary(purchases,allMarketRows,priceCurrency,fxRate,loaded,eurPerUsd);
  const selectedHomeHistory=homeHistoryCurrency===priceCurrency?homeHistory:[];
   // Daily historical averages are not live quotes and must not enter daily P/L.
   const realHomeQuotes=selectedHomeHistory.filter((r):r is PriceHistoryRow&{timestamp:string}=>

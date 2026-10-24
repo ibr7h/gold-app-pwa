@@ -4,6 +4,9 @@ on:
     branches: ["preview/iphone-render"]
     paths:
       - "apps/user/overrides/web/euro-reference.ts"
+      - "apps/user/overrides/web/euro-spot.ts"
+      - "apps/user/overrides/web/tests/euro-spot.test.ts"
+      - "apps/user/overrides/web/tests/euro-loader.test.ts"
       - "apps/user/overrides/web/display-currency.ts"
       - "apps/user/overrides/web/amount-words-localized.ts"
       - "apps/user/overrides/web/arabic-amount-words.ts"
@@ -43,10 +46,28 @@ jobs:
           assert(cors==='*'||cors==='https://ibr7h.github.io','Browser CORS header is missing');
           console.log('Verified dated USD/EUR ECB reference series and cross-origin fetch.');
           NODE
+      - name: Verify direct XAU/EUR quote and app-domain browser access
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const origin='https://app.dhahabk.com';
+          const response=await fetch('https://api.gold-api.com/price/XAU/EUR',{
+            credentials:'omit',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Origin:origin,Accept:'application/json'}
+          });
+          assert.equal(response.status,200,'Direct EUR gold endpoint unavailable');
+          const data=await response.json();
+          assert.equal(data.symbol,'XAU');assert.equal(data.currency,'EUR');
+          assert(typeof data.price==='number'&&Number.isFinite(data.price)&&data.price>0);
+          assert(typeof data.exchangeRate==='number'&&data.exchangeRate>0&&data.exchangeRate<10);
+          assert(Number.isFinite(Date.parse(data.updatedAt)),'Observation timestamp missing');
+          const cors=response.headers.get('access-control-allow-origin');
+          assert(cors==='*'||cors===origin,'Direct EUR browser CORS header is missing');
+          console.log('Verified direct public XAU/EUR quote and CORS for app.dhahabk.com.');
+          NODE
       - name: Check EUR conversions and purchase safety
         run: |
           cp -R apps/user/overrides/. "$SRC/"
           cd "$SRC"
           pnpm install --frozen-lockfile
-          pnpm exec vitest run web/tests/euro-reference.test.ts web/tests/display-currency.test.ts web/tests/arabic-amount-words.test.ts
+          pnpm exec vitest run web/tests/euro-reference.test.ts web/tests/euro-loader.test.ts web/tests/euro-spot.test.ts web/tests/display-currency.test.ts web/tests/arabic-amount-words.test.ts
           pnpm exec tsc --noEmit

@@ -1,6 +1,7 @@
 import type {MarketPrice} from './model';
 
-/** ECB-aligned daily *reference* FX observations, used only for display.
+/** ECB-aligned daily *reference* FX observations, used only for historical display.
+ * Current gold quotes use euro-spot.ts, not this daily conversion.
  * Frankfurter supplies dates and USD→EUR rates. No guessed or static rate.
  */
 export interface EuroReferenceRates{

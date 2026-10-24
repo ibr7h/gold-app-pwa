@@ -46,6 +46,10 @@ const fxSource=fs.readFileSync(path.join(root,'apps/user/overrides/web/euro-refe
 const fxAddress=fxSource.match(/const FX_URL='([^']+)'/);
 assert(fxAddress,'Reviewed User FX source missing');
 const fxOrigin=new URL(fxAddress[1]).origin;
+const spotSource=fs.readFileSync(path.join(root,'apps/user/overrides/web/euro-spot.ts'),'utf8');
+const spotAddress=spotSource.match(/EUR_SPOT_URL='([^']+)'/);
+assert(spotAddress,'Reviewed direct EUR gold source missing');
+const spotOrigin=new URL(spotAddress[1]).origin;
 for(const file of html){
  const page=fs.readFileSync(file,'utf8');
  assert(page.includes('http-equiv="Content-Security-Policy"'),'Missing CSP meta in '+path.relative(root,file));
@@ -53,6 +57,7 @@ for(const file of html){
  const policy=page.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
  const connect=policy?.split(';').map(v=>v.trim()).find(v=>v.startsWith('connect-src '))?.split(/\s+/).slice(1)||[];
  assert(connect.includes(fxOrigin),'Current EUR FX endpoint is blocked by published CSP: '+path.relative(root,file));
+ assert(connect.includes(spotOrigin),'Direct EUR gold endpoint is blocked by published CSP: '+path.relative(root,file));
  assert(!connect.some(v=>v.includes('*')||v==='https:'||v==='http:'),'Unrestricted CSP network source in '+path.relative(root,file));
 }
 for(const obsolete of ['oauth/callback.html','forgot-password.html','dev/theme-lab.html'])

@@ -6,6 +6,8 @@ import {Language,translateUiText} from './i18n-messages';
  * reviewed messages and use a safe generic fallback otherwise.
  */
 const backendEnglish:Record<string,readonly [string,string]>={
+ 'تعذر تحديث سعر الذهب باليورو. لا يوجد سعر يورو موثوق متاح الآن.':['Could not update the EUR gold price. No reliable EUR quote is available now.','Impossible d’actualiser le cours de l’or en euros. Aucun cours EUR fiable n’est disponible actuellement.'],
+ 'تعذر تحميل الرسم التاريخي باليورو. سعر الذهب الحالي مستقل عن بيانات الرسم.':['Could not load the EUR history chart. The current gold quote is independent of chart data.','Impossible de charger l’historique en euros. Le cours actuel de l’or est indépendant des données du graphique.'],
  'تعذر تحديث تحويل اليورو. لا يوجد سعر يورو موثوق متاح الآن.':['Could not update EUR conversion. No reliable EUR quote is available now.','Impossible d’actualiser la conversion en euros. Aucun cours EUR fiable n’est disponible actuellement.'],
  'Invalid credentials':['Incorrect email or password.','Adresse e-mail ou mot de passe incorrect.'],
  'تم تسجيل الدخول إلى حسابك من جهاز أو تطبيق آخر. انتهت الجلسة هنا؛ سجّل الدخول بكلمة المرور لاستعادة الوصول.':['Your account was signed in on another device or app. This session has ended. Sign in with your password to regain access.','Votre compte a été connecté sur un autre appareil ou une autre application. Cette session est terminée. Reconnectez-vous avec votre mot de passe.'],
