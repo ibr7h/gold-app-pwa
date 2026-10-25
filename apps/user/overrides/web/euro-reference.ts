@@ -49,7 +49,12 @@ export function parseEuroReferenceRates(response:unknown, now=Date.now(),allowHi
  if(!allowHistorical&&now-Date.parse(latestDate+'T00:00:00Z')>6*DAY_MS)throw new Error('stale_eur_fx');
  return {latestDate,eurPerUsd:byDay[latestDate],byDay,fetchedAt:now};
 }
-export async function loadEuroReferenceRates(now=Date.now(),request:typeof fetch=fetch):Promise<EuroReferenceRates>{
+export function euroHistoryStartDay(rows:Array<{timestamp?:string;day?:string}>,now=Date.now()):string{
+ const today=isoDate(now);
+ return rows.map(historicalQuoteDay).filter((day):day is string=>day!==null&&day<=today).sort()[0]??isoDate(now-30*DAY_MS);
+}
+export async function loadEuroReferenceRates(now=Date.now(),request:typeof fetch=fetch,historyFrom?:string):Promise<EuroReferenceRates>{
+ if(historyFrom!==undefined&&(!validDay(historyFrom)||historyFrom>isoDate(now)))throw new Error('invalid_eur_history_window');
  if(!cache){
   try{
    const raw=typeof window!=='undefined'?window.localStorage.getItem(STORAGE):null;
@@ -60,9 +65,15 @@ export async function loadEuroReferenceRates(now=Date.now(),request:typeof fetch
    }
   }catch{/* A corrupted/blocked public FX cache cannot authorize a made-up rate. */}
  }
- if(cache&&now>=cache.fetchedAt&&now-cache.fetchedAt<MS_4H&&now-Date.parse(cache.latestDate+'T00:00:00Z')<=6*DAY_MS)return cache;
- if(flight)return flight;
- const start=isoDate(now-372*DAY_MS);
+ const coversStart=cache&&(!historyFrom||euroRateOnDate(cache,historyFrom)!==null);
+ if(cache&&coversStart&&now>=cache.fetchedAt&&now-cache.fetchedAt<MS_4H&&now-Date.parse(cache.latestDate+'T00:00:00Z')<=6*DAY_MS)return cache;
+ if(flight){
+  const result=await flight;
+  if(!historyFrom||euroRateOnDate(result,historyFrom)!==null)return result;
+  // A pending narrow request cannot satisfy a newly selected older window.
+  return loadEuroReferenceRates(now,request,historyFrom);
+ }
+ const start=historyFrom?isoDate(Date.parse(historyFrom+'T00:00:00Z')-7*DAY_MS):isoDate(now-372*DAY_MS);
  const end=isoDate(now);
  const url=FX_URL+start+'..'+end+'?base=USD&symbols=EUR';
  const controller=new AbortController();
@@ -72,7 +83,7 @@ export async function loadEuroReferenceRates(now=Date.now(),request:typeof fetch
  });
  const work=(async()=>{
   try{
-   const result=await Promise.race([(async()=>{
+   const incoming=await Promise.race([(async()=>{
     const res=await request(url,{cache:'no-store',credentials:'omit',redirect:'error',
      referrerPolicy:'no-referrer',headers:{Accept:'application/json'},signal:controller.signal});
     if(!res.ok)throw new Error('eur_fx_http_'+res.status);
@@ -93,6 +104,12 @@ export async function loadEuroReferenceRates(now=Date.now(),request:typeof fetch
     if(controller.signal.aborted)throw new Error('eur_fx_timeout');
     return parseEuroReferenceRates(JSON.parse(text),now,true);
    })(),deadline]);
+   // A narrow request must not discard previously verified old reference days.
+   const byDay=Object.fromEntries(Object.entries({...cache?.byDay,...incoming.byDay})
+    .filter(([day])=>day>=isoDate(now-372*DAY_MS)&&day<=isoDate(now)));
+   const latestDate=Object.keys(byDay).sort().at(-1);
+   if(!latestDate)throw new Error('missing_eur_fx');
+   const result={...incoming,byDay,latestDate,eurPerUsd:byDay[latestDate]};
    cache=result;
    try{
     const rates=Object.fromEntries(Object.entries(result.byDay).map(([day,EUR])=>[day,{EUR}]));

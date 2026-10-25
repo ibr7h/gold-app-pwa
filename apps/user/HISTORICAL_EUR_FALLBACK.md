@@ -31,6 +31,10 @@ No private account, purchase/invoice, balance or tax data is rewritten.
 - Old validated cached FX remains usable for its own historical dates during an
   outage. It cannot authorize conversion of a later day more than five days
   after its recorded date. Current gold pricing remains independent.
+- Request the actual gold-history date window plus seven prior FX reference
+  days, rather than a year of rates for a short history. A new narrow response
+  preserves older validated cached dates; concurrent older-window requests
+  extend coverage instead of incorrectly reusing a recent-only response.
 - FX fetch: fixed reviewed HTTPS origin, 8-second absolute deadline, 64KB body
   ceiling, no redirects, cookies, Authorization, application referrer or API key.
 

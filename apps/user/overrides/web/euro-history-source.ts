@@ -10,11 +10,15 @@ export function historicalQuoteDay(row:{timestamp?:string;day?:string}):string|n
   return Number.isFinite(at)&&new Date(at).toISOString().slice(0,10)===row.day?row.day:null;
  }
  if(typeof row.timestamp!=='string'||row.timestamp.length>64||
-  !/(?:Z|[+-]\d{2}(?::?\d{2})?)$/.test(row.timestamp))return null;
+  !/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}(?::?\d{2})?)$/.test(row.timestamp))return null;
  const datePart=row.timestamp.slice(0,10),midnight=Date.parse(datePart+'T00:00:00Z');
  if(!/^\d{4}-\d{2}-\d{2}$/.test(datePart)||!Number.isFinite(midnight)||
   new Date(midnight).toISOString().slice(0,10)!==datePart)return null;
- const at=Date.parse(row.timestamp);
+ // PostgreSQL UTC text uses a space and +00, which is not an ISO timestamp.
+ // Normalize for Safari too; do not alter the original record we return.
+ const normalized=row.timestamp.replace(' ','T').replace(/([+-]\d{2})$/,'$1:00')
+  .replace(/([+-]\d{2})(\d{2})$/,'$1:$2').replace(/(\.\d{3})\d+(?=Z|[+-])/,'$1');
+ const at=Date.parse(normalized);
  return Number.isFinite(at)?new Date(at).toISOString().slice(0,10):null;
 }
 const validPrice=(value:unknown)=>typeof value==='string'&&/^\d+(?:\.\d+)?$/.test(value)&&

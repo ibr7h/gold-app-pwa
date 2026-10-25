@@ -1,6 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 import {historicalQuoteDay,mergeEuroHistorySources,loadEuroHistorySources,HistoricalCurrencyRow} from '../euro-history-source';
-import {parseEuroReferenceRates,euroHistoryRows} from '../euro-reference';
+import {parseEuroReferenceRates,euroHistoryRows,euroHistoryStartDay} from '../euro-reference';
 import {translateUiText} from '../i18n-messages';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath,URL} from 'node:url';
@@ -53,6 +53,10 @@ describe('recover missing historical EUR with actual gold observations and dated
  it('does not invent a gold quote for a date absent in both source currencies',()=>{
   expect(euroHistoryRows(mergeEuroHistorySources([],[]),fx)).toEqual([]);
  });
+ it('selects the FX window from genuine source dates, not a fixed year-long request',()=>{
+  expect(euroHistoryStartDay([spot('USD','2026-10-09'),daily('SAR','2026-09-25')],now)).toBe('2026-09-25');
+  expect(euroHistoryStartDay([{day:'bad'},{timestamp:'invalid'}],now)).toBe('2026-09-24');
+ });
  it('does not guess FX when there is no suitably dated reference',()=>{
   expect(euroHistoryRows([spot('SAR','2026-10-20','375')],fx)).toEqual([]);
   expect(euroHistoryRows([spot('USD','2026-09-24')],fx)).toEqual([]);
@@ -76,6 +80,18 @@ describe('recover missing historical EUR with actual gold observations and dated
   expect(historicalQuoteDay(row)).toBe('2026-10-09');
   const out=euroHistoryRows([row],fx);
   expect(out[0].buyPrice).toBe('89');expect(out[0].timestamp).toBe(row.timestamp);
+ });
+ it('normalizes PostgreSQL UTC timestamps before parsing so Safari does not lose old observations',()=>{
+  const original=Date.parse;
+  const parse=vi.spyOn(Date,'parse').mockImplementation(text=>{
+   if(text.includes(' ')||/\+00$/.test(text))return NaN;
+   return original(text);
+  });
+  try{
+   const row={...spot('USD','2026-10-09'),timestamp:'2026-10-09 15:00:00+00'};
+   const out=euroHistoryRows([row],fx);
+   expect(out[0].buyPrice).toBe('89');expect(out[0].timestamp).toBe(row.timestamp);
+  }finally{parse.mockRestore();}
  });
  it('recovers historical rows when only the USD history request fails',async()=>{
   const request=vi.fn(async(currency:'USD'|'SAR')=>{
