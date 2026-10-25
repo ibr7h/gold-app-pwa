@@ -4,6 +4,7 @@ export type TrendRange='day'|'week'|'month'|'available';
 export interface TrendSourceRow{
  id?:string; buyPrice:string|number; createdAt?:string|null; timestamp?:string|null;
  kind?:'spot'|'daily-average';day?:string|null;
+ fxConversion?:{sourceCurrency:'USD'|'SAR';referenceSource:'ECB-reference-FX';rateDate:string;eurPerUsd:number;sarPerUsd?:number};
 }
 export interface TrendPoint{time:number;price:number;id:string;kind:'spot'|'daily-average'}
 

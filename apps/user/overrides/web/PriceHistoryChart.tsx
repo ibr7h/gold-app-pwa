@@ -37,6 +37,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
  const rising=change!==null&&change>=0;
  const hasDaily=points.some(p=>p.kind==='daily-average');
  const hasSpot=points.some(p=>p.kind==='spot');
+ const hasHistoricalFx=currency==='EUR'&&rows.some(row=>row.fxConversion?.referenceSource==='ECB-reference-FX');
  const left=12,right=Math.max(left+70,width-(compact?12:75)),top=24,bottom=compact?123:204;
  const axisStart=timeWindow?.start??0,axisEnd=timeWindow?.end??0;
  // Compress scheduled market closures without creating any artificial quotes.
@@ -121,6 +122,7 @@ export default function PriceHistoryChart({rows,currency,karat,compact=false,cal
   <div className="dh-trend-range-coverage" role="status" aria-live="polite" key={range}>
    <strong>{rangeCoverage}</strong><small>{loading?tr('جارٍ تحميل أسعار الفترة المختارة…'):coverageNotice}</small>
   </div>
+  {hasHistoricalFx&&<p className="dh-trend-explanation">{tr('أسعار اليورو التاريخية محوّلة بسعر صرف مؤرخ، وليست أسعار يورو مباشرة. تبقى الفترات بلا بيانات موثوقة فارغة.')}</p>}
   {points.length<2||!domain?
    <div className="dh-trend-empty" role="status">
     <strong>{tr('لا توجد تحديثات سعرية كافية لرسم الاتجاه.')} ({tr(rangeDescription)})</strong>
