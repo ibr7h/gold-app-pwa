@@ -4,6 +4,8 @@ on:
     branches: ["preview/iphone-render"]
     paths:
       - "apps/user/overrides/web/euro-reference.ts"
+      - "apps/user/overrides/web/euro-history-source.ts"
+      - "apps/user/overrides/web/tests/euro-history-fallback.test.ts"
       - "apps/user/overrides/web/euro-spot.ts"
       - "apps/user/overrides/web/tests/euro-spot.test.ts"
       - "apps/user/overrides/web/tests/euro-loader.test.ts"
@@ -80,5 +82,5 @@ jobs:
           cp -R apps/user/overrides/. "$SRC/"
           cd "$SRC"
           pnpm install --frozen-lockfile
-          pnpm exec vitest run web/tests/euro-reference.test.ts web/tests/euro-loader.test.ts web/tests/euro-spot.test.ts web/tests/display-currency.test.ts web/tests/arabic-amount-words.test.ts
+          pnpm exec vitest run web/tests/euro-reference.test.ts web/tests/euro-loader.test.ts web/tests/euro-spot.test.ts web/tests/euro-history-fallback.test.ts web/tests/display-currency.test.ts web/tests/arabic-amount-words.test.ts
           pnpm exec tsc --noEmit

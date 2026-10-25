@@ -2,6 +2,7 @@
  * Keep every chart-visible literal in this translation catalog (ar/en/fr).
  */
 export const chartRangeMessages:ReadonlyArray<readonly [string,string,string]>=[
+ ["أسعار اليورو التاريخية محوّلة بسعر صرف مؤرخ، وليست أسعار يورو مباشرة. تبقى الفترات بلا بيانات موثوقة فارغة.", "Historical EUR prices use dated reference exchange rates, not direct EUR quotes. Periods without reliable data remain empty.", "Les prix historiques en EUR utilisent des taux de change datés, et non des cours EUR directs. Les périodes sans données fiables restent vides."],
  ["24 ساعة", "24 hours", "24 heures"],
  ["7 أيام", "7 days", "7 jours"],
  ["30 يومًا", "30 days", "30 jours"],

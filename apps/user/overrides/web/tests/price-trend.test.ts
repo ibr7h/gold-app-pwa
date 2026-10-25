@@ -215,7 +215,9 @@ describe('iPhone chart controls visibly respond to periods',()=>{
   expect(chart).toContain('timeLabel(axisEnd,range,calendar)');
  });
  it('requests selected range and clears old results while new range loads',()=>{
-  expect(app).toContain("'&karat='+chartKarat+'&range='+chartRange");
+  expect(app).toContain("'&karat='+karat+'&range='+range");
+  expect(app).toContain('requestHistory(chartKarat,chartRange)');
+  expect(app).toContain('requestHistory(24,homeRange)');
   expect(app).toContain("'/prices/history/chart?currency='");
   expect(app).toContain("setHistoryQuery(previous=>previous===priceCurrency+':'+chartKarat+':'+chartRange?previous:'')");
   expect(app).toContain("onRangeChange={setChartRange}");

@@ -90,6 +90,11 @@ const server=http.createServer((req,res)=>{
   // All account responses below are localhost-only fixtures. No real account or production write.
   const onlineContext=await browser.newContext({viewport:{width:390,height:844},locale:'en-US',serviceWorkers:'allow'});
   let eurRequests=0;
+  let historyFixture=false;
+  const historicDays=[];
+  for(let at=Date.now()-86400000;historicDays.length<2;at-=86400000){
+   const date=new Date(at);if(date.getUTCDay()>0&&date.getUTCDay()<6)historicDays.unshift(date.toISOString().slice(0,10));
+  }
   await onlineContext.route('https://api.gold-api.com/**',route=>{
    assert.equal(route.request().url(),'https://api.gold-api.com/price/XAU/EUR');
    assert.equal(route.request().headers().authorization,undefined);
@@ -107,7 +112,13 @@ const server=http.createServer((req,res)=>{
    else if(url.pathname==='/auth/profile')data={id:'qa-user',fullName:'QA User',city:null,phone:null,email:'qa@example.invalid'};
    else if(url.pathname==='/portfolio'||url.pathname==='/portfolio/purchase')data=[];
    else if(url.pathname==='/alerts')data={items:[],total:0};
-   else if(url.pathname==='/prices/history/chart')data=[];
+   else if(url.pathname==='/prices/history/chart'){
+    const currency=url.searchParams.get('currency'),karat=Number(url.searchParams.get('karat'));
+    data=!historyFixture||url.searchParams.get('range')==='day'?[]:
+     (currency==='USD'?[{day:historicDays[0],price:100}]:[{day:historicDays[0],price:375},{day:historicDays[1],price:375}])
+     .map(row=>({id:'daily-'+currency+'-'+row.day,kind:'daily-average',source:'api.gold-api.com/history',
+      currency,karat,day:row.day,buyPrice:String(row.price*karat/24)}));
+   }
    else if(url.pathname==='/prices/latest'){
     const currency=url.searchParams.get('currency'),karat=Number(url.searchParams.get('karat'));
     data={id:'qa-'+currency+'-'+karat,currency,karat,buyPrice:String((currency==='SAR'?375:100)*karat/24),sellPrice:String((currency==='SAR'?375:100)*karat/24),timestamp:new Date().toISOString(),source:'qa-backend'};
@@ -131,6 +142,21 @@ const server=http.createServer((req,res)=>{
   assert.match(await calculator.locator('.calc-breakdown').innerText(),/180/);
   assert.ok(eurRequests>=1);
   console.log('PASS actual online User calculator: direct EUR 100/gram despite historical FX outage; 15% = 180 tax / 1380 total; no upstream credentials');
+  historyFixture=true;
+  await onlineContext.unroute('https://api.frankfurter.dev/**');
+  await onlineContext.route('https://api.frankfurter.dev/**',route=>{
+   assert.equal(route.request().headers().authorization,undefined);
+   assert.equal(route.request().headers().referer,undefined);
+   return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},
+    body:JSON.stringify({base:'USD',rates:{[historicDays[0]]:{EUR:.87},[historicDays[1]]:{EUR:.89}}})});
+  });
+  await calculator.goto(origin+BASE+'#prices');
+  const historicalPrice=calculator.locator('.dh-price-trend:not(.compact) .dh-trend-amount');
+  await historicalPrice.filter({hasText:'89'}).waitFor({timeout:20000});
+  assert.match(await historicalPrice.innerText(),/€/);
+  assert.match(await calculator.locator('body').innerText(),/Historical EUR prices use dated reference exchange rates/);
+  assert.match(await calculator.locator('.dh-price-trend:not(.compact) .dh-trend-range-coverage').innerText(),/Daily averages: 2/);
+  console.log('PASS actual EUR history: USD preferred, missing day recovered from SAR375 / 3.75 * dated .89 = EUR89; 2 genuine daily averages; clear derived-history label; no upstream credentials');
   await onlineContext.close();
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;server.close();});

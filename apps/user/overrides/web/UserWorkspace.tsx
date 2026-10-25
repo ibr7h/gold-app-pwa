@@ -25,7 +25,8 @@ import {quoteShareText,shareQuotePng,preloadQuoteIcon,ShareQuote} from './calcul
 import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
 import {displayAmount,displayPortfolioSummary,sarPerUsd,DisplayCurrency} from './display-currency';
-import {loadEuroReferenceRates,euroHistoryRows} from './euro-reference';
+import {loadEuroReferenceRates,euroHistoryRows,euroHistoryStartDay} from './euro-reference';
+import {loadEuroHistorySources} from './euro-history-source';
 import {loadEuroSpot,euroSpotRows} from './euro-spot';
 import {LanguageProvider,useLanguage,activeLocale} from './i18n';
 import {amountToLocalizedWords} from './amount-words-localized';
@@ -182,12 +183,20 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
    const sourceCurrency=priceCurrency==='EUR'?'USD':priceCurrency;
    // Current EUR comes from XAU/EUR itself, never from daily historical FX.
    const eurSpotRequest=loadEuroSpot().catch(()=>null);
-   const eurFxRequest=priceCurrency==='EUR'?loadEuroReferenceRates().catch(()=>null):Promise.resolve(null);
    const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
-   const selectedHistory=api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(sourceCurrency)+'&karat='+chartKarat+'&range='+chartRange);
+   const requestHistory=(karat:number,range:TrendRange)=>{
+    const request=(currency:string)=>api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(currency)+'&karat='+karat+'&range='+range);
+    return priceCurrency==='EUR'?loadEuroHistorySources(request):request(sourceCurrency);
+   };
+   const selectedHistory=requestHistory(chartKarat,chartRange);
+   const selectedHomeHistory=chartKarat===24&&chartRange===homeRange?selectedHistory:requestHistory(24,homeRange);
+   // Request only the dates needed by actual old gold records (+ prior FX workdays).
+   const eurFxRequest=priceCurrency==='EUR'?Promise.all([selectedHistory,selectedHomeHistory])
+    .then(rows=>loadEuroReferenceRates(Date.now(),fetch,euroHistoryStartDay(rows.flat())))
+    .catch(()=>null):Promise.resolve(null);
    const [historyRows,homeHistoryRows,reference,eurSpot,...latest]=await Promise.all([
     selectedHistory,
-    chartKarat===24&&chartRange===homeRange?selectedHistory:api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(sourceCurrency)+'&karat=24&range='+homeRange),
+    selectedHomeHistory,
     eurFxRequest,
     eurSpotRequest,
     ...latestRequests

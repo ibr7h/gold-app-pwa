@@ -446,8 +446,9 @@ describe('iPhone chart period controls request the matching real historical wind
  });
  it('fetches specific history per date window while preserving latest-quote requests',()=>{
   const sourceText=source('../UserWorkspace.tsx');
-  expect(sourceText).toContain("'&range='+chartRange");
-  expect(sourceText).toContain("&range='+homeRange");
+  expect(sourceText).toContain("'&karat='+karat+'&range='+range");
+  expect(sourceText).toContain('requestHistory(chartKarat,chartRange)');
+  expect(sourceText).toContain('requestHistory(24,homeRange)');
   expect(sourceText).toContain("api<PriceHistoryRow|null>('/prices/latest?currency='");
  });
  it('draws selected window endpoints, not a misleading zoom to the last saved record',()=>{
