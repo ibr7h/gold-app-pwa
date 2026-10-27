@@ -1,6 +1,6 @@
 import React,{createContext,useContext,useEffect,useState,useRef} from 'react';
 import {localBiometricSupported,readLocalCredential,enrollLocalCredential,forgetLocalCredential,verifyLocalCredential,type LocalCredential} from '../web/local-biometric';
-import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession} from '../web/api';
+import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession,revokeServerSession} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {hasSessionVault,hasBiometricVault,hasOpenVault,clearSessionVault,protectSessionWithPin,protectSessionWithBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,type PinResult} from '../web/quick-pin';
@@ -215,7 +215,11 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   document.addEventListener('visibilitychange',onVisibility);
   return()=>document.removeEventListener('visibilitychange',onVisibility);
  },[]);
- const logout=()=>{begin();setLockedAccount(null);setUser(null);enrollment.current=null;setQuickPinEnabled(false);setBiometricEnrolled(false);setBiometricEnabled(false);setLoading(false);void clearSession();};
+ const logout=()=>{begin();setLockedAccount(null);setUser(null);enrollment.current=null;setQuickPinEnabled(false);setBiometricEnrolled(false);setBiometricEnabled(false);setLoading(false);
+  // Request server-side revocation before clearing the in-memory access token.
+  void revokeServerSession().catch(()=>{});
+  void clearSession();
+ };
  const unsupported=async()=>{setError('هذه الميزة غير متاحة من الخادم حاليًا.');return false;};
  const value:AuthContextType={user,lockedAccount,quickPinEnabled,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,clearError:()=>setError(null),
  biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
