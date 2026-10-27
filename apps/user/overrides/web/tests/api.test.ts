@@ -12,6 +12,7 @@ describe('sessions',()=>{
  it('revokes the remote JWT session before discarding local state',async()=>{
   const fn=vi.fn(async(url:string,options:RequestInit)=>{
    expect(url.endsWith('/auth/logout')).toBe(true);
+   expect(options.keepalive).toBe(true);
    expect(new Headers(options.headers).get('Authorization')).toBe('Bearer expired');
    return json({success:true});
   });
