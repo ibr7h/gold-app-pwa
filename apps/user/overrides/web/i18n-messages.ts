@@ -15,6 +15,14 @@ export const LANGUAGE_META={
  fr:{label:'Français',nativeLabel:'Français',dir:'ltr',intl:'fr-FR'}
 } as const;
 const entries:ReadonlyArray<readonly [string,string,string]>=[
+ ["شراء التاجر:","Dealer buys:","Rachat par le bijoutier :"],
+ ["بيع التاجر:","Dealer sells:","Vente par le bijoutier :"],
+ ["شراء/بيع التاجر","Dealer buy/sell","Rachat/vente du bijoutier"],
+ ["السعر العالمي","Global spot","Cours mondial"],
+ ["السعر العالمي المحدّث","Updated global spot","Cours mondial actualisé"],
+ ["أسعار شراء التاجر وبيعه تختلف بحسب المتجر والمصنعية والضريبة. المصدر الحالي يوفر السعر العالمي فقط، وليس عرضًا من تاجر.",
+  "Dealer buy/sell prices vary by store, fees and taxes. The current source provides only the global spot, not a dealer offer.",
+  "Les prix d'achat et de vente varient selon le bijoutier, les frais et les taxes. La source actuelle ne fournit que le cours mondial, pas une offre commerciale."],
  [
   "الرئيسية",
   "Home",
