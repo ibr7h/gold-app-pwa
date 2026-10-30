@@ -547,15 +547,15 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   <button type="button" className="secondary" onClick={()=>setPinSetup('recover')}>نسيت الرمز؟ إعادة تعيين بكلمة المرور</button>
  </div>}
  <div className="dh-quick-setting-row">
-  <span><strong>خدمة بصمة الوجه/الإصبع</strong><small>{biometricAvailable?'عند الضغط على زر البصمة؛ حسب دعم المتصفح':'غير مدعومة في هذا المتصفح'}</small></span>
+  <span><strong>خدمة بصمة الوجه/الإصبع</strong><small>{pinReconnectRequired?'أكّد رمز الدخول المحفوظ قبل تفعيل البصمة':biometricAvailable?'تتطلب بصمة الجهاز ومفتاح تشفير قابلًا للاستعادة':'غير مدعومة في هذا المتصفح'}</small></span>
   <button type="button" role="switch" aria-label="خدمة بصمة الوجه والإصبع"
-   aria-checked={biometricActive} disabled={!biometricAvailable}
+   aria-checked={biometricActive} disabled={!biometricAvailable||pinReconnectRequired}
    className={'dh-quick-toggle '+(biometricActive?'on':'')}
    onClick={()=>void (async()=>{
     setBiometricNotice('');
     try{
      if(biometricActive){await disableBiometric();setBiometricNotice('أُوقفت بصمة الجهاز في ذهبك.');}
-     else{await enableBiometric();setBiometricNotice('تم تفعيل تحقق الجهاز. قد يطلب النظام بصمة أو رمز الجهاز؛ بعض المتصفحات تحتاج رمز ذهبك أو كلمة المرور بعد إعادة فتح التطبيق.');}
+     else{await enableBiometric();setBiometricNotice('تم تفعيل بصمة الجهاز مع مفتاح جلسة مشفّر قابل للاستعادة. سيطلب iOS التحقق بالطريقة التي يدعمها المتصفح.');}
     }catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر تغيير إعداد بصمة الجهاز.');}
    })()}><span/></button>
  </div>
