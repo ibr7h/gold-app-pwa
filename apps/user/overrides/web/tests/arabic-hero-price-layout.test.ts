@@ -23,14 +23,14 @@ describe('Gold live-price units follow Arabic RTL and European LTR visual order'
   expect(css).toContain('direction:ltr;');
   expect(css).not.toContain('.gold-web.reference-home[dir="ltr"] .price-tag-large .dh-money-currency');
  });
- it('aligns the buy and sell labels separately from immutable money widgets',()=>{
-  expect(component).toContain('className="dh-buy-sell-row"><span>{tr(\'سعر الشراء:\')}</span><b>');
-  expect(component).toContain('className="dh-buy-sell-row"><span>{tr(\'سعر البيع:\')}</span><b>');
+ it('separates dealer bid/ask availability from the immutable global spot price',()=>{
+  expect(component).toContain('className="dh-buy-sell-row"><span>{tr(\'شراء التاجر:\')}</span><b>');
+  expect(component).toContain('className="dh-buy-sell-row"><span>{tr(\'بيع التاجر:\')}</span><b>');
   expect(css).toContain('.gold-web.reference-home .buy-sell-mini .dh-buy-sell-row{');
   expect(css).toContain('.gold-web.reference-home[dir="rtl"] .buy-sell-mini .dh-money-currency');
  });
  it('uses the maintained trilingual catalog for the gram unit and purchase/sale labels',()=>{
-  for(const source of ['جرام','سعر الشراء:','سعر البيع:']){
+  for(const source of ['جرام','شراء التاجر:','بيع التاجر:']){
    const english=translateUiText(source,'en');
    const french=translateUiText(source,'fr');
    expect(english,source+' en').not.toBe(source);
