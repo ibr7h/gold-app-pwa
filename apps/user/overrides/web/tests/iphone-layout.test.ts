@@ -191,6 +191,8 @@ describe('Screenshot-inspired quick lock screen and explicit biometric options',
   const fallback=provider.slice(provider.indexOf('const continueWithPassword=()=>{'),provider.indexOf('const logout=()=>{'));
   expect(fallback).not.toContain('clearSession(');
   expect(provider).toContain('const pinReady=cached?.id?await hasQuickPin(String(cached.id)):false');
+  expect(provider).toContain('const durable=matched&&!!c?.prfSalt;');
+  expect(provider).toContain('if(!c.unlockSecret)throw new Error(');
   expect(provider).toContain('const result=await checkQuickPin(String(account.id),pin);');
   expect(provider).toContain('const me=await verifyQuickUnlock(String(account.id),tokens,()=>attempt===version.current)');
   expect(provider).toContain('await protectSessionWithPin(String(me.id),pin,activeSessionTokens())');
@@ -239,7 +241,7 @@ describe('Approved global gold market-closed UI',()=>{
   const trend=source('../price-trend.ts');
   expect(trend).toContain('Date.parse(row.timestamp||row.createdAt||\'\')');
   expect(trend).toContain('isGlobalGoldMarketOpen(p.time)');
-  expect(s).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000)");
+  expect(s).toContain("if(document.visibilityState==='visible'&&isGlobalGoldMarketOpen(Date.now()))void loadLiveQuotes();");
   expect(s).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
  });
  it('keeps the original quote screen layout with four line items, action badges, and tafqeet footer',()=>{

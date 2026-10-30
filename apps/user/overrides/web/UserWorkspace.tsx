@@ -12,7 +12,7 @@ import GoldHelp from './GoldHelp';
 import {LegalDocumentLinks} from './RegistrationLegalDocuments';
 import UserPersonalDetails from './UserPersonalDetails';
 import {revokePushBeforeLogout,syncMarketPushPreferences} from './push-client';
-import {api,jsonRequest,errorMessage} from './api';
+import {api,jsonRequest,errorMessage,ApiError} from './api';
 import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePerformance,purchasePayload,alertPayload,localDate} from './model';
 import {priceFreshness,isGlobalGoldMarketOpen} from './price-status';
 import './user.css';
@@ -20,7 +20,7 @@ import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {calculatorQuoteWithTaxRate} from './calculator-quote';
 import OfflineWorkspace from './OfflineWorkspace';
-import {savePublicMarketSnapshot} from './public-market-cache';
+import {savePublicMarketSnapshot,readPublicMarketSnapshot} from './public-market-cache';
 import {quoteShareText,shareQuotePng,preloadQuoteIcon,ShareQuote} from './calculator-sharing';
 import {amountToDisplayCurrencyWords} from './arabic-amount-words';
 import {homeMarketMovement,homeUpdateAge} from './home-data';
@@ -153,14 +153,17 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const [calendar,setCalendar]=useState<DisplayCalendar>(readDisplayCalendar);
  useEffect(()=>saveDisplayCalendar(calendar),[calendar]);
  const [homeHistory,setHomeHistory]=useState<PriceHistoryRow[]>([]),[homeHistoryCurrency,setHomeHistoryCurrency]=useState(''),[homeRange,setHomeRange]=useState<TrendRange>('day');
- const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),[allMarketRows,setAllMarketRows]=useState<MarketPrice[]>([]),[historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24),[chartRange,setChartRange]=useState<TrendRange>('available');
+ const [history,setHistory]=useState<PriceHistoryRow[]>([]),[historyQuery,setHistoryQuery]=useState(''),
+  [allMarketRows,setAllMarketRows]=useState<MarketPrice[]>(()=>readPublicMarketSnapshot()?.rows||[]),
+  [marketVerified,setMarketVerified]=useState(false),[historyLoading,setHistoryLoading]=useState(false),
+  [historyError,setHistoryError]=useState(''),[chartKarat,setChartKarat]=useState(24),[chartRange,setChartRange]=useState<TrendRange>('available');
  const [calcKarat,setCalcKarat]=useState(24),[calcWeight,setCalcWeight]=useState('10'),[calcFee,setCalcFee]=useState('0');
  const [calcTaxInput,setCalcTaxInput]=useState('0'),[calcUseManual,setCalcUseManual]=useState(false),[calcManualPrice,setCalcManualPrice]=useState('');
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [marketLoading,setMarketLoading]=useState(false),[marketError,setMarketError]=useState('');
  const [dialog,setDialog]=useState<{type:'portfolio'|'purchase'|'alert';portfolio?:Portfolio;purchase?:Purchase;alert?:PriceAlert}|null>(null),[confirm,setConfirm]=useState<{path:string;label:string}|null>(null),[formError,setFormError]=useState('');
  useEffect(()=>{if(page==='calculator')void preloadQuoteIcon().catch(()=>{});},[page]);
- const [clock,setClock]=useState(Date.now());const active=useRef(true),loadSequence=useRef(0),marketLoadSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
+ const [clock,setClock]=useState(Date.now());const active=useRef(true),loadSequence=useRef(0),marketLoadSequence=useRef(0),marketQuoteSequence=useRef(0),writeLock=useRef(false),modalRef=useRef<HTMLDivElement>(null),headingRef=useRef<HTMLHeadingElement>(null);
  const loadData=useCallback(async()=>{
   const seq=++loadSequence.current;setLoading(true);setError('');
   try{
@@ -171,64 +174,102 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   }catch(e){if(active.current&&seq===loadSequence.current)setError(errorMessage(e));}
   finally{if(active.current&&seq===loadSequence.current)setLoading(false);}
  },[]);
+ // Quote refresh is independent of history and account data. Never wait for chart FX or
+ // a slow historical query before displaying the latest independently verified spot price.
+ const loadLiveQuotes=useCallback(async()=>{
+  const seq=++marketQuoteSequence.current;
+  if(active.current)setMarketLoading(true);
+  try{
+   const requestSnapshot=async():Promise<PriceHistoryRow[]>=>{
+    try{return await api<PriceHistoryRow[]>('/prices/snapshot');}
+    catch(e){
+     // During a safe staged backend rollout, remain compatible with the old API.
+     if(!(e instanceof ApiError)||e.status!==404)throw e;
+     const rows=await Promise.all(['SAR','USD'].flatMap(currency=>
+      [24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat))));
+     return rows.filter((row):row is PriceHistoryRow=>!!row);
+    }
+   };
+   const [latest,eurSpot]=await Promise.all([
+    requestSnapshot(),
+    priceCurrency==='EUR'?loadEuroSpot().catch(()=>null):Promise.resolve(null)
+   ]);
+   if(!Array.isArray(latest))throw new Error('Invalid spot response');
+   const cleanLatest=latest.filter((row):row is PriceHistoryRow&MarketPrice=>
+    !!row&&typeof row.timestamp==='string'&&row.kind!=='daily-average'&&
+    typeof row.sellPrice==='string'&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
+   if(!cleanLatest.length)throw new Error('No validated spot prices');
+   if(active.current&&seq===marketQuoteSequence.current){
+    const publicRows=eurSpot?[...cleanLatest,...euroSpotRows(eurSpot)]:cleanLatest;
+    setAllMarketRows(publicRows);
+    savePublicMarketSnapshot(publicRows);
+    setMarketVerified(true);
+    setEurPerUsd(eurSpot?.eurPerUsd??null);
+    setMarketError(priceCurrency==='EUR'&&!eurSpot?
+     'تعذر تحديث سعر الذهب باليورو. لا يوجد سعر يورو موثوق متاح الآن.':'');
+   }
+  }catch{
+   // Keep verified real offline snapshots; a failed request is never a new live price.
+   if(active.current&&seq===marketQuoteSequence.current){
+    setMarketVerified(false);
+    setMarketError('تعذر تحديث الأسعار من المصدر. المعروض آخر سعر محفوظ إن توفر.');
+   }
+  }finally{
+   if(active.current&&seq===marketQuoteSequence.current)setMarketLoading(false);
+  }
+ },[priceCurrency]);
  const loadMarket=useCallback(async()=>{
   const seq=++marketLoadSequence.current;
   if(active.current){
-   setMarketLoading(true);
-   // Do not show observations for the prior selection while requesting a new window.
+   setHistoryLoading(true);setHistoryError('');
    setHistoryQuery(previous=>previous===priceCurrency+':'+chartKarat+':'+chartRange?previous:'');
   }
+  // Start the current quote first. Historical queries run alongside it, not ahead of it.
+  void loadLiveQuotes();
   try{
-   const currencies=['SAR','USD'];
    const sourceCurrency=priceCurrency==='EUR'?'USD':priceCurrency;
-   // Current EUR comes from XAU/EUR itself, never from daily historical FX.
-   const eurSpotRequest=loadEuroSpot().catch(()=>null);
-   const latestRequests=currencies.flatMap(currency=>[24,22,21,18].map(karat=>api<PriceHistoryRow|null>('/prices/latest?currency='+currency+'&karat='+karat)));
    const requestHistory=(karat:number,range:TrendRange)=>{
     const request=(currency:string)=>api<PriceHistoryRow[]>('/prices/history/chart?currency='+encodeURIComponent(currency)+'&karat='+karat+'&range='+range);
     return priceCurrency==='EUR'?loadEuroHistorySources(request):request(sourceCurrency);
    };
    const selectedHistory=requestHistory(chartKarat,chartRange);
    const selectedHomeHistory=chartKarat===24&&chartRange===homeRange?selectedHistory:requestHistory(24,homeRange);
-   // Request only the dates needed by actual old gold records (+ prior FX workdays).
    const eurFxRequest=priceCurrency==='EUR'?Promise.all([selectedHistory,selectedHomeHistory])
     .then(rows=>loadEuroReferenceRates(Date.now(),fetch,euroHistoryStartDay(rows.flat())))
     .catch(()=>null):Promise.resolve(null);
-   const [historyRows,homeHistoryRows,reference,eurSpot,...latest]=await Promise.all([
-    selectedHistory,
-    selectedHomeHistory,
-    eurFxRequest,
-    eurSpotRequest,
-    ...latestRequests
+   const [historyRows,homeHistoryRows,reference]=await Promise.all([
+    selectedHistory,selectedHomeHistory,eurFxRequest
    ]);
    if(!Array.isArray(historyRows)||!Array.isArray(homeHistoryRows))throw new Error('Invalid history response');
-   const cleanLatest=latest.filter((row):row is PriceHistoryRow&MarketPrice=>!!row&&typeof row.timestamp==='string'&&
-    row.kind!=='daily-average'&&row.sellPrice!==undefined&&Number.isFinite(Number(row.buyPrice))&&Number(row.buyPrice)>0);
    if(active.current&&seq===marketLoadSequence.current){
     setHistory(priceCurrency==='EUR'?(reference?euroHistoryRows(historyRows,reference):[]):historyRows);
     setHomeHistory(priceCurrency==='EUR'?(reference?euroHistoryRows(homeHistoryRows,reference):[]):homeHistoryRows);
-    setEurPerUsd(eurSpot?.eurPerUsd??null);
     setHomeHistoryCurrency(priceCurrency);
     setHistoryQuery(priceCurrency+':'+chartKarat+':'+chartRange);
-    const publicRows=eurSpot?[...cleanLatest,...euroSpotRows(eurSpot)]:cleanLatest;
-    setAllMarketRows(publicRows);
-    savePublicMarketSnapshot(publicRows);
-    setMarketError(priceCurrency==='EUR'&&!eurSpot?'تعذر تحديث سعر الذهب باليورو. لا يوجد سعر يورو موثوق متاح الآن.':'');
-    setHistoryError(priceCurrency==='EUR'&&!reference?'تعذر تحميل الرسم التاريخي باليورو. سعر الذهب الحالي مستقل عن بيانات الرسم.':'');
+    setHistoryError(priceCurrency==='EUR'&&!reference?
+     'تعذر تحميل الرسم التاريخي باليورو. سعر الذهب الحالي مستقل عن بيانات الرسم.':'');
    }
   }catch{
-   // Retain the last real stored prices when offline; never replace them with fabricated data.
-   if(active.current&&seq===marketLoadSequence.current)setMarketError('تعذر تحديث الأسعار من الخادم. المعروض آخر سعر متاح، وليس سعرًا مباشرًا.');
+   if(active.current&&seq===marketLoadSequence.current)
+    setHistoryError('تعذر تحديث الرسم البياني. لا يؤثر ذلك على السعر الحالي.');
   }finally{
-   if(active.current&&seq===marketLoadSequence.current)setMarketLoading(false);
+   if(active.current&&seq===marketLoadSequence.current)setHistoryLoading(false);
   }
- },[priceCurrency,chartKarat,chartRange,homeRange]);
+ },[priceCurrency,chartKarat,chartRange,homeRange,loadLiveQuotes]);
  useEffect(()=>{active.current=true;void loadData();void loadMarket();
-  const clockTimer=setInterval(()=>setClock(Date.now()),60000);
-  const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000);
-  const focus=()=>{if(document.visibilityState==='visible'){setClock(Date.now());void loadData();void loadMarket();}};
+  const clockTimer=setInterval(()=>setClock(Date.now()),30000);
+  // Global spot market only: 30-second source refresh; the chart remains on-demand.
+  const marketTimer=setInterval(()=>{
+   if(document.visibilityState==='visible'&&isGlobalGoldMarketOpen(Date.now()))void loadLiveQuotes();
+  },30000);
+  const focus=()=>{if(document.visibilityState==='visible'){
+   setClock(Date.now());void loadData();void loadMarket();
+  }};
   document.addEventListener('visibilitychange',focus);
-  return()=>{active.current=false;loadSequence.current++;marketLoadSequence.current++;clearInterval(clockTimer);clearInterval(marketTimer);document.removeEventListener('visibilitychange',focus);};},[loadData,loadMarket]);
+  return()=>{active.current=false;loadSequence.current++;marketLoadSequence.current++;
+   marketQuoteSequence.current++;clearInterval(clockTimer);clearInterval(marketTimer);
+   document.removeEventListener('visibilitychange',focus);
+  };},[loadData,loadMarket,loadLiveQuotes]);
  useEffect(()=>{const read=()=>{const id=location.hash.slice(1);if(pages.some(p=>p.id===id))setPage(id as Page);};read();window.addEventListener('hashchange',read);return()=>window.removeEventListener('hashchange',read);},[]);
  const navigate=(p:Page)=>{setPage(p);setMenu(false);location.hash=p;requestAnimationFrame(()=>headingRef.current?.focus());};
  const signOut=()=>{void (async()=>{try{await revokePushBeforeLogout();}finally{logout();}})();};
@@ -263,8 +304,8 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
  const homeMarket=allMarketRows.find(r=>r.currency===priceCurrency&&r.karat===24);
  const freshness=priceFreshness(homeMarket,clock);
  const marketClosed=!isGlobalGoldMarketOpen(clock);
- const stale=marketClosed||freshness!=='fresh'||!!marketError;
- const marketLabel=marketClosed?'السوق العالمي مغلق':freshness==='fresh'&&!marketError?'مباشر':freshness==='missing'?'غير متاح':'آخر سعر محفوظ';
+ const stale=marketClosed||!marketVerified||freshness!=='fresh'||!!marketError;
+ const marketLabel=marketClosed?'السوق العالمي مغلق':marketVerified&&freshness==='fresh'&&!marketError?'السعر العالمي المحدّث':freshness==='missing'?'غير متاح':'آخر سعر محفوظ';
  const summary=totals(purchases,allMarketRows),statusLabels={active:'نشط',paused:'متوقف',triggered:'تحقق الشرط'};
  const visibleHistory=historyQuery===priceCurrency+':'+chartKarat+':'+chartRange?history:[];
   const fxRate=sarPerUsd(allMarketRows);
@@ -316,7 +357,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     <div className="live-price-main"><div className="home-quote"><div className="price-tag-large" dir={direction}><span className="dh-home-price-amount">{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</span><small className="dh-home-price-unit" dir={direction}><span className="dh-unit-slash" aria-hidden="true">/</span><span>{tr('جرام')}</span></small></div>
      <p className={'home-market-change '+(homeMovement===null?'neutral':homeMovement.difference>=0?'positive':'negative')} title="مقارنة بأول تحديث متاح اليوم بتوقيت السعودية">
       {marketClosed?'لا تداول حاليًا':homeMovement?<><Icon name="chart"/><span dir="ltr">{homeMovement.difference>=0?'+':'−'}{money(Math.abs(homeMovement.difference),priceCurrency)} ({homeMovement.percent>=0?'+':'−'}{number(Math.abs(homeMovement.percent))}%)</span> اليوم</>:'لا توجد مقارنة كافية اليوم'}
-     </p></div><div className="buy-sell-mini"><span className="dh-buy-sell-row"><span>{tr('سعر الشراء:')}</span><b>{money(homeMarket?Number(homeMarket.buyPrice):null,priceCurrency)}</b></span><span className="dh-buy-sell-row"><span>{tr('سعر البيع:')}</span><b>{money(homeMarket?Number(homeMarket.sellPrice):null,priceCurrency)}</b></span></div></div>
+     </p></div><div className="buy-sell-mini"><span className="dh-buy-sell-row"><span>{tr('شراء التاجر:')}</span><b>{tr('غير متاح')}</b></span><span className="dh-buy-sell-row"><span>{tr('بيع التاجر:')}</span><b>{tr('غير متاح')}</b></span></div></div>
     <div className="live-card-footer"><span>السعر العالمي الاسترشادي</span><button className="home-price-refresh" title={marketTime(homeMarket)} aria-label="تحديث أسعار الذهب من خادم ذهبك" disabled={marketLoading} onClick={()=>void loadMarket()}>{marketClosed?'آخر تحديث: '+marketTime(homeMarket):marketLoading?'جارٍ التحديث…':homeUpdateAge(homeMarket?.timestamp,clock)}</button></div>
    </section>
    <div className="approved-section-title"><h3>الخدمات السريعة</h3></div>
@@ -328,15 +369,16 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     {homePortfolio.hasUnconverted&&<p className="home-currency-note">بعض مشترياتك بعملات لا تتوفر لها بيانات تحويل موثوقة؛ راجع التفاصيل حسب عملة التسجيل.</p>}
      {homePortfolio.hasMissingValuation&&<p className="home-currency-note">تقدير قيمة بعض المشتريات غير متاح لغياب سعر سوق موثوق.</p>}
    </section>
-   <section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact range={homeRange} onRangeChange={setHomeRange} now={clock} loading={marketLoading}/></section>
+   <section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact range={homeRange} onRangeChange={setHomeRange} now={clock} loading={historyLoading}/></section>
   </>;
 
   if(page==='prices')return <>
    <section className="approved-card prices-header-card"><span className={!stale?'live-badge':'pill warn'}>{!stale&&<i/>}{!stale?tr('آخر سعر متاح'):marketLabel}</span><p>{tr('سعر الأونصة المشتق من عيار 24')}</p><strong className="ounce-price">{currentMarket&&currentMarket.karat===24?money(Number(currentMarket.buyPrice)*31.1034768,priceCurrency):money((selectedMarketRows.find(r=>r.karat===24)?Number(selectedMarketRows.find(r=>r.karat===24)!.buyPrice):NaN)*31.1034768||null,priceCurrency)}</strong><small>{tr('آخر فحص:')} {marketTime(selectedMarketRows.find(r=>r.karat===24))}</small></section>
    <section className="approved-card"><div className="approved-card-title"><span>أسعار الجرام بحسب العيار</span><label className="inline-select">العملة<select value={priceCurrency} onChange={e=>setPriceCurrency(e.target.value==='USD'||e.target.value==='EUR'?e.target.value:'SAR')}><option>SAR</option><option>USD</option><option>EUR</option></select></label></div>
-    <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>الشراء</span><span>البيع</span></div>{[24,22,21,18].map(k=>{const row=selectedMarketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{money(row?Number(row.sellPrice):null,priceCurrency)}</span></div>;})}</div>
+    <div className="approved-price-table"><div className="price-row head"><span>العيار</span><span>السعر العالمي</span><span>شراء/بيع التاجر</span></div>{[24,22,21,18].map(k=>{const row=selectedMarketRows.find(r=>r.karat===k);return <div className="price-row" key={k}><span><b className="karat-badge">عيار {k}</b></span><strong>{money(row?Number(row.buyPrice):null,priceCurrency)}</strong><span>{tr('غير متاح')}</span></div>;})}</div>
    </section>
-   <section className="approved-card"><div className="approved-card-title"><span>{tr('الرسم الزمني للأسعار')}</span><label className="inline-select">{tr('العيار')}<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={marketLoading}/>}</section>
+   <section className="approved-card"><div className="approved-card-title"><span>{tr('الرسم الزمني للأسعار')}</span><label className="inline-select">{tr('العيار')}<select value={chartKarat} onChange={e=>setChartKarat(Number(e.target.value))}>{[24,22,21,18].map(k=><option key={k} value={k}>{k}K</option>)}</select></label></div>{historyError?<p className="notice warning">{localizeFeedback(historyError,language)}</p>:<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={historyLoading}/>}</section>
+   <p className="fine">{tr('أسعار شراء التاجر وبيعه تختلف بحسب المتجر والمصنعية والضريبة. المصدر الحالي يوفر السعر العالمي فقط، وليس عرضًا من تاجر.')}</p>
    {priceNote}
   </>;
 
@@ -505,15 +547,15 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   <button type="button" className="secondary" onClick={()=>setPinSetup('recover')}>نسيت الرمز؟ إعادة تعيين بكلمة المرور</button>
  </div>}
  <div className="dh-quick-setting-row">
-  <span><strong>خدمة بصمة الوجه/الإصبع</strong><small>{biometricAvailable?'عند الضغط على زر البصمة؛ حسب دعم المتصفح':'غير مدعومة في هذا المتصفح'}</small></span>
+  <span><strong>خدمة بصمة الوجه/الإصبع</strong><small>{pinReconnectRequired?'أكّد رمز الدخول المحفوظ قبل تفعيل البصمة':biometricAvailable?'تتطلب بصمة الجهاز ومفتاح تشفير قابلًا للاستعادة':'غير مدعومة في هذا المتصفح'}</small></span>
   <button type="button" role="switch" aria-label="خدمة بصمة الوجه والإصبع"
-   aria-checked={biometricActive} disabled={!biometricAvailable}
+   aria-checked={biometricActive} disabled={!biometricAvailable||pinReconnectRequired}
    className={'dh-quick-toggle '+(biometricActive?'on':'')}
    onClick={()=>void (async()=>{
     setBiometricNotice('');
     try{
      if(biometricActive){await disableBiometric();setBiometricNotice('أُوقفت بصمة الجهاز في ذهبك.');}
-     else{await enableBiometric();setBiometricNotice('تم تفعيل تحقق الجهاز. قد يطلب النظام بصمة أو رمز الجهاز؛ بعض المتصفحات تحتاج رمز ذهبك أو كلمة المرور بعد إعادة فتح التطبيق.');}
+     else{await enableBiometric();setBiometricNotice('تم تفعيل بصمة الجهاز مع مفتاح جلسة مشفّر قابل للاستعادة. سيطلب iOS التحقق بالطريقة التي يدعمها المتصفح.');}
     }catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر تغيير إعداد بصمة الجهاز.');}
    })()}><span/></button>
  </div>

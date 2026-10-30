@@ -43,14 +43,14 @@ describe('v1.9.20 user calculator and historical chart restoration',()=>{
   expect(actual).not.toContain('السعر الإجمالي التقريبي');
  });
  it('keeps the original historical chart in both pages with all range/interaction controls',()=>{
-  expect(current).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact range={homeRange} onRangeChange={setHomeRange} now={clock} loading={marketLoading}/></section>');
-  expect(current).toContain('<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={marketLoading}/>');
+  expect(current).toContain('<section className="approved-card home-chart-card"><PriceHistoryChart rows={selectedHomeHistory} currency={priceCurrency} karat={24} calendar={calendar} compact range={homeRange} onRangeChange={setHomeRange} now={clock} loading={historyLoading}/></section>');
+  expect(current).toContain('<PriceHistoryChart rows={visibleHistory} currency={priceCurrency} karat={chartKarat} calendar={calendar} range={chartRange} onRangeChange={setChartRange} now={clock} loading={historyLoading}/>');
   expect(current).toContain(`<section className="approved-card"><div className="approved-card-title"><span>{tr('الرسم الزمني للأسعار')}</span>`);
   expect(current).not.toContain('{!marketClosed&&<section className="approved-card home-chart-card">');
   const trend=read('../price-trend.ts');
   expect(trend).toContain('Date.parse(row.timestamp||row.createdAt||\'\')');
   expect(trend).toContain('isGlobalGoldMarketOpen(p.time)');
-  expect(current).toContain("const marketTimer=setInterval(()=>{if(document.visibilityState==='visible')void loadMarket();},5*60000);");
+  expect(current).toContain("if(document.visibilityState==='visible'&&isGlobalGoldMarketOpen(Date.now()))void loadLiveQuotes();");
   expect(current).toContain('disabled={marketLoading} onClick={()=>void loadMarket()}');
   const chart=read('../PriceHistoryChart.tsx');
   for(const marker of ["id:'day'","id:'week'","id:'month'","priceTrendRange(all,range,now)","role=\"slider\"","onPointerMove","e.key==='ArrowLeft'"])expect(chart).toContain(marker);

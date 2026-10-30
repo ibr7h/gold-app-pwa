@@ -119,6 +119,17 @@ const server=http.createServer((req,res)=>{
      .map(row=>({id:'daily-'+currency+'-'+row.day,kind:'daily-average',source:'api.gold-api.com/history',
       currency,karat,day:row.day,buyPrice:String(row.price*karat/24)}));
    }
+   else if(url.pathname==='/prices/snapshot'){
+    // Browser fixture must support the new single-request live spot contract;
+    // this still uses synthetic, isolated localhost-only data (never production).
+    const timestamp=new Date().toISOString();
+    data=['SAR','USD'].flatMap(currency=>[24,22,21,18].map(karat=>({
+     id:'qa-'+currency+'-'+karat,currency,karat,
+     buyPrice:String((currency==='SAR'?375:100)*karat/24),
+     sellPrice:String((currency==='SAR'?375:100)*karat/24),
+     timestamp,source:'qa-backend'
+    })));
+   }
    else if(url.pathname==='/prices/latest'){
     const currency=url.searchParams.get('currency'),karat=Number(url.searchParams.get('karat'));
     data={id:'qa-'+currency+'-'+karat,currency,karat,buyPrice:String((currency==='SAR'?375:100)*karat/24),sellPrice:String((currency==='SAR'?375:100)*karat/24),timestamp:new Date().toISOString(),source:'qa-backend'};

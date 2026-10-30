@@ -104,10 +104,12 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const refreshBiometricState=async(me:User|null,attempt=version.current)=>{
   const c=await readLocalCredential(),supported=await localBiometricSupported();
   const matched=!!(c&&me&&c.accountId===String(me.id));
+   // Only a PRF-backed credential can reopen the encrypted vault after a full restart.
+   const durable=matched&&!!c?.prfSalt;
   const recoverable=matched&&me&&(hasOpenVault(String(me.id))||await hasBiometricVault(String(me.id),c!.credentialId));
   if(attempt!==version.current)return;
   enrollment.current=matched?c:null;setBiometricAvailable(supported);
-  setBiometricEnrolled(matched);setBiometricEnabled(!!recoverable&&supported);
+  setBiometricEnrolled(matched);setBiometricEnabled(!!durable&&!!recoverable&&supported);
  };
  useEffect(()=>{let active=true;const boot=version.current;
   const unsubscribe=onSessionEnded(()=>{
@@ -138,7 +140,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     if(active&&version.current===boot){
      const credential=!!c&&String(cached.id)===c.accountId;
      enrollment.current=credential?c:null;setBiometricAvailable(supported);setBiometricEnrolled(credential);
-     setBiometricEnabled(credential&&supported&&encryptedBio);setQuickPinEnabled(pinReady);
+     setBiometricEnabled(credential&&supported&&encryptedBio&&!!c?.prfSalt);setQuickPinEnabled(pinReady);
      lockSession();setLockedAccount(cached);setUser(null);setLoading(false);
     }return;
    }
@@ -229,6 +231,9 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const attempt=begin(),accountId=String(user.id),tokens=activeSessionTokens();
   // Keep platform credential creation first, within the user's explicit tap.
   const c=await enrollLocalCredential(accountId,user.email,request.current!.signal,false);current(attempt);
+  // Do not report successful Face ID setup without a persistent vault-unlock secret.
+  // Keep previously enrolled credentials/PIN intact when PRF is missing.
+  if(!c.unlockSecret)throw new Error('هذا المتصفح لا يتيح مفتاح التشفير اللازم لفتح الجلسة بالبصمة بعد إعادة التشغيل. استخدم رمز الدخول السريع.');
   // A new public credential must not overwrite a working one until its vault
   // envelope is safely written. Without PRF, do not replace an existing vault.
   if(c.unlockSecret){
