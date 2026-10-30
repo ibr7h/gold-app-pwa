@@ -35,7 +35,8 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
  const biometric=()=>{
   if(pending.current||busy||loading)return;
   pending.current=true;setBusy(true);setDigits('');setLocalError('');
-  void onBiometric().catch(()=>setLocalError('تعذر التحقق بالبصمة. استخدم الرمز أو كلمة المرور.'))
+  void onBiometric().then(ok=>{if(!ok)setLocalError('لم تفتح البصمة الجلسة. جرّب الرمز أو الدخول بكلمة المرور.');})
+   .catch(()=>setLocalError('تعذر التحقق بالبصمة. استخدم الرمز أو كلمة المرور.'))
    .finally(()=>{pending.current=false;setBusy(false);});
  };
  const nickname=account.name?.trim()||account.email.split('@')[0]||'المستخدم';
