@@ -72,8 +72,10 @@ export default function EstimatedPriceReceiptPrinter({
      <span>{status}</span>
     </div>
    </div>
-   <div className="dh-estimate-printer-slot" aria-hidden="true"/>
   </div>
+  {/* The exit lip is a sibling, not clipped inside the machine chassis:
+      this lets the paper rise visibly over the lower housing and under the slot. */}
+  <div className="dh-estimate-printer-slot" aria-hidden="true"/>
   <div className="dh-estimate-printer-output">
    <article className="dh-estimate-printer-paper">
     <header className="dh-estimate-printer-paper-head">
