@@ -173,7 +173,37 @@ const server=http.createServer((req,res)=>{
   assert.equal(printerStyle.paper,'rgb(255, 254, 250)','Receipt must have paper styling');
   assert.match(printerStyle.href||'',/estimated-price-receipt-printer-[a-f0-9]+\.css/);
   assert.equal(printerStyle.overflow,false,'Receipt printer must fit iPhone width');
+  // Measure the fully emitted paper, not its intermediate animated transform.
   await calculator.locator('.dh-estimate-printer[data-stage="complete"]').waitFor({timeout:8000});
+  const feedGeometry=await printer.evaluate(el=>{
+    const machine=el.querySelector('.dh-estimate-printer-machine');
+    const slot=el.querySelector('.dh-estimate-printer-slot');
+    const output=el.querySelector('.dh-estimate-printer-output');
+    const paper=el.querySelector('.dh-estimate-printer-paper');
+    const m=machine.getBoundingClientRect(),s=slot.getBoundingClientRect();
+    const o=output.getBoundingClientRect(),p=paper.getBoundingClientRect();
+    return {
+      paperStartsBelowSlot:p.top-s.bottom,
+      paperOverlapsHousing:m.bottom-p.top,
+      paperToPrinterWidth:p.width/m.width,
+      slotOverPaper:s.width/p.width,
+      machineLayer:parseInt(getComputedStyle(machine).zIndex,10),
+      slotLayer:parseInt(getComputedStyle(slot).zIndex,10),
+      paperLayer:parseInt(getComputedStyle(output).zIndex,10),
+      slotContainedByMachine:machine.contains(slot),
+      rightEdgeOutsideViewport:p.right>window.innerWidth+1||p.left<(-1)
+    };
+  });
+  console.log('Receipt measured outlet geometry:',JSON.stringify(feedGeometry));
+  assert.ok(feedGeometry.paperStartsBelowSlot>=2&&feedGeometry.paperStartsBelowSlot<=7,'Receipt must emerge immediately below the slot, not from underneath the whole printer');
+  assert.ok(feedGeometry.paperOverlapsHousing>20&&feedGeometry.paperOverlapsHousing<60,'Receipt must overlay the lower machine housing, as in the original reference');
+  assert.ok(feedGeometry.paperToPrinterWidth<=.94,'Paper must look narrower than the machine');
+  assert.ok(feedGeometry.slotOverPaper>=1,'Exit lip should be at least as wide as paper');
+  assert.ok(feedGeometry.slotLayer>feedGeometry.paperLayer&&feedGeometry.paperLayer>feedGeometry.machineLayer,'Correct physical front-to-back layering');
+  assert.equal(feedGeometry.slotContainedByMachine,false,'Exit lip must not be clipped inside the machine');
+  assert.equal(feedGeometry.rightEdgeOutsideViewport,false,'Paper must remain on-screen');
+  console.log('PASS receipt exits just below its lip, overlaps the chassis, and remains narrower than the machine');
+
   console.log('PASS rendered iPhone Receipt Printer: stylesheet linked, LCD and paper styled, feed complete, responsive');
   await calculator.locator('.calculator-form input').nth(1).fill('20');
   await calculator.getByLabel(/Tax \(%\)/).fill('15');
