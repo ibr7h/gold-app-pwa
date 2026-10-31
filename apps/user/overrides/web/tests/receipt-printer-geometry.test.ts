@@ -24,7 +24,16 @@ describe('Dhahabk tactile Receipt Printer geometry',()=>{
   expect(slot).not.toContain('margin:');
   expect(output).toContain('margin:-16px auto 0');
   expect(output).toContain('width:calc(80% + 32px)');
-  expect(css).toContain('z-index:3;isolation:isolate;overflow:hidden');
+  const machine=css.split('.dh-estimate-printer-machine{')[1]?.split('}')[0]||'';
+  expect(machine).toContain('z-index:3;isolation:isolate;overflow:hidden');
+  // The receipt must overlap the lower housing edge at the slot.
+  // A smaller output z-index hides the paper's upper 16px and
+  // makes it appear to emerge BELOW the printer, not from the slot.
+  const outputLayer=Number(output.match(/z-index:(\\d+)/)?.[1]);
+  const housingLayer=Number(machine.match(/z-index:(\\d+)/)?.[1]);
+  expect(outputLayer).toBeGreaterThan(housingLayer);
+  expect(output).toContain('z-index:50');
+  expect(css).toContain('.dh-estimate-printer-output::before{');
  });
  it('keeps a 40-tooth paper edge, stepped feed and reduced motion fallback',()=>{
   const ui=source('../EstimatedPriceReceiptPrinter.tsx');
