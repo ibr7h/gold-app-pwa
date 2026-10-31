@@ -87,9 +87,11 @@
  pointer-events:none;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{
- /* Feed opening is inside the chassis. Tuck the paper UNDER the front lip.
-    Width including side gutters matches a narrow thermal receipt. */
- position:relative;z-index:2;margin:-16px auto 0;
+ /* Keep the output ABOVE the chassis stacking context, as in the
+    reference printer. Otherwise the upper 16px of the paper are hidden
+    behind the housing and the receipt looks detached from the exit slot.
+    Its narrow feed and soft top shadow preserve the slot illusion. */
+ position:relative;z-index:50;margin:-16px auto 0;
  width:calc(80% + 32px);max-width:100%;box-sizing:border-box;
  padding:0 16px 14px;overflow:hidden;
 }
