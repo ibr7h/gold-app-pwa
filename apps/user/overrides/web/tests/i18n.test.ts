@@ -303,7 +303,7 @@ describe('Real purchase invoice aliases and localized backend errors',()=>{
    ['../UserPersonalDetails.tsx','localizeFeedback(error,language)'],
    ['../NotificationSettings.tsx','localizeFeedback(error,language)'],
    ['../NearbyMarkets.tsx','localizeFeedback(failure,language)'],
-   ['../QuickLockScreen.tsx','localizeFeedback(localError||remoteError,language)']
+   ['../QuickLockScreen.tsx','localizeFeedback(remoteError||localError,language)']
   ] as const){
    const source=readFileSync(fileURLToPath(new URL(file,import.meta.url).href),'utf8');
    expect(source,file).toContain(needle);
