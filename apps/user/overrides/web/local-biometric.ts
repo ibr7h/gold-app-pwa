@@ -147,5 +147,9 @@ export async function verifyLocalCredential(c:LocalCredential,signal?:AbortSigna
  if(!valid)throw new Error('فشل التحقق من توقيع الجهاز.');
  if(signal?.aborted)throw new Error('أُلغي التحقق من بصمة الجهاز.');
  if(counter>c.counter){await AsyncStorage.setItem(STORAGE,JSON.stringify({...c,counter}));c.counter=counter;}
- return prfResult(credential);
+ const secret=prfResult(credential);
+ // A valid WebAuthn signature alone cannot unwrap the PRF-encrypted vault.
+ // Never silently accept the platform passkey result as a server session.
+ if(c.prfSalt&&!secret)throw new Error('تعذر الحصول على مفتاح التشفير من بصمة الجهاز.');
+ return secret;
 }
