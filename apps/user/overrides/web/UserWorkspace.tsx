@@ -16,6 +16,7 @@ import {api,jsonRequest,errorMessage,ApiError} from './api';
 import {Portfolio,Purchase,PriceAlert,MarketPrice,KARATS,CURRENCIES,totals,purchasePerformance,purchasePayload,alertPayload,localDate} from './model';
 import {priceFreshness,isGlobalGoldMarketOpen} from './price-status';
 import './user.css';
+import EstimatedPriceReceiptPrinter from './EstimatedPriceReceiptPrinter';
 import {APP_DISPLAY_VERSION} from './app-version';
 import {canShowBiometricLogin} from './biometric-visibility';
 import {calculatorQuoteWithTaxRate} from './calculator-quote';
@@ -419,6 +420,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
       </button>
      </div>
     </div>
+    <EstimatedPriceReceiptPrinter language={language} ready={calcTotal!==null}>
     <dl className="calc-breakdown">
      <div><dt>قيمة الذهب الخام</dt><dd dir="ltr">{money(calcRaw,priceCurrency)}</dd></div>
      <div><dt>إجمالي المصنعية</dt><dd dir="ltr">{money(calcFeeTotal,priceCurrency)}</dd></div>
@@ -429,6 +431,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
      <div className="calc-words-label">{tr('المبلغ كتابة:')}</div>
      <p className="calc-words-value" aria-label={tr('المبلغ كتابة:')}>{calcTotal!==null?(language==='ar'?amountToDisplayCurrencyWords(calcTotal,priceCurrency):amountToLocalizedWords(calcTotal,priceCurrency,language)):'—'}</p>
     </div>
+    </EstimatedPriceReceiptPrinter>
    </section>
   </>;
 
