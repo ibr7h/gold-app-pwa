@@ -147,6 +147,34 @@ const server=http.createServer((req,res)=>{
   await calculator.goto(origin+BASE+'#calculator');
   await calculator.locator('.calculator-form .calc-unit-price strong').filter({hasText:'100'}).waitFor({timeout:20000});
   assert.match(await calculator.locator('.calc-unit-price strong').innerText(),/€/);
+  // Regression: a Receipt Printer CSS sidecar can exist but stay unlinked,
+  // leaving plain stacked text instead of a printer on iPhone.
+  const printer=calculator.locator('.dh-estimate-printer');
+  await printer.waitFor({timeout:10000});
+  const printerStyle=await printer.evaluate(el=>{
+   const machine=el.querySelector('.dh-estimate-printer-machine');
+   const paper=el.querySelector('.dh-estimate-printer-paper');
+   const head=el.querySelector('.dh-estimate-printer-machine-top');
+   const screen=el.querySelector('.dh-estimate-printer-screen');
+   const link=document.querySelector('link[rel="stylesheet"][href*="estimated-price-receipt-printer-"]');
+   const bounds=el.getBoundingClientRect();
+   return {
+    backgroundImage:getComputedStyle(machine).backgroundImage,
+    panel:getComputedStyle(screen).backgroundColor,
+    display:getComputedStyle(head).display,
+    paper:getComputedStyle(paper).backgroundColor,
+    href:link?link.getAttribute('href'):null,
+    overflow:bounds.left<(-1)||bounds.right>window.innerWidth+1
+   };
+  });
+  assert.match(printerStyle.backgroundImage,/linear-gradient/,'Printer chassis needs its navy textured finish');
+  assert.equal(printerStyle.panel,'rgb(8, 26, 46)','Printer inset screen must be dark navy');
+  assert.equal(printerStyle.display,'flex','Brand and controls must not overlap');
+  assert.equal(printerStyle.paper,'rgb(255, 254, 250)','Receipt must have paper styling');
+  assert.match(printerStyle.href||'',/estimated-price-receipt-printer-[a-f0-9]+\.css/);
+  assert.equal(printerStyle.overflow,false,'Receipt printer must fit iPhone width');
+  await calculator.locator('.dh-estimate-printer[data-stage="complete"]').waitFor({timeout:8000});
+  console.log('PASS rendered iPhone Receipt Printer: stylesheet linked, LCD and paper styled, feed complete, responsive');
   await calculator.locator('.calculator-form input').nth(1).fill('20');
   await calculator.getByLabel(/Tax \(%\)/).fill('15');
   assert.match(await calculator.locator('.calc-breakdown .final').innerText(),/1,380/);
