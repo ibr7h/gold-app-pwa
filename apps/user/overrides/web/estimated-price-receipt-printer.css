@@ -78,9 +78,8 @@
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-led.is-complete{background:#75D2AB}
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-slot{
- /* The slot sits ABOVE the receipt, across the *front* of the chassis.
-    The paper begins just 4px below its lip and 34px ABOVE chassis bottom:
-    see original Receipt Printer physical exit rather than a detached card. */
+ /* The exit lip sits in front of the paper, which rises 8px beneath
+    it so the receipt appears to feed out of the chassis, not float below. */
  position:relative;z-index:4;display:block;box-sizing:border-box;
  width:calc(100% - 26px);height:11px;
  margin:-48px auto 0;border-radius:9px;background:#031123;
@@ -88,9 +87,9 @@
  border:1px solid #355571;pointer-events:none;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{
- /* Paper overlays the machine's lower 33px and starts immediately under
-    the visible exit lip. Keep it visibly narrower than the printer. */
- position:relative;z-index:3;margin:4px auto 0;
+ /* The paper starts 8px behind the slot's lower lip (which has z-index:4).
+    Keep the feed narrower than the chassis and preserve the paper animation. */
+ position:relative;z-index:3;margin:-8px auto 0;
  width:86%;max-width:100%;box-sizing:border-box;
  padding:0 0 12px;overflow:hidden;
 }
