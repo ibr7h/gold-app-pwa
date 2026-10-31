@@ -14,6 +14,8 @@ describe('Face ID failure reporting without bypassing server authorization',()=>
   expect(biometricUnlockFeedback({name:'BiometricUnlockTimeoutError'})).toBe(msg.timeout);
   expect(biometricUnlockFeedback(new Error('تعذر الحصول على مفتاح التشفير من بصمة الجهاز.'))).toBe(msg.prf);
   expect(biometricUnlockFeedback(new Error('متصفحك يحتاج رمز الدخول أو كلمة المرور بعد إعادة فتح التطبيق.'))).toBe(msg.vault);
+  expect(biometricUnlockFeedback({name:'OperationError'},'vault')).toBe(msg.vault);
+  expect(biometricUnlockFeedback(new Error('Unexpected API response'),'server')).toBe(msg.server);
  });
  it('explains the server vs offline vs replaced session, never claiming a successful unlock',()=>{
   expect(biometricUnlockFeedback({status:401,message:'Device grant revoked'})).toBe(msg.expired);
@@ -28,7 +30,7 @@ describe('Face ID failure reporting without bypassing server authorization',()=>
   expect(result).not.toContain(token);
  });
  it('provides reviewed translations instead of generic language fallback',()=>{
-  for(const message of [msg.canceled,msg.device,msg.prf,msg.vault,msg.expired,msg.offline,msg.timeout,msg.fallback]){
+  for(const message of [msg.canceled,msg.device,msg.prf,msg.vault,msg.expired,msg.server,msg.offline,msg.timeout,msg.fallback]){
    expect(localizeFeedback(message,'en')).toMatch(/[A-Za-z]/);
    expect(localizeFeedback(message,'fr')).toMatch(/[A-Za-zÀ-ÿ]/);
    expect(localizeFeedback(message,'en')).not.toBe('Unable to complete the request. Please try again.');
@@ -40,7 +42,7 @@ describe('Face ID failure reporting without bypassing server authorization',()=>
   const auth=read('../../contexts/AuthContext.web.tsx');
   const local=read('../local-biometric.ts');
   expect(screen).toContain('localizeFeedback(remoteError||localError,language)');
-  expect(auth).toContain('setError(biometricUnlockFeedback(e))');
+  expect(auth).toContain('setError(biometricUnlockFeedback(e,phase))');
   expect(auth).toContain('verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current)');
   expect(local).toContain("if(c.prfSalt&&!secret)throw new Error('تعذر الحصول على مفتاح التشفير من بصمة الجهاز.')");
  });
