@@ -29,8 +29,8 @@ describe('Dhahabk tactile Receipt Printer geometry',()=>{
   // The receipt must overlap the lower housing edge at the slot.
   // A smaller output z-index hides the paper's upper 16px and
   // makes it appear to emerge BELOW the printer, not from the slot.
-  const outputLayer=Number(output.match(/z-index:(\\d+)/)?.[1]);
-  const housingLayer=Number(machine.match(/z-index:(\\d+)/)?.[1]);
+  const outputLayer=Number(output.split('z-index:')[1]?.split(';')[0]);
+  const housingLayer=Number(machine.split('z-index:')[1]?.split(';')[0]);
   expect(outputLayer).toBeGreaterThan(housingLayer);
   expect(output).toContain('z-index:50');
   expect(css).toContain('.dh-estimate-printer-output::before{');
