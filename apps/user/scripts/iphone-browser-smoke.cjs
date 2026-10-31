@@ -173,6 +173,8 @@ const server=http.createServer((req,res)=>{
   assert.equal(printerStyle.paper,'rgb(255, 254, 250)','Receipt must have paper styling');
   assert.match(printerStyle.href||'',/estimated-price-receipt-printer-[a-f0-9]+\.css/);
   assert.equal(printerStyle.overflow,false,'Receipt printer must fit iPhone width');
+  // Measure the fully emitted paper, not its intermediate animated transform.
+  await calculator.locator('.dh-estimate-printer[data-stage="complete"]').waitFor({timeout:8000});
   const feedGeometry=await printer.evaluate(el=>{
     const machine=el.querySelector('.dh-estimate-printer-machine');
     const slot=el.querySelector('.dh-estimate-printer-slot');
@@ -201,7 +203,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(feedGeometry.slotContainedByMachine,false,'Exit lip must not be clipped inside the machine');
   assert.equal(feedGeometry.rightEdgeOutsideViewport,false,'Paper must remain on-screen');
   console.log('PASS receipt exits just below its lip, overlaps the chassis, and remains narrower than the machine');
-  await calculator.locator('.dh-estimate-printer[data-stage="complete"]').waitFor({timeout:8000});
+
   console.log('PASS rendered iPhone Receipt Printer: stylesheet linked, LCD and paper styled, feed complete, responsive');
   await calculator.locator('.calculator-form input').nth(1).fill('20');
   await calculator.getByLabel(/Tax \(%\)/).fill('15');
