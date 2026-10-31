@@ -2,6 +2,7 @@ import React,{createContext,useContext,useEffect,useState,useRef} from 'react';
 import {localBiometricSupported,readLocalCredential,enrollLocalCredential,persistLocalCredential,forgetLocalCredential,verifyLocalCredential,type LocalCredential} from '../web/local-biometric';
 import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession,revokeServerSession,registerQuickDeviceGrant,pendingSessionReplacement,wasSessionReplaced,SESSION_REPLACED_MESSAGE} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
+import {needsQuickDeviceEnrollment} from '../web/quick-device-grant';
 import {withBiometricUnlockDeadline,BiometricUnlockTimeoutError} from '../web/biometric-unlock-deadline';
 import {biometricUnlockFeedback} from '../web/biometric-unlock-feedback';
 import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,resetSessionPinAfterPassword,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod,readVaultDeviceGrant,persistVaultDeviceGrant} from '../web/session-vault';
@@ -155,7 +156,9 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   * Failures must not destroy working PIN/Face ID or their existing verifier.
   */
  const provisionQuickDevice=async(accountId:string,attempt:number,force=false)=>{
-  if(!force&&await readVaultDeviceGrant(accountId))return;
+  // A cached grant may look present even when it expires tomorrow. Replace it
+  // while we have a server-verified session, not after the user gets locked out.
+  if(!force&&!needsQuickDeviceEnrollment(await readVaultDeviceGrant(accountId)))return;
   const grant=await registerQuickDeviceGrant();current(attempt);
   await persistVaultDeviceGrant(accountId,grant);current(attempt);
  };
@@ -255,8 +258,12 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   }
   // Without PRF, WebAuthn can unlock only this open tab. A restart needs PIN/password.
   enrollment.current=c;setBiometricAvailable(true);setBiometricEnrolled(true);setBiometricEnabled(true);
-  if(c.unlockSecret)
-   try{await provisionQuickDevice(accountId,attempt);}catch{/* Existing biometric remains usable. */}
+  if(c.unlockSecret){
+   // Do not claim that Face ID can recreate a server session if registering
+   // its trusted-device grant failed. Keep the local PIN/Face ID vault intact.
+   try{await provisionQuickDevice(accountId,attempt);}
+   catch{throw new Error('تم تفعيل بصمة الجهاز محليًا، لكن تعذر تسجيل الجهاز الموثوق لدى الخادم لتجديد الجلسة تلقائيًا. تحقق من الاتصال وأعد المحاولة من إعدادات الأمان.');}
+  }
  };
  const disableBiometric=async()=>{
   if(!user?.id)throw new Error('سجّل الدخول أولًا.');
@@ -310,7 +317,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
    const tokens=await hasSessionVault(String(account.id))?await unlockSessionWithPin(String(account.id),pin):activeSessionTokens();
    const me=await verifyQuickUnlock(String(account.id),tokens,()=>attempt===version.current);
    await protectSessionWithPin(String(me.id),pin,activeSessionTokens());current(attempt);
-   try{await provisionQuickDevice(String(me.id),attempt);}catch{/* Existing unlock succeeded. */}
+   try{await provisionQuickDevice(String(me.id),attempt);}
+   catch{setError('تم فتح الجلسة، لكن تعذر تحديث اعتماد الجهاز الموثوق. استخدم كلمة المرور إذا تعذر التجديد لاحقًا.');}
    setLockedAccount(null);setUser(me);await refreshBiometricState(me,attempt);
    void bindExistingPushToSession().catch(()=>{});
    return {ok:true,waitSeconds:0,remaining:5};
