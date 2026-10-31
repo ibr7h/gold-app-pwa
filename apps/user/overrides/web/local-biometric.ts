@@ -94,7 +94,7 @@ export async function enrollLocalCredential(accountId:string,email:string,signal
  const userId=freshChallenge();
  const prfSalt=freshChallenge();
  const credential=await navigator.credentials.create({signal,publicKey:{
-  challenge,rp:{name:'ذهبي',id:location.hostname},
+  challenge,rp:{name:'ذهبك',id:location.hostname},
   user:{id:userId,name:email,displayName:email},pubKeyCredParams:[{type:'public-key',alg:-7}],
   authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'discouraged',userVerification:'required'},
   attestation:'none',timeout:60000,extensions:{prf:{eval:{first:prfSalt.buffer as ArrayBuffer}}} as PrfInputs
