@@ -286,7 +286,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   if(quickPinEnabled)await authorizePinChange(accountId,currentPin||'',attempt);
   await protectSessionWithPin(accountId,pin,activeSessionTokens());current(attempt);
   await setQuickPin(accountId,pin);current(attempt);setQuickPinEnabled(true);setPinReconnectRequired(false);
-  try{await provisionQuickDevice(accountId,attempt);}catch{/* PIN remains usable; server renewal needs enrollment. */}
+  try{await provisionQuickDevice(accountId,attempt);}
+  catch{throw new Error('تم حفظ رمز الدخول محليًا، لكن تعذر تسجيل الجهاز الموثوق لتجديد الجلسة تلقائيًا. حاول مجددًا بعد التأكد من الاتصال.');}
  };
  const reconnectQuickPin=async(currentPin:string)=>{
   if(!user?.id||!pinReconnectRequired)throw new Error('لا يلزم إعادة ربط رمز الدخول.');
@@ -301,7 +302,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   await protectSessionWithPin(accountId,currentPin,tokens);current(attempt);
   setQuickPinEnabled(true);setPinReconnectRequired(false);
   await refreshBiometricState(user,attempt);
-  try{await provisionQuickDevice(accountId,attempt,true);}catch{/* Password fallback remains. */}
+  try{await provisionQuickDevice(accountId,attempt,true);}
+  catch{setError('تم ربط رمز الدخول، لكن تعذر إعادة توثيق هذا الجهاز لدى الخادم. استخدم كلمة المرور إذا انتهت الجلسة.');}
  };
  const disableQuickPin=async(currentPin:string)=>{
   if(!user?.id)throw new Error('سجّل الدخول أولًا.');
@@ -343,7 +345,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     phase='server';
     const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
     current(attempt);
-    try{await provisionQuickDevice(c.accountId,attempt);}catch{/* Existing unlock succeeded. */}
+    try{await provisionQuickDevice(c.accountId,attempt);}
+    catch{setError('تم فتح الجلسة بالبصمة، لكن تعذر تحديث اعتماد الجهاز الموثوق. استخدم كلمة المرور إذا انتهت صلاحيته.');}
     setLockedAccount(null);setUser(me);
     void bindExistingPushToSession().catch(()=>{});
     return true;
