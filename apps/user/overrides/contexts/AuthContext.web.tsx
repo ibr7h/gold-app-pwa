@@ -3,6 +3,7 @@ import {localBiometricSupported,readLocalCredential,enrollLocalCredential,persis
 import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession,revokeServerSession,registerQuickDeviceGrant,pendingSessionReplacement,wasSessionReplaced,SESSION_REPLACED_MESSAGE} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {withBiometricUnlockDeadline,BiometricUnlockTimeoutError} from '../web/biometric-unlock-deadline';
+import {biometricUnlockFeedback} from '../web/biometric-unlock-feedback';
 import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,resetSessionPinAfterPassword,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod,readVaultDeviceGrant,persistVaultDeviceGrant} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
 import {beginRegistration,resendRegistration,type RegistrationChallenge,type TermsAcceptance} from '../web/registration';
@@ -345,7 +346,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
      begin();closeSessionVault();lockSession();
      setError(e.message);setLoading(false);
     }else{
-     lockSession();setError(e instanceof Error?e.message:'تعذر تأكيد هوية الجهاز.');
+     lockSession();setError(biometricUnlockFeedback(e));
     }
    }
    return false;
