@@ -1,91 +1,128 @@
-/*
- * Dhahabk calculator-only receipt printer, inspired by the interaction pattern
- * of dqnamo Kitchen's Receipt Printer. Original implementation; no vendor code,
- * animations library, external assets, or network dependency.
- */
+/* Dhahabk iPhone calculator: tactile receipt feed. Original implementation,
+   inspired by dqnamo's interaction pattern, no external code or dependencies. */
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer{
- --dh-print-navy:#001F3F;
- --dh-print-gold:#C5A021;
- --dh-print-gold-light:#D4AF37;
- width:100%;min-width:0;box-sizing:border-box;
+ --dh-printer-navy:#001F3F;--dh-printer-gold:#C5A021;--dh-printer-light:#D4AF37;
+ width:100%;max-width:100%;min-width:0;box-sizing:border-box;
  isolation:isolate;direction:inherit;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine{
- position:relative;z-index:2;min-width:0;
- padding:14px 15px 18px;border:1px solid #36506B;
- border-radius:18px 18px 12px 12px;
- background:var(--dh-print-navy);
- box-shadow:0 9px 20px rgba(0,31,63,.16);
+ position:relative;z-index:2;isolation:isolate;overflow:hidden;
+ padding:14px 13px 21px;box-sizing:border-box;
+ background:linear-gradient(155deg,#133657 0%,#001F3F 56%,#00152D 100%)!important;
+ border:1px solid #345271;border-radius:22px 22px 17px 17px;
+ box-shadow:0 17px 25px -13px rgba(0,31,63,.40),inset 0 1px rgba(255,255,255,.18),inset 0 -2px rgba(0,0,0,.18);
+ color:#fff!important;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine::before{
+ content:"";pointer-events:none;position:absolute;inset:0;
+ background:repeating-linear-gradient(115deg,transparent 0,transparent 4px,rgba(255,255,255,.016) 4px,rgba(255,255,255,.016) 5px);
+ opacity:.6;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine-top{
- display:flex;align-items:center;justify-content:space-between;gap:8px;
- min-width:0;padding-bottom:11px;
+ display:flex!important;align-items:center;justify-content:space-between;gap:8px;
+ position:relative;z-index:1;min-width:0;min-height:40px;margin-bottom:7px;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-brand{
- color:var(--dh-print-gold-light);font-size:15px;font-weight:900;letter-spacing:.01em;
+ color:#D4AF37!important;font-weight:900;font-size:17px;line-height:1.4;white-space:nowrap;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-head-actions{
+ display:flex;align-items:center;justify-content:flex-end;min-width:0;gap:8px;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine-label{
- color:#B9C9DB;font-size:12px;font-weight:650;text-align:end;
+ color:#C1D0DD!important;text-align:end;font-size:12px;font-weight:600;white-space:nowrap;
 }
-.gold-web.workspace .calc-estimate-card .dh-estimate-printer-display{
- display:flex;align-items:center;gap:9px;min-width:0;min-height:44px;
- border:1px solid #214568;border-radius:10px;background:#0A2B4C;
- color:#F7F9FC;padding:10px 12px;box-sizing:border-box;
- font-size:13px;font-weight:700;line-height:1.5;
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-replay{
+ min-width:38px!important;width:38px!important;height:38px!important;
+ padding:7px!important;display:inline-flex;align-items:center;justify-content:center;
+ background:rgba(255,255,255,.05)!important;color:#E7CE73!important;
+ border:1px solid rgba(212,175,55,.48)!important;border-radius:10px!important;
+ cursor:pointer;box-shadow:none!important;
 }
-.gold-web.workspace .calc-estimate-card .dh-estimate-printer-display>span:nth-child(2){
- flex:1;min-width:0;overflow-wrap:anywhere;
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-replay:focus-visible{
+ outline:2px solid #D4AF37;outline-offset:2px;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-screen{
+ position:relative;z-index:1;min-width:0;display:grid;gap:7px;
+ padding:13px 14px 12px;background:#081A2E!important;color:#FDFEFF!important;
+ border:1px solid #0B1420;border-radius:13px;
+ box-shadow:inset 0 3px 10px rgba(0,0,0,.28),inset 0 0 22px rgba(0,0,0,.14);
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-specs{
+ display:flex;align-items:center;justify-content:space-between;gap:7px;
+ min-width:0;flex-wrap:wrap;color:#AEBED0;font-size:12px;line-height:1.4;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-specs>span{
+ display:inline-flex;gap:5px;align-items:center;white-space:nowrap;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-specs b{color:#F0F4FA;font-weight:650}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-total-label{
+ font-size:11px;color:#B2C2D4;line-height:1.4;font-weight:650;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-total{
+ font-size:clamp(20px,6.2vw,27px);line-height:1.6;color:#D4AF37!important;
+ font-weight:850;display:block;text-align:center;white-space:nowrap;
+ font-variant-numeric:tabular-nums;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-total .dh-money{
+ font-size:inherit!important;display:inline-flex!important;align-items:baseline;
+ gap:4px;justify-content:center;direction:ltr;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-status{
+ display:flex;justify-content:center;align-items:center;gap:8px;
+ min-width:0;margin-top:2px;border-top:1px solid #183C59;padding-top:8px;
+ font-size:12px;line-height:1.5;color:#B8C8D7;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-led{
- flex:none;width:7px;height:7px;border-radius:50%;background:var(--dh-print-gold-light);
- box-shadow:0 0 0 3px rgba(212,175,55,.16);
+ width:8px;height:8px;min-width:8px;border-radius:50%;background:#D4AF37;
+ box-shadow:0 0 0 3px rgba(212,175,55,.12);
 }
-.gold-web.workspace .calc-estimate-card .dh-estimate-printer[data-ready="false"] .dh-estimate-printer-led{
- background:#8795A6;box-shadow:none;
-}
-.gold-web.workspace .calc-estimate-card .dh-estimate-printer-display-mark{
- flex:none;color:var(--dh-print-gold-light);font-size:10px;
-}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-led.is-complete{background:#75D2AB}
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-slot{
- height:7px;margin:14px 12px 0;border:1px solid #34526F;border-radius:8px;
- background:#061628;box-shadow:inset 0 2px 3px rgba(0,0,0,.4);
+ position:relative;z-index:2;max-width:calc(100% - 26px);height:8px;
+ margin:12px auto 0;border-radius:5px;background:#031123;
+ box-shadow:inset 0 2px 5px #0008,0 1px rgba(255,255,255,.11);
+ border:1px solid #26445E;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{
- position:relative;z-index:1;margin:-8px auto 0;padding:0 10px 4px;
- width:calc(100% - 20px);box-sizing:border-box;
+ position:relative;z-index:3;margin:-12px auto 0;
+ width:calc(100% - 18px);max-width:100%;box-sizing:border-box;
+ padding:0 5px 8px;overflow:hidden;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{
- position:relative;min-width:0;box-sizing:border-box;
- padding:22px 15px 25px;
- background:#FFFEFA;color:#132238;
- border-inline:1px solid #EEE6D4;
- border-top:0;
- box-shadow:0 12px 20px rgba(0,31,63,.1);
- clip-path:polygon(0 0,100% 0,100% calc(100% - 7px),97% 100%,94% calc(100% - 7px),91% 100%,88% calc(100% - 7px),85% 100%,82% calc(100% - 7px),79% 100%,76% calc(100% - 7px),73% 100%,70% calc(100% - 7px),67% 100%,64% calc(100% - 7px),61% 100%,58% calc(100% - 7px),55% 100%,52% calc(100% - 7px),49% 100%,46% calc(100% - 7px),43% 100%,40% calc(100% - 7px),37% 100%,34% calc(100% - 7px),31% 100%,28% calc(100% - 7px),25% 100%,22% calc(100% - 7px),19% 100%,16% calc(100% - 7px),13% 100%,10% calc(100% - 7px),7% 100%,4% calc(100% - 7px),1% 100%,0 calc(100% - 7px));
- animation:dh-estimate-paper-feed .9s cubic-bezier(.22,1,.36,1) both;
- will-change:auto;
+ box-sizing:border-box;position:relative;min-width:0;margin:0;
+ padding:22px 14px 27px!important;display:block;
+ background:#FFFEFA!important;color:#132238!important;
+ border-inline:1px solid #E8DFCE;border-top:0;
+ box-shadow:0 12px 20px rgba(0,31,63,.16);
+ clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),97% 100%,94% calc(100% - 6px),91% 100%,88% calc(100% - 6px),85% 100%,82% calc(100% - 6px),79% 100%,76% calc(100% - 6px),73% 100%,70% calc(100% - 6px),67% 100%,64% calc(100% - 6px),61% 100%,58% calc(100% - 6px),55% 100%,52% calc(100% - 6px),49% 100%,46% calc(100% - 6px),43% 100%,40% calc(100% - 6px),37% 100%,34% calc(100% - 6px),31% 100%,28% calc(100% - 6px),25% 100%,22% calc(100% - 6px),19% 100%,16% calc(100% - 6px),13% 100%,10% calc(100% - 6px),7% 100%,4% calc(100% - 6px),1% 100%,0 calc(100% - 6px));
 }
-@keyframes dh-estimate-paper-feed{
- from{opacity:.64;transform:translateY(-55px)}
- to{opacity:1;transform:translateY(0)}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer[data-stage="processing"] .dh-estimate-printer-paper,
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer[data-stage="waiting"] .dh-estimate-printer-paper{
+ transform:translateY(calc(-100% + 3px));opacity:0;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer[data-stage="printing"] .dh-estimate-printer-paper{
+ animation:dh-estimate-receipt-feed 1.78s steps(16,end) both;
+}
+@keyframes dh-estimate-receipt-feed{
+ 0%{transform:translateY(calc(-100% + 3px));opacity:1}
+ 100%{transform:translateY(0);opacity:1}
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper-head{
- text-align:center;display:grid;gap:3px;min-width:0;
- padding:0 0 13px;border-bottom:1px dashed #D9CAA1;
+ display:grid!important;min-width:0;gap:3px;text-align:center!important;
+ padding:0 0 13px!important;border-bottom:1px dashed #D9CAA1;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper-head strong{
- color:var(--dh-print-navy);font-size:17px;font-weight:850;line-height:1.55;
+ color:#001F3F!important;font-size:17px;font-weight:850;line-height:1.5;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper-head small{
- color:#68768B;font-size:11px;line-height:1.6;
+ color:#758297!important;font-size:11px;line-height:1.6;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown{
- display:grid!important;gap:0!important;padding:0!important;margin:7px 0 0!important;min-width:0;
+ display:grid!important;gap:0!important;padding:0!important;margin:6px 0 0!important;min-width:0;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown>div{
  grid-template-columns:minmax(0,1fr) minmax(0,1.12fr)!important;
- gap:7px!important;padding:10px 0!important;
- min-height:52px!important;
+ gap:7px!important;padding:10px 0!important;min-height:52px!important;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown dt{
  font-size:clamp(12px,3.4vw,16px)!important;
@@ -106,29 +143,22 @@
  font-size:clamp(14px,4vw,19px);
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper-foot{
- margin-top:17px;padding-top:12px;border-top:1px dashed #D9CAA1;
+ margin-top:16px;padding-top:11px;border-top:1px dashed #D9CAA1;
  color:#6F7E90;text-align:center;font-size:11px;line-height:1.8;
 }
 @media(max-width:380px){
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine{padding:11px 10px 14px}
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{width:100%;padding-inline:5px}
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{padding-inline:10px}
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown>div{
-  grid-template-columns:minmax(0,1fr) minmax(0,1.08fr)!important;gap:5px!important
- }
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown dd{
-  font-size:clamp(12px,3.6vw,15px)!important
- }
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown .final dd{
-  font-size:clamp(16px,4.3vw,19px)!important
- }
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine{padding:11px 9px 17px}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-screen{padding:12px 9px}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{width:100%;padding-inline:3px}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{padding-inline:9px!important}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown>div{grid-template-columns:minmax(0,1fr) minmax(0,1.08fr)!important;gap:5px!important}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown dd{font-size:clamp(12px,3.6vw,15px)!important}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown .final dd{font-size:clamp(16px,4.3vw,19px)!important}
 }
 @media(prefers-reduced-motion:reduce){
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{animation:none!important}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{animation:none!important;transform:none!important;opacity:1!important}
 }
 @media print{
  .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine{display:none!important}
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{
-  animation:none!important;box-shadow:none!important;clip-path:none!important
- }
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{animation:none!important;box-shadow:none!important;clip-path:none!important;transform:none!important;opacity:1!important}
 }
