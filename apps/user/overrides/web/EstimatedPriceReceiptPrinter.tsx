@@ -8,6 +8,14 @@ import './estimated-price-receipt-printer.css';
  */
 type ReceiptLanguage='ar'|'en'|'fr';
 type Stage='waiting'|'processing'|'printing'|'complete';
+// Subtle 40-tooth thermal receipt edge, not a wide, decorative zigzag.
+const toothCount=40;
+const toothPoints=Array.from({length:toothCount*2},(_,i)=>{
+ const x=100-((i+1)*100)/(toothCount*2);
+ const y=i%2===0?'100%':'calc(100% - 4px)';
+ return x+'% '+y;
+}).join(', ');
+const receiptEdge='polygon(0 0,100% 0,100% calc(100% - 4px),'+toothPoints+')';
 type Copy={brand:string;machine:string;processing:string;printing:string;complete:string;waiting:string;title:string;subtitle:string;note:string;replay:string;karat:string;weight:string;grams:string;total:string};
 const COPY:Record<ReceiptLanguage,Copy>={
  ar:{
@@ -72,12 +80,12 @@ export default function EstimatedPriceReceiptPrinter({
      <span>{status}</span>
     </div>
    </div>
+   {/* As on a physical receipt printer, the feed slot is recessed inside
+       the bottom of the chassis, not a separate bar suspended under it. */}
+   <div className="dh-estimate-printer-slot" aria-hidden="true"/>
   </div>
-  {/* The exit lip is a sibling, not clipped inside the machine chassis:
-      this lets the paper rise visibly over the lower housing and under the slot. */}
-  <div className="dh-estimate-printer-slot" aria-hidden="true"/>
   <div className="dh-estimate-printer-output">
-   <article className="dh-estimate-printer-paper">
+   <article className="dh-estimate-printer-paper" style={{clipPath:receiptEdge}}>
     <header className="dh-estimate-printer-paper-head">
      <strong>{copy.title}</strong>
      <small>{copy.subtitle}</small>

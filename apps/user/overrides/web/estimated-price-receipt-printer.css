@@ -6,8 +6,8 @@
  isolation:isolate;direction:inherit;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine{
- position:relative;z-index:1;isolation:isolate;overflow:hidden;
- padding:14px 13px 18px;box-sizing:border-box;
+ position:relative;z-index:3;isolation:isolate;overflow:hidden;
+ padding:14px 13px 32px;box-sizing:border-box;
  background:linear-gradient(155deg,#133657 0%,#001F3F 56%,#00152D 100%)!important;
  border:1px solid #345271;border-radius:22px 22px 17px 17px;
  box-shadow:0 17px 25px -13px rgba(0,31,63,.40),inset 0 1px rgba(255,255,255,.18),inset 0 -2px rgba(0,0,0,.18);
@@ -78,27 +78,34 @@
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-led.is-complete{background:#75D2AB}
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-slot{
- /* Seat the full exit slot inside the chassis lower edge, rather than
-    leaving a visibly detached lip beneath the machine. */
- position:relative;z-index:4;display:block;box-sizing:border-box;
- width:calc(100% - 26px);height:11px;
- margin:-10px auto 0;border-radius:9px;background:#031123;
- box-shadow:inset 0 3px 6px rgba(0,0,0,.72),0 2px 0 rgba(255,255,255,.12),0 6px 10px rgba(0,0,0,.23);
- border:1px solid #355571;pointer-events:none;
+ /* Physical cut-out on the chassis front panel, matching the original
+    Receipt Printer structure. No protruding independent horizontal bar. */
+ position:absolute;z-index:4;display:block;box-sizing:border-box;
+ inset-inline:24px;bottom:12px;height:8px;
+ border:1px solid #071426;border-radius:4px;background:#020C1B;
+ box-shadow:inset 0 2px 4px rgba(0,0,0,.84),0 1px 0 rgba(233,241,249,.12);
+ pointer-events:none;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{
- /* The paper starts 3px behind the front lip, which stays above it
-    in stacking order; the exit and housing form one continuous printer. */
- position:relative;z-index:3;margin:-3px auto 0;
- width:86%;max-width:100%;box-sizing:border-box;
- padding:0 0 12px;overflow:hidden;
+ /* Feed opening is inside the chassis. Tuck the paper UNDER the front lip.
+    Width including side gutters matches a narrow thermal receipt. */
+ position:relative;z-index:2;margin:-16px auto 0;
+ width:calc(80% + 32px);max-width:100%;box-sizing:border-box;
+ padding:0 16px 14px;overflow:hidden;
+}
+.gold-web.workspace .calc-estimate-card .dh-estimate-printer-output::before{
+ content:"";position:absolute;z-index:4;pointer-events:none;
+ top:0;inset-inline:16px;height:9px;
+ background:linear-gradient(to bottom,rgba(2,13,29,.3),transparent);
+ filter:blur(3px);
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{
  box-sizing:border-box;position:relative;min-width:0;margin:0;
- padding:22px 14px 27px!important;display:block;
- background:#FFFEFA!important;color:#132238!important;
+ padding:26px 17px 30px!important;display:block;
+ background:repeating-linear-gradient(0deg,rgba(0,31,63,.013) 0 1px,transparent 1px 5px),linear-gradient(180deg,#FFFEFA,#FCF9F1)!important;
+ color:#132238!important;
  border-inline:1px solid #E8DFCE;border-top:0;
- box-shadow:0 12px 20px rgba(0,31,63,.16);
+ box-shadow:0 8px 24px rgba(0,31,63,.19);
  clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),97% 100%,94% calc(100% - 6px),91% 100%,88% calc(100% - 6px),85% 100%,82% calc(100% - 6px),79% 100%,76% calc(100% - 6px),73% 100%,70% calc(100% - 6px),67% 100%,64% calc(100% - 6px),61% 100%,58% calc(100% - 6px),55% 100%,52% calc(100% - 6px),49% 100%,46% calc(100% - 6px),43% 100%,40% calc(100% - 6px),37% 100%,34% calc(100% - 6px),31% 100%,28% calc(100% - 6px),25% 100%,22% calc(100% - 6px),19% 100%,16% calc(100% - 6px),13% 100%,10% calc(100% - 6px),7% 100%,4% calc(100% - 6px),1% 100%,0 calc(100% - 6px));
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer[data-stage="processing"] .dh-estimate-printer-paper,
@@ -106,10 +113,20 @@
  transform:translateY(calc(-100% + 3px));opacity:0;
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer[data-stage="printing"] .dh-estimate-printer-paper{
- animation:dh-estimate-receipt-feed 1.78s steps(16,end) both;
+ animation:dh-estimate-receipt-feed 1.75s linear both;
 }
+/* Real tactile paper feed: brief pauses between short motor advances. */
 @keyframes dh-estimate-receipt-feed{
- 0%{transform:translateY(calc(-100% + 3px));opacity:1}
+ 0%{transform:translateY(calc(-100% + 2px));opacity:1}
+ 7.5%,10.5%{transform:translateY(-91%);opacity:1}
+ 18%,21%{transform:translateY(-81%)}
+ 28.5%,31.5%{transform:translateY(-70%)}
+ 39%,42%{transform:translateY(-58%)}
+ 49.5%,52.5%{transform:translateY(-45%)}
+ 60%,63%{transform:translateY(-32%)}
+ 70.5%,73.5%{transform:translateY(-20%)}
+ 81%,84%{transform:translateY(-10%)}
+ 91.5%,94.5%{transform:translateY(-3%)}
  100%{transform:translateY(0);opacity:1}
 }
 .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper-head{
@@ -152,10 +169,10 @@
  color:#6F7E90;text-align:center;font-size:11px;line-height:1.8;
 }
 @media(max-width:380px){
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine{padding:11px 9px 15px}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine{padding:11px 9px 29px}
  .gold-web.workspace .calc-estimate-card .dh-estimate-printer-screen{padding:12px 9px}
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{width:92%;padding-inline:0}
- .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{padding-inline:9px!important}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{width:92%;padding-inline:12px}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{padding-inline:10px!important}
  .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown>div{grid-template-columns:minmax(0,1fr) minmax(0,1.08fr)!important;gap:5px!important}
  .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown dd{font-size:clamp(12px,3.6vw,15px)!important}
  .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper .calc-breakdown .final dd{font-size:clamp(16px,4.3vw,19px)!important}
@@ -165,5 +182,6 @@
 }
 @media print{
  .gold-web.workspace .calc-estimate-card .dh-estimate-printer-machine{display:none!important}
+ .gold-web.workspace .calc-estimate-card .dh-estimate-printer-output{margin:0 auto!important;overflow:visible!important}
  .gold-web.workspace .calc-estimate-card .dh-estimate-printer-paper{animation:none!important;box-shadow:none!important;clip-path:none!important;transform:none!important;opacity:1!important}
 }
