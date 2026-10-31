@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,URL} from 'node:url';
 import {biometricUnlockFeedback,BIOMETRIC_UNLOCK_MESSAGES as msg} from '../biometric-unlock-feedback';
 import {localizeFeedback} from '../i18n-feedback';
 const read=(p:string)=>readFileSync(fileURLToPath(new URL(p,import.meta.url)),'utf8');
