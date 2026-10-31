@@ -333,11 +333,19 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const result=await checkQuickPin(accountId,currentPin);current(attempt);
   if(!result.ok)throw new Error(result.waitSeconds?'محاولات كثيرة؛ حاول لاحقًا.':'رمز الدخول المحفوظ غير صحيح.');
   const tokens=activeSessionTokens();
-  // Recover the old encrypted data key if present, without ever reusing its
-  // potentially expired JWTs. This also retains an enrolled biometric envelope.
-  if(await hasSessionVault(accountId))await unlockSessionWithPin(accountId,currentPin);
-  current(attempt);
-  await protectSessionWithPin(accountId,currentPin,tokens);current(attempt);
+  // Verify the saved PIN and recover the existing vault key. Preserve the
+  // biometric envelope and sealed device grant; never re-wrap an already
+  // authenticated PIN (another 600k PBKDF2 iterations on iOS).
+  // The decrypted old JWTs are NOT resumed: persist only the fresh,
+  // password-authenticated tokens captured above.
+  if(await hasSessionVault(accountId)){
+   current(attempt);
+   await unlockSessionWithPin(accountId,currentPin);current(attempt);
+   await persistVaultSession(tokens);current(attempt);
+  }else{
+   current(attempt);
+   await protectSessionWithPin(accountId,currentPin,tokens);current(attempt);
+  }
   setQuickPinEnabled(true);setPinReconnectRequired(false);
   await refreshBiometricState(user,attempt);
   try{await provisionQuickDevice(accountId,attempt,true);setBiometricReconnectRequired(false);}

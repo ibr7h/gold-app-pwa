@@ -1620,6 +1620,7 @@
 .dh-pin-recover-password small{color:#64748B;font-size:11px;line-height:1.6}
 .dh-pin-setup .dh-pin-dots{margin:16px 0 5px}
 .dh-pin-setup .dh-pin-feedback{color:#B91C1C}
+.dh-pin-setup .dh-pin-feedback-progress{color:#42526B;font-weight:600;min-height:38px;display:flex;align-items:center;justify-content:center}
 .dh-pin-setup .dh-pin-keypad{margin:0 auto;gap:2px 13px;width:min(100%,310px)}
 .dh-pin-setup .dh-pin-keypad button{height:53px;min-height:53px}
 .dh-pin-setup-cancel{margin-top:15px;border:1px solid #CBD5E1;padding:8px 25px;min-height:42px;background:#FFF;color:#001F3F;border-radius:12px}

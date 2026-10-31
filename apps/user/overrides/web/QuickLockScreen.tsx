@@ -93,7 +93,18 @@ export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentP
  const [currentPin,setCurrentPin]=useState('');
  const [password,setPassword]=useState('');
  const [first,setFirst]=useState(''),[digits,setDigits]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [slow,setSlow]=useState(false);
  const pending=useRef(false);
+ useEffect(()=>{
+  if(!busy){setSlow(false);return;}
+  const timer=setTimeout(()=>setSlow(true),8000);
+  return()=>clearTimeout(timer);
+ },[busy]);
+ const progressText=language==='en'
+  ?slow?'Verification is taking longer than usual. The check is still running.':'Verifying your PIN and device session…'
+  :language==='fr'
+   ?slow?'La vérification prend plus de temps que prévu. Elle est toujours en cours.':'Vérification du code et de la session…'
+   :slow?'استغرق التحقق وقتًا أطول من المعتاد. ما زالت المحاولة جارية.':'جارٍ تأكيد الرمز وربط الجلسة بالجهاز…';
  const commit=(value:string)=>{
   if(busy||pending.current)return;
   setDigits(value);
@@ -114,7 +125,7 @@ export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentP
   }).finally(()=>{pending.current=false;setBusy(false);});
  };
  return <div className="dh-pin-setup-backdrop" role="presentation">
-  <section className="dh-pin-setup" role="dialog" aria-modal="true" aria-label="إعداد رمز الدخول السريع" dir={direction} lang={language}>
+  <section className="dh-pin-setup" role="dialog" aria-modal="true" aria-label="إعداد رمز الدخول السريع" aria-busy={busy} dir={direction} lang={language}>
    <div className="dh-pin-setup-head"><h2>{mode==='disable'?'إيقاف رمز الدخول':mode==='change'?'تغيير رمز الدخول':mode==='reconnect'?'تأكيد رمز الدخول المحفوظ':mode==='recover'?'استعادة رمز الدخول السريع':'تفعيل الدخول السريع'}</h2>
     <button type="button" aria-label="إغلاق إعداد الرمز" onClick={onClose} disabled={busy}>×</button></div>
    <p>{stage==='current'?'أدخل رمز الدخول الحالي لتأكيد هويتك.':stage==='enter'?'اختر رمزًا من ٦ أرقام لا تستخدمه في خدمات أخرى.':'أعد إدخال الرمز نفسه لتأكيده.'}</p>
@@ -126,7 +137,7 @@ export function QuickPinSetup({onSave,onClose,mode}:{onSave:(pin:string,currentP
     <small>سيُتحقق من كلمة المرور عبر حسابك، ويُستبدل الرمز المحلي فقط. يلزم تفعيل بصمة الجهاز مجددًا بعد الاستعادة.</small>
    </div>}
    <PinDots length={digits.length}/>
-   <p className="dh-pin-feedback" role="alert">{localizeFeedback(error,language)||' '}</p>
+   <p className={'dh-pin-feedback'+(busy?' dh-pin-feedback-progress':'')} role={busy?'status':'alert'} aria-live="polite">{busy?progressText:localizeFeedback(error,language)||' '}</p>
    <Keypad disabled={busy} onDigit={d=>{if(digits.length<PIN_LENGTH)commit(digits+d);}}
     onDelete={()=>setDigits(x=>x.slice(0,-1))}/>
    <button type="button" className="dh-pin-setup-cancel" onClick={onClose} disabled={busy}>إلغاء</button>

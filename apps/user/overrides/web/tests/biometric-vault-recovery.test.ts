@@ -1,5 +1,7 @@
 import {afterEach,beforeEach,describe,expect,it,vi} from 'vitest';
+import {readFileSync} from 'node:fs';
 import {webcrypto} from 'node:crypto';
+import {fileURLToPath,URL} from 'node:url';
 const memory=vi.hoisted(()=>new Map<string,string>());
 const faults=vi.hoisted(()=>({failNextKey:''}));
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{
@@ -9,7 +11,8 @@ vi.mock('@react-native-async-storage/async-storage',()=>({default:{
 }}));
 import {
  clearSessionVault,closeSessionVault,hasBiometricVault,protectSessionWithPin,
- protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric
+ protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,
+ persistVaultSession,persistVaultDeviceGrant,readVaultDeviceGrant
 } from '../session-vault';
 import {BiometricUnlockTimeoutError,withBiometricUnlockDeadline} from '../biometric-unlock-deadline';
 import {persistLocalCredential,type LocalCredential} from '../local-biometric';
@@ -65,6 +68,33 @@ describe('PIN and biometric must share one recoverable vault key',()=>{
   await expect(protectSessionWithPin('person',pin,tokens)).rejects.toThrow();
   expect(await hasBiometricVault('person')).toBe(true);
   expect(await unlockSessionWithBiometric('person',bioSecret)).toEqual(tokens);
+ });
+});
+
+describe('Saved PIN reconnection to fresh password session',()=>{
+ it('reseals fresh tokens with the existing vault key without replacing PIN, Face ID or trusted-device grant',async()=>{
+  const grant={deviceId:'00000000-0000-4000-8000-000000000021',
+   secret:'A'.repeat(43),expiresAt:'2027-01-01T00:00:00.000Z'};
+  await protectSessionWithPin('person',pin,tokens);
+  await protectSessionWithBiometric('person',bioSecret,tokens);
+  await persistVaultDeviceGrant('person',grant);
+  closeSessionVault();
+  expect(await unlockSessionWithPin('person',pin)).toEqual(tokens);
+  const newTokens={accessToken:'fresh-password-access',refreshToken:'fresh-password-refresh'};
+  await persistVaultSession(newTokens);
+  closeSessionVault();
+  expect(await unlockSessionWithBiometric('person',bioSecret)).toEqual(newTokens);
+  expect(await readVaultDeviceGrant('person')).toEqual(grant);
+  closeSessionVault();
+  expect(await unlockSessionWithPin('person',pin)).toEqual(newTokens);
+ });
+ it('uses PIN verification, not only an old decrypted JWT, before restoring the new session',()=>{
+  const auth=readFileSync(fileURLToPath(new URL('../../contexts/AuthContext.web.tsx',import.meta.url)),'utf8');
+  const procedure=auth.split('const reconnectQuickPin=async(')[1]?.split('const disableQuickPin=async(')[0];
+  expect(procedure).toContain('await checkQuickPin(accountId,currentPin)');
+  expect(procedure).toContain('await unlockSessionWithPin(accountId,currentPin)');
+  expect(procedure).toContain('await persistVaultSession(tokens)');
+  expect(procedure).toContain('await provisionQuickDevice(accountId,attempt,true)');
  });
 });
 
