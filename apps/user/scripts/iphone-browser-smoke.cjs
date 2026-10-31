@@ -171,7 +171,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(printerStyle.panel,'rgb(8, 26, 46)','Printer inset screen must be dark navy');
   assert.equal(printerStyle.display,'flex','Brand and controls must not overlap');
   assert.equal(printerStyle.paper,'rgb(255, 254, 250)','Receipt must have paper styling');
-  assert.match(printerStyle.href||'',/estimated-price-receipt-printer-[a-f0-9]+\\.css/);
+  assert.match(printerStyle.href||'',/estimated-price-receipt-printer-[a-f0-9]+\.css/);
   assert.equal(printerStyle.overflow,false,'Receipt printer must fit iPhone width');
   await calculator.locator('.dh-estimate-printer[data-stage="complete"]').waitFor({timeout:8000});
   console.log('PASS rendered iPhone Receipt Printer: stylesheet linked, LCD and paper styled, feed complete, responsive');
