@@ -76,6 +76,10 @@ describe('device-only WebAuthn assertion verification',()=>{
   expect((get.mock.calls[0][0].publicKey?.extensions as any).prf.eval.first.byteLength).toBe(32);
   await expect(verifyLocalCredential(c)).rejects.toThrow();
  });
+ it('fails closed when iOS confirms Face ID but omits the PRF key required for the saved vault',async()=>{
+  const {c}=buildAssertion({prf:false});c.prfSalt=encode(new Uint8Array(32).fill(42));
+  await expect(verifyLocalCredential(c)).rejects.toThrow('تعذر الحصول على مفتاح التشفير من بصمة الجهاز.');
+ });
  it('does not accept PRF output from a failed signature or an aborted request',async()=>{
   const bad=buildAssertion({prf:true,goodSignature:false});await expect(verifyLocalCredential(bad.c)).rejects.toThrow();
   const {c}=buildAssertion({prf:true}),controller=new AbortController();controller.abort();
