@@ -113,6 +113,7 @@ describe('device-only WebAuthn assertion verification',()=>{
   const credential=await enrollLocalCredential('account-123','person@example.test');
   expect(create).toHaveBeenCalledOnce();
   expect(create.mock.calls[0][0].publicKey?.authenticatorSelection?.userVerification).toBe('required');
+  expect(create.mock.calls[0][0].publicKey?.rp?.name).toBe('ذهبك');
   expect(credential.publicKeySpki).toBe(encode(spki));
   expect(credential.unlockSecret).toEqual(new Uint8Array(32).fill(23));
   expect(await readLocalCredential()).toEqual({...credential});
