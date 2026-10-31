@@ -420,7 +420,7 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
       </button>
      </div>
     </div>
-    <EstimatedPriceReceiptPrinter language={language} ready={calcTotal!==null}>
+    <EstimatedPriceReceiptPrinter language={language} ready={calcTotal!==null} karat={calcKarat} weight={calcWeightN} total={money(calcTotal,priceCurrency)}>
     <dl className="calc-breakdown">
      <div><dt>قيمة الذهب الخام</dt><dd dir="ltr">{money(calcRaw,priceCurrency)}</dd></div>
      <div><dt>إجمالي المصنعية</dt><dd dir="ltr">{money(calcFeeTotal,priceCurrency)}</dd></div>
