@@ -187,6 +187,16 @@ jobs:
           if len(help_styles)!=1:
               raise RuntimeError(f'Expected one GoldHelp stylesheet, got {help_styles}')
           help_css=help_styles[0].name
+          # Receipt Printer is an Expo CSS sidecar. It must be explicitly
+          # linked like registration and GoldHelp; copying the file alone
+          # rendered the receipt as overlapping unstyled text on iOS.
+          receipt_styles=list((src/'_expo/static/css').glob('estimated-price-receipt-printer-*.css'))
+          if len(receipt_styles)!=1:
+              raise RuntimeError(f'Expected one receipt-printer stylesheet, got {receipt_styles}')
+          receipt_css=receipt_styles[0].name
+          for marker in ('.dh-estimate-printer-machine','.dh-estimate-printer-paper','@media(prefers-reduced-motion:reduce)'):
+              if marker not in receipt_styles[0].read_text():
+                  raise RuntimeError(f'Receipt printer stylesheet rule missing: {marker}')
           if '.dh-help-category' not in help_styles[0].read_text():
               raise RuntimeError('GoldHelp stylesheet is missing essential card styles')
           # Expo emits registration.css as a separate chunk that the generated
@@ -201,6 +211,7 @@ jobs:
                   raise RuntimeError(f'Missing signup stylesheet rule: {marker}')
           signup_href='/gold-app-pwa/full/_expo/static/css/'+signup_css
           help_href='/gold-app-pwa/full/_expo/static/css/'+help_css
+          receipt_href='/gold-app-pwa/full/_expo/static/css/'+receipt_css
           # Each deployment must contain only the new export. Historical bundles
           # previously left revoked secrets and outdated code publicly reachable.
           shutil.rmtree(dest/'_expo/static/js/web',ignore_errors=True)
@@ -230,6 +241,7 @@ jobs:
               # do not link it automatically. Include the active, hashed stylesheet.
               next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/gold-help-[a-f0-9]+\.css"\s*/?>','',next_html)
               next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/registration-[a-f0-9]+\.css"\s*/?>','',next_html)
+              next_html=re.sub(r'<link rel="stylesheet" href="/gold-app-pwa/full/_expo/static/css/estimated-price-receipt-printer-[a-f0-9]+\.css"\s*/?>','',next_html)
               next_html=re.sub(r'<meta http-equiv="Content-Security-Policy"[^>]*>','',next_html)
               next_html=re.sub(r'<meta name="referrer"[^>]*>','',next_html)
               if next_html.count('<head>')!=1:
@@ -238,7 +250,7 @@ jobs:
               if n:
                   if next_html.count('</head>')!=1:
                       raise RuntimeError(f'HTML head missing on {page}')
-                  next_html=next_html.replace('</head>',f'<link rel="stylesheet" href="{signup_href}"><link rel="stylesheet" href="{help_href}"></head>',1)
+                  next_html=next_html.replace('</head>',f'<link rel="stylesheet" href="{signup_href}"><link rel="stylesheet" href="{help_href}"><link rel="stylesheet" href="{receipt_href}"></head>',1)
                   page.write_text(next_html)
                   updated+=1
           if updated<25:
@@ -249,6 +261,10 @@ jobs:
           for target in (dest/'index.html',dest/'login.html',dest/'register.html'):
               if target.read_text().count(signup_href)!=1:
                   raise RuntimeError(f'Registration CSS is not linked by {target}')
+          # Guard every route against an orphaned dynamic CSS import.
+          for target in dest.rglob('*.html'):
+              if target.read_text().count(receipt_href)!=1:
+                  raise RuntimeError(f'Receipt Printer CSS is missing or duplicated in {target}')
           print(f'New User entry {bundle.name}, GoldHelp CSS {help_css}, updated {updated} preview pages')
           pages,assets=verify_static_assets(dest)
           print(f'PASS packaged User assets: {pages} pages, {assets} assets, zero broken references')
