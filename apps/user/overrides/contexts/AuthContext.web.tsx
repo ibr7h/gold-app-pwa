@@ -3,6 +3,7 @@ import {localBiometricSupported,readLocalCredential,enrollLocalCredential,persis
 import {api,authenticate,clearSession,hasSession,getVerifiedCachedUser,saveVerifiedUser,onSessionEnded,errorMessage,ApiError,restoreLegacySession,activeSessionTokens,lockSession,revokeServerSession,registerQuickDeviceGrant,pendingSessionReplacement,wasSessionReplaced,SESSION_REPLACED_MESSAGE} from '../web/api';
 import {verifyQuickUnlock} from '../web/quick-unlock-session';
 import {withBiometricUnlockDeadline,BiometricUnlockTimeoutError} from '../web/biometric-unlock-deadline';
+import {biometricUnlockFeedback} from '../web/biometric-unlock-feedback';
 import {hasSessionVault,hasBiometricVault,hasOpenVault,closeSessionVault,clearSessionVault,resetSessionPinAfterPassword,protectSessionWithPin,protectSessionWithBiometric,promoteSessionBiometric,unlockSessionWithPin,unlockSessionWithBiometric,removeVaultMethod,readVaultDeviceGrant,persistVaultDeviceGrant} from '../web/session-vault';
 import {hasQuickPin,setQuickPin,removeQuickPin,checkQuickPin,storedQuickPinAccountId,type PinResult} from '../web/quick-pin';
 import {beginRegistration,resendRegistration,type RegistrationChallenge,type TermsAcceptance} from '../web/registration';
@@ -322,13 +323,16 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const c=enrollment.current,account=lockedAccount;
   if(!c||!account||c.accountId!==String(account.id)||!biometricEnabled)return false;
   const attempt=begin(),controller=request.current!;setError(null);setLoading(true);
+  let phase:'device'|'vault'|'server'='device';
   try{
    // Deadline covers the native prompt, vault/lock acquisition, token rotation
    // and server verification. A late completion must never reopen the workspace.
    const unlock=(async()=>{
     const secret=await verifyLocalCredential(c,request.current!.signal);current(attempt);
+    phase='vault';
     const tokens=await hasSessionVault(c.accountId)?await unlockSessionWithBiometric(c.accountId,secret,c.credentialId):activeSessionTokens();
     current(attempt);
+    phase='server';
     const me=await verifyQuickUnlock(c.accountId,tokens,()=>attempt===version.current);
     current(attempt);
     try{await provisionQuickDevice(c.accountId,attempt);}catch{/* Existing unlock succeeded. */}
@@ -345,7 +349,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
      begin();closeSessionVault();lockSession();
      setError(e.message);setLoading(false);
     }else{
-     lockSession();setError(e instanceof Error?e.message:'تعذر تأكيد هوية الجهاز.');
+     lockSession();setError(biometricUnlockFeedback(e,phase));
     }
    }
    return false;

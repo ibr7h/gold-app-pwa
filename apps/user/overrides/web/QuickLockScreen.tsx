@@ -74,7 +74,7 @@ export function QuickLockScreen({account,biometricEnabled,quickPinEnabled,loadin
     <small>{quickPinEnabled?'أدخل رمز الدخول السريع لفتح ذهبك':'اضغط على زر البصمة أو استخدم كلمة المرور'}</small>
    </div>
    {quickPinEnabled&&<PinDots length={digits.length}/>}
-   <div className="dh-pin-feedback" role="alert">{localizeFeedback(localError||remoteError,language)||' '}</div>
+   <div className="dh-pin-feedback" role="alert">{localizeFeedback(remoteError||localError,language)||' '}</div>
    <button className="dh-pin-forgot" type="button" onClick={onForgot}>نسيت رمز الدخول السريع؟ الدخول بكلمة المرور</button>
    {quickPinEnabled?<Keypad disabled={busy||loading} onDigit={add} onDelete={erase}
     biometric={biometricEnabled} onBiometric={biometric}/>

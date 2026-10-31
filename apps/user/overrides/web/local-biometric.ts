@@ -94,7 +94,7 @@ export async function enrollLocalCredential(accountId:string,email:string,signal
  const userId=freshChallenge();
  const prfSalt=freshChallenge();
  const credential=await navigator.credentials.create({signal,publicKey:{
-  challenge,rp:{name:'ذهبي',id:location.hostname},
+  challenge,rp:{name:'ذهبك',id:location.hostname},
   user:{id:userId,name:email,displayName:email},pubKeyCredParams:[{type:'public-key',alg:-7}],
   authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'discouraged',userVerification:'required'},
   attestation:'none',timeout:60000,extensions:{prf:{eval:{first:prfSalt.buffer as ArrayBuffer}}} as PrfInputs
@@ -147,5 +147,9 @@ export async function verifyLocalCredential(c:LocalCredential,signal?:AbortSigna
  if(!valid)throw new Error('فشل التحقق من توقيع الجهاز.');
  if(signal?.aborted)throw new Error('أُلغي التحقق من بصمة الجهاز.');
  if(counter>c.counter){await AsyncStorage.setItem(STORAGE,JSON.stringify({...c,counter}));c.counter=counter;}
- return prfResult(credential);
+ const secret=prfResult(credential);
+ // A valid WebAuthn signature alone cannot unwrap the PRF-encrypted vault.
+ // Never silently accept the platform passkey result as a server session.
+ if(c.prfSalt&&!secret)throw new Error('تعذر الحصول على مفتاح التشفير من بصمة الجهاز.');
+ return secret;
 }
