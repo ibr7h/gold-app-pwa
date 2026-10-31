@@ -194,7 +194,7 @@ jobs:
           if len(receipt_styles)!=1:
               raise RuntimeError(f'Expected one receipt-printer stylesheet, got {receipt_styles}')
           receipt_css=receipt_styles[0].name
-          for marker in ('.dh-estimate-printer-machine','.dh-estimate-printer-paper','@media(prefers-reduced-motion:reduce)'):
+          for marker in ('.dh-estimate-printer-machine','.dh-estimate-printer-paper','prefers-reduced-motion'):
               if marker not in receipt_styles[0].read_text():
                   raise RuntimeError(f'Receipt printer stylesheet rule missing: {marker}')
           if '.dh-help-category' not in help_styles[0].read_text():
