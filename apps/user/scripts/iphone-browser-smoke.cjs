@@ -192,6 +192,7 @@ const server=http.createServer((req,res)=>{
       rightEdgeOutsideViewport:p.right>window.innerWidth+1||p.left<(-1)
     };
   });
+  console.log('Receipt measured outlet geometry:',JSON.stringify(feedGeometry));
   assert.ok(feedGeometry.paperStartsBelowSlot>=2&&feedGeometry.paperStartsBelowSlot<=7,'Receipt must emerge immediately below the slot, not from underneath the whole printer');
   assert.ok(feedGeometry.paperOverlapsHousing>20&&feedGeometry.paperOverlapsHousing<60,'Receipt must overlay the lower machine housing, as in the original reference');
   assert.ok(feedGeometry.paperToPrinterWidth<=.94,'Paper must look narrower than the machine');
