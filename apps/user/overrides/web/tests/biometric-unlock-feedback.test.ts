@@ -37,6 +37,18 @@ describe('Face ID failure reporting without bypassing server authorization',()=>
    expect(localizeFeedback(message,'fr')).not.toBe('Impossible de traiter la demande. Veuillez réessayer.');
   }
  });
+ it('keeps an explicit, server-verified rebind path for existing Face ID after password login',()=>{
+  const auth=read('../../contexts/AuthContext.web.tsx');
+  const workspace=read('../UserWorkspace.tsx');
+  expect(auth).toContain('reconnectBiometric:()=>Promise<void>');
+  expect(auth).toContain('await unlockSessionWithBiometric(accountId,secret,c.credentialId)');
+  expect(auth).toContain("await api<{userId:string;role:string}>('/auth/me')");
+  expect(auth).toContain('await persistVaultSession(activeSessionTokens())');
+  expect(auth).toContain('await provisionQuickDevice(accountId,attempt,true)');
+  expect(workspace).toContain('إعادة ربط بصمة الجهاز المحفوظة');
+  expect(workspace).toContain('biometricReconnectRequired&&!pinReconnectRequired&&biometricActive');
+  expect(auth).not.toContain('async reconnectBiometric(){await enrollLocalCredential');
+ });
  it('shows the AuthContext reason before the generic QuickLockScreen fallback',()=>{
   const screen=read('../QuickLockScreen.tsx');
   const auth=read('../../contexts/AuthContext.web.tsx');

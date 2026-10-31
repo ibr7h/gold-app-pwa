@@ -43,6 +43,8 @@ interface AuthContextType {
   biometricAvailable: boolean;
   biometricEnrolled: boolean;
   biometricEnabled: boolean;
+  biometricReconnectRequired:boolean;
+  reconnectBiometric:()=>Promise<void>;
   enableBiometric: () => Promise<void>;
   disableBiometric: () => Promise<void>;
   loginWithBiometric: () => Promise<boolean>;
@@ -79,6 +81,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const [biometricAvailable,setBiometricAvailable]=useState(false);
  const [biometricEnrolled,setBiometricEnrolled]=useState(false);
  const [biometricEnabled,setBiometricEnabled]=useState(false);
+ const [biometricReconnectRequired,setBiometricReconnectRequired]=useState(false);
  const [lockedAccount,setLockedAccount]=useState<User|null>(null);
  const [quickPinEnabled,setQuickPinEnabled]=useState(false);
  const [pinReconnectRequired,setPinReconnectRequired]=useState(false);
@@ -117,7 +120,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   const unsubscribe=onSessionEnded(()=>{
    const replaced=wasSessionReplaced();
    begin();setRegistration(null);enrollment.current=null;setLockedAccount(null);setQuickPinEnabled(false);
-   setBiometricEnabled(false);setBiometricEnrolled(false);setPinReconnectRequired(false);setUser(null);setLoading(false);
+   setBiometricEnabled(false);setBiometricEnrolled(false);setBiometricReconnectRequired(false);setPinReconnectRequired(false);setUser(null);setLoading(false);
    if(replaced)setError(SESSION_REPLACED_MESSAGE);
   });
   const onStorage=(event:StorageEvent)=>{
@@ -178,7 +181,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     if(savedPinAccount)await removeQuickPin(savedPinAccount);
     await forgetLocalCredential();current(attempt);
     enrollment.current=null;setQuickPinEnabled(false);setPinReconnectRequired(false);
-    setBiometricEnrolled(false);setBiometricEnabled(false);
+    setBiometricEnrolled(false);setBiometricEnabled(false);setBiometricReconnectRequired(false);
    }else if(recovery){
     // Password was checked by /auth/login and /auth/me verified the account.
     // Replace only local unlock secrets, never server-side wallet or purchase data.
@@ -188,14 +191,19 @@ export function AuthProvider({children}:{children:React.ReactNode}){
     await setQuickPin(String(me.id),recovery.newPin);current(attempt);
     await forgetLocalCredential();current(attempt);
     enrollment.current=null;setBiometricEnabled(false);setBiometricEnrolled(false);
-    setQuickPinEnabled(true);setPinReconnectRequired(false);
+    setQuickPinEnabled(true);setPinReconnectRequired(false);setBiometricReconnectRequired(false);
     try{await provisionQuickDevice(String(me.id),attempt,true);}catch{/* PIN still works; password remains fallback. */}
    }else{
     // Preserve the verifier. Reconfirm the old PIN once to re-wrap the freshly
     // issued JWTs; never write an unencrypted password, PIN or refresh token.
     const pinReady=await hasQuickPin(String(me.id));current(attempt);
+    const savedBiometric=await readLocalCredential();current(attempt);
+    const needsBiometricReconnect=!!savedBiometric&&savedBiometric.accountId===String(me.id)&&
+      !!savedBiometric.prfSalt&&await hasBiometricVault(String(me.id),savedBiometric.credentialId);
+    current(attempt);
     setQuickPinEnabled(pinReady);setPinReconnectRequired(pinReady);
     await refreshBiometricState(me,attempt);
+    setBiometricReconnectRequired(needsBiometricReconnect);
    }
    setLockedAccount(null);setUser(me);setBiometricAvailable(await localBiometricSupported());
    // Existing Push permission and endpoint can be relinked without prompting.
@@ -261,14 +269,44 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   if(c.unlockSecret){
    // Do not claim that Face ID can recreate a server session if registering
    // its trusted-device grant failed. Keep the local PIN/Face ID vault intact.
-   try{await provisionQuickDevice(accountId,attempt);}
-   catch{throw new Error('تم تفعيل بصمة الجهاز محليًا، لكن تعذر تسجيل الجهاز الموثوق لدى الخادم لتجديد الجلسة تلقائيًا. تحقق من الاتصال وأعد المحاولة من إعدادات الأمان.');}
+   try{await provisionQuickDevice(accountId,attempt);setBiometricReconnectRequired(false);}
+   catch{setBiometricReconnectRequired(true);throw new Error('تم تفعيل بصمة الجهاز محليًا، لكن تعذر تسجيل الجهاز الموثوق لدى الخادم لتجديد الجلسة تلقائيًا. تحقق من الاتصال وأعد المحاولة من إعدادات الأمان.');}
   }
+ };
+ /** An existing device passkey can be rebound after password login, without
+  * creating another credential or treating Face ID as server authorization.
+  * The current server-verified password session is required; no stale JWT
+  * from the old encrypted vault is ever resumed.
+  */
+ const reconnectBiometric=async():Promise<void>=>{
+  if(!user?.id||user.role!=='user')throw new Error('سجّل الدخول بكلمة المرور أولًا لإعادة ربط البصمة.');
+  if(pinReconnectRequired)throw new Error('أكّد رمز الدخول المحفوظ أولًا.');
+  const accountId=String(user.id),c=await readLocalCredential();
+  if(!c||c.accountId!==accountId||!c.prfSalt||
+     !await hasBiometricVault(accountId,c.credentialId))
+   throw new Error('البصمة المحفوظة غير متاحة؛ فعّل بصمة الجهاز من إعدادات الأمان.');
+  const attempt=begin();setError(null);setLoading(true);
+  try{
+   // The user explicitly taps Reconnect, allowing a platform authenticator
+   // prompt without initiating a fresh passkey registration.
+   const secret=await verifyLocalCredential(c,request.current!.signal);current(attempt);
+   if(!secret)throw new Error('تعذر استخراج مفتاح البصمة المحفوظة.');
+   await unlockSessionWithBiometric(accountId,secret,c.credentialId);current(attempt);
+   const verified=await api<{userId:string;role:string}>('/auth/me');current(attempt);
+   if(verified?.role!=='user'||String(verified.userId)!==accountId)
+    throw new ApiError('الحساب الحالي لا يطابق البصمة المحفوظة.',403);
+   // Re-seal the NEW password-authenticated tokens, not the old vault tokens.
+   await persistVaultSession(activeSessionTokens());current(attempt);
+   await provisionQuickDevice(accountId,attempt,true);current(attempt);
+   setBiometricReconnectRequired(false);
+   await refreshBiometricState(user,attempt);
+  }catch(e){closeSessionVault();throw e;}
+  finally{if(attempt===version.current)setLoading(false);}
  };
  const disableBiometric=async()=>{
   if(!user?.id)throw new Error('سجّل الدخول أولًا.');
   const attempt=begin();await forgetLocalCredential();await removeVaultMethod(String(user.id),'biometric');current(attempt);
-  enrollment.current=null;setBiometricEnrolled(false);setBiometricEnabled(false);
+  enrollment.current=null;setBiometricEnrolled(false);setBiometricEnabled(false);setBiometricReconnectRequired(false);
  };
  const lockWithBiometric=async():Promise<boolean>=>{
   const attempt=version.current;
@@ -302,8 +340,8 @@ export function AuthProvider({children}:{children:React.ReactNode}){
   await protectSessionWithPin(accountId,currentPin,tokens);current(attempt);
   setQuickPinEnabled(true);setPinReconnectRequired(false);
   await refreshBiometricState(user,attempt);
-  try{await provisionQuickDevice(accountId,attempt,true);}
-  catch{setError('تم ربط رمز الدخول، لكن تعذر إعادة توثيق هذا الجهاز لدى الخادم. استخدم كلمة المرور إذا انتهت الجلسة.');}
+  try{await provisionQuickDevice(accountId,attempt,true);setBiometricReconnectRequired(false);}
+  catch{setBiometricReconnectRequired(true);setError('تم ربط رمز الدخول، لكن تعذر إعادة توثيق هذا الجهاز لدى الخادم. استخدم كلمة المرور إذا انتهت الجلسة.');}
  };
  const disableQuickPin=async(currentPin:string)=>{
   if(!user?.id)throw new Error('سجّل الدخول أولًا.');
@@ -391,7 +429,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  const logout=()=>{
   begin();setLockedAccount(null);setUser(null);enrollment.current=null;
   setQuickPinEnabled(false);setPinReconnectRequired(false);setBiometricEnrolled(false);
-  setBiometricEnabled(false);setLoading(false);
+  setBiometricEnabled(false);setBiometricReconnectRequired(false);setLoading(false);
   // Capture and send revocation before clearing the local token. Clear
   // immediately: a slow/offline logout must never erase a newer login.
   void revokeServerSession().catch(()=>{});
@@ -421,7 +459,7 @@ export function AuthProvider({children}:{children:React.ReactNode}){
  };
  const unsupported=async()=>{setError('هذه الميزة غير متاحة من الخادم حاليًا.');return false;};
  const value:AuthContextType={user,lockedAccount,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,recoverQuickPin,enableQuickPin,disableQuickPin,unlockWithPin,isLoggedIn:!!user,isLoading,error,login,logout,continueWithPassword,clearError:()=>setError(null),
- biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
+ biometricType:'fingerprint',biometricAvailable,biometricEnrolled,biometricEnabled,biometricReconnectRequired,reconnectBiometric,enableBiometric,disableBiometric,loginWithBiometric,checkBiometricAvailability,lockWithBiometric,
  resetStep:'email',resetEmail:'',resetCode:'',sendResetCode:unsupported,verifyResetCode:unsupported,resetPassword:unsupported,resendResetCode:unsupported,cancelReset:()=>{},
  registerStep:registration?'verify':'form',registerEmail:registration?.email||'',registerCode:'',
  registrationExpiresAt:registration?.expiresAt||0,registrationResendAt:registration?.resendAt||0,

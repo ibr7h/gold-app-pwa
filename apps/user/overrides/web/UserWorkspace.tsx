@@ -41,6 +41,8 @@ type UserLockAuth=ReturnType<typeof useAuth> & {
  lockedAccount:{id?:number|string;email:string;role:'user'|'admin'|'trader';name?:string}|null;
  quickPinEnabled:boolean;
  pinReconnectRequired:boolean;
+ biometricReconnectRequired:boolean;
+ reconnectBiometric:()=>Promise<void>;
  reconnectQuickPin:(currentPin:string)=>Promise<void>;
  recoverQuickPin:(password:string,newPin:string)=>Promise<void>;
  unlockWithPin:(pin:string)=>Promise<{ok:boolean;waitSeconds:number;remaining:number}>;
@@ -128,8 +130,9 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
   const {language,setLanguage,direction}=useLanguage();
   // Explicit React translations for dynamic/critical labels: no dependence on DOM observer timing.
   const tr=(source:string)=>translateUiText(source,language);
- const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,lockWithBiometric,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,recoverQuickPin,enableQuickPin,disableQuickPin}=useUserLockAuth();
+ const {user,biometricAvailable,biometricEnabled,biometricEnrolled,enableBiometric,disableBiometric,reconnectBiometric,biometricReconnectRequired,lockWithBiometric,quickPinEnabled,pinReconnectRequired,reconnectQuickPin,recoverQuickPin,enableQuickPin,disableQuickPin}=useUserLockAuth();
  const [biometricNotice,setBiometricNotice]=useState('');
+ const [biometricRelinking,setBiometricRelinking]=useState(false);
  const [pinSetup,setPinSetup]=useState<'enable'|'change'|'disable'|'reconnect'|'recover'|null>(null);
  const biometricActive=canShowBiometricLogin({biometricAvailable,biometricEnabled,biometricEnrolled});
  const [page,setPage]=useState<Page>('home'),[menu,setMenu]=useState(false),[expandedPortfolioId,setExpandedPortfolioId]=useState<string|null>(null);
@@ -562,6 +565,15 @@ export function Workspace({email,role,logout}:{email:string;role:string;logout:(
     }catch(e){setBiometricNotice(e instanceof Error?e.message:'تعذر تغيير إعداد بصمة الجهاز.');}
    })()}><span/></button>
  </div>
+ {biometricReconnectRequired&&!pinReconnectRequired&&biometricActive&&<div className="dh-quick-reconnect" role="status">
+  <p>{tr('يمكن إعادة ربط بصمة الجهاز المحفوظة بالجلسة الجديدة دون إنشاء بصمة أخرى.')}</p>
+  <button type="button" className="primary" disabled={biometricRelinking} onClick={()=>void (async()=>{
+   setBiometricRelinking(true);setBiometricNotice('');
+   try{await reconnectBiometric();setBiometricNotice(tr('أُعيد ربط البصمة واعتماد الجهاز بنجاح.'));}
+   catch(e){setBiometricNotice(e instanceof Error?e.message:tr('تعذرت إعادة ربط بصمة الجهاز.'));}
+   finally{setBiometricRelinking(false);}
+  })()}>{tr(biometricRelinking?'جارٍ ربط البصمة…':'إعادة ربط بصمة الجهاز المحفوظة')}</button>
+ </div>}
  {biometricNotice&&<p className="notice info" role="status">{biometricNotice}</p>}
  <div className="dh-quick-row-actions">
   {!pinReconnectRequired&&(quickPinEnabled||biometricActive)&&<button type="button" className="primary" onClick={()=>void (async()=>{

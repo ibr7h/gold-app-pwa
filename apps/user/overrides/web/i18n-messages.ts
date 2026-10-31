@@ -15,6 +15,11 @@ export const LANGUAGE_META={
  fr:{label:'Français',nativeLabel:'Français',dir:'ltr',intl:'fr-FR'}
 } as const;
 const entries:ReadonlyArray<readonly [string,string,string]>=[
+ ["يمكن إعادة ربط بصمة الجهاز المحفوظة بالجلسة الجديدة دون إنشاء بصمة أخرى.","You can reconnect your saved Face ID to the new session without creating another passkey.","Vous pouvez reconnecter Face ID à cette session sans créer de nouvelle clé d’accès."],
+ ["إعادة ربط بصمة الجهاز المحفوظة","Reconnect saved Face ID","Reconnecter Face ID enregistré"],
+ ["جارٍ ربط البصمة…","Reconnecting Face ID…","Reconnexion de Face ID…"],
+ ["أُعيد ربط البصمة واعتماد الجهاز بنجاح.","Face ID and device authorization reconnected successfully.","Face ID et l’autorisation de cet appareil ont été reconnectés."],
+ ["تعذرت إعادة ربط بصمة الجهاز.","Could not reconnect saved Face ID.","Impossible de reconnecter Face ID."],
  ["شراء التاجر:","Dealer buys:","Rachat par le bijoutier :"],
  ["بيع التاجر:","Dealer sells:","Vente par le bijoutier :"],
  ["شراء/بيع التاجر","Dealer buy/sell","Rachat/vente du bijoutier"],
