@@ -1,7 +1,7 @@
 import {beforeEach,describe,it,expect,vi} from 'vitest';
 const memory=vi.hoisted(()=>new Map<string,string>());
 vi.mock('@react-native-async-storage/async-storage',()=>({default:{removeItem:async(k:string)=>{memory.delete(k);},getItem:async(k:string)=>memory.get(k)||null,setItem:async(k:string,v:string)=>{memory.set(k,v);},multiSet:async(pairs:string[][])=>pairs.forEach(([k,v])=>memory.set(k,v)),multiRemove:async(keys:string[])=>keys.forEach(k=>memory.delete(k))}}));
-import {api,saveSession,clearSession,getVerifiedCachedUser,saveVerifiedUser,activeSessionTokens,authenticate,lockSession} from '../api';
+import {api,saveSession,clearSession,getVerifiedCachedUser,saveVerifiedUser,activeSessionTokens,authenticate,lockSession,revokeServerSession} from '../api';
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status});
 beforeEach(async()=>{await clearSession();vi.restoreAllMocks();await saveSession({accessToken:'expired',refreshToken:'refresh-fixture'});});
 describe('sessions',()=>{
@@ -9,6 +9,18 @@ describe('sessions',()=>{
  it('clears rejected refresh credentials',async()=>{vi.stubGlobal('fetch',vi.fn(async()=>json({message:'Invalid refresh token'},401)));await expect(api('/auth/me')).rejects.toThrow();expect(memory.size).toBe(0);});
  it('retains tokens in memory after network failure and never retries a write blindly',async()=>{const fn=vi.fn(async()=>{throw new TypeError('network');});vi.stubGlobal('fetch',fn);await expect(api('/portfolio',{method:'POST',body:'{}'})).rejects.toThrow();expect(fn).toHaveBeenCalledTimes(1);expect(activeSessionTokens().refreshToken).toBe('refresh-fixture');expect(memory.has('dhahabi_user_refresh_token')).toBe(false);});
  it('rejects a response arriving after logout',async()=>{let release!:(r:Response)=>void;vi.stubGlobal('fetch',vi.fn(()=>new Promise<Response>(r=>release=r)));const pending=api('/auth/me');await new Promise(r=>setTimeout(r,0));await clearSession();release(json({userId:'old'}));await expect(pending).rejects.toThrow();expect(memory.size).toBe(0);});
+ it('revokes the remote JWT session before clearing the PWA',async()=>{
+  const spy=vi.fn(async(url:string,options:RequestInit)=>{
+   expect(url.endsWith('/auth/logout')).toBe(true);
+   expect(new Headers(options.headers).get('Authorization')).toBe('Bearer expired');
+   expect(options.keepalive).toBe(true);
+   return json({success:true});
+  });
+  vi.stubGlobal('fetch',spy);
+  await revokeServerSession();await clearSession();
+  expect(spy).toHaveBeenCalledTimes(1);
+  expect(()=>activeSessionTokens()).toThrow();
+ });
  it('never stores reusable access or refresh tokens in browser storage',()=>{
   expect(memory.has('dhahabi_user_access_token')).toBe(false);expect(memory.has('dhahabi_user_refresh_token')).toBe(false);
  });
