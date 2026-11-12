@@ -212,3 +212,8 @@ body.admin-authenticated .footer{display:none}
 .admin-update-banner p{margin:6px 0}
 .admin-update-actions{display:flex;gap:9px;align-items:center;margin-top:12px}
 .admin-update-actions button{flex:1;min-height:44px;margin:0;padding:8px}
+
+/* Admin-only background notification controls. */
+.admin-push-state{font-size:12px;line-height:1.8;color:#1e293b;background:#f1f5f9;padding:10px 12px;border-radius:10px;margin:12px 0}
+.admin-push-actions{display:flex;flex-wrap:wrap;gap:10px}
+.admin-push-actions button{flex:1 1 130px;min-height:44px;padding:8px;font-size:12px}

@@ -104,6 +104,7 @@
       el.hidden=el.dataset.view!==panel;
     });
     if(panel==='users'){page=1;auditPage=1;loadUsers();loadAudit();}
+    if(panel==='settings')void checkAdminPushStatus();
     window.scrollTo({top:0,behavior:'instant'});
     if(panel==='overview')loadPrice();
   }
@@ -398,5 +399,114 @@
   byId('users-prev').addEventListener('click',()=>{if(page>1){page--;loadUsers();}});
   byId('users-next').addEventListener('click',()=>{if(page<pages){page++;loadUsers();}});
   byId('prices-retry').addEventListener('click',loadPrice);
+  // Independent Admin-only Web Push: messages can be shown by SW with the page closed.
+  const pushState=byId('admin-push-state');
+  const pushEnable=byId('admin-push-enable');
+  const pushTest=byId('admin-push-test');
+  const pushDisable=byId('admin-push-disable');
+  let pushBusy=false;
+  function pushSupported(){
+    return window.isSecureContext&&'Notification' in window&&'serviceWorker' in navigator
+      &&'PushManager' in window;
+  }
+  function pushMessage(text){pushState.textContent=text;}
+  function pushButtons(registered=false){
+    pushEnable.disabled=pushBusy||!accessToken;
+    pushTest.disabled=pushBusy||!registered||!accessToken;
+    pushDisable.disabled=pushBusy||!registered||!accessToken;
+  }
+  async function pushRequest(path,options){
+    try{return await request('/admin/push/'+path,{...(options||{}),authorized:true});}
+    catch(e){if(e.status===401||e.status===403){clearAuth();msg(e.message);}throw e;}
+  }
+  function keyBytes(base64url){
+    const raw=atob(base64url.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-base64url.length%4)%4));
+    return Uint8Array.from(raw,c=>c.charCodeAt(0));
+  }
+  function installedOnIOS(){
+    const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)
+      ||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
+    return !ios||window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  }
+  async function ownPushSubscription(){
+    const registration=await navigator.serviceWorker.ready;
+    return {registration,sub:await registration.pushManager.getSubscription()};
+  }
+  async function checkAdminPushStatus(){
+    if(!accessToken)return;
+    if(!pushSupported()){
+      pushMessage('هذا المتصفح أو الجهاز لا يدعم إشعارات Web Push. على الآيفون ثبّت تطبيق الإدارة على الشاشة الرئيسية.');
+      pushButtons(false);return;
+    }
+    if(!installedOnIOS()){
+      pushMessage('على الآيفون: افتح التطبيق من أيقونته على الشاشة الرئيسية، ثم فعّل الإشعارات.');
+      pushButtons(false);return;
+    }
+    if(Notification.permission==='denied'){
+      pushMessage('الإشعارات محظورة. فعّلها لتطبيق ذهبك للإدارة من إعدادات الجهاز.');
+      pushButtons(false);return;
+    }
+    pushMessage('جارٍ التحقق من إعدادات الإشعارات...');
+    try{
+      const config=await pushRequest('config');
+      if(!config?.configured||!config.publicKey){
+        pushMessage('خدمة الإشعارات غير مهيأة على الخادم حاليًا.');
+        pushButtons(false);return;
+      }
+      const {sub}=await ownPushSubscription();
+      if(!sub){pushMessage('الإشعارات غير مفعّلة على هذا الجهاز.');pushButtons(false);return;}
+      const state=await pushRequest('subscriptions/status',{method:'POST',body:{endpoint:sub.endpoint}});
+      if(state.registered){pushMessage('الإشعارات مفعّلة على هذا الجهاز.');pushButtons(true);}
+      else{pushMessage('هذا الجهاز غير مرتبط بجلسة الإدارة الحالية. اضغط تفعيل الإشعارات.');pushButtons(false);}
+    }catch(e){pushMessage(e.message||'تعذر التحقق من الاشتراك.');pushButtons(false);}
+  }
+  pushEnable.addEventListener('click',async()=>{
+    if(!accessToken||pushBusy||!pushSupported())return;
+    if(!installedOnIOS()){pushMessage('ثبّت تطبيق الإدارة على الشاشة الرئيسية أولًا.');return;}
+    // iOS requires requesting permission directly from a real click, not an effect or timer.
+    const permissionRequest=Notification.permission==='default'
+      ?Notification.requestPermission():Promise.resolve(Notification.permission);
+    pushBusy=true;pushButtons(false);
+    try{
+      const permission=await permissionRequest;
+      if(permission!=='granted')throw new Error('لم يُسمح بالإشعارات. يمكن تعديل الإذن من إعدادات الجهاز.');
+      const cfg=await pushRequest('config');
+      if(!cfg?.configured||typeof cfg.publicKey!=='string')throw new Error('خدمة الإشعارات غير مهيأة على الخادم.');
+      const {registration,sub:existing}=await ownPushSubscription();
+      const sub=existing||await registration.pushManager.subscribe({
+        userVisibleOnly:true,applicationServerKey:keyBytes(cfg.publicKey)
+      });
+      const keys=sub.toJSON();
+      if(!keys?.keys?.p256dh||!keys?.keys?.auth)throw new Error('تعذر قراءة مفاتيح الاشتراك.');
+      await pushRequest('subscriptions',{method:'POST',body:{
+        endpoint:sub.endpoint,keys:{p256dh:keys.keys.p256dh,auth:keys.keys.auth},
+        userAgent:navigator.userAgent.slice(0,250)
+      }});
+      pushMessage('الإشعارات مفعّلة. استخدم زر الاختبار للتحقق من وصولها والشاشة مقفلة.');
+      pushButtons(true);
+    }catch(e){pushMessage(e.message||'تعذر تفعيل الإشعارات.');pushButtons(false);}
+    finally{pushBusy=false;await checkAdminPushStatus();}
+  });
+  pushTest.addEventListener('click',async()=>{
+    if(!accessToken||pushBusy)return;pushBusy=true;pushButtons(false);
+    try{
+      const {sub}=await ownPushSubscription();
+      if(!sub)throw new Error('اشترك بالإشعارات أولًا.');
+      const result=await pushRequest('test',{method:'POST',body:{endpoint:sub.endpoint}});
+      pushMessage(result?.accepted
+        ?'قبلت خدمة الإشعارات الاختبار. اقفل شاشة الجهاز للتحقق من ظهوره؛ القبول لا يضمن وصوله.'
+        :'لم تقبل خدمة الإشعارات طلب الاختبار. حاول لاحقًا.');
+    }catch(e){pushMessage(e.message||'تعذر إرسال الإشعار التجريبي.');}
+    finally{pushBusy=false;pushButtons(true);}
+  });
+  pushDisable.addEventListener('click',async()=>{
+    if(!accessToken||pushBusy)return;pushBusy=true;pushButtons(false);
+    try{
+      const {sub}=await ownPushSubscription();
+      if(sub){await pushRequest('subscriptions',{method:'DELETE',body:{endpoint:sub.endpoint}});await sub.unsubscribe();}
+      pushMessage('تم إيقاف إشعارات الإدارة على هذا الجهاز.');
+    }catch(e){pushMessage(e.message||'تعذر إيقاف الإشعارات.');}
+    finally{pushBusy=false;void checkAdminPushStatus();}
+  });
   // The isolated Admin updater manages Service Worker registration and updates.
 })();
