@@ -1,8 +1,8 @@
 {
   "id": "/gold-app-pwa/admin/",
-  "name": "ذهبي للإدارة",
-  "short_name": "ذهبي إدارة",
-  "description": "بوابة ذهبي المستقلة للإدارة",
+  "name": "ذهبك للإدارة",
+  "short_name": "ذهبك إدارة",
+  "description": "لوحة إدارة منصة ذهبك",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "/gold-app-pwa/admin/",
