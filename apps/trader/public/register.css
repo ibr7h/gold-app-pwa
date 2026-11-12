@@ -1,0 +1,20 @@
+:root{font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:#001F3F;background:#f7f8fc}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#001F3F 0,#0b2b4c 260px,#f7f8fc 260px);min-height:100dvh}
+.shell{width:min(100%,480px);padding:calc(env(safe-area-inset-top,0px) + 36px) 18px 35px;margin:auto}
+.brand{text-align:center;color:#fff}.brand img{border-radius:18px;background:#D4AF37;padding:6px}
+.brand h1{font-size:26px;margin:6px 0}.brand p{font-size:13px;line-height:1.8;margin:7px 0}
+.brand .eyebrow{color:#f3d875;letter-spacing:.4px}
+.card{background:white;border-radius:18px;box-shadow:0 10px 30px #0002;border:1px solid #e4e7ec;padding:22px 18px;margin-top:24px}
+.card[hidden]{display:none!important}.card h2{font-size:18px;margin:0 0 14px}
+form{display:flex;flex-direction:column;gap:11px}
+label{font-size:13px;font-weight:750}
+input:not([type=checkbox]){width:100%;font-size:16px;min-height:48px;border:1px solid #cbd5e1;border-radius:11px;padding:10px 12px;background:#fff;color:#001F3F}
+input:focus-visible{outline:2px solid #C5A021;outline-offset:2px}
+button{min-height:48px;border:0;border-radius:12px;background:#001F3F;color:#f6dd86;font-size:15px;font-weight:800;cursor:pointer;padding:9px 13px}
+button:disabled{opacity:.5;cursor:wait}button.secondary{border:1px solid #C5A021;color:#001F3F;background:#fff}
+.check{display:flex;align-items:start;gap:8px;line-height:1.8}.check input{margin-top:6px;accent-color:#001F3F}
+.hint{font-size:12px;color:#526175;line-height:1.8}
+.message{font-size:13px;line-height:1.8;color:#001F3F;min-height:20px;text-align:center;margin:12px 0}
+.message.error{color:#b91c1c;background:#fff0f1;padding:8px;border:1px solid #fda4af;border-radius:9px}
+a{color:#8f6f11;font-weight:750;text-underline-offset:3px}
+footer{padding:22px 0;text-align:center;font-size:13px}

@@ -1,0 +1,29 @@
+name: Trader Invite-only Registration
+on:
+  pull_request:
+    paths:
+      - 'apps/trader/public/register.*'
+      - 'apps/trader/public/index.html'
+      - 'apps/trader/tests/**'
+      - 'apps/marketer/**'
+      - '.github/workflows/trader-invite-registration.yml'
+permissions:
+  contents: read
+jobs:
+  trader-invite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check isolated Merchant invitation UX
+        run: node --test apps/trader/tests/*.test.mjs
+      - name: Ensure User application files remain untouched
+        run: |
+          git fetch origin main --depth=1
+          if git diff --name-only FETCH_HEAD HEAD | grep '^apps/user/'; then
+            echo 'User app source must not change in Trader PR' >&2
+            exit 1
+          fi
