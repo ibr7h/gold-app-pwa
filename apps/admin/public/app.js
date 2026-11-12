@@ -334,6 +334,35 @@
     msg('');selectPanel('overview');setStatus('جارٍ التحقق...');
     await Promise.all([loadSummary(),loadPrice()]);
   }
+  // Quick unlock may only resume a previously established password + email OTP session.
+  // Every launch rotates the Admin refresh token on the server before displaying data.
+  window.DhahabkAdminBridge={
+    api:async(path,method='GET',body)=>{
+      if(!path.startsWith('/admin/push/')&&!['/auth/admin/quick/register','/auth/admin/quick/revoke'].includes(path))
+        throw new Error('Invalid Admin API path');
+      if(!accessToken)throw new Error('تتطلب الإشعارات جلسة إدارة نشطة.');
+      return request(path,{method,body,authorized:true});
+    },
+    pinVerify:(deviceId,pin)=>request('/auth/admin/quick/verify',{method:'POST',body:{deviceId,pin}}),
+    lock:()=>clearAuth(),
+    resume:async(storedRefresh,expectedUserId)=>{
+      if(!/^a\.v[0-9]+\./.test(storedRefresh)||!expectedUserId)
+        throw new Error('بيانات الدخول السريع غير صالحة.');
+      const fresh=await request('/auth/refresh',{method:'POST',body:{refreshToken:storedRefresh}});
+      if(!fresh?.accessToken||!fresh?.refreshToken)
+        throw new Error('انتهت الجلسة الإدارية.');
+      accessToken=fresh.accessToken;
+      refreshToken=fresh.refreshToken;
+      try{
+        const user=await secure('/auth/me');
+        if(user?.role!=='admin'||String(user?.userId)!==expectedUserId)
+          throw new Error('هذا الجهاز لا يخص الحساب الإداري الحالي.');
+        await enter(user);
+        window.AdminPush?.onAuthenticated();
+        return fresh;
+      }catch(e){clearAuth();throw e;}
+    }
+  };
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(submit.disabled)return;
     msg('');submit.disabled=true;
@@ -362,7 +391,12 @@
       accessToken=tokens.accessToken;refreshToken=tokens.refreshToken;
       challengeId='';
       const user=await secure('/auth/me');
-      if(accessToken){otpView.hidden=true;await enter(user);}
+      if(accessToken){
+        otpView.hidden=true;
+        await enter(user);
+        try{await window.AdminQuickUnlock?.onAuthenticated(user,tokens);}catch{ /* Login always works without optional device storage. */ }
+        window.AdminPush?.onAuthenticated();
+      }
     }catch(e){otpAlert(e.message||'رمز التحقق غير صحيح أو انتهت صلاحيته.');}
     finally{otpSubmit.disabled=false;otpSubmit.textContent=label;}
   });
@@ -381,9 +415,12 @@
   byId('logout').addEventListener('click',async ()=>{
     const token=accessToken;
     try{
-      if(token) await request('/auth/logout',{method:'POST',authorized:true});
-      clearAuth();msg('تم تسجيل الخروج بأمان.','ok');
-    }catch(e){clearAuth();msg('تم الخروج من هذا الجهاز، لكن تعذر إبطال الجلسة بالخادم.');}
+      if(token){
+        await window.AdminPush?.logout();
+        await request('/auth/logout',{method:'POST',authorized:true});
+      }
+      clearAuth();window.AdminQuickUnlock?.logout();msg('تم تسجيل الخروج بأمان.','ok');
+    }catch(e){clearAuth();window.AdminQuickUnlock?.logout();msg('تم الخروج من هذا الجهاز، لكن تعذر إبطال الجلسة بالخادم.');}
     email.focus();
   });
   byId('toggle-password').addEventListener('click',()=>{

@@ -212,3 +212,34 @@ body.admin-authenticated .footer{display:none}
 .admin-update-banner p{margin:6px 0}
 .admin-update-actions{display:flex;gap:9px;align-items:center;margin-top:12px}
 .admin-update-actions button{flex:1;min-height:44px;margin:0;padding:8px}
+
+/* Admin quick unlock: original navy/gold with red restricted-area warnings. */
+.quick-screen{min-height:100dvh;background:radial-gradient(circle at 48% 40%,#0b3158,#001F3F 60%,#080f1a);color:#f8fafc}
+.quick-screen[hidden]{display:none!important}
+.quick-shell{min-height:100dvh;width:min(100%,460px);margin:auto;padding:calc(50px + env(safe-area-inset-top,0px)) 20px 32px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.quick-emblem{width:98px;height:98px;border-radius:24px;background:linear-gradient(135deg,#f1d688,#D4AF37,#C5A021);box-shadow:0 12px 30px #0008;display:grid;place-items:center}
+.quick-emblem img{border-radius:20px}
+.quick-shell h1{color:#D4AF37;font-size:26px;margin:22px 0 2px}
+.quick-account{font-size:13px;color:#e2e8f0;margin:4px 0;direction:ltr;overflow-wrap:anywhere}
+.quick-lead{text-align:center;color:#d0dbe8;font-size:13px;line-height:1.9}
+.quick-card{width:100%;background:#102a46;border:1px solid #C5A021;border-radius:20px;padding:20px;box-shadow:0 8px 32px #0005}
+.quick-card .gold-btn{margin-bottom:12px}
+.quick-card form{display:grid;gap:10px}
+.quick-card label{font-size:13px;font-weight:700;color:#f1d688}
+.quick-card input{min-height:52px;background:#fff;color:#001F3F;text-align:center;font-size:22px;letter-spacing:5px;border:2px solid #C5A021;border-radius:12px;width:100%}
+.quick-card form[hidden],.quick-card button[hidden]{display:none!important}
+.quick-password-link{display:block;width:100%;background:none;border:0;color:#f1d688;text-decoration:underline;margin-top:14px;padding:9px;font-size:13px}
+#quick-notice{min-height:22px;font-size:13px;text-align:center;color:#d5ebff}
+#quick-notice.warning{color:#fda4af}
+.quick-warning{text-align:center;font-size:12px;color:#fda4af;border:1px solid #b91c1c;border-radius:12px;padding:10px 14px;line-height:1.7}
+.quick-settings .form-label{margin-top:10px}
+.quick-settings .gold-btn{margin-top:14px}
+.quick-settings .gold-btn-outline{margin-top:10px;width:100%;color:#8f6f11}
+.quick-settings-status{font-size:12px;color:#475569}
+.quick-danger{margin-top:18px;min-height:44px;width:100%;background:#fff0f0;color:#b91c1c;border:1px solid #ef4444;border-radius:12px;font-weight:800}
+.quick-danger:disabled{color:#94a3b8;border-color:#cbd5e1;background:#f8fafc}
+
+.admin-push-settings .gold-btn,.admin-push-settings .gold-btn-outline,.admin-push-settings .quick-danger{margin-top:10px;width:100%}
+.admin-push-settings .gold-btn-outline{color:#8f6f11}
+.admin-push-message{border-radius:12px;padding:12px;margin:14px 0;font-size:12px;line-height:1.8;background:#f8fafc;border:1px solid #C5A021;color:#001F3F}
+.admin-push-message.push-error{background:#fff1f2;border-color:#ef4444;color:#b91c1c}
