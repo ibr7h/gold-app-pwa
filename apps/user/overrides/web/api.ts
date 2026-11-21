@@ -109,4 +109,9 @@ export async function api<T=any>(path:string,options:RequestInit={}):Promise<T>{
   catch(retry){if(retry instanceof ApiError&&retry.status===401&&started===epoch)await clearSession();throw retry;}
  }
 }
+/** Invalidate this JWT session remotely before dropping the local token. */
+export async function revokeServerSession():Promise<void>{
+  if(!session?.accessToken)return;
+  await raw('/auth/logout',{method:'POST',keepalive:true},session.accessToken);
+}
 export const jsonRequest=(method:string,data?:object):RequestInit=>({method,...(data?{body:JSON.stringify(data)}:{})});
